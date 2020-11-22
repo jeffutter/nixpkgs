@@ -19,14 +19,6 @@ let
     ln -s ${pkgs.openssh}/bin/ssh-copy-id $out/bin/ssh-copy-id
   '';
 
-#  my_1password = pkgs._1password.overrideAttrs (old: rec {
-#   version = "1.0.0";
-#    src = pkgs.fetchurl {
-#        url = "https://cache.agilebits.com/dist/1P/op/pkg/v${version}/op_darwin_amd64_v${version}.pkg";
-#        sha256 = "1sb5qdssasqm7z7j4xzgkmkgf132zhgm93d7rkx3y5j0rac98y0g";
-#      };
-#  });
-
   blueutil = pkgs.callPackage pkgs/blueutil {};
   wrk2 = pkgs.callPackage pkgs/wrk2 {};
   goreleaser = pkgs.callPackage pkgs/goreleaser {};
@@ -43,7 +35,6 @@ in
     aspellDicts.en
     aspellDicts.en-computers
     autoconf
-#    autojump
 #    awscli2
 #    awslogs
     bash-completion
@@ -55,19 +46,14 @@ in
     bzip2
     comma
     curl
-#    direnv
     doctl
     duf
     elixir
     erlang_nox
     exa
 #    fwup
-#    fzf
     gawk
-#    gitAndTools.delta
-#    gitAndTools.diff-so-fancy
     gitAndTools.gh
-#    gitAndTools.gitFull
     gitAndTools.hub
     gnused
     gnupg
@@ -84,7 +70,6 @@ in
     lftp
 #    luarocks
     mosh
-#    my_1password
     my_vim_configurable
     ncdu
     neovim
@@ -101,10 +86,8 @@ in
     saml2aws
     silver-searcher
     ssh-copy-id
-#    starship
     tmate
     tmpmail
-#    tmux
 #    usql
     vips
     websocat
@@ -113,8 +96,6 @@ in
 #    wrk2
     xz
     yarn
-#    zoxide
-#    zsh
   ];
 
   nixpkgs.config.permittedInsecurePackages = [
@@ -170,28 +151,24 @@ in
       enable = true;
       options = {
         side-by-side = true;
-				line-numbers-left-format = "";
-				line-numbers-right-format = "│ ";
-				syntax-theme = "Nord";
+        line-numbers-left-format = "";
+        line-numbers-right-format = "│ ";
+        syntax-theme = "Nord";
       };
     };
     ignores = [
-			"DS_Store"
-			".DS_Store?"
-			"._*"
-			".Spotlight-V100"
-			".Trashes"
-			"ehthumbs.db"
-			"Thumbs.db"
-			"project-notes.org"
-			"project_notes.org"
-			".elixir_ls"
-			".vscode"
-		];
-    #signing = {
-    #  key = "jeff@jeffutter.com";
-    #  signByDefault = true;
-    #};
+      "DS_Store"
+      ".DS_Store?"
+      "._*"
+      ".Spotlight-V100"
+      ".Trashes"
+      "ehthumbs.db"
+      "Thumbs.db"
+      "project-notes.org"
+      "project_notes.org"
+      ".elixir_ls"
+      ".vscode"
+    ];
   };
 
   programs.alacritty = {
@@ -217,62 +194,62 @@ in
         };
         size = 11.0;
       };
-			colors = {
-				primary = {
-					background = "#2e3440";
-					foreground = "#d8dee9";
-					dim_foreground = "#a5abb6";
+      colors = {
+        primary = {
+          background = "#2e3440";
+          foreground = "#d8dee9";
+          dim_foreground = "#a5abb6";
         };
-				cursor = {
-					text = "#2e3440";
-					cursor = "#d8dee9";
+        cursor = {
+          text = "#2e3440";
+          cursor = "#d8dee9";
         };
-				vi_mode_cursor = {
-					text = "#2e3440";
-					cursor = "#d8dee9";
+        vi_mode_cursor = {
+          text = "#2e3440";
+          cursor = "#d8dee9";
         };
-				selection = {
-					text = "CellForeground";
-					background = "#4c566a";
+        selection = {
+          text = "CellForeground";
+          background = "#4c566a";
         };
-				search = {
-					matches = {
-						foreground = "CellBackground";
-						background = "#88c0d0";
+        search = {
+          matches = {
+            foreground = "CellBackground";
+            background = "#88c0d0";
           };
-					bar = {
-						background = "#434c5e";
-						foreground = "#d8dee9";
+          bar = {
+            background = "#434c5e";
+            foreground = "#d8dee9";
           };
         };
-				normal = {
-					black = "#3b4252";
-					red = "#bf616a";
-					green = "#a3be8c";
-					yellow = "#ebcb8b";
-					blue = "#81a1c1";
-					magenta = "#b48ead";
-					cyan = "#88c0d0";
-					white = "#e5e9f0";
+        normal = {
+          black = "#3b4252";
+          red = "#bf616a";
+          green = "#a3be8c";
+          yellow = "#ebcb8b";
+          blue = "#81a1c1";
+          magenta = "#b48ead";
+          cyan = "#88c0d0";
+          white = "#e5e9f0";
         };
-				bright = {
-					black = "#4c566a";
-					red = "#bf616a";
-					green = "#a3be8c";
-					yellow = "#ebcb8b";
-					blue = "#81a1c1";
-					magenta = "#b48ead";
-					cyan = "#8fbcbb";
-					white = "#eceff4";
+        bright = {
+          black = "#4c566a";
+          red = "#bf616a";
+          green = "#a3be8c";
+          yellow = "#ebcb8b";
+          blue = "#81a1c1";
+          magenta = "#b48ead";
+          cyan = "#8fbcbb";
+          white = "#eceff4";
         };
-				dim = {
-					black = "#373e4d";
-					red = "#94545d";
-					green = "#809575";
-					yellow = "#b29e75";
-					blue = "#68809a";
-					magenta = "#8c738c";
-					cyan = "#6d96a5";
+        dim = {
+          black = "#373e4d";
+          red = "#94545d";
+          green = "#809575";
+          yellow = "#b29e75";
+          blue = "#68809a";
+          magenta = "#8c738c";
+          cyan = "#6d96a5";
           white = "#aeb3bb";
         };
       };
