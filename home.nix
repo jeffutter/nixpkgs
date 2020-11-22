@@ -142,6 +142,20 @@ in
 
   home.file.".config/topgrade.toml".source = ./topgrade.toml;
 
+  home.file."bin/upgrade" = {
+    text = ''
+      #!env bash
+      set -x
+      set -eo pipefail
+
+      topgrade
+      brew cleanup
+      home-manager expire-generations "-1 week"
+      nix-collect-garbage --delete-older-than 7d
+    '';
+    executable = true;
+  };
+
   programs.git = {
     package = pkgs.gitAndTools.gitFull;
     enable = true;
@@ -270,6 +284,7 @@ in
     newSession = true;
     resizeAmount = 10;
     shortcut = "a";
+    terminal = "screen-256color";
     plugins = with pkgs.tmuxPlugins; [
       prefix-highlight
       yank
