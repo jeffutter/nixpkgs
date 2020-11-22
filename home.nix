@@ -37,11 +37,14 @@ in
     autoconf
 #    awscli2
 #    awslogs
+    bandwhich
     bash-completion
     bash_5
     bat
 #    blueutil
+    borgbackup
     bottom
+    broot
     brotli
     bzip2
     comma
@@ -51,6 +54,7 @@ in
     elixir
     erlang_nox
     exa
+    fd
 #    fwup
     gawk
     gitAndTools.gh
@@ -61,6 +65,7 @@ in
     goreleaser
     grex
     htop
+    hyperfine
     imagemagick
     ispell
     jq
@@ -86,6 +91,7 @@ in
     saml2aws
     silver-searcher
     ssh-copy-id
+    topgrade
     tmate
     tmpmail
 #    usql
@@ -133,6 +139,8 @@ in
     };
   };
   home.file.".spacemacs".source = ./spacemacs;
+
+  home.file.".config/topgrade.toml".source = ./topgrade.toml;
 
   programs.git = {
     package = pkgs.gitAndTools.gitFull;
@@ -281,6 +289,7 @@ in
     sessionVariables = {
       AWS_DEFAULT_REGION = "us-east-1";
       AWS_PAGER="";
+      EDITOR="vim";
     };
     envExtra = ''
       if [ -e /Users/jeffutter/.nix-profile/etc/profile.d/nix.sh ]; then . /Users/jeffutter/.nix-profile/etc/profile.d/nix.sh; fi # added by Nix installer
@@ -330,6 +339,13 @@ in
   programs.fzf = {
     enable = true;
     enableZshIntegration = true;
+    changeDirWidgetCommand = "fd --type d";
+    defaultCommand = "fd --type f";
+    fileWidgetCommand = "fd --type f";
+  };
+
+  home.sessionVariables = {
+    EDITOR = "vim";
   };
 
   # Home Manager needs a bit of information about you and the
