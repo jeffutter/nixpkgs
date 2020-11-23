@@ -49,7 +49,10 @@ This function should only modify configuration layer settings."
      helm
      lsp
      ;; markdown
+     mu4e
+     (mu4e :variables mu4e-installation-path "@mu4e_path@")
      multiple-cursors
+     notmuch
      ;; org
      ;; (shell :variables
      ;;        shell-default-height 30

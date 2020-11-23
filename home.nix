@@ -25,11 +25,13 @@ let
   usql = pkgs.callPackage pkgs/usql {};
   tmpmail = pkgs.callPackage pkgs/tmpmail {};
   duf = pkgs.callPackage pkgs/duf {};
+  oauth2py = pkgs.callPackage pkgs/oauth2.py {};
 
 in
 
 {
   home.packages = with pkgs; [
+    oauth2py
     _1password
     aspell
     aspellDicts.en
@@ -71,7 +73,7 @@ in
     jq
     k6
     kubectl
-#    kubernetes-helm
+    kubernetes-helm
     lftp
 #    luarocks
     mosh
@@ -138,7 +140,10 @@ in
       sha256 = "0yx25vw2lfkl2pcxm5wixbaximz4xydn00w4aww3i32xv4sg9lvz";
     };
   };
-  home.file.".spacemacs".source = ./spacemacs;
+  home.file.".spacemacs".source = pkgs.substituteAll {
+    src = ./spacemacs.el;
+    mu4e_path = "${pkgs.mu}/share/emacs/site-lisp/mu4e";
+  };
 
   home.file.".config/topgrade.toml".source = ./topgrade.toml;
 
@@ -595,6 +600,87 @@ set-option -g default-command "zsh"
     numeric = "en_US.UTF-8";
     time = "en_US.UTF-8";
   };
+
+  programs.mbsync.enable = true;
+  programs.msmtp.enable = true;
+  programs.mu.enable = true;
+  programs.notmuch = {
+    enable = true;
+    hooks = {
+      preNew = "mbsync --all";
+    };
+  };  
+
+  accounts.email.accounts = {
+    sadclown = {
+      address = "jeffutter@sadclown.net";
+      aliases = ["jeff@jeffutter.com"];
+      flavor = "plain";
+      imap = {
+        host = "imap.fastmail.com";
+        port = 993;
+        tls = {
+          enable = true;
+        };
+      };
+      mbsync = {
+        enable = true;
+        create = "maildir";
+        patterns = [ "*" "!Archives*" ];
+        extraConfig = {
+          channel = {
+            CopyArrivalDate = "yes";
+          };
+        };
+      };
+      msmtp = {
+        enable = true;
+      };
+      notmuch = {
+        enable = true;
+      };
+      mu = {
+        enable = true;
+      };
+      primary = true;
+      realName = "Jeffery Utter";
+      passwordCommand = "${pkgs._1password}/bin/op get item fastmail-mbsync --fields password";
+      smtp = {
+        host = "smtp.fastmail.com";
+        port = 465;
+      };
+      userName = "jeffutter@sadclown.net";
+    };
+    br = {
+      address = "jeff.utter@bleacherreport.com";
+      flavor = "gmail.com";
+      mbsync = {
+        enable = true;
+        create = "maildir";
+        extraConfig = {
+          channel = {
+            CopyArrivalDate = "yes";
+          };
+          account = {
+            AuthMechs = "XOAUTH2";
+          };
+        };
+      };
+      msmtp = {
+        enable = true;
+      };
+      notmuch = {
+        enable = true;
+      };
+      mu = {
+        enable = true;
+      };
+      realName = "Jeffery Utter";
+      passwordCommand = "${oauth2py}/bin/oauth2 --user=jeff.utter@bleacherreport.com --client_id= --client_secret= --quiet --refresh_token=''";
+      userName = "jeff.utter@bleacherreport.com";
+    };
+  };
+  accounts.email.certificatesFile = "${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt";
 
   # Home Manager needs a bit of information about you and the
   # paths it should manage.
