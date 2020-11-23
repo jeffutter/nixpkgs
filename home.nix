@@ -347,6 +347,11 @@ set-option -g default-command "zsh"
     '';
   };
 
+  programs.keychain = {
+    enable = true;
+    enableZshIntegration = true;
+  };
+
   programs.starship = {
     enable = true;
     enableZshIntegration = true;
