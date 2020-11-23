@@ -285,10 +285,13 @@ in
     resizeAmount = 10;
     shortcut = "a";
     terminal = "screen-256color";
+    extraConfig = ''
+set-option -g default-command "zsh"
+    '';
     plugins = with pkgs.tmuxPlugins; [
-      prefix-highlight
-      yank
       nord
+      yank
+      prefix-highlight
     ];
   };
 
@@ -307,6 +310,14 @@ in
       EDITOR="vim";
     };
     envExtra = ''
+      export LANG="en_US.UTF-8"
+      export LC_COLLATE="en_US.UTF-8"
+      export LC_CTYPE="en_US.UTF-8"
+      export LC_MESSAGES="en_US.UTF-8"
+      export LC_MONETARY="en_US.UTF-8"
+      export LC_NUMERIC="en_US.UTF-8"
+      export LC_TIME="en_US.UTF-8"
+      export LC_ALL="en_US.UTF-8"
       if [ -e /Users/jeffutter/.nix-profile/etc/profile.d/nix.sh ]; then . /Users/jeffutter/.nix-profile/etc/profile.d/nix.sh; fi # added by Nix installer
     '';
     initExtra = ''
