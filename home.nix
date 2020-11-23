@@ -341,8 +341,8 @@ set-option -g default-command "zsh"
       fi
 
       if [ "$(command -v duf)" ]; then
-        unalias -m 'du'
-        alias du='duf'
+        unalias -m 'df'
+        alias df='duf'
       fi
     '';
   };
