@@ -145,8 +145,6 @@ in
 
   home.file."Brewfile".source = ./Brewfile;
 
-  home.file.".config/karabiner/karabiner.json".source = ./karabiner.json;
-
   home.file."bin/upgrade" = {
     text = ''
       #!env bash
