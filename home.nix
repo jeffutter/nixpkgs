@@ -22,6 +22,7 @@ let
   blueutil = pkgs.callPackage pkgs/blueutil {};
   wrk2 = pkgs.callPackage pkgs/wrk2 {};
   goreleaser = pkgs.callPackage pkgs/goreleaser {};
+  k9s = pkgs.callPackage pkgs/k9s {};
   usql = pkgs.callPackage pkgs/usql {};
   tmpmail = pkgs.callPackage pkgs/tmpmail {};
   duf = pkgs.callPackage pkgs/duf {};
@@ -70,6 +71,7 @@ in
     ispell
     jq
     k6
+    k9s
     kubectl
     kubernetes-helm
     lftp
@@ -141,6 +143,8 @@ in
   home.file.".spacemacs".source = ./spacemacs.el;
 
   home.file.".config/topgrade.toml".source = ./topgrade.toml;
+
+  home.file."Brewfile".source = ./Brewfile;
 
   home.file."bin/upgrade" = {
     text = ''
