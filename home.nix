@@ -56,7 +56,6 @@ in
     erlang_nox
     exa
     fd
-#    fwup
     gawk
     gitAndTools.gh
     gitAndTools.hub
@@ -123,7 +122,7 @@ in
       owner = "SpaceVim";
       repo = "SpaceVim";
       rev = "a9e36e0e1a0837866883a127d005c2bb1963be12";
-      sha256 = "0ycirz60wsgxljwd58x3kxp6wl04iyycyfwd4ijrsyw4x968f3h4";
+      sha256 = "1nmdq5rs6sd21hll3ci31hqxkwqdprwj9yz81ins62r1l2b2vdjk";
     };
     onChange = "ln -sf $HOME/.SpaceVim $HOME/.vim";
   };

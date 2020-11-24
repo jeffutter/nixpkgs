@@ -10,7 +10,7 @@ stdenv.mkDerivation {
 
   src = fetchurl {
     url = "https://git.io/tmpmail";
-    sha256 = "1prqm099w8js4139xk5p1wm771zk0a06aq7bas1dhs8cbrj9z349";
+    sha256 = "17mvxbp3p1a6abc8nfdka56p8kj56bwqfaqiaadi017wvvp49gh4";
   };
 
   buildInputs = [ makeWrapper w3m-nox curl jq gawk ];
