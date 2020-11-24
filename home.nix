@@ -145,6 +145,8 @@ in
 
   home.file."Brewfile".source = ./Brewfile;
 
+  home.file.".config/karabiner/karabiner.json".source = ./karabiner.json;
+
   home.file."bin/upgrade" = {
     text = ''
       #!env bash
@@ -583,6 +585,28 @@ set-option -g default-command "zsh"
     changeDirWidgetCommand = "fd --type d";
     defaultCommand = "fd --type f";
     fileWidgetCommand = "fd --type f";
+  };
+
+  programs.ssh = {
+    enable = true;
+    extraOptionOverrides = {
+      StrictHostKeyChecking = "no";
+      userKnownHostsFile = "/dev/null";
+      IgnoreUnknown = "UseKeychain";
+      UseKeychain = "yes";
+      AddKeysToAgent = "yes";
+      identityFile = "~/.ssh/id_rsa";
+    };
+    matchBlocks = {
+      "borg" = {
+        host = "borg";
+        hostname = "192.168.10.8";
+        user = "borg-backup";
+        extraOptions = {
+          Ciphers = "3des-cbc";
+        };
+      };
+    };
   };
 
   home.sessionVariables = {
