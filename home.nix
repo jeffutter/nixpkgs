@@ -324,6 +324,7 @@ set-option -g default-command "zsh"
       export LC_TIME="en_US.UTF-8"
       export LC_ALL="en_US.UTF-8"
       if [ -e /Users/jeffutter/.nix-profile/etc/profile.d/nix.sh ]; then . /Users/jeffutter/.nix-profile/etc/profile.d/nix.sh; fi # added by Nix installer
+      export PATH=$HOME/bin:$PATH
     '';
     initExtra = ''
       setopt completealiases
@@ -349,6 +350,8 @@ set-option -g default-command "zsh"
         unalias -m 'df'
         alias df='duf'
       fi
+
+      export PATH=$HOME/bin:$PATH
     '';
   };
 
