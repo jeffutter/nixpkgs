@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, pkgs, lib, ... }:
 
 let
   my_vim_configurable = pkgs.vim_configurable.override {
@@ -193,6 +193,8 @@ in
       "project_notes.org"
       ".elixir_ls"
       ".vscode"
+      "shell.nix"
+      ".envrc"
     ];
   };
 
@@ -568,6 +570,46 @@ set-option -g default-command "zsh"
   programs.starship = {
     enable = true;
     enableZshIntegration = true;
+    settings = {
+      format = lib.strings.replaceStrings [ "\n" ] [ "" ] ''
+        $username
+        $hostname
+        $shlvl
+        $kubernetes
+        $directory
+        $git_branch
+        $git_commit
+        $git_state
+        $git_status
+        $hg_branch
+        $docker_context
+        $cmake
+        $elixir
+        $erlang
+        $golang
+        $helm
+        $nim
+        $nodejs
+        $ocaml
+        $ruby
+        $rust
+        $terraform
+        $zig
+        $nix_shell
+        $conda
+        $memory_usage
+        $env_var
+        $cmd_duration
+        $custom
+        $line_break
+        $lua
+        $jobs
+        $battery
+        $time
+        $status
+        $character
+      '';
+    };
   };
 
   programs.zoxide = {
