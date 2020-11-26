@@ -74,6 +74,7 @@ in
     kubectl
     kubernetes-helm
     lftp
+    lorri
 #    luarocks
     mosh
     my_vim_configurable
@@ -157,6 +158,35 @@ in
       nix-collect-garbage --delete-older-than 7d
     '';
     executable = true;
+  };
+
+  home.file."Library/LaunchAgents/com.github.target.lorri.plist" = {
+    text = ''
+      <?xml version="1.0" encoding="UTF-8"?>
+      <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+      <plist version="1.0">
+      <dict>
+	  <key>Label</key>
+	  <string>com.github.target.lorri</string>
+	  <key>ProgramArguments</key>
+	  <array>
+	      <string>/bin/zsh</string>
+	      <string>-i</string>
+	      <string>-c</string>
+	      <string>${pkgs.lorri}/bin/lorri daemon</string>
+	  </array>
+	  <key>StandardOutPath</key>
+	  <string>/var/tmp/lorri.log</string>
+	  <key>StandardErrorPath</key>
+	  <string>/var/tmp/lorri.log</string>
+	  <key>RunAtLoad</key>
+	  <true/>
+	  <key>KeepAlive</key>
+	  <true/>
+      </dict>
+      </plist>
+    '';
+    onChange = "launchctl load ~/Library/LaunchAgents/com.github.target.lorri.plist";
   };
 
   programs.git = {
@@ -609,6 +639,32 @@ set-option -g default-command "zsh"
         $status
         $character
       '';
+      aws.symbol = " ";
+      battery.full_symbol = "";
+      battery.charging_symbol = "";
+      battery.discharging_symbol = "";
+      conda.symbol = " ";
+      dart.symbol = " ";
+      docker.symbol = " ";
+      elixir.symbol = " ";
+      elm.symbol = " ";
+      git_branch.symbol = " ";
+      golang.symbol = " ";
+      haskell.symbol = " ";
+      hg_branch.symbol = " ";
+      java.symbol = " ";
+      julia.symbol = " ";
+      memory_usage.symbol = " ";
+      nim.symbol = " ";
+      nix_shell.symbol = " ";
+      node_js.symbol = " ";
+      package.symbol = " ";
+      perl.symbol = " ";
+      php.symbol = " ";
+      python.symbol = " ";
+      ruby.symbol = " ";
+      rust.symbol = " ";
+      swit.symbol = "ﯣ ";
     };
   };
 
