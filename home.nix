@@ -50,6 +50,7 @@ in
     bzip2
     comma
     curl
+    docker
     doctl
     duf
     elixir
