@@ -26,10 +26,15 @@ let
   usql = pkgs.callPackage pkgs/usql {};
   tmpmail = pkgs.callPackage pkgs/tmpmail {};
   duf = pkgs.callPackage pkgs/duf {};
+  mixOverlay = builtins.fetchGit { url = "https://github.com/hauleth/nix-elixir.git"; };
+  elixir-ls = with pkgs; (beam.packagesWith erlang).elixir-ls;
 
 in
-
 {
+  nixpkgs.overlays = [
+    (import mixOverlay)
+  ];
+
   home.packages = with pkgs; [
     _1password
     aspell
@@ -54,6 +59,7 @@ in
     doctl
     duf
     elixir
+    elixir-ls
     erlang_nox
     exa
     fd
@@ -141,7 +147,10 @@ in
       sha256 = "0yx25vw2lfkl2pcxm5wixbaximz4xydn00w4aww3i32xv4sg9lvz";
     };
   };
-  home.file.".spacemacs".source = ./spacemacs.el;
+  home.file.".spacemacs".source = pkgs.substituteAll {
+    src = ./spacemacs.el;
+    elixir_ls_path = "${elixir-ls}/lib/";
+  };
 
   home.file.".config/topgrade.toml".source = ./topgrade.toml;
 

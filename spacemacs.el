@@ -67,7 +67,8 @@ This function should only modify configuration layer settings."
    ;; To use a local version of a package, use the `:location' property:
    ;; '(your-package :location "~/path/to/your-package/")
    ;; Also include the dependencies as they will not be resolved automatically.
-   dotspacemacs-additional-packages '(nord-theme)
+   dotspacemacs-additional-packages '(nord-theme
+                                      direnv)
 
    ;; A list of packages that cannot be updated.
    dotspacemacs-frozen-packages '()
@@ -512,7 +513,7 @@ before packages are loaded."
     :hook
     (elixir-mode . lsp)
     :init
-    (add-to-list 'exec-path "/Users/jeffutter/src/elixir-ls/release"))
+    (add-to-list 'exec-path "@elixir_ls_path@"))
   '(lsp-ui-doc-enable nil t)
   (with-eval-after-load 'treemacs
     (add-to-list 'treemacs-pre-file-insert-predicates #'treemacs-is-file-git-ignored?))
