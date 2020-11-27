@@ -56,6 +56,7 @@ in
     comma
     curl
     docker
+    docker-compose
     doctl
     duf
     elixir
@@ -364,7 +365,7 @@ set-option -g default-command "zsh"
       export LC_TIME="en_US.UTF-8"
       export LC_ALL="en_US.UTF-8"
       if [ -e /Users/jeffutter/.nix-profile/etc/profile.d/nix.sh ]; then . /Users/jeffutter/.nix-profile/etc/profile.d/nix.sh; fi # added by Nix installer
-      export PATH=$HOME/bin:$PATH
+      export PATH=$HOME/bin:$PATH:/Applications/Docker.app/Contents/Resources/bin
     '';
     initExtra = ''
       setopt completealiases
@@ -391,7 +392,7 @@ set-option -g default-command "zsh"
         alias df='duf'
       fi
 
-      export PATH=$HOME/bin:$PATH
+      export PATH=$HOME/bin:$PATH:/Applications/Docker.app/Contents/Resources/bin
     '';
   };
 
