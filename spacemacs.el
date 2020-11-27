@@ -513,7 +513,7 @@ before packages are loaded."
     :hook
     (elixir-mode . lsp)
     :init
-    (add-to-list 'exec-path "@elixir_ls_path@"))
+    (add-to-list 'exec-path "/Users/jeffutter/src/elixir-ls/release"))
   '(lsp-ui-doc-enable nil t)
   (with-eval-after-load 'treemacs
     (add-to-list 'treemacs-pre-file-insert-predicates #'treemacs-is-file-git-ignored?))
