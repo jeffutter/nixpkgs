@@ -36,8 +36,8 @@ in
     aspellDicts.en
     aspellDicts.en-computers
     autoconf
-#    awscli2
-#    awslogs
+    awscli2
+    awslogs
     bandwhich
     bash-completion
     bash_5
