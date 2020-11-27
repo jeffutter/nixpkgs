@@ -1,4 +1,4 @@
-{ config, pkgs, lib, ... }:
+{ config, pkgs, lib, mkIf, ... }:
 
 let
   my_vim_configurable = pkgs.vim_configurable.override {
@@ -55,6 +55,7 @@ in
     doctl
     duf
     elixir
+    emacsMacport
     erlang_nox
     exa
     fd
@@ -116,6 +117,14 @@ in
 
   # Let Home Manager install and manage itself.
   programs.home-manager.enable = true;
+
+  home.file."Applications/home-manager".source = let
+  apps = pkgs.buildEnv {
+    name = "home-manager-applications";
+    paths = config.home.packages;
+    pathsToLink = "/Applications";
+  };
+  in lib.mkIf pkgs.stdenv.targetPlatform.isDarwin "${apps}/Applications";
 
   home.file.".SpaceVim" = {
     # don't make the directory read only so that impure melpa can still happen
