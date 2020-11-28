@@ -54,6 +54,7 @@ in
     docker
     docker-compose
     doctl
+    du-dust
     duf
     elixir
     elixir-ls
@@ -98,11 +99,13 @@ in
     saml2aws
     silver-searcher
     ssh-copy-id
+    tarsnap
     topgrade
     tmate
     tmpmail
 #    usql
     vips
+    wavpack
     websocat
     wget
 #    wrk
