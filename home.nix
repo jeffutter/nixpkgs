@@ -27,6 +27,7 @@ let
   tmpmail = pkgs.callPackage pkgs/tmpmail {};
   duf = pkgs.callPackage pkgs/duf {};
   elixir-ls = pkgs.callPackage pkgs/elixir-ls {};
+  my_wakeonlan = pkgs.callPackage pkgs/wakeonlan {};
 
 in
 
@@ -105,6 +106,7 @@ in
     tmpmail
 #    usql
     vips
+    my_wakeonlan
     wavpack
     websocat
     wget
