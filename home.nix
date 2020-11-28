@@ -26,6 +26,7 @@ let
   usql = pkgs.callPackage pkgs/usql {};
   tmpmail = pkgs.callPackage pkgs/tmpmail {};
   duf = pkgs.callPackage pkgs/duf {};
+  elixir-ls = pkgs.callPackage pkgs/elixir-ls {};
 
 in
 
@@ -55,6 +56,7 @@ in
     doctl
     duf
     elixir
+    elixir-ls
     emacsMacport
     erlang_nox
     exa
@@ -118,13 +120,18 @@ in
   # Let Home Manager install and manage itself.
   programs.home-manager.enable = true;
 
-  home.file."Applications/home-manager".source = let
-  apps = pkgs.buildEnv {
-    name = "home-manager-applications";
-    paths = config.home.packages;
-    pathsToLink = "/Applications";
-  };
-  in lib.mkIf pkgs.stdenv.targetPlatform.isDarwin "${apps}/Applications";
+  home.file."Applications" =
+    let
+      apps = pkgs.buildEnv {
+        name = "home-manager-applications";
+        paths = config.home.packages;
+        pathsToLink = "/Applications";
+      };
+    in
+      lib.mkIf pkgs.stdenv.targetPlatform.isDarwin {
+        source = "${apps}/Applications";
+        recursive = true;
+      };
 
   home.file.".SpaceVim" = {
     # don't make the directory read only so that impure melpa can still happen
@@ -151,7 +158,10 @@ in
       sha256 = "0yx25vw2lfkl2pcxm5wixbaximz4xydn00w4aww3i32xv4sg9lvz";
     };
   };
-  home.file.".spacemacs".source = ./spacemacs.el;
+  home.file.".spacemacs".source = pkgs.substituteAll {
+    src = ./spacemacs.el;
+    elixir_ls_path = "${elixir-ls}/bin/";
+  };
 
   home.file.".config/topgrade.toml".source = ./topgrade.toml;
 
