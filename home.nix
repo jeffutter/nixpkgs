@@ -392,8 +392,6 @@ set-option -g default-command "zsh"
     initExtra = ''
       setopt completealiases
 
-      if [ -e /Users/jeffutter/.nix-profile/etc/profile.d/nix.sh ]; then . /Users/jeffutter/.nix-profile/etc/profile.d/nix.sh; fi # added by Nix installer
-
       if [ "$(command -v exa)" ]; then
           unalias -m 'll'
           unalias -m 'l'
@@ -413,10 +411,6 @@ set-option -g default-command "zsh"
         unalias -m 'df'
         alias df='duf'
       fi
-
-      export PATH=$HOME/bin:$PATH:/usr/local/bin:/Applications/Docker.app/Contents/Resources/bin
-      export fpath=( ~/.zfunc "''${fpath[@]}" )
-      autoload -U $fpath[1]/*(:t)
     '';
   };
 
