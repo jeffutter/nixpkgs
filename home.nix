@@ -125,6 +125,11 @@ in
   # Let Home Manager install and manage itself.
   programs.home-manager.enable = true;
 
+  home.file.".zfunc" = {
+    source = ./zfunc;
+    recursive = true;
+  };
+
   home.file."Applications" =
     let
       apps = pkgs.buildEnv {
@@ -192,23 +197,23 @@ in
       <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
       <plist version="1.0">
       <dict>
-	  <key>Label</key>
-	  <string>com.github.target.lorri</string>
-	  <key>ProgramArguments</key>
-	  <array>
-	      <string>/bin/zsh</string>
-	      <string>-i</string>
-	      <string>-c</string>
-	      <string>${pkgs.lorri}/bin/lorri daemon</string>
-	  </array>
-	  <key>StandardOutPath</key>
-	  <string>/var/tmp/lorri.log</string>
-	  <key>StandardErrorPath</key>
-	  <string>/var/tmp/lorri.log</string>
-	  <key>RunAtLoad</key>
-	  <true/>
-	  <key>KeepAlive</key>
-	  <true/>
+    <key>Label</key>
+    <string>com.github.target.lorri</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/zsh</string>
+        <string>-i</string>
+        <string>-c</string>
+        <string>${pkgs.lorri}/bin/lorri daemon</string>
+    </array>
+    <key>StandardOutPath</key>
+    <string>/var/tmp/lorri.log</string>
+    <key>StandardErrorPath</key>
+    <string>/var/tmp/lorri.log</string>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
       </dict>
       </plist>
     '';
@@ -381,6 +386,8 @@ set-option -g default-command "zsh"
       export LC_ALL="en_US.UTF-8"
       if [ -e /Users/jeffutter/.nix-profile/etc/profile.d/nix.sh ]; then . /Users/jeffutter/.nix-profile/etc/profile.d/nix.sh; fi # added by Nix installer
       export PATH=$HOME/bin:$PATH:/usr/local/bin:/Applications/Docker.app/Contents/Resources/bin
+      export fpath=( ~/.zfunc "''${fpath[@]}" )
+      autoload -U $fpath[1]/*(:t)
     '';
     initExtra = ''
       setopt completealiases
@@ -408,6 +415,8 @@ set-option -g default-command "zsh"
       fi
 
       export PATH=$HOME/bin:$PATH:/usr/local/bin:/Applications/Docker.app/Contents/Resources/bin
+      export fpath=( ~/.zfunc "''${fpath[@]}" )
+      autoload -U $fpath[1]/*(:t)
     '';
   };
 

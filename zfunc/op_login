@@ -1,0 +1,24 @@
+SESSION_FILE="$HOME/.op_session_my"
+EXPIRES_FILE="$HOME/.op_session_my_expires_at"
+
+if [[
+     ! -f "$SESSION_FILE"
+     || -z "$(cat "$SESSION_FILE")"
+     || ! -f "$EXPIRES_FILE"
+     || $(($(cat "$EXPIRES_FILE") - $(date +%s))) -lt 0
+   ]]; then
+  echo "Refreshing 1password" > /dev/tty
+
+  TOKEN=$(command op signin my --raw)
+
+  exit_status=$?
+  if [ $exit_status -ne 0 ]; then
+    echo "Invalid 1password login" 1>&2
+    exit $exit_status
+  fi
+
+  echo $TOKEN > "$SESSION_FILE"
+  # Tokens expire in 30 minutes
+  # 1780 = 60 seconds * 30 minutes - 120 seconds
+  echo $(($(date +%s) + 1780)) > "$EXPIRES_FILE"
+fi
