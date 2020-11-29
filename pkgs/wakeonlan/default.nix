@@ -1,32 +1,25 @@
-{ stdenv, lib, fetchFromGitHub, nim }:
+{ stdenv, lib, fetchFromGitHub, rustPlatform }:
 
 let
   pname = "wakeonlan";
+  version = "0.0.1"; 
 in
 
-stdenv.mkDerivation {
-  name = pname;
+rustPlatform.buildRustPackage rec {
+  name = "${pname}-${version}";
 
   src = fetchFromGitHub {
     owner = "jeffutter";
-    repo = "wakeonlan";
-    rev = "0549b96546d48e3d2cbc9b392349feb98e4deb82";
-    sha256 = "0scnq0qb9s9xbx24sbah2k9zzwc3j1b6nwrbl30q4v0xbaiqj07a";
+    repo = "wakeonlan-rust";
+    rev = "f24c357619e958a2fdc5deae289ff532ba1f4551";
+    sha256 = "17kikqjysd752dxray8pxmvcw18m1045y4ajl5npmip77wz58fzr";
   };
-
-  buildInputs = [ nim ];
-
-  buildPhase = ''
-    nim --nimcache=$TMPDIR c -d:release wakeonlan.nim
-  '';
-
-  installPhase = ''
-    install -D -m 0555 wakeonlan $out/bin/wakeonlan
-  '';
+    
+  cargoSha256 = "1n0scdjdgn9npivyi8x5cv8idxshmk3n0qra7za6a7g3v4n1yhhn";
 
   meta = with lib; {
-    description = "Simple wake-on-lan program written in Nim";
-    homepage = "https://github.com/jeffutter/wakeonlan";
+    description = "Simple wake-on-lan program written in Rust";
+    homepage = "https://github.com/jeffutter/wakeonlan-rust";
     license = licenses.asl20;
     platforms = platforms.unix;
     hydraPlatforms = [];
