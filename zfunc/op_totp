@@ -1,2 +1,2 @@
 ITEM=$(op get item "$@")
-echo "${ITEM]" | op get totp - 
+echo "${ITEM}" | op get totp - 
