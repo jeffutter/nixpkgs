@@ -355,7 +355,8 @@ set-option -g default-command "zsh"
       export LC_TIME="en_US.UTF-8"
       export LC_ALL="en_US.UTF-8"
       if [ -e /Users/jeffutter/.nix-profile/etc/profile.d/nix.sh ]; then . /Users/jeffutter/.nix-profile/etc/profile.d/nix.sh; fi # added by Nix installer
-      export PATH=$HOME/bin:$PATH:/usr/local/bin:/Applications/Docker.app/Contents/Resources/bin
+      export PATH=$HOME/bin:$HOME/homebrew/bin:$PATH:/usr/local/bin:/Applications/Docker.app/Contents/Resources/bin
+      export HOMEBREW_CASK_OPTS="--appdir=$HOME/Applications"
       export fpath=( ~/.zfunc "''${fpath[@]}" )
       autoload -U $fpath[1]/*(:t)
     '';
