@@ -48,6 +48,7 @@ This function should only modify configuration layer settings."
      git
      helm
      lsp
+     ocaml
      ;; markdown
      multiple-cursors
      ;; org

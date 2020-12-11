@@ -88,6 +88,17 @@ in
     ncdu
     neovim
     ngrok
+    ocaml
+    ocamlPackages.base
+    ocamlPackages.core
+    ocamlPackages.core_kernel
+    ocamlPackages.findlib
+    ocamlPackages.merlin
+    ocamlPackages.ocaml-lsp
+    ocamlPackages.ocp-indent
+    ocamlPackages.utop
+    ocamlformat
+    opam
     p7zip
     platinum-searcher
     postgresql
