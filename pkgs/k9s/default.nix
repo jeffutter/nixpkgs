@@ -2,7 +2,7 @@
 
 let
   pname = "k9s";
-  version = "0.24.1";
+  version = "0.24.2";
 in
 
 stdenv.mkDerivation {
