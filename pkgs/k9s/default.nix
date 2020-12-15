@@ -10,7 +10,7 @@ stdenv.mkDerivation {
 
   src = fetchurl {
     url = "https://github.com/derailed/k9s/releases/download/v${version}/k9s_Darwin_x86_64.tar.gz";
-    sha256 = "1p8zzrbi8565664jcjyihgzvgx46whil2ljml38crz79riv8px55";
+    sha256 = "180d3qhby8xmjvijc5qhgzk0xqk51i8afxxyy3dljrqvq4m8bjj6";
   };
 
   unpackPhase = ''
