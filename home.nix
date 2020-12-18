@@ -717,6 +717,21 @@ set-option -g default-command "zsh"
           Ciphers = "3des-cbc";
         };
       };
+      "laptop" = {
+        host = "laptop";
+        hostname = "192.168.10.9";
+        user = "jeffutter";
+      };
+      "old-laptop" = {
+        host = "old-laptop";
+        hostname = "192.168.10.7";
+        user = "jeffutter";
+      };
+      "work" = {
+        host = "work";
+        hostname = "192.168.10.6";
+        user = "jeffutter";
+      };
     };
   };
 
