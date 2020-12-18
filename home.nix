@@ -107,6 +107,7 @@ in
     pv
     redis
     ripgrep
+    ruplacer
     rustc
     saml2aws
     silver-searcher
