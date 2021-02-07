@@ -51,9 +51,9 @@ cask "visual-studio-code"
 cask "webex-meetings"
 cask "wireshark"
 mas "Amphetamine", id: 937984704
+mas "Bear", id: 1091189122
 mas "GIF Brewery 3", id: 1081413713
 mas "GIPHY CAPTURE", id: 668208984
-mas "iReal Pro", id: 409035833
 mas "Keynote", id: 409183694
 mas "Moom", id: 419330170
 mas "NordVPN IKE", id: 1116599239
@@ -67,3 +67,4 @@ mas "Vimari", id: 1480933944
 mas "Wallcat", id: 1000397973
 mas "Webcam Settings", id: 533696630
 mas "WireGuard", id: 1451685025
+mas "iReal Pro", id: 409035833
