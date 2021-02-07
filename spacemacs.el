@@ -37,6 +37,7 @@ This function should only modify configuration layer settings."
      lua
      elixir
      (elixir :variables elixir-backend 'lsp)
+     typescript
      ;; ----------------------------------------------------------------
      ;; Example of useful layers you may want to use right away.
      ;; Uncomment some layer names and press `SPC f e R' (Vim style) or
