@@ -2,7 +2,7 @@
 
 let
   pname = "duf";
-  version = "0.5.0";
+  version = "0.6.0";
 in
 
 stdenv.mkDerivation {
@@ -10,7 +10,7 @@ stdenv.mkDerivation {
 
   src = fetchurl {
     url = "https://github.com/muesli/duf/releases/download/v${version}/duf_${version}_Darwin_x86_64.tar.gz";
-    sha256 = "0i66w27ysvwkwaikm0b1ixd3skca59pfy7fflxwzq72qdhq5343n";
+    sha256 = "1b2vf98a5i3dgyrqsdaf75la6zfdl049fc6wj2ybxzgm4w9ib10a";
   };
 
   unpackPhase = ''

@@ -2,7 +2,7 @@
 
 let
   pname = "tmpmail";
-  version = "1.0.3";
+  version = "1.1.7";
 in
 
 stdenv.mkDerivation {
