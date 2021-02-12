@@ -176,7 +176,7 @@ in
     source = pkgs.fetchFromGitHub {
       owner = "syl20bnr";
       repo = "spacemacs";
-      rev = "e3b6464649b28f5cc048f78ace825256615814f9";
+      rev = "3acf188bad47cab05eefaba1943a748c74015af9";
       sha256 = "0yx25vw2lfkl2pcxm5wixbaximz4xydn00w4aww3i32xv4sg9lvz";
     };
   };
