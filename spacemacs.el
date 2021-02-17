@@ -50,6 +50,7 @@ This function should only modify configuration layer settings."
      helm
      lsp
      ocaml
+     protobuf
      ;; markdown
      multiple-cursors
      ;; org
