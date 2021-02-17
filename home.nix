@@ -1,6 +1,8 @@
 { config, pkgs, lib, mkIf, ... }:
 
 let
+  inherit (pkgs.lib) optional optionals;
+
   my_vim_configurable = pkgs.vim_configurable.override {
     python = pkgs.python3;
     guiSupport = "off";
@@ -126,7 +128,10 @@ in
 #    wrk2
     xz
     yarn
-  ];
+  ]
+  ++ optional stdenv.isLinux inotify-tools
+  ++ optionals stdenv.isDarwin (with darwin.apple_sdk.frameworks; [ CoreFoundation CoreServices ])
+  ;
 
   nixpkgs.config.permittedInsecurePackages = [
     "p7zip-16.02"
@@ -369,6 +374,7 @@ set-option -g default-command "zsh"
       if [ -e /Users/jeffutter/.nix-profile/etc/profile.d/nix.sh ]; then . /Users/jeffutter/.nix-profile/etc/profile.d/nix.sh; fi # added by Nix installer
       export PATH=$HOME/bin:$HOME/homebrew/bin:$PATH:/usr/local/bin:/Applications/Docker.app/Contents/Resources/bin
       export HOMEBREW_CASK_OPTS="--appdir=$HOME/Applications"
+      export ERL_AFLAGS="-kernel shell_history enabled"
       export fpath=( ~/.zfunc "''${fpath[@]}" )
       autoload -U $fpath[1]/*(:t)
     '';
