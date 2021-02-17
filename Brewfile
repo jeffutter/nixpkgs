@@ -50,6 +50,7 @@ cask "vanilla"
 cask "visual-studio-code"
 cask "webex-meetings"
 cask "wireshark"
+cask "zoom"
 mas "Amphetamine", id: 937984704
 mas "Bear", id: 1091189122
 mas "GIF Brewery 3", id: 1081413713
