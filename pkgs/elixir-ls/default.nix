@@ -2,7 +2,7 @@
 
 let
   pname = "elixir-ls";
-  version = "0.6.2";
+  version = "0.6.5";
 in
 
 stdenv.mkDerivation {
@@ -12,7 +12,7 @@ stdenv.mkDerivation {
     owner = "elixir-lsp";
     repo = "elixir-ls";
     rev = "v${version}";
-    sha256 = "046c6jh8wqr33kq0ggvdmq6sjg07r2pqis1rpyjj94r5s9k9pn8a";
+    sha256 = "0ri70d2dm9cc2vswh4mppn14yx460721s0kqc9cgzx56ppy0rkfw";
   };
 
   buildInputs = with pkgs; with beamPackages; [ hex elixir erlang git cacert ];
