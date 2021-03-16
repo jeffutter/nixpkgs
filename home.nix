@@ -69,7 +69,6 @@ in
     duf
     elixir
     elixir-ls
-    emacsGit
     erlang_nox
     exa
     fd
@@ -207,6 +206,14 @@ in
       lorri_path = pkgs.lorri;
     };
     onChange = "launchctl load ~/Library/LaunchAgents/com.github.target.lorri.plist";
+  };
+
+  programs.emacs = {
+    enable = true;
+    package = pkgs.emacsGit;
+    extraPackages = epkgs: with epkgs; [
+      vterm
+    ];
   };
 
   programs.git = {
