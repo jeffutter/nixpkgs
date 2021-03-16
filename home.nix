@@ -21,6 +21,10 @@ let
     ln -s ${pkgs.openssh}/bin/ssh-copy-id $out/bin/ssh-copy-id
   '';
 
+  emacs-overlay = import (builtins.fetchTarball {
+    url = https://github.com/nix-community/emacs-overlay/archive/master.tar.gz;
+  });
+
   blueutil = pkgs.callPackage pkgs/blueutil {};
   wrk2 = pkgs.callPackage pkgs/wrk2 {};
   goreleaser = pkgs.callPackage pkgs/goreleaser {};
@@ -34,6 +38,10 @@ let
 in
 
 {
+  nixpkgs = {
+    overlays = [ emacs-overlay ];
+  };
+
   home.packages = with pkgs; [
     _1password
     aspell
@@ -61,7 +69,7 @@ in
     duf
     elixir
     elixir-ls
-    emacsMacport
+    emacsGit
     erlang_nox
     exa
     fd
