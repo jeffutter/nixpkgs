@@ -174,20 +174,14 @@ in
   };
   home.file.".SpaceVim.d/init.toml".source = ./space_vim.toml;
 
-  home.file.".emacs.d" = {
-    # don't make the directory read only so that impure melpa can still happen
-    # for now
-    recursive = true;
-    source = pkgs.fetchFromGitHub {
-      owner = "syl20bnr";
-      repo = "spacemacs";
-      rev = "b7cbcb5ed5741fbe289a99efaed0350812ed85ad";
-      sha256 = "0y05y5rn6z4fkchdfcg536zxwmgvc0isxprq7dyb6aq9r5dxd9w1";
-    };
-  };
   home.file.".spacemacs".source = pkgs.substituteAll {
     src = ./spacemacs.el;
     elixir_ls_path = "${elixir-ls}/bin/";
+  };
+  home.file.".doom.d" = {
+    source = ./doom.d;
+    recursive = true;
+    onChange = builtins.readFile ./doom-setup.sh;
   };
 
   home.file.".config/topgrade.toml".source = ./topgrade.toml;
