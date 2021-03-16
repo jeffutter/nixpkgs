@@ -354,7 +354,7 @@ set-option -g default-command "zsh"
     enable = true;
     oh-my-zsh = {
       enable = true;
-      plugins = ["git" "docker" "mosh" "kubectl" "emacs" "osx" "vi-mode"];
+      plugins = ["git" "docker" "mosh" "kubectl" "osx" "vi-mode"];
     };
     shellAliases = {
       dc = "docker-compose";
