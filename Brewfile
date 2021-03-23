@@ -32,7 +32,6 @@ cask "karabiner-elements"
 cask "muzzle"
 cask "ngrok"
 cask "notion"
-cask "obsidian"
 cask "paw"
 cask "postico"
 cask "reaper"
@@ -63,7 +62,6 @@ mas "Save to Pocket", id: 1477385213
 mas "Serial", id: 877615577
 mas "Todoist", id: 585829637
 mas "Twitter", id: 409789998
-mas "Ulysses", id: 1225570693
 mas "Vimari", id: 1480933944
 mas "Wallcat", id: 1000397973
 mas "Webcam Settings", id: 533696630
