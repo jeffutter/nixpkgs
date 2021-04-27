@@ -32,6 +32,7 @@ let
   usql = pkgs.callPackage pkgs/usql {};
   tmpmail = pkgs.callPackage pkgs/tmpmail {};
   duf = pkgs.callPackage pkgs/duf {};
+  my_topgrade = pkgs.callPackage pkgs/topgrade {};
   elixir-ls = pkgs.callPackage pkgs/elixir-ls {};
   my_wakeonlan = pkgs.callPackage pkgs/wakeonlan {};
 
@@ -122,14 +123,14 @@ in
     silver-searcher
     ssh-copy-id
     tarsnap
-    topgrade
+    my_topgrade
     tmate
     tmpmail
 #    usql
     vips
     my_wakeonlan
     wavpack
-    websocat
+#    websocat
     wget
 #    wrk
 #    wrk2
