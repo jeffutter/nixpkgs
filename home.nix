@@ -33,7 +33,7 @@ let
   tmpmail = pkgs.callPackage pkgs/tmpmail {};
   duf = pkgs.callPackage pkgs/duf {};
   my_topgrade = pkgs.callPackage pkgs/topgrade {};
-  elixir-ls = pkgs.callPackage pkgs/elixir-ls {};
+  # elixir-ls = pkgs.callPackage pkgs/elixir-ls {};
   my_wakeonlan = pkgs.callPackage pkgs/wakeonlan {};
 
 in
@@ -69,7 +69,7 @@ in
     du-dust
     duf
     elixir
-    elixir-ls
+    elixir_ls
     erlang_nox
     exa
     fd
@@ -184,7 +184,7 @@ in
 
   home.file.".spacemacs".source = pkgs.substituteAll {
     src = ./spacemacs.el;
-    elixir_ls_path = "${elixir-ls}/bin/";
+    # elixir_ls_path = "${elixir-ls}/bin/";
   };
   home.file.".doom.d" = {
     source = ./doom.d;

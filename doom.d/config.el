@@ -104,7 +104,10 @@
   :diminish lsp-mode
   :hook
   (elixir-mode . lsp)
-  (sqls . lsp))
+  (sqls . lsp)
+  :init
+  (setq lsp-clients-elixir-server-executable "elixir-ls")
+  )
   ;; :init
   ;; (add-to-list 'exec-path "~/elixir-ls/release/"))
 
