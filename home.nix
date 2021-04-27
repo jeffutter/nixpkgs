@@ -211,7 +211,7 @@ in
 
   programs.emacs = {
     enable = true;
-    package = pkgs.emacsGit;
+    package = (pkgs.emacsGit.override { nativeComp = true; });
     extraPackages = epkgs: with epkgs; [
       vterm
     ];
@@ -349,6 +349,7 @@ in
     shortcut = "a";
     terminal = "screen-256color";
     extraConfig = ''
+set-option -g mouse off
 set-option -g default-command "zsh"
     '';
     plugins = with pkgs.tmuxPlugins; [
@@ -673,26 +674,26 @@ set-option -g default-command "zsh"
       battery.discharging_symbol = "";
       conda.symbol = " ";
       dart.symbol = " ";
-      docker.symbol = " ";
+      docker_context.symbol = " ";
       elixir.symbol = " ";
       elm.symbol = " ";
       git_branch.symbol = " ";
       golang.symbol = " ";
-      haskell.symbol = " ";
+      # haskell.symbol = " ";
       hg_branch.symbol = " ";
       java.symbol = " ";
       julia.symbol = " ";
       memory_usage.symbol = " ";
       nim.symbol = " ";
       nix_shell.symbol = " ";
-      node_js.symbol = " ";
+      nodejs.symbol = " ";
       package.symbol = " ";
       perl.symbol = " ";
       php.symbol = " ";
       python.symbol = " ";
       ruby.symbol = " ";
       rust.symbol = " ";
-      swit.symbol = "ﯣ ";
+      swift.symbol = "ﯣ ";
     };
   };
 
