@@ -33,7 +33,6 @@ let
   tmpmail = pkgs.callPackage pkgs/tmpmail {};
   duf = pkgs.callPackage pkgs/duf {};
   my_topgrade = pkgs.callPackage pkgs/topgrade {};
-  # elixir-ls = pkgs.callPackage pkgs/elixir-ls {};
   my_wakeonlan = pkgs.callPackage pkgs/wakeonlan {};
 
 in
@@ -182,10 +181,6 @@ in
   };
   home.file.".SpaceVim.d/init.toml".source = ./space_vim.toml;
 
-  home.file.".spacemacs".source = pkgs.substituteAll {
-    src = ./spacemacs.el;
-    # elixir_ls_path = "${elixir-ls}/bin/";
-  };
   home.file.".doom.d" = {
     source = ./doom.d;
     recursive = true;
