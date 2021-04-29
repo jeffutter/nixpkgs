@@ -713,6 +713,7 @@ set-option -g default-command "zsh"
   programs.ssh = {
     enable = true;
     extraOptionOverrides = {
+      RequestTTY = "yes";
       StrictHostKeyChecking = "no";
       userKnownHostsFile = "/dev/null";
       IgnoreUnknown = "UseKeychain";
