@@ -90,7 +90,6 @@ in
     kubectl
     kubernetes-helm
     lftp
-    lorri
 #    luarocks
     mosh
     my_vim_configurable
@@ -196,14 +195,6 @@ in
     executable = true;
   };
 
-  home.file."Library/LaunchAgents/com.github.target.lorri.plist" = {
-    source = pkgs.substituteAll {
-      src = LaunchAgents/com.github.target.lorri.plist;
-      lorri_path = pkgs.lorri;
-    };
-    onChange = "launchctl load ~/Library/LaunchAgents/com.github.target.lorri.plist";
-  };
-
   programs.emacs = {
     enable = true;
     package = (pkgs.emacsGit.override { nativeComp = true; });
@@ -248,6 +239,7 @@ in
       ".vscode"
       "shell.nix"
       ".envrc"
+      ".direnv"
     ];
   };
 
@@ -700,6 +692,7 @@ set-option -g default-command "zsh"
   programs.direnv = {
     enable = true;
     enableZshIntegration = true;
+    enableNixDirenvIntegration = true;
   };
 
   programs.fzf = {
