@@ -706,7 +706,6 @@ set-option -g default-command "zsh"
   programs.ssh = {
     enable = true;
     extraOptionOverrides = {
-      RequestTTY = "yes";
       StrictHostKeyChecking = "no";
       userKnownHostsFile = "/dev/null";
       IgnoreUnknown = "UseKeychain";
@@ -727,16 +726,25 @@ set-option -g default-command "zsh"
         host = "laptop";
         hostname = "192.168.10.9";
         user = "jeffutter";
+        extraOptions = {
+          RequestTTY = "yes";
+        };
       };
       "old-laptop" = {
         host = "old-laptop";
         hostname = "192.168.10.7";
         user = "jeffutter";
+        extraOptions = {
+          RequestTTY = "yes";
+        };
       };
       "work" = {
         host = "work";
         hostname = "192.168.10.6";
         user = "jeffutter";
+        extraOptions = {
+          RequestTTY = "yes";
+        };
       };
     };
   };
