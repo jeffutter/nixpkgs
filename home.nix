@@ -63,7 +63,6 @@ in
     comma
     curl
     docker
-    docker-compose
     doctl
     du-dust
     duf
@@ -353,7 +352,7 @@ set-option -g default-command "zsh"
       plugins = ["git" "docker" "mosh" "kubectl" "osx" "vi-mode"];
     };
     shellAliases = {
-      dc = "docker-compose";
+      dc = "docker compose";
     };
     sessionVariables = {
       AWS_DEFAULT_REGION = "us-east-1";
