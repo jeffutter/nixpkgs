@@ -106,7 +106,7 @@
   (elixir-mode . lsp)
   (sqls . lsp)
   :init
-  (setq lsp-clients-elixir-server-executable "elixir-ls")
+  (setq lsp-clients-elixir-server-command "elixir-ls")
   )
   ;; :init
   ;; (add-to-list 'exec-path "~/elixir-ls/release/"))
