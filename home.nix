@@ -691,7 +691,9 @@ set-option -g default-command "zsh"
   programs.direnv = {
     enable = true;
     enableZshIntegration = true;
-    enableNixDirenvIntegration = true;
+    nix-direnv = {
+      enable = true;
+    };
   };
 
   programs.fzf = {
