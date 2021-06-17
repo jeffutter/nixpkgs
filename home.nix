@@ -95,6 +95,7 @@ in
     ncdu
     neovim
     ngrok
+    nodePackages.bash-language-server
     ocaml
     ocamlPackages.base
     ocamlPackages.core
