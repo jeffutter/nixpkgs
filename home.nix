@@ -118,6 +118,7 @@ in
     ruplacer
     rustc
     saml2aws
+    shellcheck
     silver-searcher
     ssh-copy-id
     tarsnap
