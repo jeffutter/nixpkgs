@@ -79,6 +79,9 @@
     :return "return"))
     ;; :yield "use"))
 
+(after! sh-mode
+  (set-ligatures! 'sh-mode))
+
 (plist-put! +ligatures-extra-symbols
             :pipe "▷")
 

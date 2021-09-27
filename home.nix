@@ -121,6 +121,7 @@ in
     shellcheck
     silver-searcher
     ssh-copy-id
+    ssm-session-manager-plugin
     tarsnap
     my_topgrade
     tmate
