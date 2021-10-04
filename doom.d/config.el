@@ -110,6 +110,7 @@
   (sqls . lsp)
   :init
   (setq lsp-clients-elixir-server-command "elixir-ls")
+  (put 'lsp-elixir-project-dir 'safe-local-variable #'stringp)
   )
   ;; :init
   ;; (add-to-list 'exec-path "~/elixir-ls/release/"))
