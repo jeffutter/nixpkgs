@@ -34,6 +34,7 @@ let
   duf = pkgs.callPackage pkgs/duf {};
   my_topgrade = pkgs.callPackage pkgs/topgrade {};
   my_wakeonlan = pkgs.callPackage pkgs/wakeonlan {};
+  m8c = pkgs.callPackage pkgs/m8c {};
 
 in
 
@@ -90,6 +91,7 @@ in
     kubernetes-helm
     lftp
 #    luarocks
+    m8c
     mosh
     my_vim_configurable
     ncdu
