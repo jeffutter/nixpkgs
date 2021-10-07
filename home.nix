@@ -25,6 +25,41 @@ let
     url = https://github.com/nix-community/emacs-overlay/archive/master.tar.gz;
   });
 
+  my_spacevim = pkgs.spacevim.override { spacevim_config = {
+    custom_plugins = [
+      { name = "dracula/vim"; }
+      {
+        repo = "mhartington/oceanic-next";
+        merged = 0;
+      }
+    ];
+    layers = [
+      {
+        name = "autocomplete";
+        auto_completion_return_key_behavior = "complete";
+        auto_completion_tab_key_behavior = "smart";
+      }
+      {
+        name = "shell";
+        default_position = "top";
+        default_height = 30;
+      }
+      { name = "colorscheme"; }
+      { name = "lang#elixir"; }
+    ];
+    options = {
+      colorscheme = "nord";
+      colorscheme_bg = "dark";
+      enable_guicolors = true;
+      statusline_separator = "arrow";
+      statusline_iseparator = "arrow";
+      buffer_index_type = 4;
+      enable_tabline_filetype_icon = true;
+      enable_statusline_mode = false;
+      guifont = "SauceCodePro Nerd Font Mono:h11";
+    };
+  };};
+
   blueutil = pkgs.callPackage pkgs/blueutil {};
   wrk2 = pkgs.callPackage pkgs/wrk2 {};
   goreleaser = pkgs.callPackage pkgs/goreleaser {};
@@ -94,21 +129,11 @@ in
     m8c
     mosh
     my_vim_configurable
+    my_spacevim
     ncdu
     neovim
     ngrok
     nodePackages.bash-language-server
-    ocaml
-    ocamlPackages.base
-    ocamlPackages.core
-    ocamlPackages.core_kernel
-    ocamlPackages.findlib
-    ocamlPackages.merlin
-    ocamlPackages.ocaml-lsp
-    ocamlPackages.ocp-indent
-    ocamlPackages.utop
-    ocamlformat
-    opam
     p7zip
     platinum-searcher
     postgresql
@@ -129,6 +154,7 @@ in
     tmate
     tmpmail
 #    usql
+    vimPlugins.vimproc-vim
     vips
     my_wakeonlan
     wavpack
@@ -169,20 +195,6 @@ in
         source = "${apps}/Applications";
         recursive = true;
       };
-
-  home.file.".SpaceVim" = {
-    # don't make the directory read only so that impure melpa can still happen
-    # for now
-    recursive = true;
-    source = pkgs.fetchFromGitHub {
-      owner = "SpaceVim";
-      repo = "SpaceVim";
-      rev = "a9e36e0e1a0837866883a127d005c2bb1963be12";
-      sha256 = "1nmdq5rs6sd21hll3ci31hqxkwqdprwj9yz81ins62r1l2b2vdjk";
-    };
-    onChange = "ln -sf $HOME/.SpaceVim $HOME/.vim";
-  };
-  home.file.".SpaceVim.d/init.toml".source = ./space_vim.toml;
 
   home.file.".doom.d" = {
     source = ./doom.d;
@@ -401,6 +413,11 @@ set-option -g default-command "zsh"
       if [ "$(command -v duf)" ]; then
         unalias -m 'df'
         alias df='duf'
+      fi
+
+      if [ "$(command -v spacevim)" ]; then
+        unalias -m 'vim'
+        alias vim='spacevim'
       fi
     '';
   };
