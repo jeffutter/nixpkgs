@@ -419,6 +419,8 @@ set-option -g default-command "zsh"
         unalias -m 'vim'
         alias vim='spacevim'
       fi
+
+      printf "\e[?1042l"
     '';
   };
 
