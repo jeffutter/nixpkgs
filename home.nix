@@ -96,6 +96,7 @@ in
     broot
     brotli
     bzip2
+    cargo
     comma
     curl
     docker
@@ -113,7 +114,11 @@ in
     gnused
     gnupg
     go
+    gocode
+    golangci-lint
+    gore
     goreleaser
+    gotest
     grex
     htop
     hyperfine
@@ -143,7 +148,11 @@ in
     redis
     ripgrep
     ruplacer
+    rust-analyzer
     rustc
+    rustfmt
+    #rustracer
+    #rustup
     saml2aws
     shellcheck
     silver-searcher
