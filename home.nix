@@ -23,6 +23,7 @@ let
 
   emacs-overlay = import (builtins.fetchTarball {
     url = https://github.com/nix-community/emacs-overlay/archive/master.tar.gz;
+    #url = https://github.com/nix-community/emacs-overlay/archive/64580e3ac034e2704895a272f341a0729d165b93.tar.gz;
   });
 
   my_spacevim = pkgs.spacevim.override { spacevim_config = {
@@ -222,7 +223,8 @@ in
 
   programs.emacs = {
     enable = true;
-    package = (pkgs.emacsGit.override { nativeComp = true; });
+    #package = (pkgs.emacsGit.override { nativeComp = true; });
+    package = pkgs.emacsGcc28;
     extraPackages = epkgs: with epkgs; [
       vterm
     ];
