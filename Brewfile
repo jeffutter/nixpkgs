@@ -39,7 +39,6 @@ cask "karabiner-elements"
 cask "monodraw"
 cask "muzzle"
 cask "ngrok"
-cask "notion"
 cask "obsidian"
 cask "paw"
 cask "philips-hue-sync"
@@ -67,7 +66,6 @@ mas "iReal Pro", id: 409035833
 mas "Jira", id: 1475897096
 mas "Keynote", id: 409183694
 mas "Moom", id: 419330170
-mas "NordVPN IKE", id: 1116599239
 mas "Serial", id: 877615577
 mas "Slack", id: 803453959
 mas "Todoist", id: 585829637
