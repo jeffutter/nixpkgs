@@ -60,6 +60,26 @@ let
     };
   };};
 
+  mosh = pkgs.mosh.overrideAttrs (old: {
+    src = pkgs.fetchFromGitHub {
+      owner = "mobile-shell";
+      repo = "mosh";
+      rev = "378dfa6aa5778cf168646ada7f52b6f4a8ec8e41";
+      sha256 = "1fkzn8scq5j944jpvpyhhwxhb0vdp8rnbvylcqd5h2f8r822r6rc";
+    };
+    patches = lib.remove 
+      (pkgs.fetchpatch {
+        url = "https://github.com/mobile-shell/mosh/commit/e5f8a826ef9ff5da4cfce3bb8151f9526ec19db0.patch";
+        sha256 = "15518rb0r5w1zn4s6981bf1sz6ins6gpn2saizfzhmr13hw4gmhm";
+      })
+      old.patches;
+    postPatch = ''
+      substituteInPlace scripts/mosh.pl \
+        --subst-var-by ssh "${pkgs.openssh}/bin/ssh" \
+        --subst-var-by mosh-client "$out/bin/mosh-client"
+    '';
+  });
+
   blueutil = pkgs.callPackage pkgs/blueutil {};
   wrk2 = pkgs.callPackage pkgs/wrk2 {};
   goreleaser = pkgs.callPackage pkgs/goreleaser {};
