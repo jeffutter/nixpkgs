@@ -121,6 +121,17 @@
 (add-to-list 'lsp-file-watch-ignored "_build")
 (add-to-list 'lsp-file-watch-ignored "assets/node_modules")
 
+(use-package! lsp-rust
+  :config
+  (setq! lsp-rust-analyzer-cargo-watch-enable t
+         lsp-rust-analyzer-cargo-watch-command "clippy"
+         lsp-rust-analyzer-proc-macro-enable t
+         lsp-rust-analyzer-cargo-load-out-dirs-from-check t
+         lsp-rust-analyzer-inlay-hints-mode t
+         lsp-rust-analyzer-server-display-inlay-hints t
+         lsp-rust-analyzer-display-chaining-hints t
+         lsp-rust-analyzer-display-parameter-hints t))
+
 (add-to-list 'initial-frame-alist '(fullscreen . maximized))
 
 (setq lsp-treemacs-sync-mode 1)
