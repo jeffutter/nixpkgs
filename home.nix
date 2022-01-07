@@ -177,7 +177,6 @@ in
     silver-searcher
     ssh-copy-id
     ssm-session-manager-plugin
-    tarsnap
     my_topgrade
     tmate
     tmpmail
@@ -380,6 +379,7 @@ in
     shortcut = "a";
     terminal = "screen-256color";
     extraConfig = ''
+set -ga terminal-overrides ",*256col*:Tc"
 set-option -g mouse off
 set-option -g default-command "zsh"
     '';
