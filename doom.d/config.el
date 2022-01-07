@@ -82,6 +82,18 @@
 (after! sh-mode
   (set-ligatures! 'sh-mode))
 
+;; https://github.com/emacs-lsp/lsp-mode/issues/3200
+;; Create config file here: ~/.config/sqls/config.yml
+(after! (sql lsp-sqls)
+  (setq lsp-sqls-workspace-config-path nil))
+
+(after! sql
+  (map! :localleader
+        :map sql-mode-map
+        :desc "Switch Connection" "c" #'lsp-sql-switch-connection
+        :desc "Execute Line" "e" #'lsp-sql-execute-paragraph
+        :desc "Execute File" "a" #'lsp-sql-execute-query))
+
 (plist-put! +ligatures-extra-symbols
             :pipe "▷")
 
@@ -131,6 +143,10 @@
          lsp-rust-analyzer-server-display-inlay-hints t
          lsp-rust-analyzer-display-chaining-hints t
          lsp-rust-analyzer-display-parameter-hints t))
+
+;;(add-hook! sql-mode
+;;  (after! lsp-sqls (lsp-deferred)))
+(add-hook 'sql-mode-local-vars-hook #'lsp!)
 
 (add-to-list 'initial-frame-alist '(fullscreen . maximized))
 
