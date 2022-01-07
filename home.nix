@@ -35,6 +35,10 @@ let
     ];
     layers = [
       {
+        name = "core";
+        enable_smooth_scrolling = false;
+      }
+      {
         name = "autocomplete";
         auto_completion_return_key_behavior = "complete";
         auto_completion_tab_key_behavior = "smart";
