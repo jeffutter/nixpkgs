@@ -51,3 +51,7 @@ merged = 0
 
 [[layers]]
 name = "lang#elixir"
+
+[[layers]]
+name = 'core'
+enable_smooth_scrolling = false
