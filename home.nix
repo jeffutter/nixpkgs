@@ -25,44 +25,66 @@ let
     url = https://github.com/nix-community/emacs-overlay/archive/master.tar.gz;
   });
 
-  my_spacevim = pkgs.spacevim.override { spacevim_config = {
-    custom_plugins = [
-      { name = "dracula/vim"; }
-      {
-        repo = "mhartington/oceanic-next";
-        merged = 0;
-      }
-    ];
-    layers = [
-      {
-        name = "core";
-        enable_smooth_scrolling = false;
-      }
-      {
-        name = "autocomplete";
-        auto_completion_return_key_behavior = "complete";
-        auto_completion_tab_key_behavior = "smart";
-      }
-      {
-        name = "shell";
-        default_position = "top";
-        default_height = 30;
-      }
-      { name = "colorscheme"; }
-      { name = "lang#elixir"; }
-    ];
-    options = {
-      colorscheme = "nord";
-      colorscheme_bg = "dark";
-      enable_guicolors = true;
-      statusline_separator = "arrow";
-      statusline_iseparator = "arrow";
-      buffer_index_type = 4;
-      enable_tabline_filetype_icon = true;
-      enable_statusline_mode = false;
-      guifont = "SauceCodePro Nerd Font Mono:h11";
+  my_spacevim = pkgs.spacevim.override {
+    spacevim_config = {
+      custom_plugins = [
+        { name = "dracula/vim"; }
+        {
+          repo = "mhartington/oceanic-next";
+          merged = 0;
+        }
+      ];
+      layers = [
+        {
+          name = "core";
+          enable_smooth_scrolling = false;
+        }
+        {
+          name = "autocomplete";
+          auto_completion_return_key_behavior = "complete";
+          auto_completion_tab_key_behavior = "smart";
+        }
+        {
+          name = "shell";
+          default_position = "top";
+          default_height = 30;
+        }
+        { 
+          name = "colorscheme";
+          enabled = true;
+        }
+        {
+          name = "lang#rust";
+          format_on_save = true;
+        }
+        { name = "lang#elixir"; }
+        { name = "lang#nix"; }
+        { name = "lang#sh"; }
+        { name = "lang#typescript"; }
+        { name = "lang#javascript"; }
+        { name = "fzf"; }
+        {
+          name = "lsp";
+          filetypes = [ "rust" "sh" ];
+          override_cmd = {
+            rust = ["rust-analyzer"];
+          };
+          enabled_clients = ["rust-analyzer"];
+        }
+      ];
+      options = {
+        colorscheme = "nord";
+        colorscheme_bg = "dark";
+        enable_guicolors = true;
+        statusline_separator = "arrow";
+        statusline_iseparator = "arrow";
+        buffer_index_type = 4;
+        enable_tabline_filetype_icon = true;
+        enable_statusline_mode = false;
+        guifont = "SauceCodePro Nerd Font Mono:h11";
+      };
     };
-  };};
+  };
 
   mosh = pkgs.mosh.overrideAttrs (old: {
     src = pkgs.fetchFromGitHub {
@@ -749,6 +771,11 @@ set-option -g default-command "zsh"
     enableZshIntegration = true;
     nix-direnv = {
       enable = true;
+    };
+    config = {
+      global = {
+        skip_dotenv = true;
+      };
     };
   };
 
