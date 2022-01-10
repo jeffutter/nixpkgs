@@ -143,8 +143,10 @@ in
     brotli
     bzip2
     cargo
+    cargo-watch
     comma
     curl
+    diesel-cli
     docker
     doctl
     du-dust
@@ -201,6 +203,7 @@ in
     saml2aws
     shellcheck
     silver-searcher
+    sqlx-cli
     ssh-copy-id
     ssm-session-manager-plugin
     my_topgrade
