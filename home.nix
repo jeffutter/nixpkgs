@@ -143,7 +143,9 @@ in
     brotli
     bzip2
     cargo
+    cargo-criterion
     cargo-watch
+    cargo-flamegraph
     comma
     curl
     diesel-cli
