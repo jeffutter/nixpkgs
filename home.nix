@@ -151,9 +151,13 @@ in
     brotli
     bzip2
     cargo
+    cargo-bloat
     cargo-criterion
-    cargo-watch
     cargo-flamegraph
+    cargo-llvm-lines
+    cargo-outdated
+    cargo-udeps
+    cargo-watch
     comma
     curl
     diesel-cli
@@ -187,6 +191,7 @@ in
     kubectl
     kubernetes-helm
     lftp
+    llvmPackages.bintools
     m8c
     mosh
     my_vim_configurable
