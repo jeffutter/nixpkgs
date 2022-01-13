@@ -1,4 +1,4 @@
-{ config, pkgs, lib, mkIf, ... }:
+{ config, pkgs, lib, mkIf, platforms, ... }:
 
 let
   inherit (pkgs.lib) optional optionals;
@@ -106,8 +106,16 @@ let
     '';
   });
 
+  my_wrk2 = pkgs.wrk2.overrideAttrs (old: {
+    buildPhase = ''
+      export MACOSX_DEPLOYMENT_TAREGT=''${MACOSX_DEPLOYMENT_TARGET:-10.12}
+      make
+    '';
+
+    meta.platform = platforms.darwin;
+  });
+
   blueutil = pkgs.callPackage pkgs/blueutil {};
-  wrk2 = pkgs.callPackage pkgs/wrk2 {};
   goreleaser = pkgs.callPackage pkgs/goreleaser {};
   k9s = pkgs.callPackage pkgs/k9s {};
   usql = pkgs.callPackage pkgs/usql {};
@@ -218,8 +226,7 @@ in
     wavpack
 #    websocat
     wget
-#    wrk
-#    wrk2
+    my_wrk2
     xz
     yarn
   ]
