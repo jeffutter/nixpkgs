@@ -166,6 +166,7 @@ in
     fd
     gawk
     gitAndTools.gh
+    git-lfs
     gnused
     gnupg
     go
