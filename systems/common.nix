@@ -172,6 +172,7 @@ in
     ripgrep
     ruplacer
     shellcheck
+    sqls
     ssh-copy-id
     topgrade
     tmate
