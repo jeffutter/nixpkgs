@@ -99,7 +99,7 @@ let
     '';
   });
 
-  my_wrk2 = pkgs.wrk2.overrideAttrs (old: {
+  wrk2 = pkgs.wrk2.overrideAttrs (old: {
     buildPhase = ''
       export MACOSX_DEPLOYMENT_TAREGT=''${MACOSX_DEPLOYMENT_TARGET:-10.12}
       make
@@ -108,15 +108,7 @@ let
     meta.platform = platforms.darwin;
   });
 
-  blueutil = pkgs.callPackage pkgs/blueutil {};
-  goreleaser = pkgs.callPackage pkgs/goreleaser {};
-  k9s = pkgs.callPackage pkgs/k9s {};
-  usql = pkgs.callPackage pkgs/usql {};
-  tmpmail = pkgs.callPackage pkgs/tmpmail {};
-  duf = pkgs.callPackage pkgs/duf {};
-  my_topgrade = pkgs.callPackage pkgs/topgrade {};
-  my_wakeonlan = pkgs.callPackage pkgs/wakeonlan {};
-  m8c = pkgs.callPackage pkgs/m8c {};
+  my_wakeonlan = pkgs.callPackage ../pkgs/wakeonlan {};
 
 in
 
@@ -131,37 +123,21 @@ in
     aspellDicts.en
     aspellDicts.en-computers
     autoconf
-    awscli2
-    awslogs
     bandwhich
     bash-completion
     bash_5
     bat
-#    blueutil
     borgbackup
     bottom
     broot
     brotli
     bzip2
-    cargo
-    cargo-bloat
-    cargo-criterion
-    cargo-cross
-    cargo-flamegraph
-    cargo-llvm-lines
-    cargo-outdated
-    cargo-udeps
-    cargo-watch
     comma
     curl
-    diesel-cli
     docker
     doctl
     du-dust
     duf
-    elixir
-    elixir_ls
-    erlang_nox
     exa
     fd
     gawk
@@ -169,12 +145,6 @@ in
     git-lfs
     gnused
     gnupg
-    go
-    gocode
-    golangci-lint
-    gore
-    goreleaser
-    gotest
     grex
     htop
     hyperfine
@@ -187,7 +157,6 @@ in
     kubernetes-helm
     lftp
     llvmPackages.bintools
-    m8c
     mosh
     my_vim_configurable
     my_spacevim
@@ -196,39 +165,54 @@ in
     ngrok
     nodePackages.bash-language-server
     p7zip
-    platinum-searcher
     postgresql
     protobuf
     pstree
     pv
-    redis
     ripgrep
     ruplacer
-    clippy
-    rust-analyzer
-    rustc
-    rustfmt
-    #rustracer
-    #rustup
-    saml2aws
     shellcheck
-    silver-searcher
-    sqlx-cli
     ssh-copy-id
-    ssm-session-manager-plugin
-    my_topgrade
+    topgrade
     tmate
-    tmpmail
-#    usql
     vimPlugins.vimproc-vim
     vips
     my_wakeonlan
     wavpack
-#    websocat
     wget
-    my_wrk2
+    wrk2
     xz
     yarn
+
+    # Elixir
+    elixir
+    elixir_ls
+    erlang_nox
+
+    # Rust
+    cargo
+    cargo-bloat
+    cargo-criterion
+    cargo-cross
+    cargo-flamegraph
+    cargo-llvm-lines
+    cargo-outdated
+    cargo-udeps
+    cargo-watch
+    clippy
+    diesel-cli
+    rust-analyzer
+    rustc
+    rustfmt
+    sqlx-cli
+
+    # Go
+    go
+    gocode
+    golangci-lint
+    gore
+    goreleaser
+    gotest
   ]
   ++ optional stdenv.isLinux inotify-tools
   ++ optionals stdenv.isDarwin (with darwin.apple_sdk.frameworks; [ CoreFoundation CoreServices ])
@@ -244,7 +228,7 @@ in
   programs.home-manager.enable = true;
 
   home.file.".zfunc" = {
-    source = ./zfunc;
+    source = ../zfunc;
     recursive = true;
   };
 
@@ -262,17 +246,15 @@ in
       };
 
   home.file.".doom.d" = {
-    source = ./doom.d;
+    source = ../doom.d;
     recursive = true;
-    onChange = builtins.readFile ./doom-setup.sh;
+    onChange = builtins.readFile ../doom-setup.sh;
   };
 
-  home.file.".config/topgrade.toml".source = ./topgrade.toml;
-
-  home.file."Brewfile".source = ./Brewfile;
+  home.file.".config/topgrade.toml".source = ../topgrade.toml;
 
   home.file."bin/upgrade" = {
-    source = bin/upgrade;
+    source = ../bin/upgrade;
     executable = true;
   };
 
@@ -288,7 +270,6 @@ in
     package = pkgs.gitAndTools.gitFull;
     enable = true;
     userName = "Jeffery Utter";
-    userEmail = "jeff@jeffutter.com";
     extraConfig = {
       github = {
         user = "jeffutter";
@@ -807,7 +788,6 @@ set-option -g default-command "zsh"
       IgnoreUnknown = "UseKeychain";
       UseKeychain = "yes";
       AddKeysToAgent = "yes";
-      identityFile = "~/.ssh/id_rsa";
     };
     matchBlocks = {
       "borg" = {
@@ -837,7 +817,7 @@ set-option -g default-command "zsh"
       "work" = {
         host = "work";
         hostname = "192.168.10.6";
-        user = "jeffutter";
+        user = "Jeffery.Utter";
         extraOptions = {
           RequestTTY = "yes";
         };
@@ -859,11 +839,6 @@ set-option -g default-command "zsh"
     time = "en_US.UTF-8";
   };
 
-  # Home Manager needs a bit of information about you and the
-  # paths it should manage.
-  home.username = "jeffutter";
-  home.homeDirectory = "/Users/jeffutter";
-
   # This value determines the Home Manager release that your
   # configuration is compatible with. This helps avoid breakage
   # when a new Home Manager release introduces backwards
@@ -872,5 +847,5 @@ set-option -g default-command "zsh"
   # You can update Home Manager without changing this value. See
   # the Home Manager release notes for a list of state version
   # changes in each release.
-  home.stateVersion = "20.09";
+  home.stateVersion = "22.05";
 }

@@ -4,6 +4,7 @@
 ```bash
 mkdir .config
 git clone git@github.com:jeffutter/nixpkgs.git .config/nixpkgs
+ln -s .config/nixpkgs/systems/<name>/home.nix .config/nixpkgs/home.nix
 sh <(curl -L https://nixos.org/nix/install)
 ```
 
