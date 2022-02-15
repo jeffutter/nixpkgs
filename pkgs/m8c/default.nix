@@ -8,7 +8,7 @@
 
 let
   pname = "m8c";
-  version = "1.0.3";
+  version = "1.1.1";
 in
 
 stdenv.mkDerivation {
@@ -18,7 +18,7 @@ stdenv.mkDerivation {
     owner = "laamaa";
     repo = pname;
     rev = "v${version}";
-    hash = "sha256:0yrd6lnb2chgafhw1cz4awx2s1sws6mch5irvgyddgnsa8ishcr5";
+    hash = "sha256:XR8FPmXlcmhPIiaAaYOcKd3BhvSVKa89GwrVKvSf6VM=";
   };
 
   installFlags = [ "PREFIX=$(out)" ];

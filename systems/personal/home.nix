@@ -1,15 +1,18 @@
-{ ... }:
+{ pkgs, config, ... }:
 
 let
-  m8c = pkgs.callPackage ../pkgs/m8c {};
+  m8c = pkgs.callPackage ../../pkgs/m8c {};
+
+  pkgsX86 = import <nixpkgs> { localSystem = "x86_64-darwin"; overlays = config.nixpkgs.overlays; };
 
 in
-
 {
   imports = [ ../common.nix ];
 
   home.packages = with pkgs; [
-    m8c
+    # m8c
+    pkgsX86.cargo-watch
+    pkgsX86.topgrade
   ];
 
   programs.git.userEmail = "jeff@jeffutter.com";

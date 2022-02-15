@@ -99,15 +99,6 @@ let
     '';
   });
 
-  wrk2 = pkgs.wrk2.overrideAttrs (old: {
-    buildPhase = ''
-      export MACOSX_DEPLOYMENT_TAREGT=''${MACOSX_DEPLOYMENT_TARGET:-10.12}
-      make
-    '';
-
-    meta.platform = platforms.darwin;
-  });
-
   my_wakeonlan = pkgs.callPackage ../pkgs/wakeonlan {};
 
 in
@@ -174,14 +165,12 @@ in
     shellcheck
     sqls
     ssh-copy-id
-    topgrade
     tmate
     vimPlugins.vimproc-vim
     vips
     my_wakeonlan
     wavpack
     wget
-    wrk2
     xz
     yarn
 
@@ -199,9 +188,7 @@ in
     cargo-llvm-lines
     cargo-outdated
     cargo-udeps
-    cargo-watch
     clippy
-    diesel-cli
     rust-analyzer
     rustc
     rustfmt
