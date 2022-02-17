@@ -17,7 +17,13 @@ in
 
   home.packages = with pkgs; [
     wrk2
+
+    kubectx
+    google-cloud-sdk
+
     jdk
+    maven
+    google-java-format
 
     # These won't build on aarch64, can be moved back into common once they do
     topgrade
@@ -28,8 +34,10 @@ in
     userEmail = "jeffery.utter@thescore.com";
     signing.key = "577723BC097175AA";
     signing.signByDefault = true;
+    ignores = [ ".classpath" ".factorypath" ".project" ".settings" ];
   };
 
+  programs.zsh.oh-my-zsh.plugins = ["git" "docker" "mosh" "kubectl" "macos" "vi-mode" "gcloud"];
 
   programs.ssh.extraOptionOverrides.identityFile = "~/.ssh/id_ed25519";
 

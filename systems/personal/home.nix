@@ -17,6 +17,8 @@ in
 
   programs.git.userEmail = "jeff@jeffutter.com";
 
+  programs.zsh.oh-my-zsh.plugins = ["git" "docker" "mosh" "kubectl" "macos" "vi-mode" ];
+
   programs.ssh.extraOptionOverrides.identityFile = "~/.ssh/id_rsa";
 
   home.file."Brewfile".text = builtins.concatStringsSep "\n" [

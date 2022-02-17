@@ -127,6 +127,15 @@
   ;; :init
   ;; (add-to-list 'exec-path "~/elixir-ls/release/"))
 
+;; Enforce Google Java Code Style
+;; See https://google.github.io/styleguide/javaguide.html
+(setq-hook! 'java-mode-hook +format-with-lsp nil)
+(add-hook 'java-mode-hook #'format-all-mode)
+(set-formatter! 'google-java-format '("google-java-format" "-") :modes 'java-mode)
+(setq-hook! 'java-mode-hook
+  tab-width 2
+  fill-column 100)
+
 (setq-default lsp-file-watch-ignored ())
 (add-to-list 'lsp-file-watch-ignored ".elixir_ls")
 (add-to-list 'lsp-file-watch-ignored "deps")

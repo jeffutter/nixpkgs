@@ -399,10 +399,7 @@ set-option -g default-command "zsh"
 
   programs.zsh = {
     enable = true;
-    oh-my-zsh = {
-      enable = true;
-      plugins = ["git" "docker" "mosh" "kubectl" "macos" "vi-mode"];
-    };
+    oh-my-zsh.enable = true;
     shellAliases = {
       dc = "docker compose";
     };
@@ -727,6 +724,7 @@ set-option -g default-command "zsh"
       golang.symbol = " ";
       # haskell.symbol = " ";
       hg_branch.symbol = " ";
+      kubernetes.disabled = false;
       java.symbol = " ";
       julia.symbol = " ";
       memory_usage.symbol = " ";
