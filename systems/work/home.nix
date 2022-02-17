@@ -24,7 +24,12 @@ in
     cargo-watch
   ];
 
-  programs.git.userEmail = "jeffery.utter@thescore.com";
+  programs.git = {
+    userEmail = "jeffery.utter@thescore.com";
+    signing.key = "577723BC097175AA";
+    signing.signByDefault = true;
+  };
+
 
   programs.ssh.extraOptionOverrides.identityFile = "~/.ssh/id_ed25519";
 

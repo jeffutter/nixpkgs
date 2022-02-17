@@ -420,7 +420,8 @@ set-option -g default-command "zsh"
       export LC_NUMERIC="en_US.UTF-8"
       export LC_TIME="en_US.UTF-8"
       export LC_ALL="en_US.UTF-8"
-      if [ -e /Users/jeffutter/.nix-profile/etc/profile.d/nix.sh ]; then . /Users/jeffutter/.nix-profile/etc/profile.d/nix.sh; fi # added by Nix installer
+      if [ -e /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh ]; then . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh; fi
+      if [ -e ${config.home.homeDirectory}/.nix-profile/etc/profile.d/nix.sh ]; then . ${config.home.homeDirectory}/.nix-profile/etc/profile.d/nix.sh; fi # added by Nix installer
       export PATH=$HOME/bin:$HOME/homebrew/bin:$PATH:/usr/local/bin:/Applications/Docker.app/Contents/Resources/bin
       export HOMEBREW_CASK_OPTS="--appdir=$HOME/Applications"
       export ERL_AFLAGS="-kernel shell_history enabled"
