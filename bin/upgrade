@@ -1,7 +1,4 @@
 #!env bash
 set -eo pipefail
 
-topgrade --disable opam
-brew cleanup
-home-manager expire-generations "-1 week"
-nix-collect-garbage --delete-older-than 7d
+topgrade

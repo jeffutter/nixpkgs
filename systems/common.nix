@@ -239,8 +239,6 @@ in
     onChange = builtins.readFile ../doom-setup.sh;
   };
 
-  home.file.".config/topgrade.toml".source = ../topgrade.toml;
-
   home.file."bin/upgrade" = {
     source = ../bin/upgrade;
     executable = true;
@@ -455,6 +453,18 @@ set-option -g default-command "zsh"
 
       printf "\e[?1042l"
     '';
+  };
+
+  programs.topgrade = {
+    enable = true;
+    settings = {
+      disable = ["yadm" "node" "gem" "nix" "gcloud" "opam"];
+      cleanup = true;
+      commands = {
+        "Expire old home-manager configs" = "home-manager expire-generations '-1 week'";
+        "Run garbage collection on Nix store" = "nix-collect-garbage --delete-older-than 7d";
+      };
+    };
   };
 
   programs.keychain = {
