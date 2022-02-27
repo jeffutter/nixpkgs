@@ -12,8 +12,10 @@ in
   home.packages = with pkgs; [
     # m8c
     pkgsX86.cargo-watch
-    pkgsX86.topgrade
   ];
+
+  programs.starship.package = pkgsX86.starship;
+  programs.topgrade.package = pkgsX86.topgrade;
 
   programs.git.userEmail = "jeff@jeffutter.com";
 
