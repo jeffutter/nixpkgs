@@ -420,6 +420,7 @@ set-option -g default-command "zsh"
       export PATH=$HOME/bin:$HOME/homebrew/bin:$PATH:/usr/local/bin:/Applications/Docker.app/Contents/Resources/bin
       export HOMEBREW_CASK_OPTS="--appdir=$HOME/Applications"
       export ERL_AFLAGS="-kernel shell_history enabled"
+      export COLORTERM=truecolor
       if [ -n "$(find ~/.zfunc -prune -empty)" ]; then
         export fpath=( ~/.zfunc "''${fpath[@]}" )
       fi
@@ -798,6 +799,14 @@ set-option -g default-command "zsh"
         user = "borg-backup";
         extraOptions = {
           Ciphers = "3des-cbc";
+        };
+      };
+      "cubox" = {
+        host = "cubox";
+        hostname = "192.168.10.5";
+        user = "debian";
+        extraOptions = {
+          RequestTTY = "yes";
         };
       };
       "laptop" = {
