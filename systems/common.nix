@@ -109,7 +109,6 @@ in
   };
 
   home.packages = with pkgs; [
-    _1password
     aspell
     aspellDicts.en
     aspellDicts.en-computers
@@ -189,6 +188,7 @@ in
     cargo-outdated
     cargo-udeps
     clippy
+    evcxr
     rust-analyzer
     rustc
     rustfmt
@@ -420,7 +420,9 @@ set-option -g default-command "zsh"
       export PATH=$HOME/bin:$HOME/homebrew/bin:$PATH:/usr/local/bin:/Applications/Docker.app/Contents/Resources/bin
       export HOMEBREW_CASK_OPTS="--appdir=$HOME/Applications"
       export ERL_AFLAGS="-kernel shell_history enabled"
-      export fpath=( ~/.zfunc "''${fpath[@]}" )
+      if [ -n "$(find ~/.zfunc -prune -empty)" ]; then
+        export fpath=( ~/.zfunc "''${fpath[@]}" )
+      fi
       autoload -U $fpath[1]/*(:t)
     '';
     initExtra = ''
@@ -458,7 +460,7 @@ set-option -g default-command "zsh"
   programs.topgrade = {
     enable = true;
     settings = {
-      disable = ["yadm" "node" "gem" "nix" "gcloud" "opam"];
+      disable = ["yadm" "node" "gem" "gcloud" "opam"];
       cleanup = true;
       commands = {
         "Expire old home-manager configs" = "home-manager expire-generations '-1 week'";
@@ -786,6 +788,9 @@ set-option -g default-command "zsh"
       UseKeychain = "yes";
       AddKeysToAgent = "yes";
     };
+    extraConfig = ''
+    IdentityAgent "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
+    '';
     matchBlocks = {
       "borg" = {
         host = "borg";

@@ -46,6 +46,7 @@ in
   home.file."Brewfile".text = builtins.concatStringsSep "\n" [
     (builtins.readFile ../Brewfile.common)
     ''
+    mas "Slack", id: 803453959
     ''
   ];
 

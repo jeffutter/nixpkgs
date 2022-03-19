@@ -1,8 +1,0 @@
-SESSION_FILE="$HOME/.op_session_my"
-
-OLD_TOKEN=$(cat "$SESSION_FILE")
-TOKEN=$(command op signin --session "$OLD_TOKEN" --raw)
-
-if [ "$TOKEN" != "$OLD_TOKEN" ]; then
-  echo $TOKEN > "$SESSION_FILE"
-fi
