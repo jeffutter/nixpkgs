@@ -423,8 +423,8 @@ set-option -g default-command "zsh"
       export COLORTERM=truecolor
       if [ -n "$(find ~/.zfunc -prune -empty)" ]; then
         export fpath=( ~/.zfunc "''${fpath[@]}" )
+        autoload -U $fpath[1]/*(:t)
       fi
-      autoload -U $fpath[1]/*(:t)
     '';
     initExtra = ''
       setopt completealiases
