@@ -421,6 +421,9 @@ set-option -g default-command "zsh"
       export HOMEBREW_CASK_OPTS="--appdir=$HOME/Applications"
       export ERL_AFLAGS="-kernel shell_history enabled"
       export COLORTERM=truecolor
+      if [[ -n "$SSH_CONNECTION" || -n "$TMUX" ]] ;then
+        export PINENTRY_USER_DATA="USE_CURSES=1"
+      fi
       if [ -n "$(find ~/.zfunc -prune -empty)" ]; then
         export fpath=( ~/.zfunc "''${fpath[@]}" )
         autoload -U $fpath[1]/*(:t)
