@@ -21,7 +21,6 @@ in
     kubectx
     google-cloud-sdk
 
-    jdk
     maven
     google-java-format
 
@@ -29,6 +28,11 @@ in
     topgrade
     cargo-watch
   ];
+
+  programs.java = {
+    enable = true;
+    package = pkgs.jdk;
+  };
 
   programs.git = {
     userEmail = "jeffery.utter@thescore.com";
