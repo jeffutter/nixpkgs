@@ -4,7 +4,6 @@ let
   inherit (pkgs.lib) optional optionals;
 
   my_vim_configurable = pkgs.vim_configurable.override {
-    python = pkgs.python3;
     guiSupport = "off";
     rubySupport = false;
   };
