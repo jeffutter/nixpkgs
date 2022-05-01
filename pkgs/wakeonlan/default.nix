@@ -11,11 +11,11 @@ rustPlatform.buildRustPackage rec {
   src = fetchFromGitHub {
     owner = "jeffutter";
     repo = "wakeonlan-rust";
-    rev = "f24c357619e958a2fdc5deae289ff532ba1f4551";
-    sha256 = "17kikqjysd752dxray8pxmvcw18m1045y4ajl5npmip77wz58fzr";
+    rev = "3856ceed4bd545505dc0b42315f58080743a93b8";
+    sha256 = "sha256-+MneuHxLWOgf0MnRh5YH3aeV3UJ+GI+02BnczZdmYbU=";
   };
     
-  cargoSha256 = "079c7vqacfid4aq50iz3wiagdj7jyxb31whcaszg09w8xrapl8kb";
+  cargoSha256 = "sha256-V0JgzQb1kpRkU9x8tJ8njgscEgf7gJDlxP7D3PvUQ+Q=";
 
   meta = with lib; {
     description = "Simple wake-on-lan program written in Rust";
