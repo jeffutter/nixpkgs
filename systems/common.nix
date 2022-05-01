@@ -196,7 +196,6 @@ in
     # Go
     go
     gocode
-    golangci-lint
     gore
     goreleaser
     gotest
@@ -245,7 +244,7 @@ in
 
   programs.emacs = {
     enable = true;
-    package = pkgs.emacsGcc;
+    package = pkgs.emacsNativeComp;
     extraPackages = epkgs: with epkgs; [
       vterm
     ];
@@ -460,17 +459,17 @@ set-option -g default-command "zsh"
     '';
   };
 
-  programs.topgrade = {
-    enable = true;
-    settings = {
-      disable = ["yadm" "node" "gem" "gcloud" "opam"];
-      cleanup = true;
-      commands = {
-        "Expire old home-manager configs" = "home-manager expire-generations '-1 week'";
-        "Run garbage collection on Nix store" = "nix-collect-garbage --delete-older-than 7d";
-      };
-    };
-  };
+  # programs.topgrade = {
+  #   enable = true;
+  #   settings = {
+  #     disable = ["yadm" "node" "gem" "gcloud" "opam"];
+  #     cleanup = true;
+  #     commands = {
+  #       "Expire old home-manager configs" = "home-manager expire-generations '-1 week'";
+  #       "Run garbage collection on Nix store" = "nix-collect-garbage --delete-older-than 7d";
+  #     };
+  #   };
+  # };
 
   programs.keychain = {
     enable = true;
@@ -769,7 +768,7 @@ set-option -g default-command "zsh"
     };
     config = {
       global = {
-        skip_dotenv = true;
+        load_dotenv = false;
       };
     };
   };
