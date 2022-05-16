@@ -156,7 +156,6 @@ in
     kubectl
     kubernetes-helm
     lftp
-    llvmPackages.bintools
     mosh
     my_vim_configurable
     my_spacevim
@@ -807,9 +806,6 @@ ZSH_TMUX_AUTOSTART=true
       UseKeychain = "yes";
       AddKeysToAgent = "yes";
     };
-    extraConfig = ''
-    IdentityAgent "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
-    '';
     matchBlocks = {
       "borg" = {
         host = "borg";

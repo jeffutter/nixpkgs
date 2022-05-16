@@ -7,6 +7,9 @@ in
   imports = [ ../common.nix ];
 
   home.packages = with pkgs; [
+    # binutils
+    llvmPackages_13.bintools-unwrapped
+    clang_13
     cargo-watch
   ];
 

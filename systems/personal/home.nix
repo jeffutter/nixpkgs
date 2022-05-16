@@ -11,6 +11,7 @@ in
 
   home.packages = with pkgs; [
     # m8c
+    llvmPackages.bintools
     pkgsX86.cargo-watch
   ];
 

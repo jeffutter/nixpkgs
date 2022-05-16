@@ -16,6 +16,7 @@ in
   imports = [ ../common.nix ];
 
   home.packages = with pkgs; [
+    llvmPackages.bintools
     wrk2
 
     kubectx
