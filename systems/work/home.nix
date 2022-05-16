@@ -41,7 +41,7 @@ in
     ignores = [ ".classpath" ".factorypath" ".project" ".settings" ];
   };
 
-  programs.zsh.oh-my-zsh.plugins = ["git" "docker" "mosh" "kubectl" "macos" "vi-mode" "gcloud"];
+  programs.zsh.oh-my-zsh.plugins = ["git" "docker" "mosh" "kubectl" "macos" "vi-mode" "gcloud" "tmux" "1password"];
 
   programs.ssh.extraOptionOverrides.identityFile = "~/.ssh/id_ed25519";
 

@@ -12,7 +12,7 @@ in
 
   programs.git.userEmail = "jeff@jeffutter.com";
 
-  programs.zsh.oh-my-zsh.plugins = ["git" "docker" "mosh" "kubectl" "vi-mode" ];
+  programs.zsh.oh-my-zsh.plugins = ["git" "docker" "mosh" "kubectl" "vi-mode" "tmux" "1password" "debian"];
 
   programs.ssh.extraOptionOverrides.identityFile = "~/.ssh/id_ed25519";
 

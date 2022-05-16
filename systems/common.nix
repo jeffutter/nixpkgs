@@ -17,7 +17,18 @@ let
     url = https://github.com/nix-community/emacs-overlay/archive/master.tar.gz;
   });
 
-  my_spacevim = pkgs.spacevim.override {
+  my_spacevim = (pkgs.spacevim.overrideAttrs (old: {
+    version = "1.9.0";
+    src = pkgs.fetchFromGitHub {
+			owner = "SpaceVim";
+			repo = "SpaceVim";
+      #rev = "v${version}";
+			rev = "v1.9.0";
+      # sha256 = "sha256:11snnh5q47nqhzjb9qya6hpnmlzc060958whqvqrh4hc7gnlnqp7";
+      sha256 = "sha256-ptZy2DZsembzuhA1WgU7ektXk1alhelGm72qt314g90=";
+    };
+    patches = [ ./helptags.patch ];
+  })).override {
     spacevim_config = {
       custom_plugins = [
         { name = "dracula/vim"; }
@@ -395,9 +406,15 @@ set-option -g default-command "zsh"
 
   programs.zsh = {
     enable = true;
-    oh-my-zsh.enable = true;
+    oh-my-zsh = {
+      enable = true;
+      extraConfig = ''
+ZSH_TMUX_AUTOSTART=true
+      '';
+    };
     shellAliases = {
       dc = "docker compose";
+      k = "kubectl";
     };
     sessionVariables = {
       AWS_DEFAULT_REGION = "us-east-1";
@@ -419,7 +436,7 @@ set-option -g default-command "zsh"
       export HOMEBREW_CASK_OPTS="--appdir=$HOME/Applications"
       export ERL_AFLAGS="-kernel shell_history enabled"
       export COLORTERM=truecolor
-      if [[ -n "$SSH_CONNECTION" || -n "$TMUX" ]] ;then
+      if [[ -n "$SSH_CONNECTION" || -n "$TMUX" ]]; then
         export PINENTRY_USER_DATA="USE_CURSES=1"
       fi
       if [ -n "$(find ~/.zfunc -prune -empty)" ]; then

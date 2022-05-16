@@ -19,7 +19,7 @@ in
 
   programs.git.userEmail = "jeff@jeffutter.com";
 
-  programs.zsh.oh-my-zsh.plugins = ["git" "docker" "mosh" "kubectl" "macos" "vi-mode" ];
+  programs.zsh.oh-my-zsh.plugins = ["git" "docker" "mosh" "kubectl" "macos" "vi-mode" "tmux" "1password"];
 
   programs.ssh.extraOptionOverrides.identityFile = "~/.ssh/id_rsa";
 
