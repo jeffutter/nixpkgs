@@ -409,6 +409,7 @@ set-option -g default-command "zsh"
       enable = true;
       extraConfig = ''
 ZSH_TMUX_AUTOSTART=true
+ZSH_TMUX_AUTOQUIT=false
       '';
     };
     shellAliases = {
@@ -478,7 +479,7 @@ ZSH_TMUX_AUTOSTART=true
   # programs.topgrade = {
   #   enable = true;
   #   settings = {
-  #     disable = ["yadm" "node" "gem" "gcloud" "opam"];
+  #     disable = ["yadm" "node" "gem" "nix" "gcloud" "opam"];
   #     cleanup = true;
   #     commands = {
   #       "Expire old home-manager configs" = "home-manager expire-generations '-1 week'";
@@ -827,6 +828,7 @@ ZSH_TMUX_AUTOSTART=true
         host = "laptop";
         hostname = "192.168.10.9";
         user = "jeffutter";
+        forwardAgent = true;
         extraOptions = {
           RequestTTY = "yes";
         };
@@ -835,6 +837,7 @@ ZSH_TMUX_AUTOSTART=true
         host = "old-laptop";
         hostname = "192.168.10.7";
         user = "jeffutter";
+        forwardAgent = true;
         extraOptions = {
           RequestTTY = "yes";
         };
@@ -843,6 +846,7 @@ ZSH_TMUX_AUTOSTART=true
         host = "work";
         hostname = "192.168.10.6";
         user = "Jeffery.Utter";
+        forwardAgent = true;
         extraOptions = {
           RequestTTY = "yes";
         };
