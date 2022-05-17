@@ -108,6 +108,7 @@ in
   };
 
   home.packages = with pkgs; [
+    alloy6
     aspell
     aspellDicts.en
     aspellDicts.en-computers
@@ -163,6 +164,7 @@ in
     sqls
     ssh-copy-id
     tmate
+    unixtools.watch
     vimPlugins.vimproc-vim
     vips
     my_wakeonlan
@@ -397,8 +399,10 @@ set-option -g default-command "zsh"
     oh-my-zsh = {
       enable = true;
       extraConfig = ''
-ZSH_TMUX_AUTOSTART=true
-ZSH_TMUX_AUTOQUIT=false
+if [ -z "$INTELLIJ_ENVIRONMENT_READER" ]; then
+  ZSH_TMUX_AUTOSTART=true
+  ZSH_TMUX_AUTOQUIT=false
+fi
       '';
     };
     shellAliases = {
@@ -425,13 +429,14 @@ ZSH_TMUX_AUTOQUIT=false
       export HOMEBREW_CASK_OPTS="--appdir=$HOME/Applications"
       export ERL_AFLAGS="-kernel shell_history enabled"
       export COLORTERM=truecolor
-      if [[ -n "$SSH_CONNECTION" || -n "$TMUX" ]]; then
-        export PINENTRY_USER_DATA="USE_CURSES=1"
-      fi
       if [ -n "$(find ~/.zfunc -prune -empty)" ]; then
         export fpath=( ~/.zfunc "''${fpath[@]}" )
         autoload -U $fpath[1]/*(:t)
       fi
+      if [[ -n "$SSH_CONNECTION" || -n "$TMUX" ]]; then
+        export PINENTRY_USER_DATA="USE_CURSES=1"
+      fi
+
     '';
     initExtra = ''
       setopt completealiases
@@ -460,7 +465,7 @@ ZSH_TMUX_AUTOQUIT=false
         unalias -m 'vim'
         alias vim='spacevim'
       fi
-
+      
       printf "\e[?1042l"
     '';
   };
