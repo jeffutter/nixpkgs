@@ -832,6 +832,7 @@ ZSH_TMUX_AUTOQUIT=false
         host = "laptop";
         hostname = "192.168.10.9";
         user = "jeffutter";
+        forwardAgent = true;
         extraOptions = {
           RequestTTY = "yes";
         };
@@ -840,6 +841,7 @@ ZSH_TMUX_AUTOQUIT=false
         host = "old-laptop";
         hostname = "192.168.10.7";
         user = "jeffutter";
+        forwardAgent = true;
         extraOptions = {
           RequestTTY = "yes";
         };
@@ -848,6 +850,7 @@ ZSH_TMUX_AUTOQUIT=false
         host = "work";
         hostname = "192.168.10.6";
         user = "Jeffery.Utter";
+        forwardAgent = true;
         extraOptions = {
           RequestTTY = "yes";
         };
