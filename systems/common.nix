@@ -480,7 +480,7 @@ ZSH_TMUX_AUTOQUIT=false
   # programs.topgrade = {
   #   enable = true;
   #   settings = {
-  #     disable = ["yadm" "node" "gem" "gcloud" "opam"];
+  #     disable = ["yadm" "node" "gem" "nix" "gcloud" "opam"];
   #     cleanup = true;
   #     commands = {
   #       "Expire old home-manager configs" = "home-manager expire-generations '-1 week'";
@@ -808,9 +808,6 @@ ZSH_TMUX_AUTOQUIT=false
       UseKeychain = "yes";
       AddKeysToAgent = "yes";
     };
-    extraConfig = ''
-    IdentityAgent "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
-    '';
     matchBlocks = {
       "borg" = {
         host = "borg";
