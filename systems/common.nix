@@ -132,6 +132,7 @@ in
     fd
     gawk
     gitAndTools.gh
+    git-absorb
     git-lfs
     gnused
     gnupg
