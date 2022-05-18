@@ -485,6 +485,7 @@ fi
   programs.keychain = {
     enable = true;
     enableZshIntegration = true;
+    inheritType = "any";
   };
 
   programs.dircolors = {
