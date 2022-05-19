@@ -812,10 +812,20 @@ fi
           Ciphers = "3des-cbc";
         };
       };
-      "cubox" = {
-        host = "cubox";
+      "k3s" = {
+        host = "k3s";
+        hostname = "192.168.10.4";
+        user = "jeffutter";
+        forwardAgent = true;
+        extraOptions = {
+          RequestTTY = "yes";
+        };
+      };
+      "workstation" = {
+        host = "workstation";
         hostname = "192.168.10.5";
-        user = "debian";
+        user = "jeffutter";
+        forwardAgent = true;
         extraOptions = {
           RequestTTY = "yes";
         };
