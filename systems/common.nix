@@ -146,6 +146,7 @@ in
     k9s
     kubectl
     kubernetes-helm
+    kubeseal
     lftp
     mosh
     my_vim_configurable
