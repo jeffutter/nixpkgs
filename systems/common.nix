@@ -100,6 +100,16 @@ let
 
   my_wakeonlan = pkgs.callPackage ../pkgs/wakeonlan {};
 
+  my_kubeseal = pkgs.kubeseal.overrideAttrs ( old: rec {
+    version = "0.17.5";
+		src = pkgs.fetchFromGitHub {
+			owner = "bitnami-labs";
+			repo = "sealed-secrets";
+			rev = "v${version}";
+			sha256 = "sha256-7u7lsMeeZOUGn8eb8sjV9Td+XNEUPDvbSaITdp1JTf7=";
+		};
+  });
+
 in
 
 {
@@ -146,7 +156,7 @@ in
     k9s
     kubectl
     kubernetes-helm
-    kubeseal
+    my_kubeseal
     lftp
     mosh
     my_vim_configurable
