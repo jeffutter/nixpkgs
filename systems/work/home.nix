@@ -19,7 +19,6 @@ in
     llvmPackages.bintools
     wrk2
 
-    kubectx
     google-cloud-sdk
 
     maven

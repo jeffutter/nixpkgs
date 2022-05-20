@@ -145,6 +145,7 @@ in
     k6
     k9s
     kubectl
+    kubectx
     kubernetes-helm
     lftp
     mosh
