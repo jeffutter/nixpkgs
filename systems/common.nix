@@ -288,6 +288,7 @@ in
       "shell.nix"
       ".envrc"
       ".direnv"
+      "hs_err*"
     ];
   };
 
