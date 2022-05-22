@@ -442,8 +442,6 @@ fi
 
     '';
     initExtra = ''
-      setopt completealiases
-
       if [ "$(command -v exa)" ]; then
           unalias -m 'll'
           unalias -m 'l'
