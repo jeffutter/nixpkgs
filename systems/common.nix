@@ -147,6 +147,7 @@ in
     kubectl
     kubectx
     kubernetes-helm
+    kubeseal
     lftp
     mosh
     my_vim_configurable
@@ -437,9 +438,7 @@ fi
         export fpath=( ~/.zfunc "''${fpath[@]}" )
         autoload -U $fpath[1]/*(:t)
       fi
-      if [[ -n "$SSH_CONNECTION" || -n "$TMUX" ]]; then
-        export PINENTRY_USER_DATA="USE_CURSES=1"
-      fi
+      export PINENTRY_USER_DATA="USE_CURSES=1"
 
     '';
     initExtra = ''
