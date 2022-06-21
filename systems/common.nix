@@ -163,6 +163,7 @@ in
     pstree
     pv
     ripgrep
+    rsync
     ruplacer
     shellcheck
     sqls
