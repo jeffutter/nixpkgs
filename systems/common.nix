@@ -171,6 +171,7 @@ in
     gnutar
     tmate
     unixtools.watch
+    vale
     vimPlugins.vimproc-vim
     vips
     my_wakeonlan
