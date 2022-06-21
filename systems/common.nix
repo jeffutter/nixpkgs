@@ -139,6 +139,7 @@ in
     grex
     htop
     hyperfine
+    ijq
     imagemagick
     ispell
     jq
@@ -166,6 +167,7 @@ in
     shellcheck
     sqls
     ssh-copy-id
+    gnutar
     tmate
     unixtools.watch
     vimPlugins.vimproc-vim
@@ -175,6 +177,8 @@ in
     wget
     xz
     yarn
+    yq
+    zstd
 
     # Elixir
     elixir
