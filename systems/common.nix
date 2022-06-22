@@ -268,6 +268,9 @@ in
       github = {
         user = "jeffutter";
       };
+      fetch = {
+        prune = true;
+      };
       pull = {
         rebase = false;
       };
