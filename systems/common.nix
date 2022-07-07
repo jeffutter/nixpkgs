@@ -172,6 +172,7 @@ in
     tmate
     unixtools.watch
     vale
+    viddy
     vimPlugins.vimproc-vim
     vips
     my_wakeonlan
