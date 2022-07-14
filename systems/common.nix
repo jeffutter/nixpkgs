@@ -82,8 +82,8 @@ let
     src = pkgs.fetchFromGitHub {
       owner = "mobile-shell";
       repo = "mosh";
-      rev = "378dfa6aa5778cf168646ada7f52b6f4a8ec8e41";
-      sha256 = "1fkzn8scq5j944jpvpyhhwxhb0vdp8rnbvylcqd5h2f8r822r6rc";
+      rev = "0982212ca77cf068725a0a352e50fc017a768a85";
+      sha256 = "sha256-xSiQcpltGJnApgiD9fJZKUM5gY7L1YU/Zjx+aWhBlzU=";
     };
     patches = lib.remove 
       (pkgs.fetchpatch {
