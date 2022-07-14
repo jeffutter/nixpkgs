@@ -253,6 +253,14 @@ in
     executable = true;
   };
 
+  programs.himalaya = {
+    enable = true;
+    settings = {
+      name = "Jeffery Utter";
+      default-page-size = 50;
+    };
+  };
+
   programs.emacs = {
     enable = true;
     package = pkgs.emacsNativeComp;
@@ -474,6 +482,11 @@ fi
       if [ "$(command -v spacevim)" ]; then
         unalias -m 'vim'
         alias vim='spacevim'
+      fi
+
+      if [ "$(command -v himalaya)" ]; then
+        unalias -m 'h'
+        alias h='himalaya'
       fi
       
       printf "\e[?1042l"
