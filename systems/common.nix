@@ -143,6 +143,7 @@ in
     imagemagick
     ispell
     jq
+    just
     k6
     k9s
     kubectl
