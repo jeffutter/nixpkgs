@@ -456,6 +456,7 @@ fi
         export fpath=( ~/.zfunc "''${fpath[@]}" )
         autoload -U $fpath[1]/*(:t)
       fi
+      export GPG_TTY=$(tty)
       export PINENTRY_USER_DATA="USE_CURSES=1"
 
     '';
