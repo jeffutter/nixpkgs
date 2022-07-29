@@ -254,6 +254,58 @@ in
     executable = true;
   };
 
+  accounts.email.accounts = {
+    sadclown = {
+      primary = true;
+      realName = "Jeffery Utter";
+      address = "jeffutter@sadclown.net";
+      aliases = "jeff@jeffutter.com";
+      flavor = "fastmail.com";
+      himalaya = {
+        enable = true;
+      };
+      imap = {
+        port = 993;
+        host = "imap.fastmail.com";
+        tls.enable = true;
+      };
+      smtp = {
+        port = 587;
+        host = "smtp.fastmail.com";
+        tls.enable = true;
+        tls.useStartTls = true;
+      };
+      userName = "jeffutter@sadclown.net";
+      passwordCommand = [ "op" "item" "get" "Fastmail Himalaya" "--fields" "password"];
+    };
+    work = {
+      primary = false;
+      realName = "Jeffery Utter";
+      address = "jeffery.utter@thescore.com";
+      flavor = "gmail.com";
+      himalaya = {
+        enable = true;
+      };
+      imap = {
+        port = 993;
+        host = "imap.gmail.com";
+        tls.enable = true;
+      };
+      smtp = {
+        port = 587;
+        host = "smtp.gmail.com";
+        tls.enable = true;
+        tls.useStartTls = true;
+      };
+      folders = {
+        sent = "[Gmail]/Sent Mail";
+        drafts = "[Gmail]/Drafts";
+      };
+      userName = "jeffery.utter@thescore.com";
+      passwordCommand = [ "op" "item" "get" "Gmail (theScore) (Himalaya)" "--fields" "password"];
+    };
+  };
+
   programs.himalaya = {
     enable = true;
     settings = {
@@ -724,6 +776,10 @@ fi
     enable = true;
     enableZshIntegration = true;
     settings = {
+      kubernetes.context_aliases = {
+        "gke_[\\\\w]+-prod[\\\\w-]+_scorebet-(?P<cluster>[\\\\w-]+)" = "🔥PROD $cluster PROD🔥";
+        "gke_s[\\\\w]+-[\\\\w-]+_scorebet-(?P<cluster>[\\\\w-]+)" = "$cluster";
+      };
       format = lib.strings.replaceStrings [ "\n" ] [ "" ] ''
         $username
         $hostname
