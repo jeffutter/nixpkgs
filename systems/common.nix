@@ -143,7 +143,6 @@ in
     imagemagick
     ispell
     jq
-    just
     k6
     k9s
     kubectl
@@ -320,6 +319,11 @@ in
     extraPackages = epkgs: with epkgs; [
       vterm
     ];
+  };
+
+  programs.just = {
+    enableZshIntegration = true;
+    enableFishIntegration = true;
   };
 
   programs.git = {
