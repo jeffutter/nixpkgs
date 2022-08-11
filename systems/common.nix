@@ -464,13 +464,80 @@ in
     extraConfig = ''
 set -ga terminal-overrides ",*256col*:Tc"
 set-option -g mouse off
-set-option -g default-command "zsh"
+set-option -g default-command "fish"
     '';
     plugins = with pkgs.tmuxPlugins; [
       nord
       yank
       prefix-highlight
     ];
+  };
+
+  programs.fish = {
+    enable = true;
+    shellAbbrs = {
+      dc = "docker compose";
+      k = "kubectl";
+      kns = "kubens";
+      kctx = "kubectx";
+      h = "himalaya";
+    };
+		shellAliases = {
+      ll = "exa -l --color always --icons -a -s type";
+      ls = "exa -G --color auto -s type";
+      cat = "bat -pp --theme=\"Nord\"";
+      df = "duf";
+      vim = "spacevim";
+    };
+    functions = {
+      kca = "kubectl $argv --all-namespaces";
+    };
+    plugins = [
+      {
+        name = "fenv";
+				src = pkgs.fetchFromGitHub {
+					owner = "oh-my-fish";
+					repo = "plugin-foreign-env";
+					rev = "b3dd471bcc885b597c3922e4de836e06415e52dd";
+					sha256 = "sha256-3h03WQrBZmTXZLkQh1oVyhv6zlyYsSDS7HTHr+7WjY8=";
+				};
+      }
+    ];
+    shellInit = ''
+      set fish_greeting
+
+      set -x LANG "en_US.UTF-8"
+      set -x LC_COLLATE "en_US.UTF-8"
+      set -x LC_CTYPE "en_US.UTF-8"
+      set -x LC_MESSAGES "en_US.UTF-8"
+      set -x LC_MONETARY "en_US.UTF-8"
+      set -x LC_NUMERIC "en_US.UTF-8"
+      set -x LC_TIME "en_US.UTF-8"
+      set -x LC_ALL "en_US.UTF-8"
+
+      if [ -e /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh ]
+        fenv source /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
+      end
+      if [ -e ${config.home.homeDirectory}/.nix-profile/etc/profile.d/nix.sh ]
+        fenv source ${config.home.homeDirectory}/.nix-profile/etc/profile.d/nix.sh
+      end
+
+      fish_add_path -p $HOME/bin
+      fish_add_path -p $HOME/homebrew/bin
+      fish_add_path -p /usr/local/bin
+      fish_add_path -p /Applications/Docker.app/Contents/Resources/bin
+
+      set -x HOMEBREW_CASK_OPTS "--appdir=$HOME/Applications"
+      set -x ERL_AFLAGS "-kernel shell_history enabled"
+    '';
+		interactiveShellInit = ''
+      set -x GPG_TTY (tty)
+      set -x PINENTRY_USER_DATA "USE_CURSES=1"
+      set -x COLORTERM truecolor
+      set -x AWS_DEFAULT_REGION "us-east-1";
+      set -x AWS_PAGER "";
+      set -x EDITOR "vim";
+		'';
   };
 
   programs.zsh = {
@@ -566,12 +633,14 @@ fi
   programs.keychain = {
     enable = true;
     enableZshIntegration = true;
+    enableFishIntegration = true;
     inheritType = "any";
   };
 
   programs.dircolors = {
     enable = true;
     enableZshIntegration = true;
+    enableFishIntegration = true;
     settings = {
       COLOR = "tty";
 
@@ -779,6 +848,7 @@ fi
   programs.starship = {
     enable = true;
     enableZshIntegration = true;
+    enableFishIntegration = true;
     settings = {
       kubernetes.context_aliases = {
         "gke_[\\\\w]+-prod[\\\\w-]+_scorebet-(?P<cluster>[\\\\w-]+)" = "🔥PROD $cluster PROD🔥";
@@ -855,6 +925,7 @@ fi
   programs.zoxide = {
     enable = true;
     enableZshIntegration = true;
+    enableFishIntegration = true;
   };
 
   programs.direnv = {
@@ -873,6 +944,7 @@ fi
   programs.fzf = {
     enable = true;
     enableZshIntegration = true;
+    enableFishIntegration = true;
     changeDirWidgetCommand = "fd --type d";
     defaultCommand = "fd --type f";
     fileWidgetCommand = "fd --type f";
