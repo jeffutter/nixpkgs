@@ -143,6 +143,7 @@ in
     imagemagick
     ispell
     jq
+    just
     k6
     k9s
     kubectl
@@ -507,6 +508,7 @@ fi
         export fpath=( ~/.zfunc "''${fpath[@]}" )
         autoload -U $fpath[1]/*(:t)
       fi
+      export GPG_TTY=$(tty)
       export PINENTRY_USER_DATA="USE_CURSES=1"
 
     '';
@@ -774,6 +776,10 @@ fi
     enable = true;
     enableZshIntegration = true;
     settings = {
+      kubernetes.context_aliases = {
+        "gke_[\\\\w]+-prod[\\\\w-]+_scorebet-(?P<cluster>[\\\\w-]+)" = "🔥PROD $cluster PROD🔥";
+        "gke_s[\\\\w]+-[\\\\w-]+_scorebet-(?P<cluster>[\\\\w-]+)" = "$cluster";
+      };
       format = lib.strings.replaceStrings [ "\n" ] [ "" ] ''
         $username
         $hostname
