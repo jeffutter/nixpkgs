@@ -531,6 +531,9 @@ set-option -g default-command "fish"
       set -x ERL_AFLAGS "-kernel shell_history enabled"
     '';
 		interactiveShellInit = ''
+      fish_vi_key_bindings
+      bind -M default vv edit_command_buffer
+
       set -x GPG_TTY (tty)
       set -x PINENTRY_USER_DATA "USE_CURSES=1"
       set -x COLORTERM truecolor
