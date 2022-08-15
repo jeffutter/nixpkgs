@@ -98,6 +98,19 @@ let
     '';
   });
 
+  gnutar = pkgs.gnutar.overrideAttrs (old: {
+    configureFlags = [
+      "--with-gzip=pigz"
+      "--with-xz=pxz"
+      "--with-bzip2=pbzip2"
+      "--with-zstd=pzstd"
+    ] ++ optionals pkgs.stdenv.isDarwin [
+      "gt_cv_func_CFPreferencesCopyAppValue=no"
+      "gt_cv_func_CFLocaleCopyCurrent=no"
+      "gt_cv_func_CFLocaleCopyPreferredLanguages=no"
+    ];
+  });
+
   my_wakeonlan = pkgs.callPackage ../pkgs/wakeonlan {};
 
 in
@@ -158,6 +171,9 @@ in
     ngrok
     nodePackages.bash-language-server
     p7zip
+    pigz
+    pxz
+    pbzip2
     postgresql
     protobuf
     pstree
@@ -488,6 +504,10 @@ set-option -g default-command "fish"
       cat = "bat -pp --theme=\"Nord\"";
       df = "duf";
       vim = "spacevim";
+      gz = "pigz";
+      gunzip = "pigz -d";
+      bzip2 = "pbzip2";
+      xz = "pxz";
     };
     functions = {
       kca = "kubectl $argv --all-namespaces";
