@@ -498,7 +498,7 @@ set-option -g default-command "fish"
       kctx = "kubectx";
       h = "himalaya";
     };
-		shellAliases = {
+    shellAliases = {
       ll = "exa -l --color always --icons -a -s type";
       ls = "exa -G --color auto -s type";
       cat = "bat -pp --theme=\"Nord\"";
@@ -515,30 +515,30 @@ set-option -g default-command "fish"
     plugins = [
       {
         name = "fenv";
-				src = pkgs.fetchFromGitHub {
-					owner = "oh-my-fish";
-					repo = "plugin-foreign-env";
-					rev = "b3dd471bcc885b597c3922e4de836e06415e52dd";
-					sha256 = "sha256-3h03WQrBZmTXZLkQh1oVyhv6zlyYsSDS7HTHr+7WjY8=";
-				};
+        src = pkgs.fetchFromGitHub {
+          owner = "oh-my-fish";
+          repo = "plugin-foreign-env";
+          rev = "b3dd471bcc885b597c3922e4de836e06415e52dd";
+          sha256 = "sha256-3h03WQrBZmTXZLkQh1oVyhv6zlyYsSDS7HTHr+7WjY8=";
+        };
       }
       {
         name = "fzf";
-				src = pkgs.fetchFromGitHub {
-					owner = "PatrickF1";
-					repo = "fzf.fish";
-					rev = "v9.2";
-					sha256 = "sha256-XmRGe39O3xXmTvfawwT2mCwLIyXOlQm7f40mH5tzz+s=";
-				};
+        src = pkgs.fetchFromGitHub {
+          owner = "PatrickF1";
+          repo = "fzf.fish";
+          rev = "v9.2";
+          sha256 = "sha256-XmRGe39O3xXmTvfawwT2mCwLIyXOlQm7f40mH5tzz+s=";
+        };
       }
       {
         name = "autopair";
-				src = pkgs.fetchFromGitHub {
-					owner = "jorgebucaran";
-					repo = "autopair.fish";
-					rev = "1.0.4";
+        src = pkgs.fetchFromGitHub {
+          owner = "jorgebucaran";
+          repo = "autopair.fish";
+          rev = "1.0.4";
           sha256 = "sha256-s1o188TlwpUQEN3X5MxUlD/2CFCpEkWu83U9O+wg3VU=";
-				};
+        };
       }
     ];
     shellInit = ''
@@ -568,7 +568,7 @@ set-option -g default-command "fish"
       set -x HOMEBREW_CASK_OPTS "--appdir=$HOME/Applications"
       set -x ERL_AFLAGS "-kernel shell_history enabled"
     '';
-		interactiveShellInit = ''
+    interactiveShellInit = ''
       fish_vi_key_bindings
       bind -M default vv edit_command_buffer
 
@@ -578,7 +578,7 @@ set-option -g default-command "fish"
       set -x AWS_DEFAULT_REGION "us-east-1";
       set -x AWS_PAGER "";
       set -x EDITOR "vim";
-		'';
+    '';
   };
 
   programs.zsh = {
