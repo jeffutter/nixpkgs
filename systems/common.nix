@@ -101,7 +101,7 @@ let
   gnutar = pkgs.gnutar.overrideAttrs (old: {
     configureFlags = [
       "--with-gzip=pigz"
-      "--with-xz=pxz"
+      "--with-xz=pixz"
       "--with-bzip2=pbzip2"
       "--with-zstd=pzstd"
     ] ++ optionals pkgs.stdenv.isDarwin [
@@ -172,7 +172,7 @@ in
     nodePackages.bash-language-server
     p7zip
     pigz
-    pxz
+    pixz
     pbzip2
     postgresql
     protobuf
@@ -571,6 +571,8 @@ set-option -g default-command "fish"
     interactiveShellInit = ''
       fish_vi_key_bindings
       bind -M default vv edit_command_buffer
+
+      source ${pkgs.docker}/share/fish/vendor_completions.d/docker.fish
 
       set -x GPG_TTY (tty)
       set -x PINENTRY_USER_DATA "USE_CURSES=1"
