@@ -101,7 +101,7 @@ let
   gnutar = pkgs.gnutar.overrideAttrs (old: {
     configureFlags = [
       "--with-gzip=pigz"
-      "--with-xz=pxz"
+      "--with-xz=pixz"
       "--with-bzip2=pbzip2"
       "--with-zstd=pzstd"
     ] ++ optionals pkgs.stdenv.isDarwin [
@@ -172,7 +172,7 @@ in
     nodePackages.bash-language-server
     p7zip
     pigz
-    pxz
+    pixz
     pbzip2
     postgresql
     protobuf
