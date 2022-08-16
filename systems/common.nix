@@ -522,6 +522,24 @@ set-option -g default-command "fish"
 					sha256 = "sha256-3h03WQrBZmTXZLkQh1oVyhv6zlyYsSDS7HTHr+7WjY8=";
 				};
       }
+      {
+        name = "fzf";
+				src = pkgs.fetchFromGitHub {
+					owner = "PatrickF1";
+					repo = "fzf.fish";
+					rev = "v9.2";
+					sha256 = "sha256-XmRGe39O3xXmTvfawwT2mCwLIyXOlQm7f40mH5tzz+s=";
+				};
+      }
+      {
+        name = "autopair";
+				src = pkgs.fetchFromGitHub {
+					owner = "jorgebucaran";
+					repo = "autopair.fish";
+					rev = "1.0.4";
+          sha256 = "sha256-s1o188TlwpUQEN3X5MxUlD/2CFCpEkWu83U9O+wg3VU=";
+				};
+      }
     ];
     shellInit = ''
       set fish_greeting
@@ -967,7 +985,7 @@ fi
   programs.fzf = {
     enable = true;
     enableZshIntegration = true;
-    enableFishIntegration = true;
+    enableFishIntegration = false;
     changeDirWidgetCommand = "fd --type d";
     defaultCommand = "fd --type f";
     fileWidgetCommand = "fd --type f";
