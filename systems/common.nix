@@ -492,21 +492,24 @@ set-option -g default-command "fish"
   programs.fish = {
     enable = true;
     shellAbbrs = {
+      "gcan!" = "git commit -v -a --no-edit --amend";
       dc = "docker compose";
-      k = "kubectl";
-      kns = "kubens";
-      kctx = "kubectx";
+      g = "git";
+      gpf = "git push --force";
       h = "himalaya";
+      k = "kubectl";
+      kctx = "kubectx";
+      kns = "kubens";
     };
     shellAliases = {
-      ll = "exa -l --color always --icons -a -s type";
-      ls = "exa -G --color auto -s type";
+      bzip2 = "pbzip2";
       cat = "bat -pp --theme=\"Nord\"";
       df = "duf";
-      vim = "spacevim";
-      gz = "pigz";
       gunzip = "pigz -d";
-      bzip2 = "pbzip2";
+      gz = "pigz";
+      ll = "exa -l --color always --icons -a -s type";
+      ls = "exa -G --color auto -s type";
+      vim = "spacevim";
       xz = "pxz";
     };
     functions = {
@@ -909,11 +912,15 @@ fi
         $git_status
         $hg_branch
         $docker_context
+        $buf
+        $c
         $cmake
         $elixir
         $erlang
         $golang
         $helm
+        $java
+        $kotlin 
         $nim
         $nodejs
         $ocaml
