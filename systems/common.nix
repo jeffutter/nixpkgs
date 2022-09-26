@@ -186,6 +186,7 @@ in
     sqls
     ssh-copy-id
     gnutar
+    tlaplus
     tmate
     unzip
     unixtools.watch
