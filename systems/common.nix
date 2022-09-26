@@ -187,6 +187,7 @@ in
     ssh-copy-id
     gnutar
     tmate
+    unzip
     unixtools.watch
     vale
     viddy
