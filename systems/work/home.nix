@@ -1,4 +1,4 @@
-{ pkgs, platforms, ... }:
+{ pkgs, lib, ... }:
 
 let
 
@@ -8,7 +8,7 @@ let
       make
     '';
 
-    meta.platform = platforms.darwin;
+    meta.platforms = lib.platforms.darwin;
   });
 
 in
