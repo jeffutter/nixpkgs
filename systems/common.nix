@@ -129,7 +129,7 @@ in
     autoconf
     bandwhich
     bash-completion
-    bash_5
+    bash
     bat
     borgbackup
     bottom
