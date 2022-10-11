@@ -341,6 +341,7 @@ in
   };
 
   programs.just = {
+    enable = true;
     enableZshIntegration = true;
     enableFishIntegration = true;
   };
