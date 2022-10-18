@@ -372,7 +372,14 @@ in
 
   programs.helix = {
     enable = true;
-    languages = [ ];
+    languages = [
+      {
+        name = "java";
+        language-server = {
+          command = "jdt-language-server";
+        };
+      }
+    ];
     settings = {
       theme = "nord";
       editor = {

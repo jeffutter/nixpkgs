@@ -21,6 +21,7 @@ in
 
     google-cloud-sdk
 
+    jdt-language-server
     maven
     google-java-format
     grpcurl
