@@ -180,6 +180,7 @@ in
     pstree
     pv
     ripgrep
+    rnix-lsp
     rsync
     ruplacer
     shellcheck
