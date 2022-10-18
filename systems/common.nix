@@ -324,6 +324,19 @@ in
     };
   };
 
+  programs.helix = {
+    enable = true;
+    languages = [ ];
+    settings = {
+      theme = "nord";
+      editor = {
+        mouse = false;
+        line-number = "relative";
+        lsp.display-messages = true;
+      };
+    };
+  };
+
   programs.himalaya = {
     enable = true;
     settings = {
