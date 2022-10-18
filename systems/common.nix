@@ -727,17 +727,17 @@ fi
     '';
   };
 
-  # programs.topgrade = {
-  #   enable = true;
-  #   settings = {
-  #     disable = ["yadm" "node" "gem" "nix" "gcloud" "opam"];
-  #     cleanup = true;
-  #     commands = {
-  #       "Expire old home-manager configs" = "home-manager expire-generations '-1 week'";
-  #       "Run garbage collection on Nix store" = "nix-collect-garbage --delete-older-than 7d";
-  #     };
-  #   };
-  # };
+  programs.topgrade = {
+    enable = true;
+    settings = {
+      disable = ["yadm" "node" "gem" "nix" "gcloud" "opam"];
+      cleanup = true;
+      commands = {
+        "Expire old home-manager configs" = "home-manager expire-generations '-1 week'";
+        "Run garbage collection on Nix store" = "nix-collect-garbage --delete-older-than 7d";
+      };
+    };
+  };
 
   programs.keychain = {
     enable = true;
