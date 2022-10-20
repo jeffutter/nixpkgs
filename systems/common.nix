@@ -281,8 +281,8 @@ in
       right:t
 
       grid_activation_key:A-M-g
-      activation_key:M-x
-      hint_activation_key:M-z
+      activation_key:A-M-c
+      hint_activation_key:A-M-x
       grid:b
 
       grid_up:f
