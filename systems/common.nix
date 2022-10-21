@@ -114,6 +114,8 @@ let
 
   my_wakeonlan = pkgs.callPackage ../pkgs/wakeonlan {};
 
+  ltex-lsp = pkgs.callPackage ../pkgs/ltex-lsp {}; 
+
 in
 
 {
@@ -164,6 +166,7 @@ in
     kubernetes-helm
     kubeseal
     lftp
+    ltex-lsp
     mosh
     my_vim_configurable
     my_spacevim
@@ -378,6 +381,15 @@ in
         language-server = {
           command = "jdt-language-server";
         };
+      }
+      {
+        name = "markdown";
+        language-server = {
+          command = "ltex-ls";
+        };
+        file-types = [ "md" ];
+        scope = "source.markdown";
+        roots = [];
       }
     ];
     settings = {
