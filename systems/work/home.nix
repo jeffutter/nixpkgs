@@ -11,6 +11,8 @@ let
     meta.platforms = lib.platforms.darwin;
   });
 
+  my_google-cloud-sdk = pkgs.google-cloud-sdk.withExtraComponents [pkgs.google-cloud-sdk.components.gke-gcloud-auth-plugin];
+
 in
 {
   imports = [ ../common.nix ];
@@ -19,7 +21,7 @@ in
     llvmPackages.bintools
     wrk2
 
-    google-cloud-sdk
+    my_google-cloud-sdk
 
     jdt-language-server
     maven
