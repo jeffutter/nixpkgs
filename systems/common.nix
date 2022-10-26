@@ -235,6 +235,7 @@ in
     gotest
   ]
   ++ optional stdenv.isLinux inotify-tools
+  ++ optionals stdenv.isDarwin [ skhd ]
   ++ optionals stdenv.isDarwin (with darwin.apple_sdk.frameworks; [ CoreFoundation CoreServices ])
   ;
 
@@ -274,6 +275,40 @@ in
   home.file."bin/upgrade" = {
     source = ../bin/upgrade;
     executable = true;
+  };
+
+  home.file.".config/skhd/skhdrc" = lib.mkIf pkgs.stdenv.targetPlatform.isDarwin {
+    text = ''
+      ctrl + alt + shift - b : open -a 'Brave Browser'
+      ctrl + alt + shift - m : open -a 'Messages'
+      ctrl + alt + shift - o : open -a 'Obsidian'
+      ctrl + alt + shift - a : open -a 'Alacritty'
+      ctrl + alt + shift - l : open -a 'Mail'
+      ctrl + alt + shift - c : open -a 'Calendar'
+    '';
+  };
+
+  launchd.agents.skhd = lib.mkIf pkgs.stdenv.targetPlatform.isDarwin {
+    enable = true;
+    config = {
+      ProgramArguments = [
+        "${pkgs.skhd}/bin/skhd"
+        "-c"
+        "${config.xdg.configHome}/skhd/skhdrc"
+      ];
+      KeepAlive = true;
+      ProcessType = "Interactive";
+      EnvironmentVariables = {
+        PATH = lib.concatStringsSep ":" [
+          "${config.home.homeDirectory}/.nix-profile/bin"
+          "/run/current-system/sw/bin"
+          "/nix/var/nix/profiles/default/"
+          "/usr/bin"
+        ];
+      };
+      StandardOutPath = "${config.xdg.cacheHome}/skhd.out.log";
+      StandardErrorPath = "${config.xdg.cacheHome}/skhd.err.log";
+    };
   };
 
   home.file.".config/warpd/config" = {
