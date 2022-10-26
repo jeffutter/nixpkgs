@@ -277,6 +277,31 @@ in
     executable = true;
   };
 
+  home.file.".amethyst.yml" = lib.mkIf pkgs.stdenv.targetPlatform.isDarwin {
+    text = ''
+      layouts:
+          - fullscreen
+          - middle-wide
+          - tall
+          - wide
+          - widescreen-tall
+          - column
+          - bsp
+
+      mod1:
+          - option
+          - shift
+      mod2:
+          - option
+          - shift
+          - control
+
+      window-margins: true
+      window-margin-size: 10
+      smart-window-margins: true
+    '';
+  };
+
   home.file.".config/skhd/skhdrc" = lib.mkIf pkgs.stdenv.targetPlatform.isDarwin {
     text = ''
       ctrl + alt + shift - b : open -a 'Brave Browser'
