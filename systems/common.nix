@@ -79,12 +79,12 @@ let
   };
 
   mosh = pkgs.mosh.overrideAttrs (old: {
-    version = "1.3.2.95rc1";
+    version = "1.4.0";
     src = pkgs.fetchFromGitHub {
       owner = "mobile-shell";
       repo = "mosh";
-      rev = "mosh-1.3.2.95rc1";
-      sha256 = "sha256-8/IKcUg2UzrRqm+9B5g7c4IfdyD4optEMwmwzYFs6cA=";
+      rev = "mosh-1.4.0";
+      sha256 = "sha256-tlSsHu7JnXO+sorVuWWubNUNdb9X0/pCaiGG5Y0X/g8=";
     };
     patches = lib.remove 
       (pkgs.fetchpatch {
