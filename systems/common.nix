@@ -299,6 +299,8 @@ in
       window-margins: true
       window-margin-size: 10
       smart-window-margins: true
+      mouse-follows-focus: true
+      focus-follows-mouse: false
     '';
   };
 
@@ -809,6 +811,7 @@ fi
   programs.topgrade = {
     enable = true;
     settings = {
+      ignore_failures = ["containers"];
       disable = ["yadm" "node" "gem" "nix" "gcloud" "opam"];
       cleanup = true;
       commands = {
