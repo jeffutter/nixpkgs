@@ -670,15 +670,6 @@ set-option -g default-command "fish"
         };
       }
       {
-        name = "fzf";
-        src = pkgs.fetchFromGitHub {
-          owner = "PatrickF1";
-          repo = "fzf.fish";
-          rev = "v9.2";
-          sha256 = "sha256-XmRGe39O3xXmTvfawwT2mCwLIyXOlQm7f40mH5tzz+s=";
-        };
-      }
-      {
         name = "autopair";
         src = pkgs.fetchFromGitHub {
           owner = "jorgebucaran";
@@ -1135,10 +1126,23 @@ fi
       };
     };
   };
+  
+  
+  programs.atuin= {
+    enable = true;
+    enableBashIntegration = true;
+    enableZshIntegration = true;
+    enableFishIntegration = true;
+    settings = {
+      sync_address = "https://atuin.home.jeffutter.com";
+      search_mode = "fuzzy";
+    };
+  };
 
   programs.fzf = {
     enable = true;
-    enableZshIntegration = true;
+    enableBashIntegration = false;
+    enableZshIntegration = false;
     enableFishIntegration = false;
     changeDirWidgetCommand = "fd --type d";
     defaultCommand = "fd --type f";

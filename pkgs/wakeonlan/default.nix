@@ -12,10 +12,10 @@ rustPlatform.buildRustPackage rec {
     owner = "jeffutter";
     repo = "wakeonlan-rust";
     rev = "v0.1.0";
-    sha256 = "sha256-+MneuHxLWOgf0MnRh5YH3aeV3UJ+GI+02BnczZdmYbU=";
+    sha256 = "sha256-Ne4ZABsVNunAKoDoLflla5Tp0mMUmP1XHf1ijWRzjGs=";
   };
     
-  cargoSha256 = "sha256-mI7BlT96mxRT21G3MyJbxu4z7t0/acSzLv/TPbD40y8=";
+  cargoSha256 = "sha256-h51kf+4zfwUYOtbpCCMYIfp/AzHgdOCy5HPimiB3hlA=";
 
   meta = with lib; {
     description = "Simple wake-on-lan program written in Rust";
