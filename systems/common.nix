@@ -705,10 +705,15 @@ set-option -g default-command "fish"
 
       set -x HOMEBREW_CASK_OPTS "--appdir=$HOME/Applications"
       set -x ERL_AFLAGS "-kernel shell_history enabled"
+
+      set -gx ATUIN_NOBIND "true"
     '';
     interactiveShellInit = ''
       fish_vi_key_bindings
       bind -M default vv edit_command_buffer
+
+      bind \cr _atuin_search
+      bind -M insert \cr _atuin_search
 
       source ${pkgs.docker}/share/fish/vendor_completions.d/docker.fish
 
