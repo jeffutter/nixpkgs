@@ -171,7 +171,6 @@ in
     my_vim_configurable
     my_spacevim
     ncdu
-    neovim
     ngrok
     nodePackages.bash-language-server
     p7zip
@@ -477,6 +476,13 @@ in
     package = pkgs.emacsNativeComp;
     extraPackages = epkgs: with epkgs; [
       vterm
+    ];
+  };
+
+  programs.neovim = {
+    enable = true;
+    plugins = with pkgs.vimPlugins; [
+      packer-nvim
     ];
   };
 
