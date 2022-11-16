@@ -707,6 +707,7 @@ set-option -g default-command "fish"
       set -x ERL_AFLAGS "-kernel shell_history enabled"
 
       set -gx ATUIN_NOBIND "true"
+      set -x RUST_SRC_PATH "${pkgs.rust.packages.stable.rustPlatform.rustLibSrc}";
     '';
     interactiveShellInit = ''
       fish_vi_key_bindings
@@ -760,6 +761,7 @@ fi
       export PATH=$HOME/bin:$HOME/homebrew/bin:$PATH:/usr/local/bin:/Applications/Docker.app/Contents/Resources/bin
       export HOMEBREW_CASK_OPTS="--appdir=$HOME/Applications"
       export ERL_AFLAGS="-kernel shell_history enabled"
+      export RUST_SRC_PATH="${pkgs.rust.packages.stable.rustPlatform.rustLibSrc}";
       export COLORTERM=truecolor
       if [ -n "$(find ~/.zfunc -prune -empty)" ]; then
         export fpath=( ~/.zfunc "''${fpath[@]}" )
