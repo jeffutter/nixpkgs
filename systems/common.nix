@@ -17,67 +17,6 @@ let
     url = https://github.com/nix-community/emacs-overlay/archive/master.tar.gz;
   });
 
-  my_spacevim = pkgs.spacevim.override {
-    spacevim_config = {
-      custom_plugins = [
-        { name = "dracula/vim"; }
-        {
-          repo = "mhartington/oceanic-next";
-          merged = 0;
-        }
-      ];
-      layers = [
-        {
-          name = "core";
-          enable_smooth_scrolling = false;
-        }
-        {
-          name = "autocomplete";
-          auto_completion_return_key_behavior = "complete";
-          auto_completion_tab_key_behavior = "smart";
-        }
-        {
-          name = "shell";
-          default_position = "top";
-          default_height = 30;
-        }
-        { 
-          name = "colorscheme";
-          enabled = true;
-        }
-        {
-          name = "lang#rust";
-          format_on_save = true;
-        }
-        { name = "lang#elixir"; }
-        { name = "lang#nix"; }
-        { name = "lang#sh"; }
-        { name = "lang#typescript"; }
-        { name = "lang#javascript"; }
-        { name = "fzf"; }
-        {
-          name = "lsp";
-          filetypes = [ "rust" "sh" ];
-          override_cmd = {
-            rust = ["rust-analyzer"];
-          };
-          enabled_clients = ["rust-analyzer"];
-        }
-      ];
-      options = {
-        colorscheme = "nord";
-        colorscheme_bg = "dark";
-        enable_guicolors = true;
-        statusline_separator = "arrow";
-        statusline_iseparator = "arrow";
-        buffer_index_type = 4;
-        enable_tabline_filetype_icon = true;
-        enable_statusline_mode = false;
-        guifont = "SauceCodePro Nerd Font Mono:h11";
-      };
-    };
-  };
-
   mosh = pkgs.mosh.overrideAttrs (old: {
     version = "1.4.0";
     src = pkgs.fetchFromGitHub {
@@ -169,7 +108,6 @@ in
     ltex-lsp
     mosh
     my_vim_configurable
-    my_spacevim
     ncdu
     ngrok
     nodePackages.bash-language-server
@@ -481,9 +419,14 @@ in
 
   programs.neovim = {
     enable = true;
+    vimAlias = true;
     plugins = with pkgs.vimPlugins; [
       packer-nvim
     ];
+  };
+
+  home.file.".config/nvim/init.lua" = {
+    source = ../nvim/init.lua;
   };
 
   programs.just = {
@@ -659,7 +602,6 @@ set-option -g default-command "fish"
       gz = "pigz";
       ll = "exa -l --color always --icons -a -s type";
       ls = "exa -G --color auto -s type";
-      vim = "spacevim";
       xz = "pxz";
     };
     functions = {
@@ -796,11 +738,6 @@ fi
       if [ "$(command -v duf)" ]; then
         unalias -m 'df'
         alias df='duf'
-      fi
-
-      if [ "$(command -v spacevim)" ]; then
-        unalias -m 'vim'
-        alias vim='spacevim'
       fi
 
       if [ "$(command -v himalaya)" ]; then
