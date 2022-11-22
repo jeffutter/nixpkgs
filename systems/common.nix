@@ -646,10 +646,10 @@ set-option -g default-command "fish"
         fenv source ${config.home.homeDirectory}/.nix-profile/etc/profile.d/nix.sh
       end
 
-      fish_add_path -p $HOME/bin
-      fish_add_path -p $HOME/homebrew/bin
-      fish_add_path -p /usr/local/bin
-      fish_add_path -p /Applications/Docker.app/Contents/Resources/bin
+      fish_add_path -p "$HOME/bin"
+      fish_add_path -p "$HOME/homebrew/bin"
+      fish_add_path -a /usr/local/bin
+      fish_add_path -a /Applications/Docker.app/Contents/Resources/bin
 
       set -x HOMEBREW_CASK_OPTS "--appdir=$HOME/Applications"
       set -x ERL_AFLAGS "-kernel shell_history enabled"
@@ -704,20 +704,45 @@ fi
       export LC_NUMERIC="en_US.UTF-8"
       export LC_TIME="en_US.UTF-8"
       export LC_ALL="en_US.UTF-8"
-      if [ -e /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh ]; then . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh; fi
-      if [ -e ${config.home.homeDirectory}/.nix-profile/etc/profile.d/nix.sh ]; then . ${config.home.homeDirectory}/.nix-profile/etc/profile.d/nix.sh; fi # added by Nix installer
-      export PATH=$HOME/bin:$HOME/homebrew/bin:$PATH:/usr/local/bin:/Applications/Docker.app/Contents/Resources/bin
+
       export HOMEBREW_CASK_OPTS="--appdir=$HOME/Applications"
       export ERL_AFLAGS="-kernel shell_history enabled"
       export RUST_SRC_PATH="${pkgs.rust.packages.stable.rustPlatform.rustLibSrc}";
       export COLORTERM=truecolor
+      export GPG_TTY=$(tty)
+      export PINENTRY_USER_DATA="USE_CURSES=1"
+
+      path_append() {
+        if [ -d "$1" ] && [[ ":$PATH:" != *":$1:"* ]]; then
+            PATH="''${PATH:+"$PATH:"}$1"
+        fi
+      }
+
+      path_prepend() {
+        if [ -d "$1" ] && [[ ":$PATH:" != *":$1:"* ]]; then
+            PATH="$1''${PATH:+":$PATH"}"
+        fi
+      }
+
+      path_prepend "$HOME/bin"
+      path_prepend "$HOME/homebrew/bin"
+      path_append /Applications/Docker.app/Contents/Resources/bin
+      path_append /usr/local/bin
+
+      if [[ -e /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh && -z "$NIX_GLOBAL_SOURCED" ]]; then
+        . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
+        export NIX_GLOBAL_SOURCED="true"
+      fi
+
+      if [[ -e ${config.home.homeDirectory}/.nix-profile/etc/profile.d/nix.sh && -z "$NIX_HOME_SOURCED" ]]; then
+        . ${config.home.homeDirectory}/.nix-profile/etc/profile.d/nix.sh
+        export NIX_HOME_SOURCED="true"
+      fi
+
       if [ -n "$(find ~/.zfunc -prune -empty)" ]; then
         export fpath=( ~/.zfunc "''${fpath[@]}" )
         autoload -U $fpath[1]/*(:t)
       fi
-      export GPG_TTY=$(tty)
-      export PINENTRY_USER_DATA="USE_CURSES=1"
-
     '';
     initExtra = ''
       if [ "$(command -v exa)" ]; then
