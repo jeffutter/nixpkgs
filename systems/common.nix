@@ -639,11 +639,13 @@ set-option -g default-command "fish"
       set -x LC_TIME "en_US.UTF-8"
       set -x LC_ALL "en_US.UTF-8"
 
-      if [ -e /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh ]
+      if [ -e /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh ] && ! set -q NIX_GLOBAL_SOURCED
         fenv source /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
+        set -x  NIX_GLOBAL_SOURCED "true"
       end
-      if [ -e ${config.home.homeDirectory}/.nix-profile/etc/profile.d/nix.sh ]
+      if [ -e ${config.home.homeDirectory}/.nix-profile/etc/profile.d/nix.sh ] && ! set -q NIX_HOME_SOURCED
         fenv source ${config.home.homeDirectory}/.nix-profile/etc/profile.d/nix.sh
+        set -x NIX_HOME_SOURCED "true"
       end
 
       fish_add_path -p "$HOME/bin"
