@@ -63,7 +63,6 @@ in
   };
 
   home.packages = with pkgs; [
-    alloy6
     aspell
     aspellDicts.en
     aspellDicts.en-computers
@@ -127,7 +126,7 @@ in
     sqls
     ssh-copy-id
     gnutar
-    tlaplus
+    #tlaplus
     tmate
     unzip
     unixtools.watch
@@ -184,6 +183,8 @@ in
 
   # Let Home Manager install and manage itself.
   programs.home-manager.enable = true;
+
+  #manual.manpages.enable = false;
 
   home.file.".zfunc" = {
     source = ../zfunc;
@@ -243,12 +244,20 @@ in
 
   home.file.".config/skhd/skhdrc" = lib.mkIf pkgs.stdenv.targetPlatform.isDarwin {
     text = ''
+      cmd + alt - b ; launcher
+      launcher < b : open -a 'Brave Browser'
+      launcher < m : open -a 'Messages'
+      launcher < o : open -a 'Obsidian'
+      launcher < a : open -a 'Alacritty'
+      launcher < l : open -a 'Mail'
+      launcher < c : open -a 'Calendar'
       ctrl + alt + shift - b : open -a 'Brave Browser'
       ctrl + alt + shift - m : open -a 'Messages'
       ctrl + alt + shift - o : open -a 'Obsidian'
       ctrl + alt + shift - a : open -a 'Alacritty'
       ctrl + alt + shift - l : open -a 'Mail'
       ctrl + alt + shift - c : open -a 'Calendar'
+      cmd - return : open -a 'Alacritty'
     '';
   };
 
