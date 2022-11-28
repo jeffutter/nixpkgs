@@ -403,7 +403,7 @@ local on_attach = function(_, bufnr)
   end, { desc = 'Format current buffer with LSP' })
 end
 
-vim.cmd [[autocmd BufWritePre * lua vim.lsp.buf.formatting_sync()]]
+vim.cmd [[autocmd BufWritePre * lua vim.lsp.buf.format()]]
 
 -- nvim-cmp supports additional completion capabilities
 local capabilities = require('cmp_nvim_lsp').default_capabilities()
@@ -412,7 +412,7 @@ local capabilities = require('cmp_nvim_lsp').default_capabilities()
 require('mason').setup()
 
 -- Enable the following language servers
-local servers = { 'clangd', 'rust_analyzer', 'sumneko_lua' }
+local servers = { 'clangd', 'rust_analyzer', 'sumneko_lua', 'bashls' }
 
 -- Ensure the servers above are installed
 require('mason-lspconfig').setup {
@@ -458,7 +458,9 @@ require('lspconfig').sumneko_lua.setup {
   },
 }
 
-require("elixir").setup()
+require("elixir").setup {
+  on_attach = on_attach,
+}
 
 require('leap').add_default_mappings()
 
