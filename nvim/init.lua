@@ -51,7 +51,7 @@ require('packer').startup(function(use)
     end
   }
   use { "mhanberg/elixir.nvim", requires = { "nvim-lua/plenary.nvim" } }
-  use 'andersevenrud/nordic.nvim'
+  use 'shaunsingh/nord.nvim'
   use 'LnL7/vim-nix'
 
   use {
@@ -159,7 +159,7 @@ vim.wo.signcolumn = 'yes'
 
 -- Set colorscheme
 vim.o.termguicolors = true
-vim.cmd [[colorscheme nordic]]
+vim.cmd [[colorscheme nord]]
 
 -- Set completeopt to have a better completion experience
 vim.o.completeopt = 'menuone,noselect'
@@ -203,7 +203,7 @@ vim.api.nvim_create_autocmd('TextYankPost', {
 require('lualine').setup {
   options = {
     icons_enabled = false,
-    theme = 'onedark',
+    theme = 'nord',
     component_separators = '|',
     section_separators = '',
   },
