@@ -25,6 +25,7 @@ require('packer').startup(function(use)
   use 'tpope/vim-sleuth' -- Detect tabstop and shiftwidth automatically
   use 'ggandor/leap.nvim'
   use 'rcarriga/nvim-notify'
+  use 'sunjon/shade.nvim'
 
   -- Fuzzy Finder (files, lsp, etc)
   use { 'nvim-telescope/telescope.nvim', branch = '0.1.x', requires = { 'nvim-lua/plenary.nvim' } }
@@ -352,6 +353,10 @@ vim.keymap.set('n', '<leader>mtl', function()
   vim.cmd.TestLast()
 end, { desc = '[T]est [L]ast' })
 
+vim.keymap.set('n', '<leader>mtr', function()
+  vim.cmd.TestLast()
+end, { desc = '[T]est [R]ecent' })
+
 vim.keymap.set('n', '<leader>mtf', function()
   vim.cmd.TestFile()
 end, { desc = '[T]est [F]ile' })
@@ -426,19 +431,32 @@ require('mason-lspconfig').setup {
   ensure_installed = servers,
 }
 
-local installed_servers = { 'bashls' }
 for _, lsp in ipairs(servers) do
   require('lspconfig')[lsp].setup {
     on_attach = on_attach,
     capabilities = capabilities,
   }
 end
+
+local installed_servers = { 'bashls' }
 for _, lsp in ipairs(installed_servers) do
   require('lspconfig')[lsp].setup {
     on_attach = on_attach,
     capabilities = capabilities,
   }
 end
+
+require('lspconfig')['ltex'].setup {
+  on_attach = on_attach,
+  cmd = { "ltex-ls" },
+  filetypes = { "text", "plaintex", "tex", "markdown" },
+  settings = {
+    ltex = {
+      language = "en"
+    },
+  },
+  flags = { debounce_text_changes = 300 },
+}
 
 -- Example custom configuration for lua
 --
@@ -481,6 +499,16 @@ require('leap').add_default_mappings()
 require("nvim-tree").setup()
 
 require("todo-comments").setup()
+
+require('shade').setup({
+  overlay_opacity = 50,
+  opacity_step = 1,
+  keys = {
+    brightness_up   = '<C-Up>',
+    brightness_down = '<C-Down>',
+    toggle          = '<Leader>s',
+  }
+})
 
 -- nvim-cmp setup
 local cmp = require 'cmp'
