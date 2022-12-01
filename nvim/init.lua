@@ -26,6 +26,7 @@ require('packer').startup(function(use)
   use 'ggandor/leap.nvim'
   use 'rcarriga/nvim-notify'
   use 'sunjon/shade.nvim'
+  use 'yamatsum/nvim-cursorline'
 
   -- Fuzzy Finder (files, lsp, etc)
   use { 'nvim-telescope/telescope.nvim', branch = '0.1.x', requires = { 'nvim-lua/plenary.nvim' } }
@@ -546,6 +547,19 @@ vim.api.nvim_create_autocmd("LspAttach", {
     require("lsp-inlayhints").on_attach(client, bufnr)
   end,
 })
+
+require('nvim-cursorline').setup {
+  cursorline = {
+    enable = true,
+    timeout = 1000,
+    number = false,
+  },
+  cursorword = {
+    enable = false,
+    min_length = 3,
+    hl = { underline = true },
+  }
+}
 
 -- nvim-cmp setup
 local cmp = require 'cmp'
