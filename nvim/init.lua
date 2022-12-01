@@ -80,6 +80,9 @@ require('packer').startup(function(use)
       require("nvim-autopairs").setup {}
     end
   }
+
+  use 'simrat39/rust-tools.nvim'
+  use 'lvimuser/lsp-inlayhints.nvim'
 end)
 
 
@@ -508,6 +511,40 @@ require('shade').setup({
     brightness_down = '<C-Down>',
     toggle          = '<Leader>s',
   }
+})
+
+require("lsp-inlayhints").setup()
+
+local rt = require("rust-tools")
+
+rt.setup({
+  tools = {
+    inlay_hints = {
+      auto = false
+    }
+  },
+  server = {
+    on_attach = function(_, bufnr)
+      -- Hover actions
+      vim.keymap.set("n", "<C-space>", rt.hover_actions.hover_actions, { buffer = bufnr })
+      -- Code action groups
+      vim.keymap.set("n", "<Leader>a", rt.code_action_group.code_action_group, { buffer = bufnr })
+    end,
+  },
+})
+
+vim.api.nvim_create_augroup("LspAttach_inlayhints", {})
+vim.api.nvim_create_autocmd("LspAttach", {
+  group = "LspAttach_inlayhints",
+  callback = function(args)
+    if not (args.data and args.data.client_id) then
+      return
+    end
+
+    local bufnr = args.buf
+    local client = vim.lsp.get_client_by_id(args.data.client_id)
+    require("lsp-inlayhints").on_attach(client, bufnr)
+  end,
 })
 
 -- nvim-cmp setup
