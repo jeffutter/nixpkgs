@@ -152,6 +152,7 @@ in
     cargo-bloat
     cargo-criterion
     cargo-cross
+    cargo-expand
     cargo-flamegraph
     cargo-llvm-lines
     cargo-outdated
