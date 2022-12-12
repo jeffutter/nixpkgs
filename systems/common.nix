@@ -97,6 +97,7 @@ in
     imagemagick
     ispell
     jq
+    just
     k6
     k9s
     kubectl
@@ -339,6 +340,8 @@ in
       flavor = "fastmail.com";
       himalaya = {
         enable = true;
+        backend = "imap";
+        sender = "smtp";
       };
       imap = {
         port = 993;
@@ -361,6 +364,8 @@ in
       flavor = "gmail.com";
       himalaya = {
         enable = true;
+        backend = "imap";
+        sender = "smtp";
       };
       imap = {
         port = 993;
@@ -421,7 +426,7 @@ in
 
   programs.emacs = {
     enable = true;
-    package = pkgs.emacsNativeComp;
+    package = pkgs.emacsUnstable;
     extraPackages = epkgs: with epkgs; [
       vterm
     ];
@@ -437,12 +442,6 @@ in
 
   home.file.".config/nvim/init.lua" = {
     source = ../nvim/init.lua;
-  };
-
-  programs.just = {
-    enable = true;
-    enableZshIntegration = true;
-    enableFishIntegration = true;
   };
 
   programs.git = {
