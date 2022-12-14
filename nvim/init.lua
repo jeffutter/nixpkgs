@@ -579,6 +579,8 @@ vim.api.nvim_create_autocmd("LspAttach", {
   end,
 })
 
+vim.api.nvim_create_user_command('Browse', [[silent execute "!open " .. shellescape(<q-args>,1)]], { nargs = 1 })
+
 require('nvim-cursorline').setup {
   cursorline = {
     enable = true,
