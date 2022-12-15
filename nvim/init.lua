@@ -96,6 +96,8 @@ require('packer').startup(function(use)
 
   use 'simrat39/rust-tools.nvim'
   use 'lvimuser/lsp-inlayhints.nvim'
+
+  use { 'mfussenegger/nvim-jdtls' }
 end)
 
 
@@ -641,6 +643,31 @@ cmp.setup {
     { name = 'spell' },
   },
 }
+
+vim.api.nvim_create_autocmd({ "BufEnter", "BufWinEnter" }, {
+  pattern = { "*.java" },
+  callback = function(_ev)
+    local project_name = vim.fn.fnamemodify(vim.fn.getcwd(), ':p:h:t')
+
+    local workspace_dir = '/Users/Jeffery.Utter/.jdtls/' .. project_name
+    local config = {
+      cmd = { '/Users/Jeffery.Utter/.nix-profile/bin/jdt-language-server', '-data', workspace_dir, },
+      root_dir = vim.fs.dirname(vim.fs.find({ '.gradlew', '.git', 'mvnw' }, { upward = true })[1]),
+      on_attach = on_attach,
+      settings = {
+        java = {
+          format = {
+            settings = {
+              url = 'https://raw.githubusercontent.com/google/styleguide/gh-pages/eclipse-java-google-style.xml',
+              profile = 'GoogleStyle',
+            }
+          }
+        }
+      }
+    }
+    require('jdtls').start_or_attach(config)
+  end
+})
 
 cmp.setup.cmdline(":", {
   mapping = cmp.mapping.preset.cmdline(),
