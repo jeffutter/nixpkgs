@@ -96,6 +96,16 @@ require('packer').startup(function(use)
 
   use 'simrat39/rust-tools.nvim'
   use 'lvimuser/lsp-inlayhints.nvim'
+
+  use {
+    'pwntester/octo.nvim',
+    requires = {
+      'nvim-lua/plenary.nvim',
+      'nvim-telescope/telescope.nvim',
+      'kyazdani42/nvim-web-devicons',
+    },
+  }
+
 end)
 
 
@@ -221,6 +231,8 @@ vim.api.nvim_create_autocmd('TextYankPost', {
   group = highlight_group,
   pattern = '*',
 })
+
+require "octo".setup()
 
 -- Set lualine as statusline
 -- See `:help lualine.txt`
