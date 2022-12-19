@@ -106,6 +106,12 @@ require('packer').startup(function(use)
     },
   }
 
+  use({
+    "https://git.sr.ht/~whynothugo/lsp_lines.nvim",
+    -- config = function()
+    --   require("lsp_lines").setup()
+    -- end,
+  })
 end)
 
 
@@ -659,6 +665,10 @@ cmp.setup.cmdline(":", {
   sources = cmp.config.sources({ { name = "path" } }, { { name = "cmdline", keyword_length = 2 } }),
 })
 
+require("lsp_lines").setup()
+vim.diagnostic.config({
+  virtual_text = false,
+})
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
