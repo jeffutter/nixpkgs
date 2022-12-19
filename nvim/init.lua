@@ -112,6 +112,9 @@ require('packer').startup(function(use)
     --   require("lsp_lines").setup()
     -- end,
   })
+
+  use 'tpope/vim-abolish'
+  use 'markonm/traces.vim'
 end)
 
 
@@ -173,6 +176,8 @@ vim.g["test#strategy"] = "motch"
 
 vim.g.loaded_netrw = 1
 vim.g.loaded_netrwPlugin = 1
+
+vim.g.traces_abolish_integration = 1
 
 -- Set highlight on search
 vim.o.hlsearch = false
