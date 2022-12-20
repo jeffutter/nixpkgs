@@ -558,7 +558,7 @@ require("nvim-tree").setup()
 require("todo-comments").setup()
 
 require('shade').setup({
-  overlay_opacity = 75,
+  overlay_opacity = 85,
   opacity_step = 1,
   keys = {
     brightness_up   = '<C-Up>',
