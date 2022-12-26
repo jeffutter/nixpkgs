@@ -115,6 +115,21 @@ require('packer').startup(function(use)
 
   use 'tpope/vim-abolish'
   use 'markonm/traces.vim'
+
+  -- use {
+  --   'rareitems/printer.nvim',
+  --   config = function()
+  --     require('printer').setup({
+  --       keymap = "gp" -- Plugin doesn't have any keymaps by default
+  --     })
+  --   end
+  -- }
+  use({
+    "andrewferrier/debugprint.nvim",
+    -- config = function()
+    --   require("debugprint").setup()
+    -- end,
+  })
 end)
 
 
@@ -674,6 +689,9 @@ require("lsp_lines").setup()
 vim.diagnostic.config({
   virtual_text = false,
 })
+
+
+require("debugprint").setup()
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
