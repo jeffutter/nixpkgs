@@ -130,6 +130,16 @@ require('packer').startup(function(use)
     --   require("debugprint").setup()
     -- end,
   })
+
+  use {
+    "AckslD/nvim-neoclip.lua",
+    requires = {
+      { 'nvim-telescope/telescope.nvim' },
+    },
+    config = function()
+      require('neoclip').setup()
+    end,
+  }
 end)
 
 
@@ -309,6 +319,7 @@ require('telescope').setup {
 -- Enable telescope fzf native, if installed
 pcall(require('telescope').load_extension, 'fzf')
 pcall(require('telescope').load_extension, 'notify')
+pcall(require('telescope').load_extension, 'neoclip')
 
 -- See `:help telescope.builtin`
 vim.keymap.set('n', '<leader>?', require('telescope.builtin').oldfiles, { desc = '[?] Find recently opened files' })
@@ -437,6 +448,10 @@ vim.keymap.set("n", "<leader>xq", "<cmd>TroubleToggle quickfix<cr>",
 vim.keymap.set("n", "gR", "<cmd>TroubleToggle lsp_references<cr>",
   { silent = true, noremap = true }
 )
+
+vim.keymap.set("n", '<leader>cy', function()
+  require('telescope').extensions.neoclip.default()
+end, { desc = '[C]lipboard [Y]ank' })
 
 -- LSP settings.
 --  This function gets run when an LSP connects to a particular buffer.
