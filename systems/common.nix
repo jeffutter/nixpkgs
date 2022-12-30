@@ -491,6 +491,9 @@ in
     enable = true;
     settings = {
       live_config_reload = true;
+      window = {
+        decorations = "full";
+      };
       font = {
         normal = {
           family = "SauceCodePro Nerd Font Mono";
@@ -569,6 +572,20 @@ in
           white = "#aeb3bb";
         };
       };
+    };
+  };
+
+  programs.kitty = {
+    enable = true;
+    theme = "Nord";
+    font = {
+      package = pkgs.nerdfonts.override { fonts = [ "FiraCode" "SourceCodePro" ]; };
+      name = "SauceCodePro Nerd Font Mono";
+    };
+    settings = {
+      macos_titlebar_color = "background";
+      tab_bar_style = "powerline";
+      macos_colorspace = "default";
     };
   };
 
