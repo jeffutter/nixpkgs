@@ -707,6 +707,14 @@ vim.diagnostic.config({
 
 
 require("debugprint").setup()
+require("debugprint").add_custom_filetypes({
+  ["rust"] = {
+    left = 'println!("',
+    right = '");',
+    mid_var = '{:?}", ',
+    right_var = ");",
+  },
+})
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
