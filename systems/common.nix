@@ -55,6 +55,19 @@ let
 
   ltex-lsp = pkgs.callPackage ../pkgs/ltex-lsp {}; 
 
+  my_fonts = pkgs.nerdfonts.override {
+    fonts = [
+      "FantasqueSansMono"
+      "FiraCode"
+      "Hack"
+      "Hasklig"
+      "Iosevka"
+      "Monoid"
+      "JetBrainsMono"
+      "SourceCodePro" 
+    ];
+  };
+
 in
 
 {
@@ -143,6 +156,12 @@ in
     yq
     zstd
 
+    # Fonts
+    my_fonts
+    roboto
+    roboto-mono
+    input-fonts
+
     # Elixir
     elixir
     elixir_ls
@@ -182,6 +201,7 @@ in
   ];
 
   nixpkgs.config.allowUnfree = true;
+  nixpkgs.config.input-fonts.acceptLicense = true;
 
   # Let Home Manager install and manage itself.
   programs.home-manager.enable = true;
@@ -579,7 +599,7 @@ in
     enable = true;
     theme = "Nord";
     font = {
-      package = pkgs.nerdfonts.override { fonts = [ "FiraCode" "SourceCodePro" ]; };
+      package = my_fonts;
       name = "SauceCodePro Nerd Font Mono";
     };
     settings = {
