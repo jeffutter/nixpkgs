@@ -7,6 +7,7 @@ require('packer').startup(function(use)
   use 'numToStr/Comment.nvim' -- "gc" to comment visual regions/lines
   use 'nvim-treesitter/nvim-treesitter' -- Highlight, edit, and navigate code
   use { 'nvim-treesitter/nvim-treesitter-textobjects', after = { 'nvim-treesitter' } } -- Additional textobjects for treesitter
+  use 'p00f/nvim-ts-rainbow'
   use 'neovim/nvim-lspconfig' -- Collection of configurations for built-in LSP client
   use 'williamboman/mason.nvim' -- Manage external editor tooling i.e LSP servers
   use 'williamboman/mason-lspconfig.nvim' -- Automatically install language servers to stdpath
@@ -345,6 +346,11 @@ require('nvim-treesitter.configs').setup {
   ensure_installed = { 'c', 'cpp', 'go', 'lua', 'python', 'rust', 'typescript', 'elixir' },
 
   highlight = { enable = true },
+  rainbow = {
+    enable = true,
+    extended_mode = true,
+    max_file_lines = nil,
+  },
   indent = { enable = true },
   incremental_selection = {
     enable = true,
