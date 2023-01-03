@@ -1159,6 +1159,7 @@ fi
     settings = {
       sync_address = "https://atuin.home.jeffutter.com";
       search_mode = "fuzzy";
+      update_check = false;
     };
   };
 
