@@ -13,10 +13,6 @@ let
     ln -s ${pkgs.openssh}/bin/ssh-copy-id $out/bin/ssh-copy-id
   '';
 
-  emacs-overlay = import (builtins.fetchTarball {
-    url = https://github.com/nix-community/emacs-overlay/archive/master.tar.gz;
-  });
-
   mosh = pkgs.mosh.overrideAttrs (old: {
     version = "1.4.0";
     src = pkgs.fetchFromGitHub {
@@ -71,10 +67,6 @@ let
 in
 
 {
-  nixpkgs = {
-    overlays = [ emacs-overlay ];
-  };
-
   home.packages = with pkgs; [
     aspell
     aspellDicts.en
@@ -225,12 +217,6 @@ in
         source = "${apps}/Applications";
         recursive = true;
       };
-
-  home.file.".doom.d" = {
-    source = ../doom.d;
-    recursive = true;
-    onChange = builtins.readFile ../doom-setup.sh;
-  };
 
   home.file."bin/upgrade" = {
     source = ../bin/upgrade;
@@ -442,14 +428,6 @@ in
       name = "Jeffery Utter";
       default-page-size = 50;
     };
-  };
-
-  programs.emacs = {
-    enable = true;
-    package = pkgs.emacsUnstable;
-    extraPackages = epkgs: with epkgs; [
-      vterm
-    ];
   };
 
   programs.neovim = {
