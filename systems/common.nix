@@ -393,35 +393,6 @@ in
     };
   };
 
-  programs.helix = {
-    enable = true;
-    languages = [
-      {
-        name = "java";
-        language-server = {
-          command = "jdt-language-server";
-        };
-      }
-      {
-        name = "markdown";
-        language-server = {
-          command = "ltex-ls";
-        };
-        file-types = [ "md" ];
-        scope = "source.markdown";
-        roots = [];
-      }
-    ];
-    settings = {
-      theme = "nord";
-      editor = {
-        mouse = false;
-        line-number = "relative";
-        lsp.display-messages = true;
-      };
-    };
-  };
-
   programs.himalaya = {
     enable = true;
     settings = {
