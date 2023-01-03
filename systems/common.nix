@@ -434,7 +434,17 @@ in
         side-by-side = true;
         line-numbers-left-format = "";
         line-numbers-right-format = "│ ";
-        syntax-theme = "Nord";
+        minus-style                   = "syntax '#37222c'";
+        minus-non-emph-style          = "syntax '#37222c'";
+        minus-emph-style              = "syntax '#713137'";
+        minus-empty-line-marker-style = "syntax '#37222c'";
+        line-numbers-minus-style      = "'#c25d64'";
+        plus-style                    = "syntax '#20303b'";
+        plus-non-emph-style           = "syntax '#20303b'";
+        plus-emph-style               = "syntax '#2c5a66'";
+        plus-empty-line-marker-style  = "syntax '#20303b'";
+        line-numbers-plus-style       = "'#399a96'";
+        line-numbers-zero-style       = "'#3b4261'";
       };
     };
     ignores = [
@@ -484,69 +494,39 @@ in
       };
       colors = {
         primary = {
-          background = "#2e3440";
-          foreground = "#d8dee9";
-          dim_foreground = "#a5abb6";
-        };
-        cursor = {
-          text = "#2e3440";
-          cursor = "#d8dee9";
-        };
-        vi_mode_cursor = {
-          text = "#2e3440";
-          cursor = "#d8dee9";
-        };
-        selection = {
-          text = "CellForeground";
-          background = "#4c566a";
-        };
-        search = {
-          matches = {
-            foreground = "CellBackground";
-            background = "#88c0d0";
-          };
-          footer_bar = {
-            background = "#434c5e";
-            foreground = "#d8dee9";
-          };
+          background =  "0x222436";
+          foreground =  "0xc8d3f5";
         };
         normal = {
-          black = "#3b4252";
-          red = "#bf616a";
-          green = "#a3be8c";
-          yellow = "#ebcb8b";
-          blue = "#81a1c1";
-          magenta = "#b48ead";
-          cyan = "#88c0d0";
-          white = "#e5e9f0";
+          black =    "0x1b1d2b";
+          red =      "0xff757f";
+          green =    "0xc3e88d";
+          yellow =   "0xffc777";
+          blue =     "0x82aaff";
+          magenta =  "0xc099ff";
+          cyan =     "0x86e1fc";
+          white =    "0x828bb8";
         };
         bright = {
-          black = "#4c566a";
-          red = "#bf616a";
-          green = "#a3be8c";
-          yellow = "#ebcb8b";
-          blue = "#81a1c1";
-          magenta = "#b48ead";
-          cyan = "#8fbcbb";
-          white = "#eceff4";
+          black =    "0x444a73";
+          red =      "0xff757f";
+          green =    "0xc3e88d";
+          yellow =   "0xffc777";
+          blue =     "0x82aaff";
+          magenta =  "0xc099ff";
+          cyan =     "0x86e1fc";
+          white =    "0xc8d3f5";
         };
-        dim = {
-          black = "#373e4d";
-          red = "#94545d";
-          green = "#809575";
-          yellow = "#b29e75";
-          blue = "#68809a";
-          magenta = "#8c738c";
-          cyan = "#6d96a5";
-          white = "#aeb3bb";
-        };
+        indexed_colors = [
+          { index = 16; color = "0xff966c"; }
+          { index = 17; color = "0xc53b53"; }
+        ];
       };
     };
   };
 
   programs.kitty = {
     enable = true;
-    theme = "Nord";
     font = {
       package = my_fonts;
       name = "SauceCodePro Nerd Font Mono";
@@ -555,6 +535,49 @@ in
       macos_titlebar_color = "background";
       tab_bar_style = "powerline";
       macos_colorspace = "default";
+
+      background = "#222436";
+      foreground = "#c8d3f5";
+      selection_background = "#3654a7";
+      selection_foreground = "#c8d3f5";
+      url_color = "#4fd6be";
+      cursor = "#c8d3f5";
+      cursor_text_color = "#222436";
+
+      # Tabs
+      active_tab_background = "#82aaff";
+      active_tab_foreground = "#1e2030";
+      inactive_tab_background = "#2f334d";
+      inactive_tab_foreground = "#545c7e";
+      #tab_bar_background = "#1b1d2b";
+
+      # Windows
+      active_border_color = "#82aaff";
+      inactive_border_color = "#2f334d";
+
+      # normal
+      color0 = "#1b1d2b";
+      color1 = "#ff757f";
+      color2 = "#c3e88d";
+      color3 = "#ffc777";
+      color4 = "#82aaff";
+      color5 = "#c099ff";
+      color6 = "#86e1fc";
+      color7 = "#828bb8";
+
+      # bright
+      color8 = "#444a73";
+      color9 = "#ff757f";
+      color10 = "#c3e88d";
+      color11 = "#ffc777";
+      color12 = "#82aaff";
+      color13 = "#c099ff";
+      color14 = "#86e1fc";
+      color15 = "#c8d3f5";
+
+      # extended colors
+      color16 = "#ff966c";
+      color17 = "#c53b53";
     };
   };
 
@@ -569,9 +592,44 @@ in
 set -ga terminal-overrides ",*256col*:Tc"
 set-option -g mouse off
 set-option -g default-command "fish"
+set -as terminal-overrides ',*:Smulx=\E[4::%p1%dm'  # undercurl support
+set -as terminal-overrides ',*:Setulc=\E[58::2::%p1%{65536}%/%d::%p1%{256}%/%{255}%&%d::%p1%{255}%&%d%;m'  # underscore colours - needs tmux-3.0
+
+# TokyoNight colors for Tmux
+
+set -g mode-style "fg=#82aaff,bg=#3b4261"
+
+set -g message-style "fg=#82aaff,bg=#3b4261"
+set -g message-command-style "fg=#82aaff,bg=#3b4261"
+
+set -g pane-border-style "fg=#3b4261"
+set -g pane-active-border-style "fg=#82aaff"
+
+set -g status "on"
+set -g status-justify "left"
+
+set -g status-style "fg=#82aaff,bg=#1e2030"
+
+set -g status-left-length "100"
+set -g status-right-length "100"
+
+set -g status-left-style NONE
+set -g status-right-style NONE
+
+set -g status-left "#[fg=#1b1d2b,bg=#82aaff,bold] #S #[fg=#82aaff,bg=#1e2030,nobold,nounderscore,noitalics]"
+set -g status-right "#[fg=#1e2030,bg=#1e2030,nobold,nounderscore,noitalics]#[fg=#82aaff,bg=#1e2030] #{prefix_highlight} #[fg=#3b4261,bg=#1e2030,nobold,nounderscore,noitalics]#[fg=#82aaff,bg=#3b4261] %Y-%m-%d  %I:%M %p #[fg=#82aaff,bg=#3b4261,nobold,nounderscore,noitalics]#[fg=#1b1d2b,bg=#82aaff,bold] #h "
+
+setw -g window-status-activity-style "underscore,fg=#828bb8,bg=#1e2030"
+setw -g window-status-separator ""
+setw -g window-status-style "NONE,fg=#828bb8,bg=#1e2030"
+setw -g window-status-format "#[fg=#1e2030,bg=#1e2030,nobold,nounderscore,noitalics]#[default] #I  #W #F #[fg=#1e2030,bg=#1e2030,nobold,nounderscore,noitalics]"
+setw -g window-status-current-format "#[fg=#1e2030,bg=#3b4261,nobold,nounderscore,noitalics]#[fg=#82aaff,bg=#3b4261,bold] #I  #W #F #[fg=#3b4261,bg=#1e2030,nobold,nounderscore,noitalics]"
+
+# tmux-plugins/tmux-prefix-highlight support
+set -g @prefix_highlight_output_prefix "#[fg=#ffc777]#[bg=#1e2030]#[fg=#1e2030]#[bg=#ffc777]"
+set -g @prefix_highlight_output_suffix ""
     '';
     plugins = with pkgs.tmuxPlugins; [
-      nord
       yank
       prefix-highlight
     ];
@@ -669,6 +727,41 @@ set-option -g default-command "fish"
       set -x AWS_DEFAULT_REGION "us-east-1";
       set -x AWS_PAGER "";
       set -x EDITOR "vim";
+
+      # TokyoNight Color Palette
+      set -l foreground c8d3f5
+      set -l selection 3654a7
+      set -l comment 7a88cf
+      set -l red ff757f
+      set -l orange ff966c
+      set -l yellow ffc777
+      set -l green c3e88d
+      set -l purple fca7ea
+      set -l cyan 86e1fc
+      set -l pink c099ff
+
+      # Syntax Highlighting Colors
+      set -g fish_color_normal $foreground
+      set -g fish_color_command $cyan
+      set -g fish_color_keyword $pink
+      set -g fish_color_quote $yellow
+      set -g fish_color_redirection $foreground
+      set -g fish_color_end $orange
+      set -g fish_color_error $red
+      set -g fish_color_param $purple
+      set -g fish_color_comment $comment
+      set -g fish_color_selection --background=$selection
+      set -g fish_color_search_match --background=$selection
+      set -g fish_color_operator $green
+      set -g fish_color_escape $pink
+      set -g fish_color_autosuggestion $comment
+
+      # Completion Pager Colors
+      set -g fish_pager_color_progress $comment
+      set -g fish_pager_color_prefix $cyan
+      set -g fish_pager_color_completion $foreground
+      set -g fish_pager_color_description $comment
+      set -g fish_pager_color_selected_background --background=$selection
     '';
   };
 
