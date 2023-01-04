@@ -510,7 +510,7 @@ in
     extraConfig = ''
       font_features MonoLisaNerdFont-Italic +ss02
       font_features = "MonoLisaNerdFont-Bold-Italic +ss02
-    '';
+    '' + builtins.readFile (tokyonights + "/extras/kitty/tokyonight_moon.conf"); 
     settings = {
       font_family = "MonoLisa Nerd Font Regular";
       bold_font = "MonoLisa Nerd Font Bold";
@@ -521,7 +521,6 @@ in
       tab_bar_style = "powerline";
       macos_colorspace = "default";
     };
-    extraConfig = (builtins.readFile (tokyonights + "/extras/kitty/tokyonight_moon.conf")); 
   };
 
   programs.tmux = {
