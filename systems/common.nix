@@ -507,11 +507,16 @@ in
 
   programs.kitty = {
     enable = true;
-    font = {
-      package = my_fonts;
-      name = "SauceCodePro Nerd Font Mono";
-    };
+    extraConfig = ''
+      font_features MonoLisaNerdFont-Italic +ss02
+      font_features = "MonoLisaNerdFont-Bold-Italic +ss02
+    '';
     settings = {
+      font_family = "MonoLisa Nerd Font Regular";
+      bold_font = "MonoLisa Nerd Font Bold";
+      bold_italic_font = "MonoLisa Nerd Font Bold Italic";
+      italic_font = "MonoLisa Nerd Font Regular Italic";
+
       macos_titlebar_color = "background";
       tab_bar_style = "powerline";
       macos_colorspace = "default";
@@ -525,7 +530,7 @@ in
     newSession = true;
     resizeAmount = 10;
     shortcut = "a";
-    terminal = "screen-256color";
+    terminal = "tmux";
     extraConfig = ''
 set -ga terminal-overrides ",*256col*:Tc"
 set-option -g mouse off
