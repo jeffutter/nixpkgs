@@ -529,7 +529,7 @@ in
     newSession = true;
     resizeAmount = 10;
     shortcut = "a";
-    terminal = "tmux";
+    terminal = "tmux-256color";
     extraConfig = ''
 set -ga terminal-overrides ",*256col*:Tc"
 set-option -g mouse off
