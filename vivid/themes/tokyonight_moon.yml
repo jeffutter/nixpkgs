@@ -1,0 +1,122 @@
+# Template: https://github.com/sharkdp/vivid/blob/50efc10495236025b528f5e33041cb45b11dfadc/themes/one-light.yml
+# Palette: https://raw.githubusercontent.com/folke/tokyonight.nvim/def91651c41f6d1d43ebcb50763324d35331baee/extras/kitty/tokyonight_moon.conf
+
+colors:
+  background_color: '222436'
+  white: '1e2030'
+  red: 'ff757f'
+  green: 'c3e88d'
+  yellow: 'ffc777'
+  blue: '82aaff'
+  pink: 'c099ff'
+  cyan: '86e1fc'
+
+  black: '000000'
+  gray: '999999'
+  darkgray: '666666'
+  darkergray: '333333'
+
+core:
+  normal_text: {}
+  regular_file: {}
+  reset_to_normal: {}
+
+  directory:
+    foreground: blue
+
+  symlink:
+    foreground: pink
+
+  multi_hard_link: {}
+
+  fifo:
+    foreground: black
+    background: blue
+
+  socket:
+    foreground: black
+    background: pink
+
+  door:
+    foreground: black
+    background: pink
+
+  block_device:
+    foreground: cyan
+    background: darkergray
+
+  character_device:
+    foreground: pink
+    background: darkergray
+
+  broken_symlink:
+    foreground: black
+    background: red
+
+  missing_symlink_target:
+    foreground: black
+    background: red
+
+  setuid: {}
+
+  setgid: {}
+
+  file_with_capability: {}
+
+  sticky_other_writable: {}
+
+  other_writable: {}
+
+  sticky: {}
+
+  executable_file:
+    foreground: red
+    font-style: bold
+
+text:
+  special:
+    foreground: background_color
+    background: yellow
+
+  todo:
+    font-style: bold
+
+  licenses:
+    foreground: gray
+
+  configuration:
+    foreground: yellow
+
+  other:
+    foreground: yellow
+
+markup:
+  foreground: yellow
+
+programming:
+  source:
+    foreground: green
+
+  tooling:
+    foreground: green
+
+    continuous-integration:
+      foreground: green
+
+media:
+  foreground: pink
+
+office:
+  foreground: red
+
+archives:
+  foreground: cyan
+  font-style: underline
+
+executable:
+  foreground: red
+  font-style: bold
+
+unimportant:
+  foreground: darkgray
+
