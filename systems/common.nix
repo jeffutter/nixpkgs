@@ -549,6 +549,7 @@ set -as terminal-overrides ',*:Setulc=\E[58::2::%p1%{65536}%/%d::%p1%{256}%/%{25
       "gcan!" = "git commit -v -a --no-edit --amend";
       dc = "docker compose";
       g = "git";
+      gco = "git checkout";
       gpf = "git push --force";
       h = "himalaya";
       k = "kubectl";
@@ -563,7 +564,7 @@ set -as terminal-overrides ',*:Setulc=\E[58::2::%p1%{65536}%/%d::%p1%{256}%/%{25
       gz = "pigz";
       ll = "exa -l --color always --icons -a -s type";
       ls = "exa -G --color auto -s type";
-      xz = "pxz";
+      xz = "pixz";
     };
     functions = {
       kca = "kubectl $argv --all-namespaces";
