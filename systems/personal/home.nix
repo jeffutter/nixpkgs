@@ -3,8 +3,6 @@
 let
   m8c = pkgs.callPackage ../../pkgs/m8c {};
 
-  pkgsX86 = import <nixpkgs> { localSystem = "x86_64-darwin"; overlays = config.nixpkgs.overlays; };
-
 in
 {
   imports = [ ../common.nix ];
@@ -12,11 +10,8 @@ in
   home.packages = with pkgs; [
     # m8c
     llvmPackages.bintools
-    pkgsX86.cargo-watch
+    cargo-watch
   ];
-
-  programs.starship.package = pkgsX86.starship;
-  programs.topgrade.package = pkgsX86.topgrade;
 
   programs.git.userEmail = "jeff@jeffutter.com";
 

@@ -541,7 +541,7 @@ local capabilities = require('cmp_nvim_lsp').default_capabilities()
 require('mason').setup()
 
 -- Enable the following language servers
-local servers = { 'clangd', 'rust_analyzer', 'sumneko_lua', 'tsserver', 'cssls' }
+local servers = { 'clangd', 'rust_analyzer', 'sumneko_lua', 'tsserver', 'cssls', 'tailwindcss', 'html' }
 
 -- Ensure the servers above are installed
 require('mason-lspconfig').setup {
