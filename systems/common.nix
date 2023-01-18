@@ -131,6 +131,7 @@ in
     mosh
     my_vim_configurable
     ncdu
+    nodejs
     ngrok
     nodePackages.bash-language-server
     p7zip
