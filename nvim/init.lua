@@ -29,6 +29,7 @@ require('packer').startup(function(use)
   use 'rcarriga/nvim-notify'
   use 'sunjon/shade.nvim'
   use 'yamatsum/nvim-cursorline'
+  use { 'windwp/nvim-spectre', requires = { 'nvim-lua/plenary.nvim' } } -- Add git related info in the signs columns and popups
 
   -- Fuzzy Finder (files, lsp, etc)
   use { 'nvim-telescope/telescope.nvim', branch = '0.1.x', requires = { 'nvim-lua/plenary.nvim' } }
@@ -484,6 +485,18 @@ vim.keymap.set("n", '<leader>cy', function()
   require('telescope').extensions.neoclip.default()
 end, { desc = '[C]lipboard [Y]ank' })
 
+vim.keymap.set("n", '<leader>S', function()
+  require('spectre').open()
+end, { desc = '[S]pectre' })
+
+vim.keymap.set("n", '<leader>sw', function()
+  require('spectre').open_visual({ select_word = true })
+end, { desc = '[S]pectre [W]ord' })
+
+vim.keymap.set("n", '<leader>sp', function()
+  require('spectre').open_file_search()
+end, { desc = '[S]pectre p[F]ile' })
+
 -- LSP settings.
 --  This function gets run when an LSP connects to a particular buffer.
 local on_attach = function(_, bufnr)
@@ -745,6 +758,22 @@ require("debugprint").add_custom_filetypes({
     mid_var = '{:?}", ',
     right_var = ");",
   },
+})
+
+require('spectre').setup({
+  replace_engine = {
+    ['sed'] = {
+      cmd = "sed",
+      args = nil,
+      options = {
+        ['ignore-case'] = {
+          value = "--ignore-case",
+          icon = "[I]",
+          desc = "ignore case"
+        },
+      }
+    },
+  }
 })
 
 -- The line beneath this is called `modeline`. See `:help modeline`
