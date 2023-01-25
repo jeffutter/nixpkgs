@@ -1,173 +1,262 @@
 -- stylua: ignore start
-require('packer').startup(function(use)
-  use 'wbthomason/packer.nvim' -- Package manager
-  use 'tpope/vim-fugitive' -- Git commands in nvim
-  use 'tpope/vim-rhubarb' -- Fugitive-companion to interact with github
-  use 'tpope/vim-repeat'
-  use { 'lewis6991/gitsigns.nvim', requires = { 'nvim-lua/plenary.nvim' } } -- Add git related info in the signs columns and popups
-  use 'numToStr/Comment.nvim' -- "gc" to comment visual regions/lines
-  use 'nvim-treesitter/nvim-treesitter' -- Highlight, edit, and navigate code
-  use { 'nvim-treesitter/nvim-treesitter-textobjects', after = { 'nvim-treesitter' } } -- Additional textobjects for treesitter
-  use 'p00f/nvim-ts-rainbow'
-  use 'neovim/nvim-lspconfig' -- Collection of configurations for built-in LSP client
-  use 'williamboman/mason.nvim' -- Manage external editor tooling i.e LSP servers
-  use 'williamboman/mason-lspconfig.nvim' -- Automatically install language servers to stdpath
-  use { 'hrsh7th/nvim-cmp', requires = { 'hrsh7th/cmp-nvim-lsp' } } -- Autocompletion
-  use { 'L3MON4D3/LuaSnip', requires = { 'saadparwaiz1/cmp_luasnip' } } -- Snippet Engine and Snippet Expansion
-  use 'farmergreg/vim-lastplace'
-  use 'f3fora/cmp-spell'
-  use 'hrsh7th/cmp-buffer'
-  use 'hrsh7th/cmp-emoji'
-  use 'hrsh7th/cmp-path'
-  use 'hrsh7th/cmp-nvim-lsp'
-  use 'hrsh7th/cmp-vsnip'
-  use 'hrsh7th/cmp-cmdline'
-  use 'nvim-lualine/lualine.nvim' -- Fancier statusline
-  use 'lukas-reineke/indent-blankline.nvim' -- Add indentation guides even on blank lines
-  use 'tpope/vim-sleuth' -- Detect tabstop and shiftwidth automatically
-  use 'ggandor/leap.nvim'
-  use 'rcarriga/nvim-notify'
-  use 'sunjon/shade.nvim'
-  use 'yamatsum/nvim-cursorline'
-  use { 'windwp/nvim-spectre', requires = { 'nvim-lua/plenary.nvim' } } -- Add git related info in the signs columns and popups
+
+local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
+if not vim.loop.fs_stat(lazypath) then
+  vim.fn.system({
+    "git",
+    "clone",
+    "--filter=blob:none",
+    "https://github.com/folke/lazy.nvim.git",
+    "--branch=stable", -- latest stable release
+    lazypath,
+  })
+end
+vim.opt.rtp:prepend(lazypath)
+
+-- Set <space> as the leader key
+-- See `:help mapleader`
+--  NOTE: Must happen before plugins are required (otherwise wrong leader will be used)
+vim.g.mapleader = ' '
+vim.g.maplocalleader = ' '
+
+require('lazy').setup({
+  'tpope/vim-fugitive', -- Git commands in nvim
+  'tpope/vim-rhubarb', -- Fugitive-companion to interact with github
+  'tpope/vim-repeat',
+  {
+    'lewis6991/gitsigns.nvim', -- Add git related info in the signs columns and popups
+    dependencies = { 'nvim-lua/plenary.nvim' },
+    opts = {
+      signs = {
+        add = { text = '+' },
+        change = { text = '~' },
+        delete = { text = '_' },
+        topdelete = { text = '‾' },
+        changedelete = { text = '~' },
+      },
+    }
+  },
+  { 'numToStr/Comment.nvim', config = true }, -- "gc" to comment visual regions/lines
+  'nvim-treesitter/nvim-treesitter', -- Highlight, edit, and navigate code
+  { 'nvim-treesitter/nvim-treesitter-textobjects', dependencies = { 'nvim-treesitter' } }, -- Additional textobjects for treesitter
+  'p00f/nvim-ts-rainbow',
+  'neovim/nvim-lspconfig', -- Collection of configurations for built-in LSP client
+  {
+    'williamboman/mason.nvim', -- Manage external editor tooling i.e LSP servers
+    config = true,
+  },
+  'williamboman/mason-lspconfig.nvim', -- Automatically install language servers to stdpath
+  { 'hrsh7th/nvim-cmp', dependencies = { 'hrsh7th/cmp-nvim-lsp' } }, -- Autocompletion
+  { 'L3MON4D3/LuaSnip', dependencies = { 'saadparwaiz1/cmp_luasnip' } }, -- Snippet Engine and Snippet Expansion
+  'farmergreg/vim-lastplace',
+  'f3fora/cmp-spell',
+  'hrsh7th/cmp-buffer',
+  'hrsh7th/cmp-emoji',
+  'hrsh7th/cmp-path',
+  'hrsh7th/cmp-nvim-lsp',
+  'hrsh7th/cmp-vsnip',
+  'hrsh7th/cmp-cmdline',
+  {
+    'nvim-lualine/lualine.nvim', -- Fancier statusline
+    opts = {
+      options = {
+        icons_enabled = false,
+        theme = 'tokyonight',
+        component_separators = '|',
+        section_separators = '',
+      },
+    }
+  },
+  {
+    'lukas-reineke/indent-blankline.nvim', -- Add indentation guides even on blank lines
+    opts = {
+      char = '┊',
+      show_trailing_blankline_indent = false,
+    }
+  },
+  'tpope/vim-sleuth', -- Detect tabstop and shiftwidth automatically
+  'ggandor/leap.nvim',
+  'rcarriga/nvim-notify',
+  {
+    'sunjon/shade.nvim',
+    config = true,
+    opts = {
+      overlay_opacity = 85,
+      opacity_step = 1,
+      keys = {
+        brightness_up   = '<C-Up>',
+        brightness_down = '<C-Down>',
+        toggle          = '<Leader>s',
+      }
+    }
+  },
+  {
+    'yamatsum/nvim-cursorline',
+    config = true,
+    opts = {
+      cursorline = {
+        enable = true,
+        timeout = 1000,
+        number = false,
+      },
+      cursorword = {
+        enable = false,
+        min_length = 3,
+        hl = { underline = true },
+      }
+    }
+  },
+  {
+    'windwp/nvim-spectre',
+    dependencies = { 'nvim-lua/plenary.nvim' },
+    opts = {
+      replace_engine = {
+        ['sed'] = {
+          cmd = "sed",
+          args = nil,
+          options = {
+            ['ignore-case'] = {
+              value = "--ignore-case",
+              icon = "[I]",
+              desc = "ignore case"
+            },
+          }
+        },
+      }
+    }
+  },
 
   -- Fuzzy Finder (files, lsp, etc)
-  use { 'nvim-telescope/telescope.nvim', branch = '0.1.x', requires = { 'nvim-lua/plenary.nvim' } }
+  {
+    'nvim-telescope/telescope.nvim',
+    branch = '0.1.x',
+    dependencies = { 'nvim-lua/plenary.nvim' },
+    opts = {
+      defaults = {
+        mappings = {
+          i = {
+            ['<C-u>'] = false,
+            ['<C-d>'] = false,
+          },
+        },
+      },
+    }
+  },
 
   -- Fuzzy Finder Algorithm which requires local dependencies to be built. Only load if `make` is available
-  use { 'nvim-telescope/telescope-fzf-native.nvim', run = 'make', cond = vim.fn.executable "make" == 1 }
+  { 'nvim-telescope/telescope-fzf-native.nvim', run = 'make', cond = vim.fn.executable "make" == 1 },
 
   -- Visualize lsp progress
-  use({
+  {
     "j-hui/fidget.nvim",
-    config = function()
-      require("fidget").setup()
-    end
-  })
+    config = true,
+  },
 
-  use {
+  {
     "folke/which-key.nvim",
+    config = true,
+  },
+  { "mhanberg/elixir.nvim", dependencies = { "nvim-lua/plenary.nvim" } },
+  { 'folke/tokyonight.nvim',
+    lazy = false, -- make sure we load this during startup if it is your main colorscheme
+    priority = 1000, -- make sure to load this before all the other start plugins
+    opts = {
+      -- your configuration comes here
+      -- or leave it empty to use the default settings
+      style = "moon", -- The theme comes in three styles, `storm`, `moon`, a darker variant `night` and `day`
+      light_style = "day", -- The theme is used when the background is set to light
+      transparent = false, -- Enable this to disable setting the background color
+      terminal_colors = true, -- Configure the colors used when opening a `:terminal` in Neovim
+      styles = {
+        -- Style to be applied to different syntax groups
+        -- Value is any valid attr-list value for `:help nvim_set_hl`
+        comments = { italic = true },
+        keywords = { italic = true },
+        functions = {},
+        variables = {},
+        -- Background styles. Can be "dark", "transparent" or "normal"
+        sidebars = "dark", -- style for sidebars, see below
+        floats = "dark", -- style for floating windows
+      },
+      sidebars = { "qf", "help" }, -- Set a darker background on sidebar-like windows. For example: `["qf", "vista_kind", "terminal", "packer"]`
+      day_brightness = 0.3, -- Adjusts the brightness of the colors of the **Day** style. Number between 0 and 1, from dull to vibrant colors
+      hide_inactive_statusline = false, -- Enabling this option, will hide inactive statuslines and replace them with a thin border instead. Should work with the standard **StatusLine** and **LuaLine**.
+      dim_inactive = false, -- dims inactive windows
+      lualine_bold = false, -- When `true`, section headers in the lualine theme will be bold
+    },
     config = function()
-      require("which-key").setup {
-        -- your configuration comes here
-        -- or leave it empty to use the default settings
-        -- refer to the configuration section below
-      }
-    end
-  }
-  use { "mhanberg/elixir.nvim", requires = { "nvim-lua/plenary.nvim" } }
-  use 'folke/tokyonight.nvim'
-  use 'LnL7/vim-nix'
+      -- Set colorscheme
+      vim.o.termguicolors = true
+      vim.cmd [[colorscheme tokyonight]]
+    end,
+  },
+  'LnL7/vim-nix',
 
-  use {
+  {
     'nvim-tree/nvim-tree.lua',
-    requires = {
+    dependencies = {
       'nvim-tree/nvim-web-devicons', -- optional, for file icons
     },
-    tag = 'nightly' -- optional, updated every week. (see issue #1193)
-  }
+    tag = 'nightly', -- optional, updated every week. (see issue #1193)
+    config = true,
+  },
 
-  use {
+  {
     "folke/trouble.nvim",
-    requires = "kyazdani42/nvim-web-devicons",
-    config = function()
-      require("trouble").setup {
-        -- your configuration comes here
-        -- or leave it empty to use the default settings
-        -- refer to the configuration section below
-      }
-    end
-  }
+    dependencies = { "nvim-tree/nvim-web-devicons" },
+    config = true,
+  },
 
-  use {
-    'vim-test/vim-test'
-    -- config = function()
-    --   vim.g['test#strategy'] = 'neovim'
-    -- end
-  }
+  'vim-test/vim-test',
 
-  use { "folke/todo-comments.nvim", requires = "nvim-lua/plenary.nvim" }
+  {
+    "folke/todo-comments.nvim",
+    dependencies = { "nvim-lua/plenary.nvim" },
+    config = true,
+  },
 
-  use "direnv/direnv.vim"
+  'direnv/direnv.vim',
 
-  use {
+  {
     "windwp/nvim-autopairs",
-    config = function()
-      require("nvim-autopairs").setup {}
-    end
-  }
+    config = true,
+  },
 
-  use 'simrat39/rust-tools.nvim'
-  use 'lvimuser/lsp-inlayhints.nvim'
+  'simrat39/rust-tools.nvim',
+  {
+    'lvimuser/lsp-inlayhints.nvim',
+    config = true,
+  },
 
-  use {
+  {
     'pwntester/octo.nvim',
-    requires = {
+    config = true,
+    dependencies = {
       'nvim-lua/plenary.nvim',
       'nvim-telescope/telescope.nvim',
-      'kyazdani42/nvim-web-devicons',
+      'nvim-tree/nvim-web-devicons',
     },
-  }
-
-  use({
-    "https://git.sr.ht/~whynothugo/lsp_lines.nvim",
-    -- config = function()
-    --   require("lsp_lines").setup()
-    -- end,
-  })
-
-  use 'tpope/vim-abolish'
-  use 'markonm/traces.vim'
-
-  -- use {
-  --   'rareitems/printer.nvim',
-  --   config = function()
-  --     require('printer').setup({
-  --       keymap = "gp" -- Plugin doesn't have any keymaps by default
-  --     })
-  --   end
-  -- }
-  use({
-    "andrewferrier/debugprint.nvim",
-    -- config = function()
-    --   require("debugprint").setup()
-    -- end,
-  })
-
-  use {
-    "AckslD/nvim-neoclip.lua",
-    requires = {
-      { 'nvim-telescope/telescope.nvim' },
-    },
-    config = function()
-      require('neoclip').setup()
-    end,
-  }
-end)
-
-require("tokyonight").setup({
-  -- your configuration comes here
-  -- or leave it empty to use the default settings
-  style = "moon", -- The theme comes in three styles, `storm`, `moon`, a darker variant `night` and `day`
-  light_style = "day", -- The theme is used when the background is set to light
-  transparent = false, -- Enable this to disable setting the background color
-  terminal_colors = true, -- Configure the colors used when opening a `:terminal` in Neovim
-  styles = {
-    -- Style to be applied to different syntax groups
-    -- Value is any valid attr-list value for `:help nvim_set_hl`
-    comments = { italic = true },
-    keywords = { italic = true },
-    functions = {},
-    variables = {},
-    -- Background styles. Can be "dark", "transparent" or "normal"
-    sidebars = "dark", -- style for sidebars, see below
-    floats = "dark", -- style for floating windows
   },
-  sidebars = { "qf", "help" }, -- Set a darker background on sidebar-like windows. For example: `["qf", "vista_kind", "terminal", "packer"]`
-  day_brightness = 0.3, -- Adjusts the brightness of the colors of the **Day** style. Number between 0 and 1, from dull to vibrant colors
-  hide_inactive_statusline = false, -- Enabling this option, will hide inactive statuslines and replace them with a thin border instead. Should work with the standard **StatusLine** and **LuaLine**.
-  dim_inactive = false, -- dims inactive windows
-  lualine_bold = false, -- When `true`, section headers in the lualine theme will be bold
+
+  {
+    "https://git.sr.ht/~whynothugo/lsp_lines.nvim",
+    config = true,
+  },
+
+  'tpope/vim-abolish',
+  'markonm/traces.vim',
+
+  {
+    "andrewferrier/debugprint.nvim",
+  },
+
+  {
+    "AckslD/nvim-neoclip.lua",
+    dependencies = {
+      'nvim-telescope/telescope.nvim',
+    },
+    config = true,
+  },
 })
 
 local Motch = {}
@@ -254,10 +343,6 @@ vim.o.smartcase = true
 vim.o.updatetime = 250
 vim.wo.signcolumn = 'yes'
 
--- Set colorscheme
-vim.o.termguicolors = true
-vim.cmd [[colorscheme tokyonight]]
-
 -- Set completeopt to have a better completion experience
 vim.o.completeopt = 'menuone,noselect'
 
@@ -268,11 +353,6 @@ vim.opt.spell = true
 vim.opt.spelllang = { 'en_us' }
 
 -- [[ Basic Keymaps ]]
--- Set <space> as the leader key
--- See `:help mapleader`
---  NOTE: Must happen before plugins are required (otherwise wrong leader will be used)
-vim.g.mapleader = ' '
-vim.g.maplocalleader = ' '
 
 -- Keymaps for better default experience
 -- See `:help vim.keymap.set()`
@@ -295,53 +375,6 @@ vim.api.nvim_create_autocmd('TextYankPost', {
   pattern = '*',
 })
 
-require "octo".setup()
-
--- Set lualine as statusline
--- See `:help lualine.txt`
-require('lualine').setup {
-  options = {
-    icons_enabled = false,
-    theme = 'tokyonight',
-    component_separators = '|',
-    section_separators = '',
-  },
-}
-
--- Enable Comment.nvim
-require('Comment').setup()
-
--- Enable `lukas-reineke/indent-blankline.nvim`
--- See `:help indent_blankline.txt`
-require('indent_blankline').setup {
-  char = '┊',
-  show_trailing_blankline_indent = false,
-}
-
--- Gitsigns
--- See `:help gitsigns.txt`
-require('gitsigns').setup {
-  signs = {
-    add = { text = '+' },
-    change = { text = '~' },
-    delete = { text = '_' },
-    topdelete = { text = '‾' },
-    changedelete = { text = '~' },
-  },
-}
-
--- [[ Configure Telescope ]]
--- See `:help telescope` and `:help telescope.setup()`
-require('telescope').setup {
-  defaults = {
-    mappings = {
-      i = {
-        ['<C-u>'] = false,
-        ['<C-d>'] = false,
-      },
-    },
-  },
-}
 
 -- Enable telescope fzf native, if installed
 pcall(require('telescope').load_extension, 'fzf')
@@ -369,7 +402,7 @@ vim.keymap.set('n', '<leader>sd', require('telescope.builtin').diagnostics, { de
 -- See `:help nvim-treesitter`
 require('nvim-treesitter.configs').setup {
   -- Add languages to be installed here that you want installed for treesitter
-  ensure_installed = { 'c', 'cpp', 'go', 'lua', 'python', 'rust', 'typescript', 'elixir', 'css' },
+  ensure_installed = { 'c', 'go', 'lua', 'rust', 'typescript', 'elixir', 'css' },
 
   highlight = { enable = true },
   rainbow = {
@@ -551,9 +584,6 @@ vim.cmd [[autocmd BufWritePre * lua vim.lsp.buf.format()]]
 -- nvim-cmp supports additional completion capabilities
 local capabilities = require('cmp_nvim_lsp').default_capabilities()
 
--- Setup mason so it can manage external tooling
-require('mason').setup()
-
 -- Enable the following language servers
 local servers = { 'clangd', 'rust_analyzer', 'sumneko_lua', 'tsserver', 'cssls', 'svelte', 'tailwindcss', 'html' }
 
@@ -627,22 +657,6 @@ require("elixir").setup {
 
 require('leap').add_default_mappings()
 
-require("nvim-tree").setup()
-
-require("todo-comments").setup()
-
-require('shade').setup({
-  overlay_opacity = 85,
-  opacity_step = 1,
-  keys = {
-    brightness_up   = '<C-Up>',
-    brightness_down = '<C-Down>',
-    toggle          = '<Leader>s',
-  }
-})
-
-require("lsp-inlayhints").setup()
-
 local rt = require("rust-tools")
 
 rt.setup({
@@ -677,19 +691,6 @@ vim.api.nvim_create_autocmd("LspAttach", {
 })
 
 vim.api.nvim_create_user_command('Browse', [[silent execute "!open " .. shellescape(<q-args>,1)]], { nargs = 1 })
-
-require('nvim-cursorline').setup {
-  cursorline = {
-    enable = true,
-    timeout = 1000,
-    number = false,
-  },
-  cursorword = {
-    enable = false,
-    min_length = 3,
-    hl = { underline = true },
-  }
-}
 
 -- nvim-cmp setup
 local cmp = require 'cmp'
@@ -744,11 +745,9 @@ cmp.setup.cmdline(":", {
   sources = cmp.config.sources({ { name = "path" } }, { { name = "cmdline", keyword_length = 2 } }),
 })
 
-require("lsp_lines").setup()
 vim.diagnostic.config({
   virtual_text = false,
 })
-
 
 require("debugprint").setup()
 require("debugprint").add_custom_filetypes({
@@ -760,21 +759,6 @@ require("debugprint").add_custom_filetypes({
   },
 })
 
-require('spectre').setup({
-  replace_engine = {
-    ['sed'] = {
-      cmd = "sed",
-      args = nil,
-      options = {
-        ['ignore-case'] = {
-          value = "--ignore-case",
-          icon = "[I]",
-          desc = "ignore case"
-        },
-      }
-    },
-  }
-})
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
