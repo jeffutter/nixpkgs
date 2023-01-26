@@ -428,12 +428,16 @@ in
     enable = true;
     vimAlias = true;
     plugins = with pkgs.vimPlugins; [
-      packer-nvim
     ];
   };
 
   home.file.".config/nvim/init.lua" = {
     source = ../nvim/init.lua;
+  };
+
+  home.file.".config/nvim/lua" = {
+    source = ../nvim/lua;
+    recursive = true;
   };
 
   programs.git = {
