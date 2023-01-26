@@ -48,7 +48,8 @@ local on_attach = function(_, bufnr)
 end
 
 -- Enable the following language servers
-local servers = { 'clangd', 'rust_analyzer', 'sumneko_lua', 'tsserver', 'cssls', 'svelte', 'tailwindcss', 'html' }
+local servers = { 'clangd', 'rust_analyzer', 'sumneko_lua', 'tsserver', 'cssls', 'svelte', 'tailwindcss', 'html',
+  'solargraph' }
 local installed_servers = { 'bashls' }
 
 return {
