@@ -30,7 +30,7 @@ vim.g.loaded_netrwPlugin = 1
 vim.g.traces_abolish_integration = 1
 
 -- Set highlight on search
-vim.o.hlsearch = false
+vim.o.hlsearch = true
 
 -- Make line numbers default
 vim.wo.number = true
