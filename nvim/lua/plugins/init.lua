@@ -49,6 +49,7 @@ end
 
 -- Enable the following language servers
 local servers = { 'clangd', 'rust_analyzer', 'sumneko_lua', 'tsserver', 'cssls', 'svelte', 'tailwindcss', 'html' }
+local installed_servers = { 'bashls' }
 
 return {
   'LnL7/vim-nix',
@@ -101,7 +102,6 @@ return {
         }
       end
 
-      local installed_servers = { 'bashls' }
       for _, lsp in ipairs(installed_servers) do
         require('lspconfig')[lsp].setup {
           on_attach = on_attach,
@@ -579,6 +579,7 @@ return {
       })
     end
   },
+
   {
     'lvimuser/lsp-inlayhints.nvim',
     config = function()
@@ -595,7 +596,6 @@ return {
           require("lsp-inlayhints").on_attach(client, bufnr)
         end,
       })
-
     end
   },
 
