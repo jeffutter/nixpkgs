@@ -56,7 +56,6 @@ return {
   'direnv/direnv.vim',
   'farmergreg/vim-lastplace',
   'markonm/traces.vim',
-  'p00f/nvim-ts-rainbow',
   'tpope/vim-abolish',
   'tpope/vim-fugitive', -- Git commands in nvim
   'tpope/vim-repeat',
@@ -78,12 +77,6 @@ return {
   },
 
   { 'numToStr/Comment.nvim', config = true }, -- "gc" to comment visual regions/lines
-
-  {
-    'nvim-treesitter/nvim-treesitter', -- Highlight, edit, and navigate code
-  },
-
-  { 'nvim-treesitter/nvim-treesitter-textobjects', dependencies = { 'nvim-treesitter' } }, -- Additional textobjects for treesitter
 
   {
     'neovim/nvim-lspconfig', -- Collection of configurations for built-in LSP client
@@ -450,6 +443,7 @@ return {
       'nvim-tree/nvim-web-devicons', -- optional, for file icons
     },
     tag = 'nightly', -- optional, updated every week. (see issue #1193)
+    config = true,
     keys = {
       { '<leader>ft', function()
         vim.cmd.NvimTreeToggle()
