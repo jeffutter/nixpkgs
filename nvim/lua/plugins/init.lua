@@ -47,10 +47,21 @@ local on_attach = function(_, bufnr)
   end, { desc = 'Format current buffer with LSP' })
 end
 
+-- Enable the following language servers
+local servers = { 'clangd', 'rust_analyzer', 'sumneko_lua', 'tsserver', 'cssls', 'svelte', 'tailwindcss', 'html' }
+
 return {
+  'LnL7/vim-nix',
+  'direnv/direnv.vim',
+  'farmergreg/vim-lastplace',
+  'markonm/traces.vim',
+  'p00f/nvim-ts-rainbow',
+  'tpope/vim-abolish',
   'tpope/vim-fugitive', -- Git commands in nvim
-  'tpope/vim-rhubarb', -- Fugitive-companion to interact with github
   'tpope/vim-repeat',
+  'tpope/vim-rhubarb', -- Fugitive-companion to interact with github
+  'tpope/vim-sleuth', -- Detect tabstop and shiftwidth automatically
+
   {
     'lewis6991/gitsigns.nvim', -- Add git related info in the signs columns and popups
     dependencies = { 'nvim-lua/plenary.nvim' },
@@ -64,31 +75,15 @@ return {
       },
     }
   },
+
   { 'numToStr/Comment.nvim', config = true }, -- "gc" to comment visual regions/lines
+
   {
     'nvim-treesitter/nvim-treesitter', -- Highlight, edit, and navigate code
-    config = function()
-      -- See `:help telescope.builtin`
-      vim.keymap.set('n', '<leader>?', require('telescope.builtin').oldfiles, { desc = '[?] Find recently opened files' })
-      vim.keymap.set('n', '<leader><space>', require('telescope.builtin').buffers, { desc = '[ ] Find existing buffers' })
-      vim.keymap.set('n', '<leader>/', function()
-        -- You can pass additional configuration to telescope to change theme, layout, etc.
-        require('telescope.builtin').current_buffer_fuzzy_find(require('telescope.themes').get_dropdown {
-          winblend = 10,
-          previewer = false,
-        })
-      end, { desc = '[/] Fuzzily search in current buffer]' })
-
-      vim.keymap.set('n', '<leader>sf', require('telescope.builtin').find_files, { desc = '[S]earch [F]iles' })
-      vim.keymap.set('n', '<leader>sh', require('telescope.builtin').help_tags, { desc = '[S]earch [H]elp' })
-      vim.keymap.set('n', '<leader>sw', require('telescope.builtin').grep_string, { desc = '[S]earch current [W]ord' })
-      vim.keymap.set('n', '<leader>sg', require('telescope.builtin').live_grep, { desc = '[S]earch by [G]rep' })
-      vim.keymap.set('n', '<leader>sd', require('telescope.builtin').diagnostics, { desc = '[S]earch [D]iagnostics' })
-
-    end
   },
+
   { 'nvim-treesitter/nvim-treesitter-textobjects', dependencies = { 'nvim-treesitter' } }, -- Additional textobjects for treesitter
-  'p00f/nvim-ts-rainbow',
+
   {
     'neovim/nvim-lspconfig', -- Collection of configurations for built-in LSP client
     event = "BufReadPre",
@@ -98,14 +93,6 @@ return {
     config = function()
       -- nvim-cmp supports additional completion capabilities
       local capabilities = require('cmp_nvim_lsp').default_capabilities()
-
-      -- Enable the following language servers
-      local servers = { 'clangd', 'rust_analyzer', 'sumneko_lua', 'tsserver', 'cssls', 'svelte', 'tailwindcss', 'html' }
-
-      -- Ensure the servers above are installed
-      require('mason-lspconfig').setup {
-        ensure_installed = servers,
-      }
 
       for _, lsp in ipairs(servers) do
         require('lspconfig')[lsp].setup {
@@ -167,21 +154,27 @@ return {
       }
     end
   },
+
   {
-    'williamboman/mason.nvim', -- Manage external editor tooling i.e LSP servers
-    config = true,
+    'williamboman/mason-lspconfig.nvim', -- Automatically install language servers to stdpath
+    dependencies = {
+      { 'williamboman/mason.nvim', config = true },
+    },
+    opts = {
+      ensure_installed = servers
+    }
   },
-  'williamboman/mason-lspconfig.nvim', -- Automatically install language servers to stdpath
+
   {
     'hrsh7th/nvim-cmp', -- Autocompletion
     dependencies = {
-      'hrsh7th/cmp-nvim-lsp',
       'f3fora/cmp-spell',
       'hrsh7th/cmp-buffer',
+      'hrsh7th/cmp-cmdline',
       'hrsh7th/cmp-emoji',
+      'hrsh7th/cmp-nvim-lsp',
       'hrsh7th/cmp-path',
       'hrsh7th/cmp-vsnip',
-      'hrsh7th/cmp-cmdline',
       'saadparwaiz1/cmp_luasnip',
     },
     config = function()
@@ -239,8 +232,9 @@ return {
       })
     end
   },
+
   { 'L3MON4D3/LuaSnip', dependencies = { 'saadparwaiz1/cmp_luasnip' } }, -- Snippet Engine and Snippet Expansion
-  'farmergreg/vim-lastplace',
+
   {
     'nvim-lualine/lualine.nvim', -- Fancier statusline
     opts = {
@@ -252,6 +246,7 @@ return {
       },
     }
   },
+
   {
     'lukas-reineke/indent-blankline.nvim', -- Add indentation guides even on blank lines
     opts = {
@@ -259,19 +254,21 @@ return {
       show_trailing_blankline_indent = false,
     }
   },
-  'tpope/vim-sleuth', -- Detect tabstop and shiftwidth automatically
+
   {
     'ggandor/leap.nvim',
     config = function()
       require('leap').add_default_mappings()
     end
   },
+
   {
     'rcarriga/nvim-notify',
     config = function()
       vim.notify = require("notify")
     end,
   },
+
   {
     'sunjon/shade.nvim',
     config = true,
@@ -285,6 +282,7 @@ return {
       }
     }
   },
+
   {
     'yamatsum/nvim-cursorline',
     config = true,
@@ -301,9 +299,21 @@ return {
       }
     }
   },
+
   {
     'windwp/nvim-spectre',
     dependencies = { 'nvim-lua/plenary.nvim' },
+    keys = {
+      { '<leader>S', function()
+        require('spectre').open()
+      end, desc = '[S]pectre' },
+      { '<leader>sw', function()
+        require('spectre').open_visual({ select_word = true })
+      end, desc = '[S]pectre [W]ord' },
+      { '<leader>sp', function()
+        require('spectre').open_file_search()
+      end, desc = '[S]pectre p[F]ile' }
+    },
     opts = {
       replace_engine = {
         ['sed'] = {
@@ -336,29 +346,42 @@ return {
         },
       },
     },
-    config = function()
-      -- Enable telescope fzf native, if installed
-      pcall(require('telescope').load_extension, 'fzf')
-      pcall(require('telescope').load_extension, 'notify')
-      pcall(require('telescope').load_extension, 'neoclip')
-
-      -- See `:help telescope.builtin`
-      vim.keymap.set('n', '<leader>?', require('telescope.builtin').oldfiles, { desc = '[?] Find recently opened files' })
-      vim.keymap.set('n', '<leader><space>', require('telescope.builtin').buffers, { desc = '[ ] Find existing buffers' })
-      vim.keymap.set('n', '<leader>/', function()
+    keys = {
+      { '<leader>?', function()
+        require('telescope.builtin').oldfiles()
+      end, desc = '[?] Find recently opened files' },
+      { '<leader><space>', function()
+        require('telescope.builtin').buffers()
+      end, desc = '[ ] Find existing buffers' },
+      { '<leader>/', function()
         -- You can pass additional configuration to telescope to change theme, layout, etc.
         require('telescope.builtin').current_buffer_fuzzy_find(require('telescope.themes').get_dropdown {
           winblend = 10,
           previewer = false,
         })
-      end, { desc = '[/] Fuzzily search in current buffer]' })
+      end, desc = '[/] Fuzzily search in current buffer]' },
 
-      vim.keymap.set('n', '<leader>sf', require('telescope.builtin').find_files, { desc = '[S]earch [F]iles' })
-      vim.keymap.set('n', '<leader>sh', require('telescope.builtin').help_tags, { desc = '[S]earch [H]elp' })
-      vim.keymap.set('n', '<leader>sw', require('telescope.builtin').grep_string, { desc = '[S]earch current [W]ord' })
-      vim.keymap.set('n', '<leader>sg', require('telescope.builtin').live_grep, { desc = '[S]earch by [G]rep' })
-      vim.keymap.set('n', '<leader>sd', require('telescope.builtin').diagnostics, { desc = '[S]earch [D]iagnostics' })
-
+      { '<leader>sf', function()
+        require('telescope.builtin').find_files()
+      end, desc = '[S]earch [F]iles' },
+      { '<leader>sh', function()
+        require('telescope.builtin').help_tags()
+      end, desc = '[S]earch [H]elp' },
+      { '<leader>sw', function()
+        require('telescope.builtin').grep_string()
+      end, desc = '[S]earch current [W]ord' },
+      { '<leader>sg', function()
+        require('telescope.builtin').live_grep()
+      end, desc = '[S]earch by [G]rep' },
+      { '<leader>sd', function()
+        require('telescope.builtin').diagnostics()
+      end, desc = '[S]earch [D]iagnostics' }
+    },
+    config = function()
+      -- Enable telescope fzf native, if installed
+      pcall(require('telescope').load_extension, 'fzf')
+      pcall(require('telescope').load_extension, 'notify')
+      pcall(require('telescope').load_extension, 'neoclip')
     end,
   },
 
@@ -375,6 +398,7 @@ return {
     "folke/which-key.nvim",
     config = true,
   },
+
   {
     "mhanberg/elixir.nvim",
     dependencies = { "nvim-lua/plenary.nvim" },
@@ -384,6 +408,7 @@ return {
       }
     end
   },
+
   { 'folke/tokyonight.nvim',
     lazy = false, -- make sure we load this during startup if it is your main colorscheme
     priority = 1000, -- make sure to load this before all the other start plugins
@@ -417,7 +442,6 @@ return {
       vim.cmd [[colorscheme tokyonight]]
     end,
   },
-  'LnL7/vim-nix',
 
   {
     'nvim-tree/nvim-tree.lua',
@@ -425,24 +449,105 @@ return {
       'nvim-tree/nvim-web-devicons', -- optional, for file icons
     },
     tag = 'nightly', -- optional, updated every week. (see issue #1193)
-    config = true,
+    keys = {
+      { '<leader>ft', function()
+        vim.cmd.NvimTreeToggle()
+      end, desc = '[F]ile [T]ree' }
+    }
   },
 
   {
     "folke/trouble.nvim",
     dependencies = { "nvim-tree/nvim-web-devicons" },
-    config = true,
+    keys = {
+      { "<leader>xx", "<cmd>TroubleToggle<cr>", desc = "Trouble Toggle" },
+      { "<leader>xw", "<cmd>TroubleToggle workspace_diagnostics<cr>", desc = "Trouble Workspace" },
+      { "<leader>xd", "<cmd>TroubleToggle document_diagnostics<cr>", desc = "Trouble Document" },
+      { "<leader>xl", "<cmd>TroubleToggle loclist<cr>", desc = "Trouble LocList" },
+      { "<leader>xq", "<cmd>TroubleToggle quickfix<cr>", desc = "Trouble Quickfix" },
+      { "gR", "<cmd>TroubleToggle lsp_references<cr>", desc = "Trouble LSP References" },
+    },
   },
 
-  'vim-test/vim-test',
+  {
+    'vim-test/vim-test',
+    keys = {
+      { '<leader>mts', function()
+        vim.cmd.TestNearest()
+      end, desc = '[T]est [S]ingle' },
+      { '<leader>mta', function()
+        vim.cmd.TestSuite()
+      end, desc = '[T]est [A]ll' },
+      { '<leader>mtl', function()
+        vim.cmd.TestLast()
+      end, desc = '[T]est [L]ast' },
+      { '<leader>mtr', function()
+        vim.cmd.TestLast()
+      end, desc = '[T]est [R]ecent' },
+      { '<leader>mtf', function()
+        vim.cmd.TestFile()
+      end, desc = '[T]est [F]ile' },
+    },
+    config = function()
+      local Motch = {}
+
+      local nil_buf_id = 999999
+      local term_buf_id = nil_buf_id
+
+      function Motch.open(cmd, winnr, notifier)
+        -- delete the current buffer if it's still open
+        if vim.api.nvim_buf_is_valid(term_buf_id) then
+          vim.api.nvim_buf_delete(term_buf_id, { force = true })
+          term_buf_id = nil_buf_id
+        end
+
+        vim.cmd("botright new | lua vim.api.nvim_win_set_height(0, 15)")
+        term_buf_id = vim.api.nvim_get_current_buf()
+        vim.opt_local.number = false
+        vim.opt_local.cursorline = false
+
+        vim.fn.termopen(cmd, {
+          on_exit = function(_jobid, exit_code, _event)
+            if notifier then notifier(cmd, exit_code) end
+
+            if exit_code == 0 then
+              vim.api.nvim_buf_delete(term_buf_id, { force = true })
+              term_buf_id = nil_buf_id
+            end
+          end,
+        })
+
+        print(cmd)
+
+        vim.cmd([[normal! G]])
+        vim.cmd(winnr .. [[wincmd w]])
+      end
+
+      local terminal_notifier_notfier = function(cmd, exit)
+        if exit == 0 then
+          print("Success!")
+          vim.fn.system(string.format([[terminal-notifier -title "Neovim" -subtitle "%s" -message "Success!"]], cmd))
+        else
+          print("Failure!")
+          vim.fn.system(string.format([[terminal-notifier -title "Neovim" -subtitle "%s" -message "Fail!"]], cmd))
+        end
+      end
+
+      vim.g["test#custom_strategies"] = {
+        motch = function(cmd)
+          local winnr = vim.fn.winnr()
+          Motch.open(cmd, winnr, terminal_notifier_notfier)
+        end,
+      }
+      vim.g["test#strategy"] = "motch"
+    end
+  },
 
   {
     "folke/todo-comments.nvim",
     dependencies = { "nvim-lua/plenary.nvim" },
     config = true,
   },
-
-  'direnv/direnv.vim',
 
   {
     "windwp/nvim-autopairs",
@@ -474,7 +579,22 @@ return {
   },
   {
     'lvimuser/lsp-inlayhints.nvim',
-    config = true,
+    config = function()
+      vim.api.nvim_create_augroup("LspAttach_inlayhints", {})
+      vim.api.nvim_create_autocmd("LspAttach", {
+        group = "LspAttach_inlayhints",
+        callback = function(args)
+          if not (args.data and args.data.client_id) then
+            return
+          end
+
+          local bufnr = args.buf
+          local client = vim.lsp.get_client_by_id(args.data.client_id)
+          require("lsp-inlayhints").on_attach(client, bufnr)
+        end,
+      })
+
+    end
   },
 
   {
@@ -489,11 +609,13 @@ return {
 
   {
     "https://git.sr.ht/~whynothugo/lsp_lines.nvim",
-    config = true,
+    config = function()
+      require('lsp_lines').setup()
+      vim.diagnostic.config({
+        virtual_text = false,
+      })
+    end,
   },
-
-  'tpope/vim-abolish',
-  'markonm/traces.vim',
 
   {
     "andrewferrier/debugprint.nvim",
@@ -514,6 +636,11 @@ return {
     "AckslD/nvim-neoclip.lua",
     dependencies = {
       'nvim-telescope/telescope.nvim',
+    },
+    keys = {
+      { '<leader>cy', function()
+        require('telescope').extensions.neoclip.default()
+      end, desc = '[C]lipboard [Y]ank' }
     },
     config = true,
   },
