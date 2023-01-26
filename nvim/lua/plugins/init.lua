@@ -401,6 +401,7 @@ return {
 
   {
     "mhanberg/elixir.nvim",
+    ft = "elixir",
     dependencies = { "nvim-lua/plenary.nvim" },
     config = function()
       require("elixir").setup {
@@ -556,6 +557,7 @@ return {
 
   {
     'simrat39/rust-tools.nvim',
+    ft = "rust",
     config = function()
       local rt = require("rust-tools")
 
@@ -599,6 +601,7 @@ return {
 
   {
     'pwntester/octo.nvim',
+    cmd = "Octo",
     config = true,
     dependencies = {
       'nvim-lua/plenary.nvim',
