@@ -88,8 +88,6 @@ vim.keymap.set('n', ']d', vim.diagnostic.goto_next)
 vim.keymap.set('n', '<leader>e', vim.diagnostic.open_float)
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist)
 
-vim.cmd [[autocmd BufWritePre * lua vim.lsp.buf.format()]]
-
 vim.api.nvim_create_user_command('Browse', [[silent execute "!open " .. shellescape(<q-args>,1)]], { nargs = 1 })
 
 -- The line beneath this is called `modeline`. See `:help modeline`
