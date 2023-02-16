@@ -58,7 +58,7 @@ return {
           flags = { debounce_text_changes = 300 },
 
         },
-        sumneko_lua = {
+        lua_lsp = {
           -- mason = false, -- set to false if you don't want this server to be installed with mason
           settings = {
             Lua = {
