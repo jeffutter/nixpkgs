@@ -28,6 +28,11 @@ in
     google-java-format
     grpcurl
 
+    kotlin
+    kotlin-language-server
+    ktlint
+    kcat
+
     # These won't build on aarch64, can be moved back into common once they do
     #topgrade
     cargo-watch
