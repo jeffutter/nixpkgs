@@ -28,7 +28,6 @@ in
     cask "fastrawviewer"
     cask "reaper"
     cask "steam"
-    cask "synology-drive"
     mas "Serial", id: 877615577
     ''
   ];

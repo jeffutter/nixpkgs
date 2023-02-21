@@ -6,10 +6,12 @@ tap "homebrew/cask-drivers"
 tap "homebrew/cask-versions"
 tap "homebrew/core"
 tap "homebrew/services"
+brew "git"
 brew "mas"
 cask "1password"
 cask "1password-cli"
 cask "amethyst"
+cask "arc"
 cask "brave-browser"
 cask "charles"
 cask "contexts"
@@ -19,26 +21,34 @@ cask "discord"
 cask "docker"
 cask "fujifilm-x-webcam"
 cask "home-assistant"
+cask "loopback"
 cask "obsidian"
 cask "paw"
 cask "postico"
 cask "raycast"
 cask "screenflow"
+cask "soundsource"
 cask "stats"
+cask "switchresx"
 cask "telegram"
 cask "visual-studio-code"
 cask "wireshark"
+cask "xcodes"
 cask "zoom"
+mas "Amphetamine", id: 937984704
 mas "CARROT Weather", id: 993487541
 mas "GIPHY CAPTURE", id: 668208984
+mas "Home Assistant", id: 1099568401
 mas "iMovie", id: 408981434
 mas "Jira", id: 1475897096
 mas "Keynote", id: 409183694
 mas "Matter", id: 1548677272
-mas "Moom", id: 419330170
 mas "Numbers", id: 409203825
 mas "Pages", id: 409201541
 mas "Parcel", id: 639968404
+mas "Save to Matter", id: 1548677272
 mas "Serial", id: 877615577
+mas "Tailscale", id: 1475387142
 mas "Todoist", id: 585829637
+mas "Whalebird", id: 1378283354
 mas "WireGuard", id: 1451685025
