@@ -8,6 +8,7 @@ return {
 	"tpope/vim-repeat",
 	"tpope/vim-rhubarb", -- Fugitive-companion to interact with github
 	"tpope/vim-sleuth", -- Detect tabstop and shiftwidth automatically
+	{ "cappyzawa/trim.nvim", config = true },
 
 	{
 		"lewis6991/gitsigns.nvim", -- Add git related info in the signs columns and popups
