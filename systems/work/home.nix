@@ -16,6 +16,7 @@ let
 in
 {
   imports = [ ../common.nix ];
+  imports = [ ../darwin.nix ];
 
   home.packages = with pkgs; [
     llvmPackages.bintools

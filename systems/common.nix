@@ -970,11 +970,6 @@ fi
     };
   };
 
-  targets.darwin.defaults."com.apple.dock" = {
-    size-immutable = true;
-    tilesize = 48;
-  };
-
   home.sessionVariables = {
     EDITOR = "nvim";
   };
