@@ -21,7 +21,7 @@ let
       rev = "mosh-1.4.0";
       sha256 = "sha256-tlSsHu7JnXO+sorVuWWubNUNdb9X0/pCaiGG5Y0X/g8=";
     };
-    patches = lib.remove 
+    patches = lib.remove
       (pkgs.fetchpatch {
         url = "https://github.com/mobile-shell/mosh/commit/e5f8a826ef9ff5da4cfce3bb8151f9526ec19db0.patch";
         sha256 = "15518rb0r5w1zn4s6981bf1sz6ins6gpn2saizfzhmr13hw4gmhm";
@@ -49,7 +49,7 @@ let
 
   my_wakeonlan = pkgs.callPackage ../pkgs/wakeonlan {};
 
-  ltex-lsp = pkgs.callPackage ../pkgs/ltex-lsp {}; 
+  ltex-lsp = pkgs.callPackage ../pkgs/ltex-lsp {};
 
   my_fonts = pkgs.nerdfonts.override {
     fonts = [
@@ -60,7 +60,7 @@ let
       "Iosevka"
       "Monoid"
       "JetBrainsMono"
-      "SourceCodePro" 
+      "SourceCodePro"
     ];
   };
 
@@ -247,7 +247,6 @@ in
       layouts:
           - fullscreen
           - middle-wide
-          - tall
           - wide
           - widescreen-tall
           - column
@@ -520,7 +519,7 @@ in
     extraConfig = ''
       font_features MonoLisaNerdFont-Italic +ss02
       font_features = "MonoLisaNerdFont-Bold-Italic +ss02
-    '' + builtins.readFile (tokyonights + "/extras/kitty/tokyonight_moon.conf"); 
+    '' + builtins.readFile (tokyonights + "/extras/kitty/tokyonight_moon.conf");
     settings = {
       font_family = "MonoLisa Nerd Font Regular";
       bold_font = "MonoLisa Nerd Font Bold";
@@ -745,7 +744,7 @@ fi
         unalias -m 'h'
         alias h='himalaya'
       fi
-      
+
       printf "\e[?1042l"
 
       export LS_COLORS="$(vivid generate tokyonight_moon)"
@@ -801,7 +800,7 @@ fi
         $golang
         $helm
         $java
-        $kotlin 
+        $kotlin
         $nim
         $nodejs
         $ocaml
@@ -871,7 +870,7 @@ fi
       };
     };
   };
-  
+
   programs.atuin = {
     enable = true;
     enableBashIntegration = true;
