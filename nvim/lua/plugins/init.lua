@@ -312,9 +312,13 @@ return {
 	{
 		"mhanberg/elixir.nvim",
 		ft = "elixir",
-		dependencies = { "nvim-lua/plenary.nvim" },
+		dependencies = {
+			"nvim-lua/plenary.nvim",
+			"hrsh7th/cmp-nvim-lsp",
+		},
 		config = function()
 			require("elixir").setup({
+				capabilities = require("cmp_nvim_lsp").default_capabilities(),
 				on_attach = require("util").on_attach(function(client, buffer)
 					require("plugins.lsp.format").on_attach(client, buffer)
 					require("plugins.lsp.keymaps").on_attach(client, buffer)
