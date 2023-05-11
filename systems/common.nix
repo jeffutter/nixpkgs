@@ -100,6 +100,7 @@ in
     bzip2
     comma
     curl
+    dive
     docker
     doctl
     du-dust
@@ -130,7 +131,7 @@ in
     ltex-lsp
     mosh
     my_vim_configurable
-    ncdu
+    ncdu_1
     nodejs
     ngrok
     nodePackages.bash-language-server
