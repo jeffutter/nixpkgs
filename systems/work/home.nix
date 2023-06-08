@@ -71,6 +71,6 @@ in
     ''
   ];
 
-  home.username = "Jeffery.Utter";
+  home.username = "jeffery.utter";
   home.homeDirectory = "/Users/Jeffery.Utter";
 }
