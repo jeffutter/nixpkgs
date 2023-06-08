@@ -312,6 +312,7 @@ return {
 	{
 		"mhanberg/elixir.nvim",
 		ft = "elixir",
+		version = "*",
 		dependencies = {
 			"nvim-lua/plenary.nvim",
 			"hrsh7th/cmp-nvim-lsp",
