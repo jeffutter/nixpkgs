@@ -755,9 +755,11 @@ fi
   programs.topgrade = {
     enable = true;
     settings = {
-      ignore_failures = ["containers"];
-      disable = ["yadm" "node" "gem" "nix" "gcloud" "opam"];
-      cleanup = true;
+      misc = {
+        disable = ["yadm" "node" "gem" "nix" "gcloud" "opam"];
+        ignore_failures = ["containers"];
+        cleanup = true;
+      };
       commands = {
         "Expire old home-manager configs" = "home-manager expire-generations '-1 week'";
         "Run garbage collection on Nix store" = "nix-collect-garbage --delete-older-than 7d";
