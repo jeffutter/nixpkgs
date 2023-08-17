@@ -301,15 +301,24 @@ return {
 	},
 
 	{
-		"mhanberg/elixir.nvim",
+		"hrsh7th/cmp-nvim-lsp",
+		enable = true,
+		config = true,
+	},
+
+	{
+		"elixir-tools/elixir-tools.nvim",
 		ft = "elixir",
 		version = "*",
+		event = { "BufReadPre", "BufNewFile" },
 		dependencies = {
 			"nvim-lua/plenary.nvim",
 			"hrsh7th/cmp-nvim-lsp",
 		},
 		config = function()
-			require("elixir").setup({
+			local elixir = require("elixir")
+
+			elixir.setup({
 				capabilities = require("cmp_nvim_lsp").default_capabilities(),
 				on_attach = require("util").on_attach(function(client, buffer)
 					require("plugins.lsp.format").on_attach(client, buffer)
