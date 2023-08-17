@@ -90,5 +90,20 @@ vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist)
 
 vim.api.nvim_create_user_command('Browse', [[silent execute "!open " .. shellescape(<q-args>,1)]], { nargs = 1 })
 
+vim.opt.foldcolumn = "1"
+vim.opt.foldlevelstart = 99
+vim.opt.foldexpr = "v:lua.vim.treesitter.foldexpr()"
+vim.opt.foldmethod = "expr"
+vim.opt.fillchars:append({
+  foldopen = "",
+  foldsep = " ",
+  foldclose = "",
+})
+-- Workaround for https://github.com/nvim-telescope/telescope.nvim/issues/699
+vim.api.nvim_create_autocmd({ "BufEnter" }, {
+    pattern = { "*" },
+    command = "normal zx zR",
+})
+
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et

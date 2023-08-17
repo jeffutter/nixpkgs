@@ -594,6 +594,25 @@ return {
 		},
 		config = true,
 	},
+
+	{
+		"luukvbaal/statuscol.nvim",
+		config = function()
+			local builtin = require("statuscol.builtin")
+			require("statuscol").setup({
+				setopt = true,
+				foldfunc = "builtin",
+				segments = {
+					{ text = { builtin.lnumfunc }, click = "v:lua.ScLa" },
+					{ text = { "%s" }, click = "v:lua.ScSa" },
+					{ text = { builtin.foldfunc, " " }, condition = { true, builtin.not_empty }, click = "v:lua.ScFa" },
+				},
+			})
+		end,
+		dependencies = {
+			"lewis6991/gitsigns.nvim",
+		},
+	},
 }
 
 -- vim: ts=2 sts=2 sw=2 et
