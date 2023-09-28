@@ -105,7 +105,7 @@ in
     doctl
     du-dust
     duf
-    exa
+    eza
     fd
     gawk
     gitAndTools.gh
@@ -572,8 +572,8 @@ set -as terminal-overrides ',*:Setulc=\E[58::2::%p1%{65536}%/%d::%p1%{256}%/%{25
       df = "duf";
       gunzip = "pigz -d";
       gz = "pigz";
-      ll = "exa -l --color always --icons -a -s type";
-      ls = "exa -G --color auto -s type";
+      ll = "eza -l --color always --icons -a -s type";
+      ls = "eza -G --color auto -s type";
       xz = "pixz";
     };
     functions = {
@@ -721,14 +721,14 @@ fi
       fi
     '';
     initExtra = ''
-      if [ "$(command -v exa)" ]; then
+      if [ "$(command -v eza)" ]; then
           unalias -m 'll'
           unalias -m 'l'
           unalias -m 'la'
           unalias -m 'ls'
-          #alias ls='exa -G  --color auto --icons -a -s type'
-          alias ls='exa -G  --color auto -s type'
-          alias ll='exa -l --color always --icons -a -s type'
+          #alias ls='eza -G  --color auto --icons -a -s type'
+          alias ls='eza -G  --color auto -s type'
+          alias ll='eza -l --color always --icons -a -s type'
       fi
 
       if [ "$(command -v bat)" ]; then
