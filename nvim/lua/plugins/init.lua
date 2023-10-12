@@ -319,7 +319,7 @@ return {
 
 			elixir.setup({
 				capabilities = require("cmp_nvim_lsp").default_capabilities(),
-				on_attach = require("util").on_attach(function(client, buffer)
+				on_attach = require("lazyvim.util").on_attach(function(client, buffer)
 					require("plugins.lsp.format").on_attach(client, buffer)
 					require("plugins.lsp.keymaps").on_attach(client, buffer)
 				end),
@@ -517,7 +517,7 @@ return {
 					},
 				},
 				server = {
-					on_attach = require("util").on_attach(function(client, buffer)
+					on_attach = require("lazyvim.util").on_attach(function(client, buffer)
 						require("plugins.lsp.format").on_attach(client, buffer)
 						require("plugins.lsp.keymaps").on_attach(client, buffer)
 						-- Hover actions
