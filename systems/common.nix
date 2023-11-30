@@ -124,9 +124,9 @@ in
     k6
     k9s
     kubectl
-    kubectx
     kubernetes-helm
     kubeseal
+    kubeswitch
     lftp
     ltex-lsp
     mosh
@@ -563,8 +563,8 @@ set -as terminal-overrides ',*:Setulc=\E[58::2::%p1%{65536}%/%d::%p1%{256}%/%{25
       gpf = "git push --force";
       h = "himalaya";
       k = "kubectl";
-      kctx = "kubectx";
-      kns = "kubens";
+      kctx = "kubeswitch";
+      kns = "kubeswitch namespace";
     };
     shellAliases = {
       bzip2 = "pbzip2";
@@ -575,6 +575,7 @@ set -as terminal-overrides ',*:Setulc=\E[58::2::%p1%{65536}%/%d::%p1%{256}%/%{25
       ll = "eza -l --color always --icons -a -s type";
       ls = "eza -G --color auto -s type";
       xz = "pixz";
+      kubeswitch = "exec switch";
     };
     functions = {
       kca = "kubectl $argv --all-namespaces";
