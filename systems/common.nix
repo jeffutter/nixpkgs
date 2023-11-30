@@ -890,7 +890,9 @@ fi
   programs.bat = {
     enable = true;
     themes = {
-      tokyonight = builtins.readFile (tokyonights + "/extras/sublime/tokyonight_moon.tmTheme");
+      tokyonight = {
+        src = (tokyonights + "/extras/sublime/tokyonight_moon.tmTheme");
+      };
     };
     config = {
       theme = "tokyonight";
