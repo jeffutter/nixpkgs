@@ -544,6 +544,7 @@ in
     shortcut = "a";
     terminal = "tmux-256color";
     extraConfig = ''
+set-option -g default-command "fish"
 set -ga terminal-overrides ",*256col*:Tc"
 set -as terminal-overrides ',*:Smulx=\E[4::%p1%dm'  # undercurl support
 set -as terminal-overrides ',*:Setulc=\E[58::2::%p1%{65536}%/%d::%p1%{256}%/%{255}%&%d::%p1%{255}%&%d%;m'  # underscore colours - needs tmux-3.0
