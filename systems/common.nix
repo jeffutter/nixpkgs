@@ -126,9 +126,9 @@ in
     k6
     k9s
     kubectl
+    kubectx
     kubernetes-helm
     kubeseal
-    kubeswitch
     lftp
     ltex-lsp
     mosh
@@ -570,8 +570,8 @@ set -g mode-keys   vi
       gpf = "git push --force";
       h = "himalaya";
       k = "kubectl";
-      kctx = "kubeswitch";
-      kns = "kubeswitch namespace";
+      kctx = "kubectx";
+      kns = "kubens";
     };
     shellAliases = {
       bzip2 = "pbzip2";
@@ -582,7 +582,6 @@ set -g mode-keys   vi
       ll = "eza -l --color always --icons -a -s type";
       ls = "eza -G --color auto -s type";
       xz = "pixz";
-      kubeswitch = "exec switch";
     };
     functions = {
       kca = "kubectl $argv --all-namespaces";
