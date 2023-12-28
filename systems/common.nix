@@ -53,11 +53,13 @@ let
 
   my_fonts = pkgs.nerdfonts.override {
     fonts = [
+      "CommitMono"
       "FantasqueSansMono"
       "FiraCode"
       "Hack"
       "Hasklig"
       "Iosevka"
+      "Monaspace"
       "Monoid"
       "JetBrainsMono"
       "SourceCodePro"
@@ -494,19 +496,19 @@ in
       };
       font = {
         normal = {
-          family = "SauceCodePro Nerd Font Mono";
+          family = "MonaspiceNe Nerd Font Mono";
           style = "Regular";
         };
         bold = {
-          family = "SauceCodePro Nerd Font Mono";
+          family = "MonaspiceNe Nerd Font Mono";
           style = "Bold";
         };
         italic = {
-          family = "SauceCodePro Nerd Font Mono";
+          family = "MonaspiceRn Nerd Font Mono";
           style = "Italic";
         };
         bold_italic = {
-          family = "SauceCodePro Nerd Font Mono";
+          family = "MonospiceRn Nerd Font Mono";
           style = "Bold Italic";
         };
         size = 11.0;
@@ -519,13 +521,15 @@ in
     enable = true;
     extraConfig = ''
       font_features MonoLisaNerdFont-Italic +ss02
-      font_features = "MonoLisaNerdFont-Bold-Italic +ss02
+      font_features MonoLisaNerdFont-Bold-Italic +ss02
+      font_features MonospiceRnNerdFont-Italic +ss02
+      font_features MonospiceRnNerdFont-Bold-Italic +ss02
     '' + builtins.readFile (tokyonights + "/extras/kitty/tokyonight_moon.conf");
     settings = {
-      font_family = "MonoLisa Nerd Font Regular";
-      bold_font = "MonoLisa Nerd Font Bold";
-      bold_italic_font = "MonoLisa Nerd Font Bold Italic";
-      italic_font = "MonoLisa Nerd Font Regular Italic";
+      font_family = "MonospiceNe Nerd Font Regular";
+      bold_font = "MonospiceNe Nerd Font Bold";
+      bold_italic_font = "MonospiceRn Nerd Font Bold Italic";
+      italic_font = "MonospiceRn Nerd Font Regular Italic";
 
       macos_titlebar_color = "background";
       tab_bar_style = "powerline";
