@@ -129,6 +129,11 @@ in
     kubectx
     kubernetes-helm
     kubeseal
+    (pkgs.kubectl-node-shell.overrideAttrs ({ meta ? {}, ... }: {
+      meta = meta // {
+        platforms = pkgs.lib.platforms.unix;
+      };
+    }))
     lftp
     ltex-lsp
     mosh
@@ -167,7 +172,7 @@ in
     wget
     xz
     yarn
-    yq
+    yq-go
     zstd
 
     # Fonts
@@ -184,7 +189,7 @@ in
     # Rust
     cargo
     cargo-bloat
-    cargo-criterion
+    # cargo-criterion
     cargo-cross
     cargo-expand
     cargo-flamegraph
@@ -418,13 +423,13 @@ in
     };
   };
 
-  programs.himalaya = {
-    enable = true;
-    settings = {
-      name = "Jeffery Utter";
-      default-page-size = 50;
-    };
-  };
+  # programs.himalaya = {
+  #   enable = true;
+  #   settings = {
+  #     name = "Jeffery Utter";
+  #     default-page-size = 50;
+  #   };
+  # };
 
   programs.neovim = {
     enable = true;
@@ -980,7 +985,7 @@ fi
         };
       };
       "uconsole" = {
-        host = "work";
+        host = "uconsole";
         hostname = "192.168.10.16";
         user = "jeffutter";
         forwardAgent = true;

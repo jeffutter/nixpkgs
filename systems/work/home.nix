@@ -22,7 +22,7 @@ in
 
   home.packages = with pkgs; [
     llvmPackages.bintools
-    wrk2
+    # wrk2
 
     my_google-cloud-sdk
     aws-iam-authenticator
@@ -36,7 +36,7 @@ in
     kotlin
     kotlin-language-server
     ktlint
-    kcat
+    # kcat
 
     # These won't build on aarch64, can be moved back into common once they do
     #topgrade
