@@ -979,6 +979,15 @@ fi
           RequestTTY = "yes";
         };
       };
+      "uconsole" = {
+        host = "work";
+        hostname = "192.168.10.16";
+        user = "jeffutter";
+        forwardAgent = true;
+        extraOptions = {
+          RequestTTY = "yes";
+        };
+      };
     };
   };
 

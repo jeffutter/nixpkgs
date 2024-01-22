@@ -25,6 +25,8 @@ in
     wrk2
 
     my_google-cloud-sdk
+    aws-iam-authenticator
+    awscli
 
     jdt-language-server
     maven
