@@ -3,6 +3,8 @@
 let
   inherit (pkgs.lib) optional optionals;
 
+  nixGL = import ./nixGL.nix { inherit pkgs config; };
+
   my_vim_configurable = pkgs.vim_configurable.override {
     guiSupport = "off";
     rubySupport = false;
@@ -87,6 +89,8 @@ let
 in
 
 {
+  imports = [ ./options.nix ];
+
   home.packages = with pkgs; [
     aspell
     aspellDicts.en
@@ -494,6 +498,7 @@ in
 
   programs.alacritty = {
     enable = true;
+    package = (nixGL pkgs.alacritty);
     settings = {
       live_config_reload = true;
       window = {
@@ -524,6 +529,7 @@ in
 
   programs.kitty = {
     enable = true;
+    package = (nixGL pkgs.kitty);
     extraConfig = ''
       font_features MonoLisaNerdFont-Italic +ss02
       font_features MonoLisaNerdFont-Bold-Italic +ss02
