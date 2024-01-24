@@ -19,6 +19,7 @@ in
     clang_13
     cargo-watch
     nixGLPkg
+    brightnessctl
   ];
 
   programs.git.userEmail = "jeff@jeffutter.com";
@@ -34,6 +35,7 @@ in
         blocks = [
           {
             block = "net";
+            format = " $icon {$signal_strength $ssid|Wired connection} ^icon_net_down $speed_down.eng(prefix:K) ^icon_net_up $speed_up.eng(prefix:K) ";
           }
           {
             alert = 10.0;
@@ -61,8 +63,11 @@ in
             block = "sound";
           }
           {
+            block = "battery";
+          }
+          {
             block = "time";
-            format = " $timestamp.datetime(f:'%a %d/%m %R') ";
+            format = " $timestamp.datetime(f:'%a %m/%d %R') ";
             interval = 60;
           }
         ];
@@ -74,6 +79,9 @@ in
     enable = true;
     windowManager.i3 = {
       enable = true;
+      extraConfig = ''
+        set $mode_power (l)ock, (e)xit, (p)oweroff, (r)eboot
+      '';
       config = {
         defaultWorkspace = "workspace number 1";
         terminal = "alacritty";
@@ -118,7 +126,7 @@ in
             statusCommand = "${pkgs.i3status-rust}/bin/i3status-rs config-default";
             fonts = {
               names = [ "monospace" ];
-              size = 8.0;
+              size = 10.0;
             };
             # trayOutput = "primary";
             colors = {
@@ -152,6 +160,18 @@ in
               };
             };
           }
+        ];
+        modes = lib.mkOptionDefault {
+          "$mode_power" = {
+            l = "exec loginctl lock-session, mode default";
+            e = "exec i3msg exit";
+            p = "exec systemctl poweroff";
+            r = "exec systemctl reboot";
+            Escape = "mode default";
+          };
+        };
+        startup = [
+          { command = "systemd-inhibit --what=handle-power-key sleep infinity"; always = false; notification = false; }
         ];
         keybindings = {
           "${config.xsession.windowManager.i3.config.modifier}+Return" = "exec ${config.xsession.windowManager.i3.config.terminal}";
@@ -222,6 +242,11 @@ in
             "exec i3-nagbar -t warning -m 'Do you want to exit i3?' -b 'Yes' 'i3-msg exit'";
 
           "${config.xsession.windowManager.i3.config.modifier}+r" = "mode resize";
+
+          "XF86MonBrightnessDown" = "exec brightnessctl s 5%-";
+          "XF86MonBrightnessUp" = "exec brightnessctl s +5%";
+
+          "--release XF86PowerOff" = "mode \"$mode_power\"";
         };
       };
     };
