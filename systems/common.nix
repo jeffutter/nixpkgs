@@ -545,6 +545,8 @@ in
       macos_titlebar_color = "background";
       tab_bar_style = "powerline";
       macos_colorspace = "default";
+      draw_minimal_borders = "yes";
+      hide_window_decorations = "titlebar-and-corners";
     };
   };
 
