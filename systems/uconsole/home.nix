@@ -20,6 +20,12 @@ in
     cargo-watch
     nixGLPkg
     brightnessctl
+    gnome.gnome-power-manager
+    linuxKernel.packages.linux_5_10.cpupower
+
+    # Games
+    (nixGL fallout-ce)
+    (nixGL fallout2-ce)
   ];
 
   programs.git.userEmail = "jeff@jeffutter.com";
@@ -172,6 +178,7 @@ in
         };
         startup = [
           { command = "systemd-inhibit --what=handle-power-key sleep infinity"; always = false; notification = false; }
+          { command = "xscreensaver -no-splash"; always = false; notification = false; }
         ];
         keybindings = {
           "${config.xsession.windowManager.i3.config.modifier}+Return" = "exec ${config.xsession.windowManager.i3.config.terminal}";
