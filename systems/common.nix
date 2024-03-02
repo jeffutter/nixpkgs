@@ -465,6 +465,9 @@ in
       pull = {
         rebase = false;
       };
+      init = {
+        defaultBranch = "main";
+      };
     };
     delta = {
       enable = true;
