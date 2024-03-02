@@ -381,8 +381,10 @@ in
       flavor = "fastmail.com";
       himalaya = {
         enable = true;
-        backend = "imap";
-        sender = "smtp";
+        settings = {
+          backend = "imap";
+          sender = "smtp";
+        };
       };
       imap = {
         port = 993;
@@ -405,8 +407,10 @@ in
       flavor = "gmail.com";
       himalaya = {
         enable = true;
-        backend = "imap";
-        sender = "smtp";
+        settings = {
+          backend = "imap";
+          sender = "smtp";
+        };
       };
       imap = {
         port = 993;
