@@ -209,7 +209,7 @@ in
 
     # Go
     go
-    gocode
+    gopls
     gore
     goreleaser
     gotest
