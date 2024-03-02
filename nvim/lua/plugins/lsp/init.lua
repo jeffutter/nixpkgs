@@ -33,7 +33,9 @@ return {
 			servers = {
 				jsonls = {},
 				clangd = {},
-				rust_analyzer = {},
+				rust_analyzer = {
+					mason = false,
+				},
 				tsserver = {},
 				cssls = {},
 				svelte = {},
