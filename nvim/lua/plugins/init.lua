@@ -318,6 +318,14 @@ return {
 			local elixir = require("elixir")
 
 			elixir.setup({
+				nextls = {
+					enable = true,
+					init_options = {
+						experimental = { completions = { enable = true } },
+					},
+				},
+				credo = { enable = true },
+				elixirls = { enable = false },
 				capabilities = require("cmp_nvim_lsp").default_capabilities(),
 				on_attach = require("lazyvim.util").on_attach(function(client, buffer)
 					require("plugins.lsp.format").on_attach(client, buffer)
