@@ -518,11 +518,11 @@ in
         };
         italic = {
           family = "MonaspiceRn Nerd Font Mono";
-          style = "Italic";
+          style = "Regular";
         };
         bold_italic = {
-          family = "MonospiceRn Nerd Font Mono";
-          style = "Bold Italic";
+          family = "MonaspiceRn Nerd Font Mono";
+          style = "Bold";
         };
         size = 11.0;
       };
@@ -536,20 +536,23 @@ in
     extraConfig = ''
       font_features MonoLisaNerdFont-Italic +ss02
       font_features MonoLisaNerdFont-Bold-Italic +ss02
-      font_features MonospiceRnNerdFont-Italic +ss02
-      font_features MonospiceRnNerdFont-Bold-Italic +ss02
+      font_features MonaspiceRnNFM-Italic +ss02
+      font_features MonaspiceRnNFM-BoldItalic +ss02
     '' + builtins.readFile (tokyonights + "/extras/kitty/tokyonight_moon.conf");
     settings = {
-      font_family = "MonospiceNe Nerd Font Regular";
-      bold_font = "MonospiceNe Nerd Font Bold";
-      bold_italic_font = "MonospiceRn Nerd Font Bold Italic";
-      italic_font = "MonospiceRn Nerd Font Regular Italic";
+      font_family = "MonaspiceNe Nerd Font Mono";
+      bold_font = "MonaspiceNe Nerd Font Mono Bold";
+      bold_italic_font = "MonaspiceRn Nerd Font Mono Bold";
+      italic_font = "MonaspiceRn Nerd Font Mono Regular";
 
       macos_titlebar_color = "background";
       tab_bar_style = "powerline";
       macos_colorspace = "default";
       draw_minimal_borders = "yes";
       hide_window_decorations = "titlebar-and-corners";
+
+      dynamic_background_opacity = "yes";
+      background_blur = "33";
     };
   };
 
