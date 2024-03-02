@@ -82,7 +82,7 @@ let
   tokyonights = pkgs.fetchFromGitHub {
     owner = "folke";
     repo = "tokyonight.nvim";
-    rev = "42cccfe663f36b91792a350164f0695b44a031d9";
+    rev = "v3.0.1";
     sha256 = "sha256-Hgp4mN7uVTWzr3qTozeM6zHcxxe1wkC3xGBnrogsJ4g=";
   };
 
