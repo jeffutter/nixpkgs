@@ -1,7 +1,6 @@
 { ... }:
 
 let
-
 in
 {
   targets.darwin.defaults."com.apple.dock" = {
