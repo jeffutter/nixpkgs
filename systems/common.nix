@@ -140,6 +140,7 @@ in
     }))
     lftp
     ltex-lsp
+    mprocs
     mosh
     my_vim_configurable
     ncdu_1
