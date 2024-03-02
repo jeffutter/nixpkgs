@@ -41,6 +41,15 @@ return {
 				svelte = {},
 				tailwindcss = {},
 				html = {},
+				nil_ls = {
+					settings = {
+						["nil"] = {
+							formatting = {
+								command = { "nixfmt" },
+							},
+						},
+					},
+				},
 				bashls = {
 					mason = false,
 				},
