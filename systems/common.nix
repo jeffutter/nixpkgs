@@ -505,7 +505,7 @@ in
     settings = {
       live_config_reload = true;
       window = {
-        decorations = "full";
+        decorations = "none";
       };
       font = {
         normal = {
