@@ -3,7 +3,18 @@ return {
 	"direnv/direnv.vim",
 	"farmergreg/vim-lastplace",
 	"markonm/traces.vim",
-	"tpope/vim-abolish",
+	{
+		"gregorias/coerce.nvim",
+		tag = "v0.3",
+		config = true,
+	},
+	{
+		"tpope/vim-abolish",
+		init = function()
+			-- Disable coercion mappings. I use coerce.nvim for that.
+			vim.g.abolish_no_mappings = true
+		end,
+	},
 	"tpope/vim-fugitive", -- Git commands in nvim
 	"tpope/vim-repeat",
 	"tpope/vim-rhubarb", -- Fugitive-companion to interact with github
