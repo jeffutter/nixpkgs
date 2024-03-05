@@ -477,6 +477,12 @@ in
   #   };
   # };
 
+  programs.nix-index = {
+    enable = true;
+    enableFishIntegration = true;
+    enableZshIntegration = true;
+  };
+
   programs.neovim = {
     enable = true;
     vimAlias = true;
