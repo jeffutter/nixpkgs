@@ -29,7 +29,12 @@ function M.get()
       { "[e", M.diagnostic_goto(false, "ERROR"), desc = "Prev Error" },
       { "]w", M.diagnostic_goto(true, "WARN"), desc = "Next Warning" },
       { "[w", M.diagnostic_goto(false, "WARN"), desc = "Prev Warning" },
+      { "<leader>mta", function() require("neotest").run.run({suite = true}) end, desc = "[T]est [A]ll" },
+      { "<leader>mts", function() require("neotest").run.run() end, desc = "[T]est [S]ingle" },
+      { "<leader>mtf", function() require("neotest").run.run(vim.fn.expand("%")) end, desc = "[T]est [F]ile" },
+      { "<leader>mtr", function() require("neotest").run.run_last() end, desc = "[T]est [R]erun Last" },
       { "<leader>ca", vim.lsp.buf.code_action, desc = "Code Action", mode = { "n", "v" }, has = "codeAction" },
+      { "<leader>mtS", function() require("neotest").summary.toggle() end, desc = "[T]est [S]ummary" },
       {
         "<leader>cA",
         function()

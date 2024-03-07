@@ -413,102 +413,20 @@ return {
 	},
 
 	{
-		"vim-test/vim-test",
-		keys = {
-			{
-				"<leader>mts",
-				function()
-					vim.cmd.TestNearest()
-				end,
-				desc = "[T]est [S]ingle",
-			},
-			{
-				"<leader>mta",
-				function()
-					vim.cmd.TestSuite()
-				end,
-				desc = "[T]est [A]ll",
-			},
-			{
-				"<leader>mtl",
-				function()
-					vim.cmd.TestLast()
-				end,
-				desc = "[T]est [L]ast",
-			},
-			{
-				"<leader>mtr",
-				function()
-					vim.cmd.TestLast()
-				end,
-				desc = "[T]est [R]ecent",
-			},
-			{
-				"<leader>mtf",
-				function()
-					vim.cmd.TestFile()
-				end,
-				desc = "[T]est [F]ile",
-			},
+		"nvim-neotest/neotest",
+		dependencies = {
+			"nvim-lua/plenary.nvim",
+			"antoinemadec/FixCursorHold.nvim",
+			"nvim-treesitter/nvim-treesitter",
+			"jfpedroza/neotest-elixir",
 		},
 		config = function()
-			local Motch = {}
-
-			local nil_buf_id = 999999
-			local term_buf_id = nil_buf_id
-
-			function Motch.open(cmd, winnr, notifier)
-				-- delete the current buffer if it's still open
-				if vim.api.nvim_buf_is_valid(term_buf_id) then
-					vim.api.nvim_buf_delete(term_buf_id, { force = true })
-					term_buf_id = nil_buf_id
-				end
-
-				vim.cmd("botright new | lua vim.api.nvim_win_set_height(0, 15)")
-				term_buf_id = vim.api.nvim_get_current_buf()
-				vim.opt_local.number = false
-				vim.opt_local.cursorline = false
-
-				vim.fn.termopen(cmd, {
-					on_exit = function(_jobid, exit_code, _event)
-						if notifier then
-							notifier(cmd, exit_code)
-						end
-
-						if exit_code == 0 then
-							vim.api.nvim_buf_delete(term_buf_id, { force = true })
-							term_buf_id = nil_buf_id
-						end
-					end,
-				})
-
-				print(cmd)
-
-				vim.cmd([[normal! G]])
-				vim.cmd(winnr .. [[wincmd w]])
-			end
-
-			local terminal_notifier_notfier = function(cmd, exit)
-				if exit == 0 then
-					print("Success!")
-					vim.fn.system(
-						string.format([[terminal-notifier -title "Neovim" -subtitle "%s" -message "Success!"]], cmd)
-					)
-				else
-					print("Failure!")
-					vim.fn.system(
-						string.format([[terminal-notifier -title "Neovim" -subtitle "%s" -message "Fail!"]], cmd)
-					)
-				end
-			end
-
-			vim.g["test#custom_strategies"] = {
-				motch = function(cmd)
-					local winnr = vim.fn.winnr()
-					Motch.open(cmd, winnr, terminal_notifier_notfier)
-				end,
-			}
-			vim.g["test#strategy"] = "motch"
+			require("neotest").setup({
+				adapters = {
+					require("neotest-elixir"),
+					require("rustaceanvim.neotest"),
+				},
+			})
 		end,
 	},
 
