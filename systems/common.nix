@@ -12,6 +12,15 @@ let
 
   nixGL = import ./nixGL.nix { inherit pkgs config; };
 
+  # Temporary until 0.10 is released
+  neovim-nightly-overlay = (
+    import (
+      builtins.fetchTarball {
+        url = "https://github.com/nix-community/neovim-nightly-overlay/archive/master.tar.gz";
+      }
+    )
+  );
+
   my_vim_configurable = pkgs.vim_configurable.override {
     guiSupport = "off";
     rubySupport = false;
@@ -245,6 +254,7 @@ in
       ]
     );
 
+  nixpkgs.overlays = [ neovim-nightly-overlay ];
   nixpkgs.config.permittedInsecurePackages = [ "p7zip-16.02" ];
 
   nixpkgs.config.allowUnfree = true;
@@ -484,6 +494,7 @@ in
   };
 
   programs.neovim = {
+    package = pkgs.neovim-nightly;
     enable = true;
     vimAlias = true;
     plugins = with pkgs.vimPlugins; [ ];

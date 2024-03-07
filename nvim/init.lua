@@ -92,8 +92,8 @@ vim.api.nvim_create_user_command('Browse', [[silent execute "!open " .. shellesc
 
 vim.opt.foldcolumn = "1"
 vim.opt.foldlevelstart = 99
--- vim.opt.foldexpr = "v:lua.vim.treesitter.foldexpr()"
--- vim.opt.foldmethod = "expr"
+vim.opt.foldexpr = "v:lua.vim.treesitter.foldexpr()"
+vim.opt.foldmethod = "expr"
 vim.opt.fillchars:append({
   foldopen = "",
   foldsep = " ",
