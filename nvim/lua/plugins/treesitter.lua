@@ -22,7 +22,6 @@ return {
 				"css",
 				"elixir",
 				"go",
-				"vimdoc",
 				"javascript",
 				"json",
 				"lua",
@@ -32,6 +31,9 @@ return {
 				"tsx",
 				"typescript",
 				"vim",
+				"vimdoc",
+				"ron",
+				"toml",
 			},
 			incremental_selection = {
 				enable = true,
