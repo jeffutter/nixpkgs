@@ -2,17 +2,20 @@
 
 let
 
-  wrk2 = pkgs.wrk2.overrideAttrs (old: {
-    buildPhase = ''
-      export MACOSX_DEPLOYMENT_TAREGT=''${MACOSX_DEPLOYMENT_TARGET:-10.12}
-      make
-    '';
+  wrk2 = pkgs.wrk2.overrideAttrs (
+    old: {
+      buildPhase = ''
+        export MACOSX_DEPLOYMENT_TAREGT=''${MACOSX_DEPLOYMENT_TARGET:-10.12}
+        make
+      '';
 
-    meta.platforms = lib.platforms.darwin;
-  });
+      meta.platforms = lib.platforms.darwin;
+    }
+  );
 
-  my_google-cloud-sdk = pkgs.google-cloud-sdk.withExtraComponents [pkgs.google-cloud-sdk.components.gke-gcloud-auth-plugin];
-
+  my_google-cloud-sdk = pkgs.google-cloud-sdk.withExtraComponents [
+    pkgs.google-cloud-sdk.components.gke-gcloud-auth-plugin
+  ];
 in
 {
   imports = [
@@ -54,10 +57,25 @@ in
     userEmail = "jeffery.utter@thescore.com";
     signing.key = "577723BC097175AA";
     signing.signByDefault = true;
-    ignores = [ ".classpath" ".factorypath" ".project" ".settings" ];
+    ignores = [
+      ".classpath"
+      ".factorypath"
+      ".project"
+      ".settings"
+    ];
   };
 
-  programs.zsh.oh-my-zsh.plugins = ["git" "docker" "mosh" "kubectl" "macos" "vi-mode" "gcloud" "tmux" "1password"];
+  programs.zsh.oh-my-zsh.plugins = [
+    "git"
+    "docker"
+    "mosh"
+    "kubectl"
+    "macos"
+    "vi-mode"
+    "gcloud"
+    "tmux"
+    "1password"
+  ];
 
   programs.ssh.extraOptionOverrides.identityFile = "~/.ssh/id_ed25519";
 
@@ -66,12 +84,12 @@ in
   home.file."Brewfile".text = builtins.concatStringsSep "\n" [
     (builtins.readFile ../Brewfile.common)
     ''
-    cask "elgato-stream-deck"
-    cask "intellij-idea-ce"
-    cask "jetbrains-toolbox"
-    cask "swiftbar"
-    mas "MuteKey", id: 1509590766
-    mas "Slack", id: 803453959
+      cask "elgato-stream-deck"
+      cask "intellij-idea-ce"
+      cask "jetbrains-toolbox"
+      cask "swiftbar"
+      mas "MuteKey", id: 1509590766
+      mas "Slack", id: 803453959
     ''
   ];
 
