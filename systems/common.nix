@@ -21,11 +21,6 @@ let
     )
   );
 
-  my_vim_configurable = pkgs.vim_configurable.override {
-    guiSupport = "off";
-    rubySupport = false;
-  };
-
   ssh-copy-id = pkgs.runCommand "ssh-copy-id" { } ''
     mkdir -p $out/bin
     ln -s ${pkgs.openssh}/bin/ssh-copy-id $out/bin/ssh-copy-id
@@ -163,7 +158,6 @@ in
       ltex-lsp
       mprocs
       mosh
-      my_vim_configurable
       ncdu_1
       nixfmt-rfc-style
       nodejs
