@@ -974,6 +974,8 @@ in
       sync_address = "https://atuin.home.jeffutter.com";
       search_mode = "fuzzy";
       update_check = false;
+      # https://github.com/atuinsh/atuin/issues/1749
+      timezone = "-6";
     };
   };
 
