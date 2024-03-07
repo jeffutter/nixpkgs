@@ -31,46 +31,39 @@ let
     ln -s ${pkgs.openssh}/bin/ssh-copy-id $out/bin/ssh-copy-id
   '';
 
-  mosh = pkgs.mosh.overrideAttrs (
-    old: {
-      version = "1.4.0";
-      src = pkgs.fetchFromGitHub {
-        owner = "mobile-shell";
-        repo = "mosh";
-        rev = "mosh-1.4.0";
-        sha256 = "sha256-tlSsHu7JnXO+sorVuWWubNUNdb9X0/pCaiGG5Y0X/g8=";
-      };
-      patches =
-        lib.remove
-          (pkgs.fetchpatch {
-            url = "https://github.com/mobile-shell/mosh/commit/e5f8a826ef9ff5da4cfce3bb8151f9526ec19db0.patch";
-            sha256 = "15518rb0r5w1zn4s6981bf1sz6ins6gpn2saizfzhmr13hw4gmhm";
-          })
-          old.patches;
-      postPatch = ''
-        substituteInPlace scripts/mosh.pl \
-          --subst-var-by ssh "${pkgs.openssh}/bin/ssh" \
-          --subst-var-by mosh-client "$out/bin/mosh-client"
-      '';
-    }
-  );
+  mosh = pkgs.mosh.overrideAttrs (old: {
+    version = "1.4.0";
+    src = pkgs.fetchFromGitHub {
+      owner = "mobile-shell";
+      repo = "mosh";
+      rev = "mosh-1.4.0";
+      sha256 = "sha256-tlSsHu7JnXO+sorVuWWubNUNdb9X0/pCaiGG5Y0X/g8=";
+    };
+    patches = lib.remove (pkgs.fetchpatch {
+      url = "https://github.com/mobile-shell/mosh/commit/e5f8a826ef9ff5da4cfce3bb8151f9526ec19db0.patch";
+      sha256 = "15518rb0r5w1zn4s6981bf1sz6ins6gpn2saizfzhmr13hw4gmhm";
+    }) old.patches;
+    postPatch = ''
+      substituteInPlace scripts/mosh.pl \
+        --subst-var-by ssh "${pkgs.openssh}/bin/ssh" \
+        --subst-var-by mosh-client "$out/bin/mosh-client"
+    '';
+  });
 
-  gnutar = pkgs.gnutar.overrideAttrs (
-    old: {
-      configureFlags =
-        [
-          "--with-gzip=pigz"
-          "--with-xz=pixz"
-          "--with-bzip2=pbzip2"
-          "--with-zstd=pzstd"
-        ]
-        ++ optionals pkgs.stdenv.isDarwin [
-          "gt_cv_func_CFPreferencesCopyAppValue=no"
-          "gt_cv_func_CFLocaleCopyCurrent=no"
-          "gt_cv_func_CFLocaleCopyPreferredLanguages=no"
-        ];
-    }
-  );
+  gnutar = pkgs.gnutar.overrideAttrs (old: {
+    configureFlags =
+      [
+        "--with-gzip=pigz"
+        "--with-xz=pixz"
+        "--with-bzip2=pbzip2"
+        "--with-zstd=pzstd"
+      ]
+      ++ optionals pkgs.stdenv.isDarwin [
+        "gt_cv_func_CFPreferencesCopyAppValue=no"
+        "gt_cv_func_CFLocaleCopyCurrent=no"
+        "gt_cv_func_CFLocaleCopyPreferredLanguages=no"
+      ];
+  });
 
   my_wakeonlan = pkgs.callPackage ../pkgs/wakeonlan { };
 
@@ -94,9 +87,9 @@ let
   fromYaml =
     path:
     let
-      jsonOutputDrv =
-        pkgs.runCommand "from-yaml" { nativeBuildInputs = [ pkgs.remarshal ]; }
-          ''remarshal -if yaml -i "${path}" -of json -o "$out"'';
+      jsonOutputDrv = pkgs.runCommand "from-yaml" {
+        nativeBuildInputs = [ pkgs.remarshal ];
+      } ''remarshal -if yaml -i "${path}" -of json -o "$out"'';
     in
     builtins.fromJSON (builtins.readFile jsonOutputDrv);
 
@@ -121,7 +114,7 @@ in
       bandwhich
       bash-completion
       bash
-      borgbackup
+      # borgbackup
       bottom
       broot
       brotli
@@ -479,13 +472,13 @@ in
     };
   };
 
-  # programs.himalaya = {
-  #   enable = true;
-  #   settings = {
-  #     name = "Jeffery Utter";
-  #     default-page-size = 50;
-  #   };
-  # };
+  programs.himalaya = {
+    enable = false;
+    settings = {
+      name = "Jeffery Utter";
+      default-page-size = 50;
+    };
+  };
 
   programs.nix-index = {
     enable = true;
