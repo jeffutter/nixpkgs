@@ -1,11 +1,15 @@
-{ pkgs, lib, config, ... }:
+{
+  pkgs,
+  lib,
+  config,
+  ...
+}:
 
 let
 
   nixgl = import <nixgl> { enable32bits = false; };
   nixGLPkg = nixgl.nixGLCommon nixgl.nixGLMesa;
   nixGL = import ../nixGL.nix { inherit pkgs config; };
-
 in
 {
   imports = [ ../common.nix ];
@@ -30,7 +34,15 @@ in
 
   programs.git.userEmail = "jeff@jeffutter.com";
 
-  programs.zsh.oh-my-zsh.plugins = ["git" "mosh" "kubectl" "vi-mode" "tmux" "1password" "debian"];
+  programs.zsh.oh-my-zsh.plugins = [
+    "git"
+    "mosh"
+    "kubectl"
+    "vi-mode"
+    "tmux"
+    "1password"
+    "debian"
+  ];
 
   programs.ssh.extraOptionOverrides.identityFile = "~/.ssh/id_ed25519";
 
@@ -65,12 +77,8 @@ in
             format = " $icon $1m ";
             interval = 1;
           }
-          {
-            block = "sound";
-          }
-          {
-            block = "battery";
-          }
+          { block = "sound"; }
+          { block = "battery"; }
           {
             block = "time";
             format = " $timestamp.datetime(f:'%a %m/%d %R') ";
@@ -177,8 +185,16 @@ in
           };
         };
         startup = [
-          { command = "systemd-inhibit --what=handle-power-key sleep infinity"; always = false; notification = false; }
-          { command = "xscreensaver -no-splash"; always = false; notification = false; }
+          {
+            command = "systemd-inhibit --what=handle-power-key sleep infinity";
+            always = false;
+            notification = false;
+          }
+          {
+            command = "xscreensaver -no-splash";
+            always = false;
+            notification = false;
+          }
         ];
         keybindings = {
           "${config.xsession.windowManager.i3.config.modifier}+Return" = "exec ${config.xsession.windowManager.i3.config.terminal}";
@@ -222,31 +238,20 @@ in
           "${config.xsession.windowManager.i3.config.modifier}+9" = "workspace number 9";
           "${config.xsession.windowManager.i3.config.modifier}+0" = "workspace number 10";
 
-          "${config.xsession.windowManager.i3.config.modifier}+Shift+1" =
-            "move container to workspace number 1";
-          "${config.xsession.windowManager.i3.config.modifier}+Shift+2" =
-            "move container to workspace number 2";
-          "${config.xsession.windowManager.i3.config.modifier}+Shift+3" =
-            "move container to workspace number 3";
-          "${config.xsession.windowManager.i3.config.modifier}+Shift+4" =
-            "move container to workspace number 4";
-          "${config.xsession.windowManager.i3.config.modifier}+Shift+5" =
-            "move container to workspace number 5";
-          "${config.xsession.windowManager.i3.config.modifier}+Shift+6" =
-            "move container to workspace number 6";
-          "${config.xsession.windowManager.i3.config.modifier}+Shift+7" =
-            "move container to workspace number 7";
-          "${config.xsession.windowManager.i3.config.modifier}+Shift+8" =
-            "move container to workspace number 8";
-          "${config.xsession.windowManager.i3.config.modifier}+Shift+9" =
-            "move container to workspace number 9";
-          "${config.xsession.windowManager.i3.config.modifier}+Shift+0" =
-            "move container to workspace number 10";
+          "${config.xsession.windowManager.i3.config.modifier}+Shift+1" = "move container to workspace number 1";
+          "${config.xsession.windowManager.i3.config.modifier}+Shift+2" = "move container to workspace number 2";
+          "${config.xsession.windowManager.i3.config.modifier}+Shift+3" = "move container to workspace number 3";
+          "${config.xsession.windowManager.i3.config.modifier}+Shift+4" = "move container to workspace number 4";
+          "${config.xsession.windowManager.i3.config.modifier}+Shift+5" = "move container to workspace number 5";
+          "${config.xsession.windowManager.i3.config.modifier}+Shift+6" = "move container to workspace number 6";
+          "${config.xsession.windowManager.i3.config.modifier}+Shift+7" = "move container to workspace number 7";
+          "${config.xsession.windowManager.i3.config.modifier}+Shift+8" = "move container to workspace number 8";
+          "${config.xsession.windowManager.i3.config.modifier}+Shift+9" = "move container to workspace number 9";
+          "${config.xsession.windowManager.i3.config.modifier}+Shift+0" = "move container to workspace number 10";
 
           "${config.xsession.windowManager.i3.config.modifier}+Shift+c" = "reload";
           "${config.xsession.windowManager.i3.config.modifier}+Shift+r" = "restart";
-          "${config.xsession.windowManager.i3.config.modifier}+Shift+e" =
-            "exec i3-nagbar -t warning -m 'Do you want to exit i3?' -b 'Yes' 'i3-msg exit'";
+          "${config.xsession.windowManager.i3.config.modifier}+Shift+e" = "exec i3-nagbar -t warning -m 'Do you want to exit i3?' -b 'Yes' 'i3-msg exit'";
 
           "${config.xsession.windowManager.i3.config.modifier}+r" = "mode resize";
 

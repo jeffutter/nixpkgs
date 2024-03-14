@@ -2,16 +2,14 @@
 
 let
 
-  wrk2 = pkgs.wrk2.overrideAttrs (
-    old: {
-      buildPhase = ''
-        export MACOSX_DEPLOYMENT_TAREGT=''${MACOSX_DEPLOYMENT_TARGET:-10.12}
-        make
-      '';
+  wrk2 = pkgs.wrk2.overrideAttrs (old: {
+    buildPhase = ''
+      export MACOSX_DEPLOYMENT_TAREGT=''${MACOSX_DEPLOYMENT_TARGET:-10.12}
+      make
+    '';
 
-      meta.platforms = lib.platforms.darwin;
-    }
-  );
+    meta.platforms = lib.platforms.darwin;
+  });
 
   my_google-cloud-sdk = pkgs.google-cloud-sdk.withExtraComponents [
     pkgs.google-cloud-sdk.components.gke-gcloud-auth-plugin
