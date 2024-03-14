@@ -42,6 +42,7 @@ return {
 				tailwindcss = {},
 				html = {},
 				nil_ls = {
+					mason = false,
 					settings = {
 						["nil"] = {
 							formatting = {

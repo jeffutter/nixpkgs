@@ -172,7 +172,7 @@ in
       pstree
       pv
       ripgrep
-      rnix-lsp
+      nil
       rsync
       ruplacer
       shellcheck
