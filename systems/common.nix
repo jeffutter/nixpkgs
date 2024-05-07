@@ -556,25 +556,7 @@ in
 
   programs.kitty = {
     enable = true;
-    package = (
-      nixGL pkgs.kitty.overrideAttrs (old: rec {
-        version = "0.33.0";
-        src = pkgs.fetchFromGitHub {
-          owner = "kovidgoyal";
-          repo = "kitty";
-          rev = "v${version}";
-          hash = "sha256-0bdDolaFbVI3CqcOtKFrvRqrKXIiSIfH5rxJgK5XssI=";
-        };
-        buildInputs = old.buildInputs ++ [ pkgs.simde ];
-        nativeBuildInputs = (lib.lists.remove pkgs.go old.nativeBuildInputs) ++ [ pkgs.go_1_22 ];
-        goModules =
-          (pkgs.buildGo122Module {
-            pname = "kitty-go-modules";
-            inherit src version;
-            vendorHash = "sha256-7301wHGCXUdfPFOhgLEJILmYxNohNm6H2zXGd9W11Wk=";
-          }).goModules;
-      })
-    );
+    package = (nixGL pkgs.kitty);
     extraConfig =
       ''
         font_features MonoLisaNerdFont-Italic +ss02
