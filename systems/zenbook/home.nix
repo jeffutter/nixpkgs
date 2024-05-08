@@ -51,6 +51,7 @@ in
     enable = true;
     bars = {
       default = {
+        icons = "awesome6";
         blocks = [
           {
             block = "net";
@@ -77,11 +78,6 @@ in
           }
           {
             block = "cpu";
-            interval = 1;
-          }
-          {
-            block = "load";
-            format = " $icon $1m ";
             interval = 1;
           }
           { block = "sound"; }
