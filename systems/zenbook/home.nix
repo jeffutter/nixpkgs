@@ -294,6 +294,15 @@ in
     };
   };
 
+  services.syncthing = {
+    enable = true;
+    extraOptions = [
+      "--gui-address=0.0.0.0:8384"
+      "--no-default-folder"
+      "--no-browser"
+    ];
+  };
+
   home.file."bin/sunset" = {
     source = ../../bin/sunset;
     executable = true;
