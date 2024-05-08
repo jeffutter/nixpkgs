@@ -31,29 +31,14 @@ return {
 			-- LSP Server Settings
 			---@type lspconfig.options
 			servers = {
-				jsonls = {},
-				clangd = {},
-				rust_analyzer = {
-					mason = false,
-				},
-				tsserver = {},
-				cssls = {},
-				svelte = {},
-				tailwindcss = {},
-				html = {},
-				nil_ls = {
-					mason = false,
-					settings = {
-						["nil"] = {
-							formatting = {
-								command = { "nixfmt" },
-							},
-						},
-					},
-				},
 				bashls = {
 					mason = false,
 				},
+				clangd = {},
+				cssls = {},
+				helm_ls = {},
+				html = {},
+				jsonls = {},
 				ltex = {
 					cmd = { "ltex-ls" },
 					filetypes = { "text", "plaintex", "tex", "markdown" },
@@ -77,6 +62,23 @@ return {
 						},
 					},
 				},
+				nil_ls = {
+					mason = false,
+					settings = {
+						["nil"] = {
+							formatting = {
+								command = { "nixfmt" },
+							},
+						},
+					},
+				},
+				rust_analyzer = {
+					mason = false,
+				},
+				svelte = {},
+				tailwindcss = {},
+				tsserver = {},
+				yamlls = {},
 			},
 			-- you can do any additional lsp server setup here
 			-- return true if you don't want this server to be setup with lspconfig
