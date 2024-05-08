@@ -97,6 +97,7 @@ in
       bzip2
       comma
       curl
+      difftastic
       dive
       docker
       doctl
@@ -495,13 +496,20 @@ in
         defaultBranch = "main";
       };
     };
+    aliases = {
+      dft = "difftool";
+      diffp = "--no-ext-diff";
+    };
     delta = {
-      enable = true;
+      enable = false;
       options = {
         side-by-side = true;
         line-numbers-left-format = "";
         line-numbers-right-format = "│ ";
       };
+    };
+    difftastic = {
+      enable = true;
     };
     includes = [ { path = (tokyonights + "/extras/delta/tokyonight_moon.gitconfig"); } ];
     ignores = [

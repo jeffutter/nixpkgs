@@ -21,6 +21,7 @@ return {
 			ensure_installed = {
 				"css",
 				"elixir",
+				"helm",
 				"go",
 				"javascript",
 				"json",
