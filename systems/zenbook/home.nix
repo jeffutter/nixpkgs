@@ -30,6 +30,7 @@ in
     wayshot
     mako
     (nixGL sway)
+    blueberry
   ];
 
   programs.git.userEmail = "jeff@jeffutter.com";
@@ -336,7 +337,9 @@ in
   home.file."bin/discord" = {
     text = ''
       #!${pkgs.bash}/bin/bash
-      exec -a "$0" ${config.home.file."bin/systemGL".target} /usr/bin/discord "$@"
+      exec -a "$0" ${
+        config.home.file."bin/systemGL".target
+      } /usr/bin/discord --enable-features=UseOzonePlatform --ozone-platform=wayland "$@"
     '';
     executable = true;
   };
@@ -344,7 +347,10 @@ in
   home.file."bin/obsidian" = {
     text = ''
       #!${pkgs.bash}/bin/bash
-      exec -a "$0" ${config.home.file."bin/systemGL".target} /snap/bin/obsidian "$@"
+      export OBSIDIAN_USE_WAYLAND=1
+      exec -a "$0" ${
+        config.home.file."bin/systemGL".target
+      } /snap/bin/obsidian --ozone-platform=wayland --ozone-platform-hint=auto --enable-features=UseOzonePlatform,WaylandWindowDecorations "$@"
     '';
     executable = true;
   };
