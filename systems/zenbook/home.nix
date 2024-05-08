@@ -25,6 +25,10 @@ in
     wofi
     brightnessctl
     wlsunset
+    wl-clipboard
+    slurp
+    wayshot
+    mako
     (nixGL sway)
   ];
 
@@ -49,7 +53,13 @@ in
         blocks = [
           {
             block = "net";
-            format = " $icon {$signal_strength $ssid|Wired connection} ^icon_net_down $speed_down.eng(prefix:K) ^icon_net_up $speed_up.eng(prefix:K) ";
+            device = "wlo1";
+            format = " $icon {$signal_strength $ssid} ^icon_net_down $speed_down.eng(prefix:K) ^icon_net_up $speed_up.eng(prefix:K) ";
+          }
+          {
+            block = "net";
+            device = "tailscale0";
+            format = " $icon ^icon_net_down $speed_down.eng(prefix:K) ^icon_net_up $speed_up.eng(prefix:K) ";
           }
           {
             alert = 10.0;
@@ -77,7 +87,7 @@ in
           { block = "battery"; }
           {
             block = "time";
-            format = " $timestamp.datetime(f:'%a %m/%d %R') ";
+            format = " $timestamp.datetime(f:'%a %m/%d %I:%M %p') ";
             interval = 60;
           }
         ];
@@ -197,22 +207,18 @@ in
         };
         startup = [
           {
+            command = "systemd-inhibit --what=handle-power-key sleep infinity";
+            always = false;
+          }
+          {
             command = "${config.home.file."bin/sunset".target}";
             always = false;
           }
+          {
+            command = "${pkgs.mako}/bin/mako";
+            always = false;
+          }
         ];
-        # startup = [
-        #   {
-        #     command = "systemd-inhibit --what=handle-power-key sleep infinity";
-        #     always = false;
-        #     notification = false;
-        #   }
-        #   {
-        #     command = "xscreensaver -no-splash";
-        #     always = false;
-        #     notification = false;
-        #   }
-        # ];
         keybindings = {
           "${config.wayland.windowManager.sway.config.modifier}+Return" = "exec ${config.wayland.windowManager.sway.config.terminal}";
           "${config.wayland.windowManager.sway.config.modifier}+Shift+q" = "kill";
@@ -270,12 +276,20 @@ in
           "${config.wayland.windowManager.sway.config.modifier}+Shift+r" = "restart";
           "${config.wayland.windowManager.sway.config.modifier}+Shift+e" = "exec i3-nagbar -t warning -m 'Do you want to exit i3?' -b 'Yes' 'i3-msg exit'";
 
-          "${config.wayland.windowManager.sway.config.modifier}+r" = "mode resize";
+          "${config.wayland.windowManager.sway.config.modifier}+n" = "exec makoctl dismiss";
+          "${config.wayland.windowManager.sway.config.modifier}+Shift+n" = "exec makoctl dismiss -a";
 
-          "${config.wayland.windowManager.sway.config.modifier}+Tab" = "fullscreen disable; focus down; fullscreen enable";
+          "${config.wayland.windowManager.sway.config.modifier}+r" = "mode resize";
 
           "XF86MonBrightnessDown" = "exec ${pkgs.brightnessctl}/bin/brightnessctl s 10%-";
           "XF86MonBrightnessUp" = "exec ${pkgs.brightnessctl}/bin/brightnessctl s 10%+";
+
+          "XF86AudioMute" = "exec ${pkgs.pulseaudio}/bin/pactl set-sink-mute @DEFAULT_SINK@ toggle";
+          "XF86AudioMicMute" = "exec ${pkgs.pulseaudio}/bin/pactl set-source-mute @DEFAULT_SINK@ toggle";
+          "XF86AudioRaiseVolume" = "exec ${pkgs.pulseaudio}/bin/pactl set-sink-volume @DEFAULT_SINK@ +5%";
+          "XF86AudioLowerVolume" = "exec ${pkgs.pulseaudio}/bin/pactl set-sink-volume @DEFAULT_SINK@ -5%";
+          "XF86SelectiveScreenshot" = "exec ${pkgs.wayshot}/bin/wayshot -s \"$(${pkgs.slurp}/bin/slurp)\" --stdout | ${pkgs.wl-clipboard}/bin/wl-copy";
+          "Print" = "exec ${pkgs.wayshot}/bin/wayshot --stdout | ${pkgs.wl-clipboard}/bin/wl-copy";
 
           "--release XF86PowerOff" = "mode \"$mode_power\"";
         };
@@ -285,6 +299,61 @@ in
 
   home.file."bin/sunset" = {
     source = ../../bin/sunset;
+    executable = true;
+  };
+
+  home.file.".config/gtk-4.0/settings.ini" = {
+    text = ''
+      [Settings]
+      gtk-application-prefer-dark-theme = true
+    '';
+  };
+
+  home.file.".config/gtk-3.0/settings.ini" = {
+    text = ''
+      [Settings]
+      gtk-application-prefer-dark-theme = true
+    '';
+  };
+
+  home.file."bin/systemGL" = {
+    text = ''
+      #!${pkgs.bash}/bin/bash
+      unset LIBVA_DRIVERS_PATH LIBGL_DRIVERS_PATH LD_LIBRARY_PATH __EGL_VENDOR_LIBRARY_FILENAMES
+      exec "$@"
+    '';
+    executable = true;
+  };
+
+  home.file."bin/brave-browser" = {
+    text = ''
+      #!${pkgs.bash}/bin/bash
+      exec -a "$0" ${config.home.file."bin/systemGL".target} /usr/bin/brave-browser "$@"
+    '';
+    executable = true;
+  };
+
+  home.file."bin/discord" = {
+    text = ''
+      #!${pkgs.bash}/bin/bash
+      exec -a "$0" ${config.home.file."bin/systemGL".target} /usr/bin/discord "$@"
+    '';
+    executable = true;
+  };
+
+  home.file."bin/obsidian" = {
+    text = ''
+      #!${pkgs.bash}/bin/bash
+      exec -a "$0" ${config.home.file."bin/systemGL".target} /snap/bin/obsidian "$@"
+    '';
+    executable = true;
+  };
+
+  home.file."bin/bluemail" = {
+    text = ''
+      #!${pkgs.bash}/bin/bash
+      exec -a "$0" ${config.home.file."bin/systemGL".target} /snap/bin/bluemail "$@"
+    '';
     executable = true;
   };
 
