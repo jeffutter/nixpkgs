@@ -304,23 +304,25 @@ in
     ];
   };
 
+  fonts.fontconfig.enable = true;
+  gtk = {
+    enable = true;
+    theme.name = "Adwaita-dark";
+    font = {
+      name = "MonaspiceNe Nerd Font";
+      package = pkgs.nerdfonts.override { fonts = [ "Monaspace" ]; };
+    };
+    gtk3.extraConfig = {
+      gtk-application-prefer-dark-theme = true;
+    };
+    gtk4.extraConfig = {
+      gtk-application-prefer-dark-theme = true;
+    };
+  };
+
   home.file."bin/sunset" = {
     source = ../../bin/sunset;
     executable = true;
-  };
-
-  home.file.".config/gtk-4.0/settings.ini" = {
-    text = ''
-      [Settings]
-      gtk-application-prefer-dark-theme = true
-    '';
-  };
-
-  home.file.".config/gtk-3.0/settings.ini" = {
-    text = ''
-      [Settings]
-      gtk-application-prefer-dark-theme = true
-    '';
   };
 
   home.file."bin/systemGL" = {
