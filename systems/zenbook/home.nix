@@ -31,6 +31,7 @@ in
     mako
     (nixGL sway)
     blueberry
+    pavucontrol
   ];
 
   programs.git.userEmail = "jeff@jeffutter.com";
