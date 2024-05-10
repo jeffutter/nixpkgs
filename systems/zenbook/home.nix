@@ -53,8 +53,42 @@ in
     package = pkgs.runCommandLocal "empty" { } "mkdir $out";
     settings = {
       color = "000000";
-      show-failed-attempts = true;
       daemonize = true;
+      font = "MonaspiceNe Nerd Font";
+      # font-size = 50;
+      ignore-empty-password = true;
+      indicator-caps-lock = true;
+      indicator-idle-visible = true;
+      indicator-radius = 200;
+      indicator-thickness = 20;
+      inside-color = "00000033";
+      inside-clear-color = "ffffff00";
+      inside-caps-lock-color = "ffffff00";
+      inside-ver-color = "ffffff00";
+      inside-wrong-color = "ffffff00";
+      key-hl-color = "00000066";
+      layout-text-color = "d8dee9ff";
+      ring-color = "ffffff";
+      ring-clear-color = "ffffffFF";
+      ring-caps-lock-color = "ffffffFF";
+      ring-ver-color = "ffffffFF";
+      ring-wrong-color = "ffffffFF";
+      line-color = "00000000";
+      line-clear-color = "ffffffFF";
+      line-caps-lock-color = "ffffffFF";
+      line-ver-color = "ffffffFF";
+      line-wrong-color = "ffffffFF";
+      separator-color = "00000000";
+      show-failed-attempts = true;
+      text-color = "ffffff";
+      text-clear-color = "ffffff";
+      text-ver-color = "ffffff";
+      text-wrong-color = "ffffff";
+      bs-hl-color = "ffffff";
+      caps-lock-key-hl-color = "ffffffFF";
+      caps-lock-bs-hl-color = "ffffffFF";
+      # disable-caps-lock-text=true;
+      text-caps-lock-color = "ffffff";
     };
   };
 
@@ -133,8 +167,8 @@ in
         };
         window.hideEdgeBorders = "smart";
         gaps = {
-          inner = 10;
-          outer = 5;
+          inner = 5;
+          outer = 2;
           smartBorders = "on";
           smartGaps = true;
         };
