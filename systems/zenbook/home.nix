@@ -48,6 +48,16 @@ in
 
   programs.ssh.extraOptionOverrides.identityFile = "~/.ssh/id_ed25519";
 
+  programs.swaylock = {
+    enable = true;
+    package = pkgs.runCommandLocal "empty" { } "mkdir $out";
+    settings = {
+      color = "000000";
+      show-failed-attempts = true;
+      daemonize = true;
+    };
+  };
+
   programs.i3status-rust = {
     enable = true;
     bars = {
@@ -82,6 +92,8 @@ in
             interval = 1;
           }
           { block = "sound"; }
+          { block = "backlight"; }
+          { block = "hueshift"; }
           { block = "battery"; }
           {
             block = "time";
@@ -304,6 +316,41 @@ in
     ];
   };
 
+  services.swayidle = {
+    enable = true;
+    extraArgs = [ "-d" ];
+    events = [
+      {
+        event = "before-sleep";
+        command = "/usr/bin/swaylock";
+      }
+      {
+        event = "lock";
+        command = "/usr/bin/swaylock";
+      }
+    ];
+    timeouts = [
+      {
+        timeout = 60;
+        command = "${pkgs.brightnessctl}/bin/brightnessctl -s & ${pkgs.brightnessctl}/bin/brightnessctl set 10";
+        resumeCommand = "${pkgs.brightnessctl}/bin/brightnessctl -r";
+      }
+      {
+        timeout = 120;
+        command = "/usr/bin/swaylock";
+      }
+      {
+        timeout = 300;
+        command = "/usr/bin/systemctl suspend";
+      }
+      {
+        timeout = 10;
+        command = "if ${pkgs.procps}/bin/pgrep -x swaylock; then ${pkgs.sway}/bin/swaymsg \"output * power off\"; fi";
+        resumeCommand = "${pkgs.sway}/bin/swaymsg \"output * power on\"";
+      }
+    ];
+  };
+
   fonts.fontconfig.enable = true;
   gtk = {
     enable = true;
@@ -337,7 +384,9 @@ in
   home.file."bin/brave-browser" = {
     text = ''
       #!${pkgs.bash}/bin/bash
-      exec -a "$0" ${config.home.file."bin/systemGL".target} /usr/bin/brave-browser "$@"
+      exec -a "$0" ${
+        config.home.file."bin/systemGL".target
+      } /usr/bin/brave-browser --enable-features=VaapiVideoDecodeLinuxGL --use-gl=angle --use-angle=gl --ozone-platform=wayland "$@"
     '';
     executable = true;
   };
@@ -369,6 +418,12 @@ in
       exec -a "$0" ${config.home.file."bin/systemGL".target} /snap/bin/bluemail "$@"
     '';
     executable = true;
+  };
+
+  home.sessionVariables = {
+    LIBVA_DRIVER_NAME = "iHD";
+    LIBVA_DRIVERS_PATH = "${pkgs.intel-media-driver}/lib/dri";
+    VDPAU_DRIVER = "va_gl";
   };
 
   home.username = "jeffutter";
