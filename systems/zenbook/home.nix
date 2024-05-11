@@ -32,6 +32,17 @@ in
     (nixGL sway)
     blueberry
     pavucontrol
+    (pkgs.wluma.overrideAttrs (old: rec {
+      version = "4.4.0";
+
+      src = old.src.overrideAttrs (_: {
+        sha256 = "sha256-Ow3SjeulYiHY9foXrmTtLK3F+B3+DrtDjBUke3bJeDw=";
+        rev = version;
+      });
+
+      cargoLock = null;
+      cargoHash = lib.fakeHash;
+    }))
   ];
 
   programs.git.userEmail = "jeff@jeffutter.com";
@@ -400,6 +411,21 @@ in
       gtk-application-prefer-dark-theme = true;
     };
   };
+
+  xdg.configFile."wluma/config.toml".text = ''
+    [als.iio]
+    path = "/sys/bus/iio/devices"
+    thresholds = { 0 = "night", 20 = "dark", 80 = "dim", 250 = "normal", 500 = "bright", 800 = "outdoors" }
+
+    [[output.backlight]]
+    name = "eDP-1"
+    path = "/sys/class/backlight/intel_backlight"
+    capturer = "wlroots"
+
+    [[keyboard]]
+    name = "keyboard-asus"
+    path = "/sys/bus/platform/devices/asus-nb-wmi/leds/asus::kbd_backlight"
+  '';
 
   home.file."bin/sunset" = {
     source = ../../bin/sunset;
