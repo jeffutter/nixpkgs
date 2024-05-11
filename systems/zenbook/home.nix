@@ -169,7 +169,8 @@ in
             xkb_options = "caps:escape";
           };
           "type:touchpad" = {
-            "middle_emulation" = "enabled";
+            middle_emulation = "enabled";
+            dwt = "enabled";
           };
         };
         focus = {
