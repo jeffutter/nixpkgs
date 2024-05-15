@@ -383,10 +383,6 @@ in
       flavor = "fastmail.com";
       himalaya = {
         enable = true;
-        settings = {
-          backend = "imap";
-          sender = "smtp";
-        };
       };
       imap = {
         port = 993;
@@ -404,44 +400,8 @@ in
         "op"
         "item"
         "get"
-        "Fastmail Himalaya"
-        "--fields"
-        "password"
-      ];
-    };
-    work = {
-      primary = false;
-      realName = "Jeffery Utter";
-      address = "jeffery.utter@thescore.com";
-      flavor = "gmail.com";
-      himalaya = {
-        enable = true;
-        settings = {
-          backend = "imap";
-          sender = "smtp";
-        };
-      };
-      imap = {
-        port = 993;
-        host = "imap.gmail.com";
-        tls.enable = true;
-      };
-      smtp = {
-        port = 587;
-        host = "smtp.gmail.com";
-        tls.enable = true;
-        tls.useStartTls = true;
-      };
-      folders = {
-        sent = "[Gmail]/Sent Mail";
-        drafts = "[Gmail]/Drafts";
-      };
-      userName = "jeffery.utter@thescore.com";
-      passwordCommand = [
-        "op"
-        "item"
-        "get"
-        "Gmail (theScore) (Himalaya)"
+        "'Fastmail (Himalaya)'"
+        "--account my.1password.com"
         "--fields"
         "password"
       ];
@@ -449,10 +409,9 @@ in
   };
 
   programs.himalaya = {
-    enable = false;
+    enable = true;
     settings = {
       name = "Jeffery Utter";
-      default-page-size = 50;
     };
   };
 
