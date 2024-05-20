@@ -10,6 +10,9 @@ let
   nixgl = import <nixgl> { enable32bits = false; };
   nixGLPkg = nixgl.nixGLCommon nixgl.nixGLMesa;
   nixGL = import ../nixGL.nix { inherit pkgs config; };
+  iab =
+    (builtins.getFlake "github:jeffutter/iio_ambient_brightness/v0.2.6")
+    .packages.${pkgs.system}.default;
 in
 {
   imports = [ ../common.nix ];
@@ -43,6 +46,7 @@ in
       cargoLock = null;
       cargoHash = lib.fakeHash;
     }))
+    iab
   ];
 
   programs.git.userEmail = "jeff@jeffutter.com";
@@ -138,7 +142,7 @@ in
           }
           { block = "sound"; }
           { block = "backlight"; }
-          { block = "hueshift"; }
+          # { block = "hueshift"; }
           { block = "battery"; }
           {
             block = "time";
@@ -267,11 +271,15 @@ in
             always = false;
           }
           {
-            command = "${config.home.file."bin/sunset".target}";
+            command = "${config.home.homeDirectory}/${config.home.file."bin/sunset".target}";
             always = false;
           }
           {
             command = "${pkgs.mako}/bin/mako";
+            always = false;
+          }
+          {
+            command = "killall iio_ambient_brightness; ${iab}/bin/iio_ambient_brightness";
             always = false;
           }
         ];
@@ -332,13 +340,15 @@ in
           "${config.wayland.windowManager.sway.config.modifier}+Shift+r" = "restart";
           "${config.wayland.windowManager.sway.config.modifier}+Shift+e" = "exec i3-nagbar -t warning -m 'Do you want to exit i3?' -b 'Yes' 'i3-msg exit'";
 
-          "${config.wayland.windowManager.sway.config.modifier}+n" = "exec makoctl dismiss";
-          "${config.wayland.windowManager.sway.config.modifier}+Shift+n" = "exec makoctl dismiss -a";
+          "${config.wayland.windowManager.sway.config.modifier}+n" = "exec ${pkgs.mako}/bin/makoctl dismiss";
+          "${config.wayland.windowManager.sway.config.modifier}+Shift+n" = "exec ${pkgs.mako}/bin/makoctl dismiss -a";
 
           "${config.wayland.windowManager.sway.config.modifier}+r" = "mode resize";
 
-          "XF86MonBrightnessDown" = "exec ${pkgs.brightnessctl}/bin/brightnessctl s 10%-";
-          "XF86MonBrightnessUp" = "exec ${pkgs.brightnessctl}/bin/brightnessctl s 10%+";
+          # "XF86MonBrightnessDown" = "exec ${pkgs.brightnessctl}/bin/brightnessctl s 10%-";
+          # "XF86MonBrightnessUp" = "exec ${pkgs.brightnessctl}/bin/brightnessctl s 10%+";
+          "XF86MonBrightnessDown" = "exec ${iab}/bin/iio_ambient_brightness --decrease 10";
+          "XF86MonBrightnessUp" = "exec ${iab}/bin/iio_ambient_brightness --increase 10";
 
           "XF86AudioMute" = "exec ${pkgs.pulseaudio}/bin/pactl set-sink-mute @DEFAULT_SINK@ toggle";
           "XF86AudioMicMute" = "exec ${pkgs.pulseaudio}/bin/pactl set-source-mute @DEFAULT_SINK@ toggle";
@@ -469,14 +479,6 @@ in
       exec -a "$0" ${
         config.home.file."bin/systemGL".target
       } /snap/bin/obsidian --ozone-platform=wayland --ozone-platform-hint=auto --enable-features=UseOzonePlatform,WaylandWindowDecorations "$@"
-    '';
-    executable = true;
-  };
-
-  home.file."bin/bluemail" = {
-    text = ''
-      #!${pkgs.bash}/bin/bash
-      exec -a "$0" ${config.home.file."bin/systemGL".target} /snap/bin/bluemail "$@"
     '';
     executable = true;
   };
