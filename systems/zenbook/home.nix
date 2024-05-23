@@ -11,7 +11,7 @@ let
   nixGLPkg = nixgl.nixGLCommon nixgl.nixGLMesa;
   nixGL = import ../nixGL.nix { inherit pkgs config; };
   iab =
-    (builtins.getFlake "github:jeffutter/iio_ambient_brightness/v0.2.9")
+    (builtins.getFlake "github:jeffutter/iio_ambient_brightness/v0.2.10")
     .packages.${pkgs.system}.default;
   my_zoom = pkgs.symlinkJoin {
     name = "zoom-us";
@@ -29,6 +29,7 @@ in
 
   home.packages = with pkgs; [
     _1password
+    _1password-gui
     llvmPackages_13.bintools-unwrapped
     my_zoom
     clang_13
