@@ -11,7 +11,7 @@ let
   nixGLPkg = nixgl.nixGLCommon nixgl.nixGLMesa;
   nixGL = import ../nixGL.nix { inherit pkgs config; };
   iab =
-    (builtins.getFlake "github:jeffutter/iio_ambient_brightness/v0.2.6")
+    (builtins.getFlake "github:jeffutter/iio_ambient_brightness/v0.2.9")
     .packages.${pkgs.system}.default;
 in
 {
