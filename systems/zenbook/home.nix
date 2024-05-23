@@ -182,9 +182,12 @@ in
             xkb_variant = "colemak";
             xkb_options = "caps:escape";
           };
-          "type:touchpad" = {
+          "1267:12939:ASUE1214:00_04F3:328B_Touchpad" = {
             middle_emulation = "enabled";
             dwt = "enabled";
+            scroll_factor = ".2";
+            scroll_method = "two_finger";
+            accel_profile = "adaptive";
           };
         };
         focus = {
