@@ -13,6 +13,14 @@ let
   iab =
     (builtins.getFlake "github:jeffutter/iio_ambient_brightness/v0.2.9")
     .packages.${pkgs.system}.default;
+  my_zoom = pkgs.symlinkJoin {
+    name = "zoom-us";
+    paths = [ (nixGL pkgs.zoom-us) ];
+    buildInputs = [ pkgs.makeWrapper ];
+    postBuild = ''
+      wrapProgram $out/bin/zoom --set QT_XCB_GL_INTEGRATION xcb_egl
+    '';
+  };
 in
 {
   imports = [ ../common.nix ];
@@ -22,6 +30,7 @@ in
   home.packages = with pkgs; [
     _1password
     llvmPackages_13.bintools-unwrapped
+    my_zoom
     clang_13
     cargo-watch
     nixGLPkg
