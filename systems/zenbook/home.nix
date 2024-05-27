@@ -175,7 +175,7 @@ in
       config = {
         defaultWorkspace = "workspace number 1";
         terminal = "${pkgs.kitty}/bin/kitty";
-        menu = "${pkgs.wofi}/bin/wofi --show run";
+        menu = "${pkgs.wofi}/bin/wofi -D show_all=false --show run";
         input = {
           "1:1:AT_Translated_Set_2_keyboard" = {
             xkb_layout = "us";
@@ -311,18 +311,18 @@ in
           "${config.wayland.windowManager.sway.config.modifier}+Shift+Up" = "move up";
           "${config.wayland.windowManager.sway.config.modifier}+Shift+Right" = "move right";
 
-          "${config.wayland.windowManager.sway.config.modifier}+h" = "split h";
-          "${config.wayland.windowManager.sway.config.modifier}+v" = "split v";
-          "${config.wayland.windowManager.sway.config.modifier}+f" = "fullscreen toggle";
+          # "${config.wayland.windowManager.sway.config.modifier}+h" = "split h";
+          # "${config.wayland.windowManager.sway.config.modifier}+v" = "split v";
+          "${config.wayland.windowManager.sway.config.modifier}+Shift+f" = "fullscreen toggle";
 
-          "${config.wayland.windowManager.sway.config.modifier}+s" = "layout stacking";
-          "${config.wayland.windowManager.sway.config.modifier}+w" = "layout tabbed";
-          "${config.wayland.windowManager.sway.config.modifier}+e" = "layout toggle split";
+          "${config.wayland.windowManager.sway.config.modifier}+Shift+s" = "layout stacking";
+          "${config.wayland.windowManager.sway.config.modifier}+Shift+w" = "layout tabbed";
+          "${config.wayland.windowManager.sway.config.modifier}+Shift+e" = "layout toggle split";
 
           "${config.wayland.windowManager.sway.config.modifier}+Shift+space" = "floating toggle";
           "${config.wayland.windowManager.sway.config.modifier}+space" = "focus mode_toggle";
 
-          "${config.wayland.windowManager.sway.config.modifier}+a" = "focus parent";
+          # "${config.wayland.windowManager.sway.config.modifier}+a" = "focus parent";
 
           "${config.wayland.windowManager.sway.config.modifier}+Shift+minus" = "move scratchpad";
           "${config.wayland.windowManager.sway.config.modifier}+minus" = "scratchpad show";
@@ -349,14 +349,42 @@ in
           "${config.wayland.windowManager.sway.config.modifier}+Shift+9" = "move container to workspace number 9";
           "${config.wayland.windowManager.sway.config.modifier}+Shift+0" = "move container to workspace number 10";
 
-          "${config.wayland.windowManager.sway.config.modifier}+Shift+c" = "reload";
-          "${config.wayland.windowManager.sway.config.modifier}+Shift+r" = "restart";
-          "${config.wayland.windowManager.sway.config.modifier}+Shift+e" = "exec i3-nagbar -t warning -m 'Do you want to exit i3?' -b 'Yes' 'i3-msg exit'";
+          "${config.wayland.windowManager.sway.config.modifier}+Shift+r" = "reload";
+          "${config.wayland.windowManager.sway.config.modifier}+Shift+x" = "restart";
+          # "${config.wayland.windowManager.sway.config.modifier}+Shift+e" = "exec i3-nagbar -t warning -m 'Do you want to exit i3?' -b 'Yes' 'i3-msg exit'";
 
           "${config.wayland.windowManager.sway.config.modifier}+n" = "exec ${pkgs.mako}/bin/makoctl dismiss";
           "${config.wayland.windowManager.sway.config.modifier}+Shift+n" = "exec ${pkgs.mako}/bin/makoctl dismiss -a";
 
-          "${config.wayland.windowManager.sway.config.modifier}+r" = "mode resize";
+          # "${config.wayland.windowManager.sway.config.modifier}+r" = "mode resize";
+
+          # MacOS-like keybindings
+          "${config.wayland.windowManager.sway.config.modifier}+x" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P x";
+          "${config.wayland.windowManager.sway.config.modifier}+c" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P c";
+          "${config.wayland.windowManager.sway.config.modifier}+Shift+c" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -M shift -P c";
+          "${config.wayland.windowManager.sway.config.modifier}+v" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P v";
+          "${config.wayland.windowManager.sway.config.modifier}+Shift+v" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -M shift -P v";
+          "${config.wayland.windowManager.sway.config.modifier}+z" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P z";
+          "${config.wayland.windowManager.sway.config.modifier}+a" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P a";
+          # Search
+          "${config.wayland.windowManager.sway.config.modifier}+f" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P f";
+          # Print
+          "${config.wayland.windowManager.sway.config.modifier}+p" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P p";
+          # Save
+          "${config.wayland.windowManager.sway.config.modifier}+s" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P s";
+          # Chrome new tab
+          "${config.wayland.windowManager.sway.config.modifier}+t" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P t";
+          "${config.wayland.windowManager.sway.config.modifier}+Shift+t" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -M shift -P t";
+          # Chrome close tab
+          "${config.wayland.windowManager.sway.config.modifier}+w" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P w";
+          # Chrome page reload
+          "${config.wayland.windowManager.sway.config.modifier}+r" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P r";
+          # Chrome select url
+          "${config.wayland.windowManager.sway.config.modifier}+l" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P l";
+          # Chrome history
+          "${config.wayland.windowManager.sway.config.modifier}+y" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P h";
+          # Chrome downloads (overlaps with window movements, disabled)
+          # bindsym --to-code $mod+shift+j exec wtype -M ctrl -P j
 
           # "XF86MonBrightnessDown" = "exec ${pkgs.brightnessctl}/bin/brightnessctl s 10%-";
           # "XF86MonBrightnessUp" = "exec ${pkgs.brightnessctl}/bin/brightnessctl s 10%+";
