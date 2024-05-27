@@ -11,7 +11,7 @@ let
   nixGLPkg = nixgl.nixGLCommon nixgl.nixGLMesa;
   nixGL = import ../nixGL.nix { inherit pkgs config; };
   iab =
-    (builtins.getFlake "github:jeffutter/iio_ambient_brightness/v0.2.10")
+    (builtins.getFlake "github:jeffutter/iio_ambient_brightness/v0.2.12")
     .packages.${pkgs.system}.default;
   my_zoom = pkgs.symlinkJoin {
     name = "zoom-us";
@@ -292,8 +292,8 @@ in
             always = false;
           }
           {
-            command = "killall iio_ambient_brightness; ${iab}/bin/iio_ambient_brightness";
-            always = false;
+            command = "$(${pkgs.procps}/bin/pkill -u $USER iio_ambient || true) && ${iab}/bin/iio_ambient_brightness -s";
+            always = true;
           }
         ];
         keybindings = {
