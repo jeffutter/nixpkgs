@@ -970,6 +970,15 @@ in
           RequestTTY = "yes";
         };
       };
+      "zenbook" = {
+        host = "laptop";
+        hostname = "192.168.10.12";
+        user = "jeffutter";
+        forwardAgent = true;
+        extraOptions = {
+          RequestTTY = "yes";
+        };
+      };
       "laptop" = {
         host = "laptop";
         hostname = "192.168.10.9";
