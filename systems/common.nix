@@ -512,6 +512,39 @@ in
     };
   };
 
+  programs.wezterm = {
+    enable = true;
+    package = (nixGL pkgs.wezterm);
+    extraConfig = ''
+      local config = wezterm.config_builder()
+
+      config.color_scheme = 'tokyonight_storm'
+      config.enable_tab_bar = false
+      config.font = wezterm.font('MonaspiceNe Nerd Font Mono')
+      config.font_rules = {
+        {
+          intensity = "Normal",
+          italic = true,
+          font = wezterm.font { family = "MonaspiceRn Nerd Font Mono", weight = "Regular", harfbuzz_features = { 'ss02' } },
+        },
+        {
+          intensity = "Bold",
+          italic = false,
+          font = wezterm.font { family = "MonaspiceNe Nerd Font Mono", weight = "Bold" },
+        },
+        {
+          intensity = "Bold",
+          italic = true,
+          font = wezterm.font { family = "MonaspiceRn Nerd Font Mono", weight = "Bold", harfbuzz_features = { 'ss02' } },
+        },
+      }
+      config.font_size = 11.0
+      config.window_decorations = "NONE"
+
+      return config
+    '';
+  };
+
   programs.kitty = {
     enable = true;
     package = (nixGL pkgs.kitty);
