@@ -520,7 +520,8 @@ in
 
       config.color_scheme = 'tokyonight_storm'
       config.enable_tab_bar = false
-      config.font = wezterm.font('MonaspiceNe Nerd Font Mono')
+      config.font = wezterm.font({ family = "MonaspiceNe Nerd Font Mono", weight = "Medium" })
+      config.font_size = 11.0
       config.font_rules = {
         {
           intensity = "Normal",
@@ -530,16 +531,15 @@ in
         {
           intensity = "Bold",
           italic = false,
-          font = wezterm.font { family = "MonaspiceNe Nerd Font Mono", weight = "Bold" },
+          font = wezterm.font { family = "MonaspiceNe Nerd Font Mono", weight = "ExtraBold" },
         },
         {
           intensity = "Bold",
           italic = true,
-          font = wezterm.font { family = "MonaspiceRn Nerd Font Mono", weight = "Bold", harfbuzz_features = { 'ss02' } },
+          font = wezterm.font { family = "MonaspiceRn Nerd Font Mono", weight = "ExtraBold", harfbuzz_features = { 'ss02' } },
         },
       }
-      config.font_size = 11.0
-      config.window_decorations = "NONE"
+      config.window_decorations = "RESIZE"
 
       return config
     '';
