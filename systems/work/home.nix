@@ -22,6 +22,8 @@ in
   ];
 
   home.packages = with pkgs; [
+    argocd
+
     llvmPackages.bintools
     # wrk2
 
