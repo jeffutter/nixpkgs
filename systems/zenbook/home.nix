@@ -11,7 +11,7 @@ let
   nixGLPkg = nixgl.nixGLCommon nixgl.nixGLMesa;
   nixGL = import ../nixGL.nix { inherit pkgs config; };
   iab =
-    (builtins.getFlake "github:jeffutter/iio_ambient_brightness/v0.2.12")
+    (builtins.getFlake "github:jeffutter/iio_ambient_brightness/v0.2.13")
     .packages.${pkgs.system}.default;
   my_zoom = pkgs.symlinkJoin {
     name = "zoom-us";
@@ -188,6 +188,7 @@ in
             scroll_factor = ".2";
             scroll_method = "two_finger";
             accel_profile = "adaptive";
+            click_method = "clickfinger";
           };
         };
         focus = {
@@ -429,8 +430,8 @@ in
     timeouts = [
       {
         timeout = 60;
-        command = "${pkgs.brightnessctl}/bin/brightnessctl -s & ${pkgs.brightnessctl}/bin/brightnessctl set 10";
-        resumeCommand = "${pkgs.brightnessctl}/bin/brightnessctl -r";
+        command = "${iab}/bin/iio_ambient_brightness -i";
+        resumeCommand = "${iab}/bin/iio_ambient_brightness -a";
       }
       {
         timeout = 120;
