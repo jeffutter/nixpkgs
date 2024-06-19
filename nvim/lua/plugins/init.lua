@@ -400,7 +400,6 @@ return {
 
 	{
 		"folke/trouble.nvim",
-		branch = "dev", -- for v3
 		dependencies = { "nvim-tree/nvim-web-devicons" },
 		keys = {
 			{
