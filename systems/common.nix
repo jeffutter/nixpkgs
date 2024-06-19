@@ -573,6 +573,15 @@ in
     };
   };
 
+  programs.zellij = {
+    enable = true;
+    # enableZshIntegration = true;
+    # enableFishIntegration = true;
+    settings = {
+      theme = "tokyo-night-storm";
+    };
+  };
+
   programs.tmux = {
     enable = true;
     escapeTime = 0;
