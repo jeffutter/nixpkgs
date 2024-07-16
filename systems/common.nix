@@ -1013,7 +1013,7 @@ in
         };
       };
       "zenbook" = {
-        host = "laptop";
+        host = "zenbook";
         hostname = "192.168.10.12";
         user = "jeffutter";
         forwardAgent = true;
