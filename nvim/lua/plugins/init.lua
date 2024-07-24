@@ -310,6 +310,8 @@ return {
 		config = true,
 	},
 
+	{ "echasnovski/mini.nvim", version = false },
+
 	{
 		"hrsh7th/cmp-nvim-lsp",
 		enable = true,
