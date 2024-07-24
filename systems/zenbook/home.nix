@@ -439,7 +439,7 @@ in
       }
       {
         timeout = 300;
-        command = "/usr/bin/systemctl suspend";
+        command = "[ \"$(cat /sys/class/power_supply/AC0/online)\" = \"0\" ] && /usr/bin/systemctl suspend";
       }
       {
         timeout = 10;
