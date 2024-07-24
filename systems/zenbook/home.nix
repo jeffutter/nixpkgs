@@ -30,9 +30,9 @@ in
   home.packages = with pkgs; [
     _1password
     _1password-gui
-    llvmPackages_13.bintools-unwrapped
+    # llvmPackages_13.bintools-unwrapped
     my_zoom
-    clang_13
+    # clang_13
     cargo-watch
     nixGLPkg
     wofi

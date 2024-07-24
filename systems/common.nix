@@ -12,6 +12,15 @@ let
 
   nixGL = import ./nixGL.nix { inherit pkgs config; };
 
+  # Temporary until 0.11 is released
+  neovim-nightly-overlay = (
+    import (
+      builtins.fetchTarball {
+        url = "https://github.com/nix-community/neovim-nightly-overlay/archive/master.tar.gz";
+      }
+    )
+  );
+
   ssh-copy-id = pkgs.runCommand "ssh-copy-id" { } ''
     mkdir -p $out/bin
     ln -s ${pkgs.openssh}/bin/ssh-copy-id $out/bin/ssh-copy-id
@@ -215,6 +224,7 @@ in
       ]
     );
 
+  nixpkgs.overlays = [ neovim-nightly-overlay ];
   nixpkgs.config.permittedInsecurePackages = [ "p7zip-16.02" ];
 
   nixpkgs.config.allowUnfree = true;
@@ -414,6 +424,7 @@ in
   };
 
   programs.neovim = {
+    package = pkgs.neovim;
     enable = true;
     vimAlias = true;
     plugins = with pkgs.vimPlugins; [ ];
