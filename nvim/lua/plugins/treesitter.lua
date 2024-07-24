@@ -95,7 +95,7 @@ return {
 			require("nvim-treesitter.configs").setup(opts)
 		end,
 	},
-	"p00f/nvim-ts-rainbow",
+	"hiphish/rainbow-delimiters.nvim",
 	{ "nvim-treesitter/nvim-treesitter-textobjects", dependencies = { "nvim-treesitter" } }, -- Additional textobjects for treesitter
 }
 
