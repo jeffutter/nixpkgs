@@ -84,12 +84,12 @@ in
   home.file."Brewfile".text = builtins.concatStringsSep "\n" [
     (builtins.readFile ../Brewfile.common)
     ''
-      cask "elgato-stream-deck"
       cask "intellij-idea-ce"
       cask "jetbrains-toolbox"
       cask "swiftbar"
       mas "MuteKey", id: 1509590766
       mas "Slack", id: 803453959
+      mas "Jira", id: 1475897096
     ''
   ];
 
