@@ -303,28 +303,28 @@ in
     '';
   };
 
-  launchd.agents.skhd = lib.mkIf pkgs.stdenv.targetPlatform.isDarwin {
-    enable = true;
-    config = {
-      ProgramArguments = [
-        "${pkgs.skhd}/bin/skhd"
-        "-c"
-        "${config.xdg.configHome}/skhd/skhdrc"
-      ];
-      KeepAlive = true;
-      ProcessType = "Interactive";
-      EnvironmentVariables = {
-        PATH = lib.concatStringsSep ":" [
-          "${config.home.homeDirectory}/.nix-profile/bin"
-          "/run/current-system/sw/bin"
-          "/nix/var/nix/profiles/default/"
-          "/usr/bin"
-        ];
-      };
-      StandardOutPath = "${config.xdg.cacheHome}/skhd.out.log";
-      StandardErrorPath = "${config.xdg.cacheHome}/skhd.err.log";
-    };
-  };
+  # launchd.agents.skhd = lib.mkIf pkgs.stdenv.targetPlatform.isDarwin {
+  #   enable = true;
+  #   config = {
+  #     ProgramArguments = [
+  #       "${pkgs.skhd}/bin/skhd"
+  #       "-c"
+  #       "${config.xdg.configHome}/skhd/skhdrc"
+  #     ];
+  #     KeepAlive = true;
+  #     ProcessType = "Interactive";
+  #     EnvironmentVariables = {
+  #       PATH = lib.concatStringsSep ":" [
+  #         "${config.home.homeDirectory}/.nix-profile/bin"
+  #         "/run/current-system/sw/bin"
+  #         "/nix/var/nix/profiles/default/"
+  #         "/usr/bin"
+  #       ];
+  #     };
+  #     StandardOutPath = "${config.xdg.cacheHome}/skhd.out.log";
+  #     StandardErrorPath = "${config.xdg.cacheHome}/skhd.err.log";
+  #   };
+  # };
 
   home.file.".config/vivid" = {
     source = ../vivid;
