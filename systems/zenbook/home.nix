@@ -32,6 +32,7 @@ in
     _1password-gui
     # llvmPackages_13.bintools-unwrapped
     my_zoom
+    clang
     # clang_13
     cargo-watch
     nixGLPkg
