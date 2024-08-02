@@ -736,9 +736,7 @@ in
   home.file."bin/brave-browser" = {
     text = ''
       #!${pkgs.bash}/bin/bash
-      exec -a "$0" ${
-        config.home.file."bin/systemGL".target
-      } /usr/bin/brave-browser --enable-features=VaapiVideoDecodeLinuxGL --use-gl=angle --use-angle=gl --ozone-platform=wayland "$@"
+      exec -a "$0" ~/bin/systemGL /usr/bin/brave-browser --enable-features=VaapiVideoDecodeLinuxGL --use-gl=angle --use-angle=gl --ozone-platform=wayland "$@"
     '';
     executable = true;
   };
@@ -746,9 +744,7 @@ in
   home.file."bin/discord" = {
     text = ''
       #!${pkgs.bash}/bin/bash
-      exec -a "$0" ${
-        config.home.file."bin/systemGL".target
-      } /usr/bin/discord --enable-features=UseOzonePlatform --ozone-platform=wayland "$@"
+      exec -a "$0" ~/bin/systemGL /usr/bin/discord --enable-features=UseOzonePlatform --ozone-platform=wayland "$@"
     '';
     executable = true;
   };
@@ -757,9 +753,7 @@ in
     text = ''
       #!${pkgs.bash}/bin/bash
       export OBSIDIAN_USE_WAYLAND=1
-      exec -a "$0" ${
-        config.home.file."bin/systemGL".target
-      } /snap/bin/obsidian --ozone-platform=wayland --ozone-platform-hint=auto --enable-features=UseOzonePlatform,WaylandWindowDecorations "$@"
+      exec -a "$0" ~/bin/systemGL /snap/bin/obsidian --ozone-platform=wayland --ozone-platform-hint=auto --enable-features=UseOzonePlatform,WaylandWindowDecorations "$@"
     '';
     executable = true;
   };
