@@ -73,6 +73,146 @@ in
 
   programs.ssh.extraOptionOverrides.identityFile = "~/.ssh/id_ed25519";
 
+  # programs.eww = {
+  #   enable = true;
+  #   package = (nixGL pkgs.eww);
+  #   enableFishIntegration = true;
+  #   enableZshIntegration = true;
+  # };
+
+  programs.waybar = {
+    enable = true;
+    package = (nixGL pkgs.waybar);
+    settings = {
+      mainBar = {
+        layer = "top";
+        position = "bottom";
+        height = 25;
+        # width= 1366;
+        modules-left = [
+          "hyprland/workspaces"
+          "sway/mode"
+          "custom/spotify"
+        ];
+        modules-center = [
+          "custom/ff"
+          "custom/nemo"
+          "custom/chrome"
+          "custom/libre"
+        ];
+        modules-right = [
+          "pulseaudio"
+          "network"
+          "battery"
+          "tray"
+          "clock"
+        ];
+        "hyprland/workspaces" = {
+          format = "{name}";
+          format-icons = {
+            active = "";
+            default = "o";
+            persistent = "";
+          };
+          on-scroll-up = "hyprctl dispatch workspace r-1";
+          on-scroll-down = "hyprctl dispatch workspace r+1";
+          all-outputs = false;
+          persistent_workspaces = {
+            "*" = 5;
+          };
+        };
+        "sway/mode" = {
+          "format" = "<span style=\"italic\">{}</span>";
+        };
+        tray = {
+          # icon-size= 21;
+          spacing = 10;
+        };
+        clock = {
+          format-alt = "{=%Y-%m-%d}";
+        };
+        cpu = {
+          format = "{usage}%     ";
+        };
+        memory = {
+          format = "{}%   ";
+        };
+        battery = {
+          bat = "BAT0";
+          states = {
+            # // good = 95;
+            warning = 30;
+            critical = 15;
+          };
+          format = "{capacity}%     ";
+          # format-good= "";
+          # format-full= "";
+          format-icons = [
+            ""
+            ""
+            ""
+            ""
+            ""
+          ];
+        };
+        network = {
+          # interface = "wlp2s0";
+          format-wifi = "{essid} ({signalStrength}%)     ";
+          format-ethernet = "{ifname}= {ipaddr}/{cidr} ";
+          format-disconnected = "Disconnected ⚠";
+        };
+        pulseaudio = {
+          scroll-step = 5;
+          format = "    {volume}%";
+          format-bluetooth = "   {volume}%";
+          format-muted = "";
+          format-icons = {
+            headphones = "";
+            handsfree = "";
+            headset = "";
+            phone = "";
+            portable = "";
+            car = "";
+            default = [
+              ""
+              ""
+            ];
+          };
+          on-click = "pavucontrol";
+        };
+        "custom/spotify" = {
+          format = " {}";
+          max-length = 40;
+          interval = 30;
+          exec = "$HOME/.config/waybar/mediaplayer.sh 2> /dev/null";
+          exec-if = "pgrep spotify";
+        };
+        "custom/ff" = {
+          format = "    {}";
+          max-length = 40;
+          on-click = "hyprctl dispatch exec /opt/firefox/firefox";
+
+        };
+        "custom/nemo" = {
+          format = "    {}";
+          max-length = 40;
+          on-click = "hyprctl dispatch exec nemo";
+        };
+        "custom/chrome" = {
+          format = "     {}";
+          max-length = 40;
+          on-click = "hyprctl dispatch exec google-chrome";
+
+        };
+        "custom/libre" = {
+          format = "     {}";
+          max-length = 40;
+          on-click = "hyprctl dispatch exec libre";
+        };
+      };
+    };
+  };
+
   programs.swaylock = {
     enable = true;
     package = pkgs.runCommandLocal "empty" { } "mkdir $out";
@@ -165,6 +305,104 @@ in
   };
 
   wayland = {
+    windowManager.hyprland = {
+      enable = true;
+      package = (nixGL pkgs.hyprland);
+      settings = {
+        animation = [
+          "workspaces,1,4,default,fade"
+          "windows,1,4,default,popin"
+        ];
+        monitor = ",preferred,auto,auto";
+        exec-once = [ "${(nixGL pkgs.waybar)}/bin/waybar" ];
+        exec = [
+          "$(${pkgs.procps}/bin/pkill -u $USER iio_ambient || true) && ${iab}/bin/iio_ambient_brightness -s"
+        ];
+        env = [
+          "XDG_CURRENT_DESKTOP,Hyprland"
+          "XDG_SESSION_TYPE,wayland"
+          "XDG_SESSION_DESKTOP,Hyprland"
+          "QT_QPA_PLATFORM,wayland;xcb"
+          "QT_QPA_PLATFORMTHEME,qt6ct"
+          "QT_WAYLAND_DISABLE_WINDOWDECORATION,1"
+          "QT_AUTO_SCREEN_SCALE_FACTOR,1"
+          "MOZ_ENABLE_WAYLAND,1"
+          "GDK_SCALE,1"
+        ];
+        bind = [
+          "ALT SHIFT, 1, movetoworkspacesilent, 1"
+          "ALT SHIFT, 2, movetoworkspacesilent, 2"
+          "ALT SHIFT, 3, movetoworkspacesilent, 3"
+          "ALT SHIFT, 4, movetoworkspacesilent, 4"
+          "ALT SHIFT, 5, movetoworkspacesilent, 5"
+          "ALT SHIFT, 6, movetoworkspacesilent, 6"
+          "ALT SHIFT, 7, movetoworkspacesilent, 7"
+          "ALT SHIFT, 8, movetoworkspacesilent, 8"
+          "ALT SHIFT, 9, movetoworkspacesilent, 9"
+          "ALT SHIFT, 0, movetoworkspacesilent, 10"
+          "ALT, 1, workspace, 1"
+          "ALT, 2, workspace, 2"
+          "ALT, 3, workspace, 3"
+          "ALT, 4, workspace, 4"
+          "ALT, 5, workspace, 5"
+          "ALT, 6, workspace, 6"
+          "ALT, 7, workspace, 7"
+          "ALT, 8, workspace, 8"
+          "ALT, 9, workspace, 9"
+          "ALT, 0, workspace, 10"
+          "ALT, D, exec, ${pkgs.wofi}/bin/wofi -D show_all=false --show run"
+          ", XF86SelectiveScreenshot, exec, ${pkgs.wayshot}/bin/wayshot -s \"$(${pkgs.slurp}/bin/slurp)\" --stdout | ${pkgs.wl-clipboard}/bin/wl-copy"
+          ", Print, exec, ${pkgs.wayshot}/bin/wayshot --stdout | ${pkgs.wl-clipboard}/bin/wl-copy"
+        ];
+        bindle = [
+          ", XF86AudioRaiseVolume, exec, ${pkgs.pulseaudio}/bin/pactl set-sink-volume @DEFAULT_SINK@ +5%"
+          ", XF86AudioLowerVolume, exec, ${pkgs.pulseaudio}/bin/pactl set-sink-volume @DEFAULT_SINK@ -5%"
+          ", XF86MonBrightnessUp, exec, ${iab}/bin/iio_ambient_brightness --increase 10"
+          ", XF86MonBrightnessDown, exec, ${iab}/bin/iio_ambient_brightness --decrease 10"
+          ", XF86Search, exec, launchpad"
+        ];
+        bindl = [
+          ", XF86AudioMute, exec, ${pkgs.pulseaudio}/bin/pactl set-sink-mute @DEFAULT_SINK@ toggle"
+          ", XF86AudioMicMute, exec, ${pkgs.pulseaudio}/bin/pactl set-source-mute @DEFAULT_SINK@ toggle"
+          # ", XF86AudioPlay, exec, playerctl play-pause"
+          # ", XF86AudioNext, exec, playerctl next"
+          # ", XF86AudioPrev, exec, playerctl previous"
+
+        ];
+        input = {
+          kb_layout = "us";
+          kb_variant = "colemak";
+          kb_options = "caps:escape";
+          follow_mouse = 1;
+          touchpad = {
+            natural_scroll = false;
+            middle_button_emulation = true;
+            scroll_factor = ".2";
+            clickfinger_behavior = true;
+          };
+          scroll_method = "2fg";
+          accel_profile = "adaptive";
+        };
+        gestures = {
+          workspace_swipe = true;
+          workspace_swipe_fingers = 3;
+        };
+        dwindle = {
+          pseudotile = "yes";
+          preserve_split = "yes";
+          no_gaps_when_only = 1;
+        };
+        master = {
+          new_status = "master";
+        };
+        misc = {
+          vrr = 0;
+          disable_hyprland_logo = true;
+          disable_splash_rendering = true;
+          force_default_wallpaper = 0;
+        };
+      };
+    };
     windowManager.sway = {
       enable = true;
       package = (nixGL pkgs.sway);
