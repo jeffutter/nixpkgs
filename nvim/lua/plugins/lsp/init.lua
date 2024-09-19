@@ -77,7 +77,7 @@ return {
 				},
 				svelte = {},
 				tailwindcss = {},
-				tsserver = {},
+				ts_ls = {},
 				yamlls = {},
 			},
 			-- you can do any additional lsp server setup here
