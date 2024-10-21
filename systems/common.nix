@@ -156,6 +156,7 @@ in
       pv
       ripgrep
       nil
+      restic
       rsync
       ruplacer
       shellcheck
