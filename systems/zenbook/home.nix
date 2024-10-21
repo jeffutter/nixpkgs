@@ -115,8 +115,8 @@ in
             default = "o";
             persistent = "";
           };
-          on-scroll-up = "hyprctl dispatch workspace r-1";
-          on-scroll-down = "hyprctl dispatch workspace r+1";
+          on-scroll-up = "${pkgs.hyprland}/bin/hyprctl dispatch workspace r-1";
+          on-scroll-down = "${pkgs.hyprland}/bin/hyprctl dispatch workspace r+1";
           all-outputs = false;
           persistent_workspaces = {
             "*" = 5;
@@ -191,24 +191,23 @@ in
         "custom/ff" = {
           format = "    {}";
           max-length = 40;
-          on-click = "hyprctl dispatch exec /opt/firefox/firefox";
-
+          on-click = "${pkgs.hyprland}/bin/hyprctl dispatch exec /opt/firefox/firefox";
         };
         "custom/nemo" = {
           format = "    {}";
           max-length = 40;
-          on-click = "hyprctl dispatch exec nemo";
+          on-click = "${pkgs.hyprland}/bin/hyprctl dispatch exec nemo";
         };
         "custom/chrome" = {
           format = "     {}";
           max-length = 40;
-          on-click = "hyprctl dispatch exec google-chrome";
+          on-click = "${pkgs.hyprland}/bin/hyprctl dispatch exec google-chrome";
 
         };
         "custom/libre" = {
           format = "     {}";
           max-length = 40;
-          on-click = "hyprctl dispatch exec libre";
+          on-click = "${pkgs.hyprland}/bin/hyprctl dispatch exec libre";
         };
       };
     };
@@ -490,7 +489,8 @@ in
           # ", XF86AudioPlay, exec, playerctl play-pause"
           # ", XF86AudioNext, exec, playerctl next"
           # ", XF86AudioPrev, exec, playerctl previous"
-
+          ", switch:on:Lid Switch, exec, ${pkgs.hyprland}/bin/hyprctl dispatch dpms off"
+          ", switch:off:Lid Switch, exec, ${pkgs.hyprland}/bin/hyprctl dispatch dpms on"
         ];
         input = {
           kb_layout = "us";
@@ -523,9 +523,12 @@ in
           disable_hyprland_logo = true;
           disable_splash_rendering = true;
           force_default_wallpaper = 0;
+          mouse_move_enables_dpms = true;
+          key_press_enables_dpms = true;
         };
       };
     };
+
     windowManager.sway = {
       enable = true;
       package = (nixGL pkgs.sway);
