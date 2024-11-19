@@ -116,6 +116,13 @@ return {
 			local servers = opts.servers
 			local capabilities =
 				require("cmp_nvim_lsp").default_capabilities(vim.lsp.protocol.make_client_capabilities())
+			-- capabilities.workspace = {
+			-- 	didChangeWatchedFiles = {
+			-- 		-- dynamicRegistration = true
+			-- 		dynamicRegistration = false,
+			-- 		relativePatternSupport = false,
+			-- 	},
+			-- }
 
 			local function setup(server)
 				local server_opts = servers[server] or {}
@@ -172,12 +179,12 @@ return {
 
 	-- cmdline tools and lsp servers
 	{
-
 		"williamboman/mason.nvim",
 		build = ":MasonUpdate",
 		cmd = "Mason",
 		keys = { { "<leader>cm", "<cmd>Mason<cr>", desc = "Mason" } },
 		opts = {
+			PATH = "append",
 			ensure_installed = {
 				"stylua",
 				"shellcheck",

@@ -470,7 +470,8 @@ return {
 
 	{
 		"mrcjkb/rustaceanvim",
-		version = "^4",
+		version = "^5",
+		lazy = false,
 		ft = { "rust" },
 		opts = {
 			server = {
@@ -495,6 +496,11 @@ return {
 				default_settings = {
 					-- rust-analyzer language server configuration
 					["rust-analyzer"] = {
+						files = {
+							-- exclude .direnv - sometimes it tries to search all of nix as "roots" because it's symlinked into .direnv
+							-- ... or something like that
+							excludeDirs = { "target", "node_modules", ".git", ".sl", ".direnv" },
+						},
 						cargo = {
 							allFeatures = true,
 							loadOutDirsFromCheck = true,
