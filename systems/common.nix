@@ -91,7 +91,7 @@ in
       bash-completion
       bash
       # borgbackup
-      bottom
+      btop
       broot
       brotli
       bzip2
