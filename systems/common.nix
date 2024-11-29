@@ -45,21 +45,6 @@ let
 
   ltex-lsp = pkgs.callPackage ../pkgs/ltex-lsp { };
 
-  my_fonts = pkgs.nerdfonts.override {
-    fonts = [
-      "CommitMono"
-      "FantasqueSansMono"
-      "FiraCode"
-      "Hack"
-      "Hasklig"
-      "Iosevka"
-      "Monaspace"
-      "Monoid"
-      "JetBrainsMono"
-      "SourceCodePro"
-    ];
-  };
-
   fromYaml =
     path:
     let
@@ -181,7 +166,16 @@ in
       zstd
 
       # Fonts
-      my_fonts
+      nerd-fonts.commit-mono
+      nerd-fonts.fantasque-sans-mono
+      nerd-fonts.fira-code
+      nerd-fonts.hack
+      nerd-fonts.hasklug
+      nerd-fonts.iosevka
+      nerd-fonts.monaspace
+      nerd-fonts.monoid
+      nerd-fonts.jetbrains-mono
+      nerd-fonts.sauce-code-pro
       roboto
       roboto-mono
       input-fonts
