@@ -28,7 +28,7 @@ in
   nixGLPrefix = lib.getExe' nixGLPkg "nixGL";
 
   home.packages = with pkgs; [
-    _1password
+    _1password-cli
     _1password-gui
     # llvmPackages_13.bintools-unwrapped
     my_zoom

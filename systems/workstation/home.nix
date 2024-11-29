@@ -6,7 +6,7 @@ in
   imports = [ ../common.nix ];
 
   home.packages = with pkgs; [
-    _1password
+    _1password-cli
     # binutils
     llvmPackages_13.bintools-unwrapped
     clang_13
