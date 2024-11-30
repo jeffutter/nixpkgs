@@ -21,6 +21,9 @@ return {
 			},
 			-- Automatically format on save
 			autoformat = true,
+			inlayHints = {
+				enabled = true,
+			},
 			-- options for vim.lsp.buf.format
 			-- `bufnr` and `filter` is handled by the LazyVim formatter,
 			-- but can be also overriden when specified
