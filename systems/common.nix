@@ -194,6 +194,7 @@ in
       cargo-flamegraph
       cargo-llvm-lines
       cargo-outdated
+      cargo-workspaces
       cargo-udeps
       clippy
       evcxr
