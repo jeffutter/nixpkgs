@@ -5,7 +5,7 @@ return {
 	"markonm/traces.vim",
 	{
 		"gregorias/coerce.nvim",
-		tag = "v0.3",
+		tag = "v4.0.0",
 		config = true,
 	},
 	{
