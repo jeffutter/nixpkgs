@@ -819,7 +819,7 @@ in
     theme.name = "Adwaita-dark";
     font = {
       name = "MonaspiceNe Nerd Font";
-      package = pkgs.nerdfonts.override { fonts = [ "Monaspace" ]; };
+      package = pkgs.nerd-fonts.monaspace;
     };
     gtk3.extraConfig = {
       gtk-application-prefer-dark-theme = true;
