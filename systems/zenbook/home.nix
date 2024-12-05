@@ -806,7 +806,7 @@ in
         command = "[ \"$(cat /sys/class/power_supply/AC0/online)\" = \"0\" ] && /usr/bin/systemctl suspend";
       }
       {
-        timeout = 10;
+        timeout = 180;
         command = "if ${pkgs.procps}/bin/pgrep -x swaylock; then ${pkgs.sway}/bin/swaymsg \"output * power off\"; fi";
         resumeCommand = "${pkgs.sway}/bin/swaymsg \"output * power on\"";
       }
