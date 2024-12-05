@@ -204,11 +204,16 @@ in
       sqlx-cli
 
       # Go
+      delve
       go
+      gofumpt
+      gomodifytags
       gopls
       gore
       goreleaser
       gotest
+      gotools
+      impl
     ]
     ++ optional stdenv.isLinux inotify-tools
     ++ optionals stdenv.isDarwin [ skhd ]
