@@ -100,6 +100,8 @@ in
       grex
       htop
       hyperfine
+      hunspell
+      hunspellDicts.en_US
       ijq
       imagemagick
       ispell
