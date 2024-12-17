@@ -7,15 +7,12 @@
 
 let
 
-  nixgl = import <nixgl> { enable32bits = false; };
-  nixGLPkg = nixgl.nixGLCommon nixgl.nixGLMesa;
-  nixGL = import ../nixGL.nix { inherit pkgs config; };
   iab =
     (builtins.getFlake "github:jeffutter/iio_ambient_brightness/v0.2.15")
     .packages.${pkgs.system}.default;
   my_zoom = pkgs.symlinkJoin {
     name = "zoom-us";
-    paths = [ (nixGL pkgs.zoom-us) ];
+    paths = [ pkgs.zoom-us ];
     buildInputs = [ pkgs.makeWrapper ];
     postBuild = ''
       wrapProgram $out/bin/zoom --set QT_XCB_GL_INTEGRATION xcb_egl
@@ -25,27 +22,25 @@ in
 {
   imports = [ ../common.nix ];
 
-  nixGLPrefix = lib.getExe' nixGLPkg "nixGL";
-
   home.packages = with pkgs; [
     _1password-cli
     _1password-gui
-    # llvmPackages_13.bintools-unwrapped
-    my_zoom
-    clang
-    # clang_13
-    cargo-watch
-    nixGLPkg
-    wofi
+    blueberry
+    brave
     brightnessctl
-    wlsunset
-    wl-clipboard
+    cargo-watch
+    clang
+    discord
+    iab
+    mako
+    my_zoom
+    obsidian
+    pavucontrol
     slurp
     wayshot
-    mako
-    (nixGL sway)
-    blueberry
-    pavucontrol
+    wl-clipboard
+    wlsunset
+    wofi
     (pkgs.wluma.overrideAttrs (old: rec {
       version = "4.4.0";
 
@@ -57,7 +52,6 @@ in
       cargoLock = null;
       cargoHash = lib.fakeHash;
     }))
-    iab
   ];
 
   programs.git.userEmail = "jeff@jeffutter.com";
@@ -76,14 +70,12 @@ in
 
   # programs.eww = {
   #   enable = true;
-  #   package = (nixGL pkgs.eww);
   #   enableFishIntegration = true;
   #   enableZshIntegration = true;
   # };
 
   programs.waybar = {
     enable = true;
-    package = (nixGL pkgs.waybar);
     settings = {
       mainBar = {
         layer = "top";
@@ -215,9 +207,6 @@ in
 
   programs.hyprlock = {
     enable = true;
-    # package = (nixGL pkgs.hyprlock);
-    # nix hyprlock doesn't play well with ubuntu pam
-    package = pkgs.runCommandLocal "empty" { } "mkdir $out";
     settings = {
 
       background = {
@@ -337,7 +326,7 @@ in
   programs.swaylock = {
     enable = true;
     # nix swaylock doesn't play well with ubuntu pam
-    package = pkgs.runCommandLocal "empty" { } "mkdir $out";
+    # package = pkgs.runCommandLocal "empty" { } "mkdir $out";
     settings = {
       color = "000000";
       daemonize = true;
@@ -429,14 +418,13 @@ in
   wayland = {
     windowManager.hyprland = {
       enable = true;
-      package = (nixGL pkgs.hyprland);
       settings = {
         animation = [
           "workspaces,1,4,default,fade"
           "windows,1,4,default,popin"
         ];
         monitor = ",preferred,auto,auto";
-        exec-once = [ "${(nixGL pkgs.waybar)}/bin/waybar" ];
+        exec-once = [ "${pkgs.waybar}/bin/waybar" ];
         exec = [
           "$(${pkgs.procps}/bin/pkill -u $USER iio_ambient || true) && ${iab}/bin/iio_ambient_brightness -s"
         ];
@@ -531,7 +519,6 @@ in
 
     windowManager.sway = {
       enable = true;
-      package = (nixGL pkgs.sway);
       wrapperFeatures.gtk = true;
       extraConfig = ''
         set $mode_power (l)ock, (e)xit, (p)oweroff, (r)eboot
@@ -636,16 +623,16 @@ in
         ];
         modes = lib.mkOptionDefault {
           "$mode_power" = {
-            l = "exec loginctl lock-session, mode default";
-            e = "exec i3msg exit";
-            p = "exec systemctl poweroff";
-            r = "exec systemctl reboot";
+            l = "exec ${pkgs.systemd}/bin/loginctl lock-session, mode default";
+            e = "exec ${pkgs.sway}/bin/swaymsg exit";
+            p = "exec ${pkgs.systemd}/bin/systemctl poweroff";
+            r = "exec ${pkgs.systemd}/systemctl reboot";
             Escape = "mode default";
           };
         };
         startup = [
           {
-            command = "systemd-inhibit --what=handle-power-key sleep infinity";
+            command = "${pkgs.systemd}/bin/systemd-inhibit --what=handle-power-key sleep infinity";
             always = false;
           }
           {
@@ -662,9 +649,11 @@ in
           }
         ];
         keybindings = {
-          "${config.wayland.windowManager.sway.config.modifier}+Return" = "exec ${config.wayland.windowManager.sway.config.terminal}";
+          "${config.wayland.windowManager.sway.config.modifier}+Return" =
+            "exec ${config.wayland.windowManager.sway.config.terminal}";
           "${config.wayland.windowManager.sway.config.modifier}+Shift+q" = "kill";
-          "${config.wayland.windowManager.sway.config.modifier}+d" = "exec ${config.wayland.windowManager.sway.config.menu}";
+          "${config.wayland.windowManager.sway.config.modifier}+d" =
+            "exec ${config.wayland.windowManager.sway.config.menu}";
 
           "${config.wayland.windowManager.sway.config.modifier}+Left" = "focus left";
           "${config.wayland.windowManager.sway.config.modifier}+Down" = "focus down";
@@ -703,51 +692,78 @@ in
           "${config.wayland.windowManager.sway.config.modifier}+9" = "workspace number 9";
           "${config.wayland.windowManager.sway.config.modifier}+0" = "workspace number 10";
 
-          "${config.wayland.windowManager.sway.config.modifier}+Shift+1" = "move container to workspace number 1";
-          "${config.wayland.windowManager.sway.config.modifier}+Shift+2" = "move container to workspace number 2";
-          "${config.wayland.windowManager.sway.config.modifier}+Shift+3" = "move container to workspace number 3";
-          "${config.wayland.windowManager.sway.config.modifier}+Shift+4" = "move container to workspace number 4";
-          "${config.wayland.windowManager.sway.config.modifier}+Shift+5" = "move container to workspace number 5";
-          "${config.wayland.windowManager.sway.config.modifier}+Shift+6" = "move container to workspace number 6";
-          "${config.wayland.windowManager.sway.config.modifier}+Shift+7" = "move container to workspace number 7";
-          "${config.wayland.windowManager.sway.config.modifier}+Shift+8" = "move container to workspace number 8";
-          "${config.wayland.windowManager.sway.config.modifier}+Shift+9" = "move container to workspace number 9";
-          "${config.wayland.windowManager.sway.config.modifier}+Shift+0" = "move container to workspace number 10";
+          "${config.wayland.windowManager.sway.config.modifier}+Shift+1" =
+            "move container to workspace number 1";
+          "${config.wayland.windowManager.sway.config.modifier}+Shift+2" =
+            "move container to workspace number 2";
+          "${config.wayland.windowManager.sway.config.modifier}+Shift+3" =
+            "move container to workspace number 3";
+          "${config.wayland.windowManager.sway.config.modifier}+Shift+4" =
+            "move container to workspace number 4";
+          "${config.wayland.windowManager.sway.config.modifier}+Shift+5" =
+            "move container to workspace number 5";
+          "${config.wayland.windowManager.sway.config.modifier}+Shift+6" =
+            "move container to workspace number 6";
+          "${config.wayland.windowManager.sway.config.modifier}+Shift+7" =
+            "move container to workspace number 7";
+          "${config.wayland.windowManager.sway.config.modifier}+Shift+8" =
+            "move container to workspace number 8";
+          "${config.wayland.windowManager.sway.config.modifier}+Shift+9" =
+            "move container to workspace number 9";
+          "${config.wayland.windowManager.sway.config.modifier}+Shift+0" =
+            "move container to workspace number 10";
 
           "${config.wayland.windowManager.sway.config.modifier}+Shift+r" = "reload";
           "${config.wayland.windowManager.sway.config.modifier}+Shift+x" = "restart";
           # "${config.wayland.windowManager.sway.config.modifier}+Shift+e" = "exec i3-nagbar -t warning -m 'Do you want to exit i3?' -b 'Yes' 'i3-msg exit'";
 
           "${config.wayland.windowManager.sway.config.modifier}+n" = "exec ${pkgs.mako}/bin/makoctl dismiss";
-          "${config.wayland.windowManager.sway.config.modifier}+Shift+n" = "exec ${pkgs.mako}/bin/makoctl dismiss -a";
+          "${config.wayland.windowManager.sway.config.modifier}+Shift+n" =
+            "exec ${pkgs.mako}/bin/makoctl dismiss -a";
 
           # "${config.wayland.windowManager.sway.config.modifier}+r" = "mode resize";
 
           # MacOS-like keybindings
-          "${config.wayland.windowManager.sway.config.modifier}+x" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P x";
-          "${config.wayland.windowManager.sway.config.modifier}+c" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P c";
-          "${config.wayland.windowManager.sway.config.modifier}+Shift+c" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -M shift -P c";
-          "${config.wayland.windowManager.sway.config.modifier}+v" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P v";
-          "${config.wayland.windowManager.sway.config.modifier}+Shift+v" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -M shift -P v";
-          "${config.wayland.windowManager.sway.config.modifier}+z" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P z";
-          "${config.wayland.windowManager.sway.config.modifier}+a" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P a";
+          "${config.wayland.windowManager.sway.config.modifier}+x" =
+            "exec ${pkgs.wtype}/bin/wtype -M ctrl -P x";
+          "${config.wayland.windowManager.sway.config.modifier}+c" =
+            "exec ${pkgs.wtype}/bin/wtype -M ctrl -P c";
+          "${config.wayland.windowManager.sway.config.modifier}+Shift+c" =
+            "exec ${pkgs.wtype}/bin/wtype -M ctrl -M shift -P c";
+          "${config.wayland.windowManager.sway.config.modifier}+v" =
+            "exec ${pkgs.wtype}/bin/wtype -M ctrl -P v";
+          "${config.wayland.windowManager.sway.config.modifier}+Shift+v" =
+            "exec ${pkgs.wtype}/bin/wtype -M ctrl -M shift -P v";
+          "${config.wayland.windowManager.sway.config.modifier}+z" =
+            "exec ${pkgs.wtype}/bin/wtype -M ctrl -P z";
+          "${config.wayland.windowManager.sway.config.modifier}+a" =
+            "exec ${pkgs.wtype}/bin/wtype -M ctrl -P a";
           # Search
-          "${config.wayland.windowManager.sway.config.modifier}+f" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P f";
+          "${config.wayland.windowManager.sway.config.modifier}+f" =
+            "exec ${pkgs.wtype}/bin/wtype -M ctrl -P f";
           # Print
-          "${config.wayland.windowManager.sway.config.modifier}+p" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P p";
+          "${config.wayland.windowManager.sway.config.modifier}+p" =
+            "exec ${pkgs.wtype}/bin/wtype -M ctrl -P p";
           # Save
-          "${config.wayland.windowManager.sway.config.modifier}+s" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P s";
+          "${config.wayland.windowManager.sway.config.modifier}+s" =
+            "exec ${pkgs.wtype}/bin/wtype -M ctrl -P s";
           # Chrome new tab
-          "${config.wayland.windowManager.sway.config.modifier}+t" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P t";
-          "${config.wayland.windowManager.sway.config.modifier}+Shift+t" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -M shift -P t";
+          "${config.wayland.windowManager.sway.config.modifier}+t" =
+            "exec ${pkgs.wtype}/bin/wtype -M ctrl -P t";
+          "${config.wayland.windowManager.sway.config.modifier}+Shift+t" =
+            "exec ${pkgs.wtype}/bin/wtype -M ctrl -M shift -P t";
           # Chrome close tab
-          "${config.wayland.windowManager.sway.config.modifier}+w" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P w";
+          "${config.wayland.windowManager.sway.config.modifier}+w" =
+            "exec ${pkgs.wtype}/bin/wtype -M ctrl -P w";
           # Chrome page reload
-          "${config.wayland.windowManager.sway.config.modifier}+r" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P r";
+          "${config.wayland.windowManager.sway.config.modifier}+r" =
+            "exec ${pkgs.wtype}/bin/wtype -M ctrl -P r";
           # Chrome select url
-          "${config.wayland.windowManager.sway.config.modifier}+l" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P l";
+          "${config.wayland.windowManager.sway.config.modifier}+l" =
+            "exec ${pkgs.wtype}/bin/wtype -M ctrl -P l";
           # Chrome history
-          "${config.wayland.windowManager.sway.config.modifier}+y" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P h";
+          "${config.wayland.windowManager.sway.config.modifier}+y" =
+            "exec ${pkgs.wtype}/bin/wtype -M ctrl -P h";
           # Chrome downloads (overlaps with window movements, disabled)
           # bindsym --to-code $mod+shift+j exec wtype -M ctrl -P j
 
@@ -760,7 +776,8 @@ in
           "XF86AudioMicMute" = "exec ${pkgs.pulseaudio}/bin/pactl set-source-mute @DEFAULT_SINK@ toggle";
           "XF86AudioRaiseVolume" = "exec ${pkgs.pulseaudio}/bin/pactl set-sink-volume @DEFAULT_SINK@ +5%";
           "XF86AudioLowerVolume" = "exec ${pkgs.pulseaudio}/bin/pactl set-sink-volume @DEFAULT_SINK@ -5%";
-          "XF86SelectiveScreenshot" = "exec ${pkgs.wayshot}/bin/wayshot -s \"$(${pkgs.slurp}/bin/slurp)\" --stdout | ${pkgs.wl-clipboard}/bin/wl-copy";
+          "XF86SelectiveScreenshot" =
+            "exec ${pkgs.wayshot}/bin/wayshot -s \"$(${pkgs.slurp}/bin/slurp)\" --stdout | ${pkgs.wl-clipboard}/bin/wl-copy";
           "Print" = "exec ${pkgs.wayshot}/bin/wayshot --stdout | ${pkgs.wl-clipboard}/bin/wl-copy";
 
           "--release XF86PowerOff" = "mode \"$mode_power\"";
@@ -784,11 +801,11 @@ in
     events = [
       {
         event = "before-sleep";
-        command = "/usr/bin/swaylock";
+        command = "${pkgs.swaylock}/bin/swaylock";
       }
       {
         event = "lock";
-        command = "/usr/bin/swaylock";
+        command = "${pkgs.swaylock}/bin/swaylock";
       }
     ];
     timeouts = [
@@ -799,11 +816,11 @@ in
       }
       {
         timeout = 120;
-        command = "/usr/bin/swaylock";
+        command = "${pkgs.swaylock}/bin/swaylock";
       }
       {
         timeout = 300;
-        command = "[ \"$(cat /sys/class/power_supply/AC0/online)\" = \"0\" ] && /usr/bin/systemctl suspend";
+        command = "[ \"$(${pkgs.coreutils}/bin/cat /sys/class/power_supply/AC0/online)\" = \"0\" ] && ${pkgs.systemd}/bin/systemctl suspend";
       }
       {
         timeout = 180;
@@ -858,18 +875,10 @@ in
     executable = true;
   };
 
-  home.file."bin/brave-browser" = {
-    text = ''
-      #!${pkgs.bash}/bin/bash
-      exec -a "$0" ~/bin/systemGL /usr/bin/brave-browser --enable-features=VaapiVideoDecodeLinuxGL --use-gl=angle --use-angle=gl --ozone-platform=wayland "$@"
-    '';
-    executable = true;
-  };
-
   home.file."bin/discord" = {
     text = ''
       #!${pkgs.bash}/bin/bash
-      exec -a "$0" ~/bin/systemGL /usr/bin/discord --enable-features=UseOzonePlatform --ozone-platform=wayland "$@"
+      exec -a "$0" ~/bin/systemGL ${pkgs.discord}/bin/discord --enable-features=UseOzonePlatform --ozone-platform=wayland "$@"
     '';
     executable = true;
   };
@@ -878,7 +887,7 @@ in
     text = ''
       #!${pkgs.bash}/bin/bash
       export OBSIDIAN_USE_WAYLAND=1
-      exec -a "$0" ~/bin/systemGL /snap/bin/obsidian --ozone-platform=wayland --ozone-platform-hint=auto --enable-features=UseOzonePlatform,WaylandWindowDecorations "$@"
+      exec -a "$0" ~/bin/systemGL ${pkgs.obsidian}/bin/obsidian --ozone-platform=wayland --ozone-platform-hint=auto --enable-features=UseOzonePlatform,WaylandWindowDecorations "$@"
     '';
     executable = true;
   };
