@@ -822,9 +822,22 @@ in
   };
 
   fonts.fontconfig.enable = true;
+
+  dconf.settings = {
+    "org/gnome/desktop/background" = {
+      picture-uri-dark = "file://${pkgs.nixos-artwork.wallpapers.nineish-dark-gray.src}";
+    };
+    "org/gnome/desktop/interface" = {
+      color-scheme = "prefer-dark";
+    };
+  };
+
   gtk = {
     enable = true;
-    theme.name = "Adwaita-dark";
+    theme = {
+      name = "Adwaita-dark";
+      package = pkgs.gnome-themes-extra;
+    };
     font = {
       name = "MonaspiceNe Nerd Font";
       package = pkgs.nerd-fonts.monaspace;
@@ -836,6 +849,15 @@ in
       gtk-application-prefer-dark-theme = true;
     };
   };
+
+  home.pointerCursor = {
+    x11.enable = true;
+    gtk.enable = true;
+    package = pkgs.adwaita-icon-theme;
+    name = "Adwaita";
+    size = 48;
+  };
+  home.file.".icons/default".source = "${pkgs.adwaita-icon-theme}/share/icons/Adwaita";
 
   xdg.configFile."wluma/config.toml".text = ''
     [als.iio]
