@@ -147,6 +147,7 @@ in
       rsync
       ruplacer
       shellcheck
+      sshfs
       sqls
       ssh-copy-id
       gnutar
@@ -218,7 +219,10 @@ in
       impl
     ]
     ++ optional stdenv.isLinux inotify-tools
-    ++ optionals stdenv.isDarwin [ skhd ]
+    ++ optionals stdenv.isDarwin [
+      aerospace
+      skhd
+    ]
     ++ optionals stdenv.isDarwin (
       with darwin.apple_sdk.frameworks;
       [
