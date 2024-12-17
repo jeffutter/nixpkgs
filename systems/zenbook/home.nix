@@ -840,7 +840,11 @@ in
     };
     font = {
       name = "MonaspiceNe Nerd Font";
-      package = pkgs.nerd-fonts.monaspace;
+      package =
+        if (builtins.compareVersions lib.trivial.release "24.11" == 0) then
+          pkgs.nerdfonts.override { fonts = [ "Monaspace" ]; }
+        else
+          pkgs.nerd-fonts.monaspace;
     };
     gtk3.extraConfig = {
       gtk-application-prefer-dark-theme = true;

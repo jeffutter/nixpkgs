@@ -221,8 +221,7 @@ in
       nerd-fonts.sauce-code-pro
     ]
     ++ optionals (builtins.compareVersions lib.trivial.release "24.11" == 0) [
-      pkgs.nerdfonts.override
-      {
+      (pkgs.nerdfonts.override {
         fonts = [
           "CommitMono"
           "FantasqueSansMono"
@@ -235,7 +234,7 @@ in
           "JetBrainsMono"
           "SourceCodePro"
         ];
-      }
+      })
     ]
     ++ optionals stdenv.isLinux [
       inotify-tools
