@@ -169,16 +169,6 @@ in
       zstd
 
       # Fonts
-      nerd-fonts.commit-mono
-      nerd-fonts.fantasque-sans-mono
-      nerd-fonts.fira-code
-      nerd-fonts.hack
-      nerd-fonts.hasklug
-      nerd-fonts.iosevka
-      nerd-fonts.monaspace
-      nerd-fonts.monoid
-      nerd-fonts.jetbrains-mono
-      nerd-fonts.sauce-code-pro
       roboto
       roboto-mono
       input-fonts
@@ -218,7 +208,38 @@ in
       gotools
       impl
     ]
-    ++ optional stdenv.isLinux inotify-tools
+    ++ optionals (builtins.compareVersions lib.trivial.release "24.11" == 1) [
+      nerd-fonts.commit-mono
+      nerd-fonts.fantasque-sans-mono
+      nerd-fonts.fira-code
+      nerd-fonts.hack
+      nerd-fonts.hasklug
+      nerd-fonts.iosevka
+      nerd-fonts.monaspace
+      nerd-fonts.monoid
+      nerd-fonts.jetbrains-mono
+      nerd-fonts.sauce-code-pro
+    ]
+    ++ optionals (builtins.compareVersions lib.trivial.release "24.11" == 0) [
+      pkgs.nerdfonts.override
+      {
+        fonts = [
+          "CommitMono"
+          "FantasqueSansMono"
+          "FiraCode"
+          "Hack"
+          "Hasklig"
+          "Iosevka"
+          "Monaspace"
+          "Monoid"
+          "JetBrainsMono"
+          "SourceCodePro"
+        ];
+      }
+    ]
+    ++ optionals stdenv.isLinux [
+      inotify-tools
+    ]
     ++ optionals stdenv.isDarwin [
       aerospace
       skhd
@@ -1109,5 +1130,5 @@ in
   # You can update Home Manager without changing this value. See
   # the Home Manager release notes for a list of state version
   # changes in each release.
-  home.stateVersion = "22.05";
+  home.stateVersion = "24.11";
 }
