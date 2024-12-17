@@ -786,15 +786,6 @@ in
     };
   };
 
-  services.syncthing = {
-    enable = true;
-    extraOptions = [
-      "--gui-address=0.0.0.0:8384"
-      "--no-default-folder"
-      "--no-browser"
-    ];
-  };
-
   services.swayidle = {
     enable = true;
     extraArgs = [ "-d" ];
