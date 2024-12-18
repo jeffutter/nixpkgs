@@ -90,26 +90,27 @@ in
 
   programs.waybar = {
     enable = true;
+    # style = ''
+    #   * {
+    #     font-family: "MonaspiceNe Nerd Font";
+    #   }
+    # '';
     settings = {
       mainBar = {
         layer = "top";
         position = "bottom";
         height = 25;
-        # width= 1366;
         modules-left = [
           "hyprland/workspaces"
           "sway/mode"
-          "custom/spotify"
         ];
         modules-center = [
-          "custom/ff"
-          "custom/nemo"
-          "custom/chrome"
-          "custom/libre"
         ];
         modules-right = [
           "pulseaudio"
           "network"
+          "cpu"
+          "memory"
           "battery"
           "tray"
           "clock"
@@ -139,10 +140,10 @@ in
           format-alt = "{=%Y-%m-%d}";
         };
         cpu = {
-          format = "{usage}%     ";
+          format = "{icon} {usage}%";
         };
         memory = {
-          format = "{}%   ";
+          format = "{icon} {}%";
         };
         battery = {
           bat = "BAT0";
@@ -151,7 +152,7 @@ in
             warning = 30;
             critical = 15;
           };
-          format = "{capacity}%     ";
+          format = "{icon} {capacity}%";
           # format-good= "";
           # format-full= "";
           format-icons = [
@@ -164,14 +165,14 @@ in
         };
         network = {
           # interface = "wlp2s0";
-          format-wifi = "{essid} ({signalStrength}%)     ";
-          format-ethernet = "{ifname}= {ipaddr}/{cidr} ";
-          format-disconnected = "Disconnected ⚠";
+          format-wifi = "{icon} {essid} ({signalStrength}%)";
+          format-ethernet = "{icon} {ifname}= {ipaddr}/{cidr} ";
+          format-disconnected = "{icon} Disconnected ⚠";
         };
         pulseaudio = {
           scroll-step = 5;
-          format = "    {volume}%";
-          format-bluetooth = "   {volume}%";
+          format = "{icon} {volume}%";
+          format-bluetooth = "{icon} {volume}%";
           format-muted = "";
           format-icons = {
             headphones = "";
@@ -187,153 +188,179 @@ in
           };
           on-click = "pavucontrol";
         };
-        "custom/spotify" = {
-          format = " {}";
-          max-length = 40;
-          interval = 30;
-          exec = "$HOME/.config/waybar/mediaplayer.sh 2> /dev/null";
-          exec-if = "pgrep spotify";
-        };
-        "custom/ff" = {
-          format = "    {}";
-          max-length = 40;
-          on-click = "${pkgs.hyprland}/bin/hyprctl dispatch exec /opt/firefox/firefox";
-        };
-        "custom/nemo" = {
-          format = "    {}";
-          max-length = 40;
-          on-click = "${pkgs.hyprland}/bin/hyprctl dispatch exec nemo";
-        };
-        "custom/chrome" = {
-          format = "     {}";
-          max-length = 40;
-          on-click = "${pkgs.hyprland}/bin/hyprctl dispatch exec google-chrome";
-
-        };
-        "custom/libre" = {
-          format = "     {}";
-          max-length = 40;
-          on-click = "${pkgs.hyprland}/bin/hyprctl dispatch exec libre";
-        };
       };
     };
   };
 
+  home.file."wallpapers/hyprlock.jpg".source = ../../wallpapers/3977823.jpg;
+
   programs.hyprlock = {
     enable = true;
     settings = {
-
       background = {
         monitor = "";
-        path = "~/wallpapers/hyprlock.png";
+        path = "~/wallpapers/hyprlock.jpg";
         blur_passes = 0;
         contrast = 0.8916;
         brightness = 0.8172;
         vibrancy = 0.1696;
         vibrancy_darkness = 0.0;
       };
+
       general = {
+        disable_loading_bar = true;
+        hide_cursor = true;
+        ignore_empty_input = false;
         no_fade_in = false;
-        grace = 0;
-        disable_loading_bar = false;
+        no_fade_out = false;
       };
 
-      label = [
+      input-field = [
         {
           monitor = "";
-          text = "Welcome!";
-          color = "rgba(216, 222, 233, .75)";
-          font_size = 55;
-          font_family = "SF Pro Display Bold";
-          position = "150, 320";
-          halign = "left";
-          valign = "center";
-        }
-
-        {
-          monitor = "";
-          text = "cmd[update:1000] echo \"<span>$(date +\"%I:%M\")</span>\"";
-          color = "rgba(216, 222, 233, .75)";
-          font_size = 40;
-          font_family = "SF Pro Display Bold";
-          position = "240, 240";
-          halign = "left";
-          valign = "center";
-        }
-
-        {
-          monitor = "";
-          text = "cmd[update:1000] echo -e \"$(date +\"%A, %B %d\")\"";
-          color = "rgba(216, 222, 233, .75)";
-          font_size = 19;
-          font_family = "SF Pro Display Bold";
-          position = "217, 175";
-          halign = "left";
-          valign = "center";
-        }
-        {
-          monitor = "";
-          text = "    $USER";
-          color = "rgba(216, 222, 233, 0.80)";
-          outline_thickness = 0;
-          dots_size = 0.2; # Scale of input-field height, 0.2 - 0.8
-          dots_spacing = 0.2; # Scale of dots' absolute size, 0.0 - 1.0;
+          size = "200, 50";
+          position = "0, -80";
+          outline_thickness = 5;
           dots_center = true;
-          font_size = 16;
-          font_family = "SF Pro Display Bold";
-          position = "275, -140";
-          halign = "left";
+          outer_color = "rgb(24, 25, 38)";
+          inner_color = "rgb(91, 96, 120)";
+          font_color = "rgb(202, 211, 245)";
+          fade_on_empty = false;
+          placeholder_text = ''<span foreground="##cad3f5">Password...</span>'';
+          shadow_passes = 2;
+          bothlock_color = -1;
+          capslock_color = "-1";
+          check_color = "rgb(204, 136, 34)";
+          dots_rounding = "-1";
+          dots_size = "0.330000";
+          dots_spacing = "0.150000";
+          fade_timeout = "2000";
+          fail_color = "rgb(204, 34, 34)";
+          fail_text = "<i>$FAIL</i>";
+          fail_transition = 300;
+          halign = "center";
+          hide_input = false;
+          invert_numlock = false;
+          numlock_color = -1;
+          rounding = -1;
+          shadow_boost = "1.200000";
+          shadow_color = "rgba(0, 0, 0, 1.0)";
+          shadow_size = 3;
+          swap_font_color = false;
           valign = "center";
         }
       ];
 
-      # image = {
-      #   monitor = "";
-      #   path = "" ~/.config/hypr/vivek.png "";
-      #   border_size = 2;
-      #   border_color = "rgba(255, 255, 255, .75)";
-      #   size = 95;
-      #   rounding = -1;
-      #   rotate = 0;
-      #   reload_time = -1;
-      #   reload_cmd = "";
-      #   position = "270, 25";
-      #   halign = "left";
-      #   valign = "center";
-      # };
+      # image = [
+      #   {
+      #     monitor = "";
+      #     size = 120;
+      #     position = "0, 45";
+      #     path = "/home/$USER/.face";
+      #     border_color = "rgb(202, 211, 245)";
+      #     border_size = 5;
+      #     halign = "center";
+      #     valign = "center";
+      #     shadow_passes = 1;
+      #     reload_cmd = "";
+      #     reload_time = -1;
+      #     rotate = "0.000000";
+      #     rounding = "-1";
+      #   }
+      # ];
 
-      shape = {
-        monitor = "";
-        size = "320, 55";
-        color = "rgba(255, 255, 255, .1)";
-        rounding = -1;
-        border_size = 0;
-        border_color = "rgba(255, 255, 255, 1)";
-        rotate = 0;
-        xray = false; # if true, make a "hole" in the background (rectangle of specified size, no rotation)
-        position = "160, -140";
-        halign = "left";
-        valign = "center";
-      };
-
-      input-field = {
-        monitor = "";
-        size = "320, 55";
-        outline_thickness = 0;
-        dots_size = 0.2; # Scale of input-field height, 0.2 - 0.8;
-        dots_spacing = 0.2; # Scale of dots' absolute size, 0.0 - 1.0;
-        dots_center = true;
-        outer_color = "rgba(255, 255, 255, 0)";
-        inner_color = "rgba(255, 255, 255, 0.1)";
-        font_color = "rgb(200, 200, 200)";
-        fade_on_empty = false;
-        font_family = "SF Pro Display Bold";
-        placeholder_text = "<i><span foreground=\"##ffffff99\">🔒  Enter Pass</span></i>";
-        hide_input = false;
-        position = "160, -220";
-        halign = "left";
-        valign = "center";
-      };
+      label = [
+        {
+          monitor = "";
+          text = ''<span font_weight="ultrabold">$TIME</span>'';
+          color = "rgb(202, 211, 245)";
+          font_size = 100;
+          font_family = "MonaspiceNe Nerd Font";
+          valign = "center";
+          halign = "center";
+          position = "0, 330";
+          shadow_passes = 2;
+          rotate = "0.000000";
+          shadow_boost = "1.200000";
+          shadow_color = "rgba(0, 0, 0, 1.0)";
+          shadow_size = 3;
+        }
+        {
+          monitor = "";
+          text = ''<span font_weight="bold"> $USER</span>'';
+          color = "rgb(202, 211, 245)";
+          font_size = 25;
+          font_family = "MonaspiceNe Nerd Font";
+          valign = "top";
+          halign = "left";
+          position = "10, 0";
+          rotate = "0.000000";
+          shadow_boost = "1.200000";
+          shadow_color = "rgba(0, 0, 0, 1.0)";
+          shadow_size = 3;
+          shadow_passes = 1;
+        }
+        {
+          monitor = "";
+          text = ''<span font_weight="ultrabold">󰌾 </span>'';
+          color = "rgb(202, 211, 245)";
+          font_size = 50;
+          font_family = "MonaspiceNe Nerd Font";
+          valign = "center";
+          halign = "center";
+          position = "15, -350";
+          rotate = "0.000000";
+          shadow_boost = "1.200000";
+          shadow_color = "rgba(0, 0, 0, 1.0)";
+          shadow_size = 3;
+          shadow_passes = 1;
+        }
+        {
+          monitor = "";
+          text = ''<span font_weight="bold">Locked</span>'';
+          color = "rgb(202, 211, 245)";
+          font_size = 25;
+          font_family = "MonaspiceNe Nerd Font";
+          valign = "center";
+          halign = "center";
+          position = "0, -430";
+          rotate = "0.000000";
+          shadow_boost = "1.200000";
+          shadow_color = "rgba(0, 0, 0, 1.0)";
+          shadow_size = 3;
+          shadow_passes = 1;
+        }
+        {
+          monitor = "";
+          text = ''cmd[update:120000] echo "<span font_weight='bold'>$(date +'%a %d %B')</span>"'';
+          color = "rgb(202, 211, 245)";
+          font_size = 30;
+          font_family = "MonaspiceNe Nerd Font";
+          valign = "center";
+          halign = "center";
+          position = "0, 210";
+          rotate = "0.000000";
+          shadow_boost = "1.200000";
+          shadow_color = "rgba(0, 0, 0, 1.0)";
+          shadow_size = 3;
+          shadow_passes = 1;
+        }
+        {
+          monitor = "";
+          text = ''<span font_weight="ultrabold"> </span>'';
+          color = "rgb(202, 211, 245)";
+          font_size = 25;
+          font_family = "MonaspiceNe Nerd Font";
+          valign = "bottom";
+          halign = "right";
+          position = "5, 8";
+          rotate = "0.000000";
+          shadow_boost = "1.200000";
+          shadow_color = "rgba(0, 0, 0, 1.0)";
+          shadow_size = 3;
+          shadow_passes = 1;
+        }
+      ];
     };
   };
 
@@ -778,11 +805,11 @@ in
     events = [
       {
         event = "before-sleep";
-        command = "${pkgs.swaylock}/bin/swaylock";
+        command = "${pkgs.hyprlock}/bin/hyprlock";
       }
       {
         event = "lock";
-        command = "${pkgs.swaylock}/bin/swaylock";
+        command = "${pkgs.hyprlock}/bin/hyprlock";
       }
     ];
     timeouts = [
@@ -793,7 +820,7 @@ in
       }
       {
         timeout = 120;
-        command = "${pkgs.swaylock}/bin/swaylock";
+        command = "${pkgs.hyprlock}/bin/hyprlock";
       }
       {
         timeout = 300;
@@ -801,7 +828,7 @@ in
       }
       {
         timeout = 180;
-        command = "if ${pkgs.procps}/bin/pgrep -x swaylock; then ${pkgs.sway}/bin/swaymsg \"output * power off\"; fi";
+        command = "if ${pkgs.procps}/bin/pgrep -x hyprlock; then ${pkgs.sway}/bin/swaymsg \"output * power off\"; fi";
         resumeCommand = "${pkgs.sway}/bin/swaymsg \"output * power on\"";
       }
     ];
