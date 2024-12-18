@@ -515,8 +515,27 @@ in
         dwindle = {
           pseudotile = "yes";
           preserve_split = "yes";
-          no_gaps_when_only = 1;
         };
+
+        workspace = map (x: "${x}, gapsout:0, gapsin:0") [
+          "w[t1]"
+          "w[tg1]"
+          "f[1]"
+        ];
+
+        windowrulev2 = lib.lists.flatten (
+          map
+            (x: [
+              "bordersize 0, floating:0, onworkspace:${x}"
+              "rounding 0, floating:0, onworkspace:${x}"
+            ])
+            [
+              "w[t1]"
+              "w[tg1]"
+              "f[1]"
+            ]
+        );
+
         master = {
           new_status = "master";
         };
