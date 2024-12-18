@@ -332,7 +332,7 @@ in
         }
         {
           monitor = "";
-          text = ''cmd[update:120000] echo "<span font_weight='bold'>$(date +'%a %d %B')</span>"'';
+          text = "cmd[update:120000] echo \"<span font_weight='bold'>$(${pkgs.coreutils}/bin/date +'%a %d %B')</span>\"";
           color = "rgb(202, 211, 245)";
           font_size = 30;
           font_family = "MonaspiceNe Nerd Font";
@@ -482,6 +482,7 @@ in
           "QT_AUTO_SCREEN_SCALE_FACTOR,1"
           "MOZ_ENABLE_WAYLAND,1"
           "GDK_SCALE,1"
+          "YDOTOOL_SOCKET,/run/ydotoold/socket"
         ];
         bind = [
           "ALT SHIFT, 1, movetoworkspacesilent, 1"
@@ -504,35 +505,16 @@ in
           "ALT, 8, workspace, 8"
           "ALT, 9, workspace, 9"
           "ALT, 0, workspace, 10"
+          "ALT, up, movefocus, u"
+          "ALT, left, movefocus, l"
+          "ALT, right, movefocus, r"
+          "ALT, down, movefocus, d"
+          "ALT SHIFT, up, movewindow, u"
+          "ALT SHIFT, left, movewindow, l"
+          "ALT SHIFT, right, movewindow, r"
+          "ALT SHIFT, down, movewindow, d"
           "ALT, Return, exec, ${pkgs.kitty}/bin/kitty"
           "ALT, D, exec, ${pkgs.wofi}/bin/wofi -D show_all=false --show run"
-          # MacOS-like keybindings
-          "ALT, X, exec, ${pkgs.wtype}/bin/wtype -M ctrl -P x"
-          "ALT, C, exec, ${pkgs.wtype}/bin/wtype -M ctrl -P c"
-          "ALT SHIFT, C, exec, ${pkgs.wtype}/bin/wtype -M ctrl -M shift -P c"
-          "ALT, V, exec, ${pkgs.wtype}/bin/wtype -M ctrl -P v"
-          "ALT SHIFT, V, exec, ${pkgs.wtype}/bin/wtype -M ctrl -M shift -P v"
-          "ALT, Z, exec, ${pkgs.wtype}/bin/wtype -M ctrl -P z"
-          "ALT, A, exec, ${pkgs.wtype}/bin/wtype -M ctrl -P a"
-          # Search
-          "ALT, F, exec, ${pkgs.wtype}/bin/wtype -M ctrl -P f"
-          # Print
-          "ALT, P, exec, ${pkgs.wtype}/bin/wtype -M ctrl -P p"
-          # Save
-          "ALT, S, exec, ${pkgs.wtype}/bin/wtype -M ctrl -P s"
-          # Chrome new tab
-          "ALT, T, exec, ${pkgs.wtype}/bin/wtype -M ctrl -P t"
-          "ALT SHIFT, T, exec, ${pkgs.wtype}/bin/wtype -M ctrl -M shift -P t"
-          # Chrome close tab
-          "ALT, W, exec, ${pkgs.wtype}/bin/wtype -M ctrl -P w"
-          # Chrome page reload
-          "ALT, R, exec, ${pkgs.wtype}/bin/wtype -M ctrl -P r"
-          # Chrome select url
-          "ALT, L, exec, ${pkgs.wtype}/bin/wtype -M ctrl -P l"
-          # Chrome history
-          "ALT, Y, exec, ${pkgs.wtype}/bin/wtype -M ctrl -P h"
-          # Chrome downloads (overlaps with window movements, disabled)
-          # bindsym --to-code $mod+shift+j exec wtype -M ctrl -P j
           ", XF86SelectiveScreenshot, exec, ${pkgs.wayshot}/bin/wayshot -s \"$(${pkgs.slurp}/bin/slurp)\" --stdout | ${pkgs.wl-clipboard}/bin/wl-copy"
           ", Print, exec, ${pkgs.wayshot}/bin/wayshot --stdout | ${pkgs.wl-clipboard}/bin/wl-copy"
         ];
@@ -542,6 +524,35 @@ in
           ", XF86MonBrightnessUp, exec, ${iab}/bin/iio_ambient_brightness --increase 10"
           ", XF86MonBrightnessDown, exec, ${iab}/bin/iio_ambient_brightness --decrease 10"
           ", XF86Search, exec, launchpad"
+          # MacOS-like keybindings
+          # https://github.com/torvalds/linux/blob/master/include/uapi/linux/input-event-codes.h
+          # "ALT, M, exec, ${pkgs.ydotool}/bin/ydotool type foo"
+          "ALT, X, exec, ${pkgs.ydotool}/bin/ydotool key 29:1 45:1 45:0 29:0"
+          "ALT, C, exec, ${pkgs.ydotool}/bin/ydotool key 29:1 46:1 46:0 29:0"
+          "ALT SHIFT, C, exec, ${pkgs.ydotool}/bin/ydotool key 29:1 42:1 46:1 46:0 42:0 29:0"
+          "ALT, V, exec, ${pkgs.ydotool}/bin/ydotool key 29:1 47:1 47:0 29:0"
+          "ALT SHIFT, V, exec, ${pkgs.ydotool}/bin/ydotool key 29:1 42:1 47:1 47:0 42:0 29:0"
+          "ALT, Z, exec, ${pkgs.ydotool}/bin/ydotool key 29:1 44:1 44:0 29:0"
+          "ALT, A, exec, ${pkgs.ydotool}/bin/ydotool key 29:1 30:1 30:0 29:0"
+          # Search
+          "ALT, F, exec, ${pkgs.ydotool}/bin/ydotool key 29:1 33:1 33:0 29:0"
+          # Print
+          "ALT, P, exec, ${pkgs.ydotool}/bin/ydotool key 29:1 25:1 25:0 29:0"
+          # Save
+          "ALT, S, exec, ${pkgs.ydotool}/bin/ydotool key 29:1 31:1 31:0 29:0"
+          # Chrome new tab
+          "ALT, T, exec, ${pkgs.ydotool}/bin/ydotool key 29:1 20:1 20:0 29:0"
+          "ALT SHIFT, T, exec, ${pkgs.ydotool}/bin/ydotool key 29:1 42:1 20:1 20:0 42:0 29:0"
+          # Chrome close tab
+          "ALT, W, exec, ${pkgs.ydotool}/bin/ydotool key 29:1 17:1 17:0 29:0"
+          # Chrome page reload
+          "ALT, R, exec, ${pkgs.ydotool}/bin/ydotool key 29:1 19:1 19:0 29:0"
+          # Chrome select url
+          "ALT, L, exec, ${pkgs.ydotool}/bin/ydotool key 29:1 38:1 38:0 29:0"
+          # Chrome history
+          "ALT, Y, exec, ${pkgs.ydotool}/bin/ydotool key 29:1 21:1 21:0 29:0"
+          # Chrome downloads (overlaps with window movements, disabled)
+          # bindsym --to-code $mod+shift+j exec wtype -M ctrl -P j
         ];
         bindl = [
           ", XF86AudioMute, exec, ${pkgs.pulseaudio}/bin/pactl set-sink-mute @DEFAULT_SINK@ toggle"
@@ -552,10 +563,26 @@ in
           ", switch:on:Lid Switch, exec, ${pkgs.hyprland}/bin/hyprctl dispatch dpms off"
           ", switch:off:Lid Switch, exec, ${pkgs.hyprland}/bin/hyprctl dispatch dpms on"
         ];
+        # debug = {
+        #   disable_logs = false;
+        # };
+        device = [
+          {
+            name = "at-translated-set-2-keyboard";
+            kb_variant = "colemak";
+            kb_options = "caps:escape";
+          }
+          {
+            name = "ydotoold-virtual-device";
+            kb_layout = "us";
+            kb_variant = "";
+            # kb_variant = "colemak";
+            kb_options = "";
+          }
+        ];
         input = {
           kb_layout = "us";
-          kb_variant = "colemak";
-          kb_options = "caps:escape";
+          kb_variant = "";
           follow_mouse = 1;
           touchpad = {
             natural_scroll = false;
