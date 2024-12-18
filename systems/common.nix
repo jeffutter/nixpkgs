@@ -104,6 +104,7 @@ in
       imagemagick
       ispell
       jq
+      jujutsu
       just
       k6
       k9s
@@ -432,6 +433,16 @@ in
         "--fields"
         "password"
       ];
+    };
+  };
+
+  programs.jujutsu = {
+    enable = true;
+    settings = {
+      user = {
+        email = "jeff@jeffutter.com";
+        name = "Jeffery Utter";
+      };
     };
   };
 
@@ -1109,14 +1120,14 @@ in
     time = "en_US.UTF-8";
   };
 
-  nix = {
-    package = pkgs.nix;
-    extraOptions = ''
-      experimental-features = nix-command flakes
-      substituters = https://cache.nixos.org https://jeffutter.cachix.org https://nix-community.cachix.org
-      trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= jeffutter.cachix.org-1:ANzVqMBfIdjVJm1I7wAD/Dmr7hkqtsX6gWf+VXvC7Uw= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=
-    '';
-  };
+  # nix = {
+  #   package = pkgs.nix;
+  #   extraOptions = ''
+  #     experimental-features = nix-command flakes
+  #     substituters = https://cache.nixos.org https://jeffutter.cachix.org https://nix-community.cachix.org
+  #     trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= jeffutter.cachix.org-1:ANzVqMBfIdjVJm1I7wAD/Dmr7hkqtsX6gWf+VXvC7Uw= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=
+  #   '';
+  # };
 
   # This value determines the Home Manager release that your
   # configuration is compatible with. This helps avoid breakage
