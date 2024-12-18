@@ -10,12 +10,26 @@ let
   iab =
     (builtins.getFlake "github:jeffutter/iio_ambient_brightness/v0.2.15")
     .packages.${pkgs.system}.default;
+
   my_zoom = pkgs.symlinkJoin {
     name = "zoom-us";
     paths = [ pkgs.zoom-us ];
     buildInputs = [ pkgs.makeWrapper ];
     postBuild = ''
       wrapProgram $out/bin/zoom --set QT_XCB_GL_INTEGRATION xcb_egl
+    '';
+  };
+
+  my_bemoji = pkgs.symlinkJoin {
+    name = "bemoji";
+    paths = [ pkgs.bemoji ];
+    buildInputs = [ pkgs.makeWrapper ];
+    postBuild = ''
+      wrapProgram $out/bin/bemoji --prefix PATH : ${
+        lib.makeBinPath [
+          pkgs.wtype
+        ]
+      }
     '';
   };
 in
@@ -648,122 +662,94 @@ in
             always = true;
           }
         ];
-        keybindings = {
-          "${config.wayland.windowManager.sway.config.modifier}+Return" =
-            "exec ${config.wayland.windowManager.sway.config.terminal}";
-          "${config.wayland.windowManager.sway.config.modifier}+Shift+q" = "kill";
-          "${config.wayland.windowManager.sway.config.modifier}+d" =
-            "exec ${config.wayland.windowManager.sway.config.menu}";
+        keybindings = with config.wayland.windowManager.sway.config; {
+          "${modifier}+Return" = "exec ${terminal}";
+          "${modifier}+Shift+q" = "kill";
+          "${modifier}+d" = "exec ${menu}";
 
-          "${config.wayland.windowManager.sway.config.modifier}+Left" = "focus left";
-          "${config.wayland.windowManager.sway.config.modifier}+Down" = "focus down";
-          "${config.wayland.windowManager.sway.config.modifier}+Up" = "focus up";
-          "${config.wayland.windowManager.sway.config.modifier}+Right" = "focus right";
+          "${modifier}+Left" = "focus left";
+          "${modifier}+Down" = "focus down";
+          "${modifier}+Up" = "focus up";
+          "${modifier}+Right" = "focus right";
 
-          "${config.wayland.windowManager.sway.config.modifier}+Shift+Left" = "move left";
-          "${config.wayland.windowManager.sway.config.modifier}+Shift+Down" = "move down";
-          "${config.wayland.windowManager.sway.config.modifier}+Shift+Up" = "move up";
-          "${config.wayland.windowManager.sway.config.modifier}+Shift+Right" = "move right";
+          "${modifier}+Shift+Left" = "move left";
+          "${modifier}+Shift+Down" = "move down";
+          "${modifier}+Shift+Up" = "move up";
+          "${modifier}+Shift+Right" = "move right";
 
-          # "${config.wayland.windowManager.sway.config.modifier}+h" = "split h";
-          # "${config.wayland.windowManager.sway.config.modifier}+v" = "split v";
-          "${config.wayland.windowManager.sway.config.modifier}+Shift+f" = "fullscreen toggle";
+          # "${modifier}+h" = "split h";
+          # "${modifier}+v" = "split v";
+          "${modifier}+Shift+f" = "fullscreen toggle";
 
-          "${config.wayland.windowManager.sway.config.modifier}+Shift+s" = "layout stacking";
-          "${config.wayland.windowManager.sway.config.modifier}+Shift+w" = "layout tabbed";
-          "${config.wayland.windowManager.sway.config.modifier}+Shift+e" = "layout toggle split";
+          "${modifier}+Shift+s" = "layout stacking";
+          "${modifier}+Shift+w" = "layout tabbed";
+          "${modifier}+Shift+e" = "layout toggle split";
 
-          "${config.wayland.windowManager.sway.config.modifier}+Shift+space" = "floating toggle";
-          "${config.wayland.windowManager.sway.config.modifier}+space" = "focus mode_toggle";
+          "${modifier}+Shift+space" = "floating toggle";
+          "${modifier}+space" = "focus mode_toggle";
 
-          # "${config.wayland.windowManager.sway.config.modifier}+a" = "focus parent";
+          # "${modifier}+a" = "focus parent";
 
-          "${config.wayland.windowManager.sway.config.modifier}+Shift+minus" = "move scratchpad";
-          "${config.wayland.windowManager.sway.config.modifier}+minus" = "scratchpad show";
+          "${modifier}+Shift+minus" = "move scratchpad";
+          "${modifier}+minus" = "scratchpad show";
 
-          "${config.wayland.windowManager.sway.config.modifier}+1" = "workspace number 1";
-          "${config.wayland.windowManager.sway.config.modifier}+2" = "workspace number 2";
-          "${config.wayland.windowManager.sway.config.modifier}+3" = "workspace number 3";
-          "${config.wayland.windowManager.sway.config.modifier}+4" = "workspace number 4";
-          "${config.wayland.windowManager.sway.config.modifier}+5" = "workspace number 5";
-          "${config.wayland.windowManager.sway.config.modifier}+6" = "workspace number 6";
-          "${config.wayland.windowManager.sway.config.modifier}+7" = "workspace number 7";
-          "${config.wayland.windowManager.sway.config.modifier}+8" = "workspace number 8";
-          "${config.wayland.windowManager.sway.config.modifier}+9" = "workspace number 9";
-          "${config.wayland.windowManager.sway.config.modifier}+0" = "workspace number 10";
+          "${modifier}+1" = "workspace number 1";
+          "${modifier}+2" = "workspace number 2";
+          "${modifier}+3" = "workspace number 3";
+          "${modifier}+4" = "workspace number 4";
+          "${modifier}+5" = "workspace number 5";
+          "${modifier}+6" = "workspace number 6";
+          "${modifier}+7" = "workspace number 7";
+          "${modifier}+8" = "workspace number 8";
+          "${modifier}+9" = "workspace number 9";
+          "${modifier}+0" = "workspace number 10";
 
-          "${config.wayland.windowManager.sway.config.modifier}+Shift+1" =
-            "move container to workspace number 1";
-          "${config.wayland.windowManager.sway.config.modifier}+Shift+2" =
-            "move container to workspace number 2";
-          "${config.wayland.windowManager.sway.config.modifier}+Shift+3" =
-            "move container to workspace number 3";
-          "${config.wayland.windowManager.sway.config.modifier}+Shift+4" =
-            "move container to workspace number 4";
-          "${config.wayland.windowManager.sway.config.modifier}+Shift+5" =
-            "move container to workspace number 5";
-          "${config.wayland.windowManager.sway.config.modifier}+Shift+6" =
-            "move container to workspace number 6";
-          "${config.wayland.windowManager.sway.config.modifier}+Shift+7" =
-            "move container to workspace number 7";
-          "${config.wayland.windowManager.sway.config.modifier}+Shift+8" =
-            "move container to workspace number 8";
-          "${config.wayland.windowManager.sway.config.modifier}+Shift+9" =
-            "move container to workspace number 9";
-          "${config.wayland.windowManager.sway.config.modifier}+Shift+0" =
-            "move container to workspace number 10";
+          "${modifier}+Shift+1" = "move container to workspace number 1";
+          "${modifier}+Shift+2" = "move container to workspace number 2";
+          "${modifier}+Shift+3" = "move container to workspace number 3";
+          "${modifier}+Shift+4" = "move container to workspace number 4";
+          "${modifier}+Shift+5" = "move container to workspace number 5";
+          "${modifier}+Shift+6" = "move container to workspace number 6";
+          "${modifier}+Shift+7" = "move container to workspace number 7";
+          "${modifier}+Shift+8" = "move container to workspace number 8";
+          "${modifier}+Shift+9" = "move container to workspace number 9";
+          "${modifier}+Shift+0" = "move container to workspace number 10";
 
-          "${config.wayland.windowManager.sway.config.modifier}+Shift+r" = "reload";
-          "${config.wayland.windowManager.sway.config.modifier}+Shift+x" = "restart";
-          # "${config.wayland.windowManager.sway.config.modifier}+Shift+e" = "exec i3-nagbar -t warning -m 'Do you want to exit i3?' -b 'Yes' 'i3-msg exit'";
+          "${modifier}+Shift+r" = "reload";
+          "${modifier}+Shift+x" = "restart";
+          "${modifier}+e" = "exec ${my_bemoji}/bin/bemoji -t";
+          # "${modifier}+Shift+e" = "exec i3-nagbar -t warning -m 'Do you want to exit i3?' -b 'Yes' 'i3-msg exit'";
 
-          "${config.wayland.windowManager.sway.config.modifier}+n" = "exec ${pkgs.mako}/bin/makoctl dismiss";
-          "${config.wayland.windowManager.sway.config.modifier}+Shift+n" =
-            "exec ${pkgs.mako}/bin/makoctl dismiss -a";
+          "${modifier}+n" = "exec ${pkgs.mako}/bin/makoctl dismiss";
+          "${modifier}+Shift+n" = "exec ${pkgs.mako}/bin/makoctl dismiss -a";
 
-          # "${config.wayland.windowManager.sway.config.modifier}+r" = "mode resize";
+          # "${modifier}+r" = "mode resize";
 
           # MacOS-like keybindings
-          "${config.wayland.windowManager.sway.config.modifier}+x" =
-            "exec ${pkgs.wtype}/bin/wtype -M ctrl -P x";
-          "${config.wayland.windowManager.sway.config.modifier}+c" =
-            "exec ${pkgs.wtype}/bin/wtype -M ctrl -P c";
-          "${config.wayland.windowManager.sway.config.modifier}+Shift+c" =
-            "exec ${pkgs.wtype}/bin/wtype -M ctrl -M shift -P c";
-          "${config.wayland.windowManager.sway.config.modifier}+v" =
-            "exec ${pkgs.wtype}/bin/wtype -M ctrl -P v";
-          "${config.wayland.windowManager.sway.config.modifier}+Shift+v" =
-            "exec ${pkgs.wtype}/bin/wtype -M ctrl -M shift -P v";
-          "${config.wayland.windowManager.sway.config.modifier}+z" =
-            "exec ${pkgs.wtype}/bin/wtype -M ctrl -P z";
-          "${config.wayland.windowManager.sway.config.modifier}+a" =
-            "exec ${pkgs.wtype}/bin/wtype -M ctrl -P a";
+          "${modifier}+x" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P x";
+          "${modifier}+c" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P c";
+          "${modifier}+Shift+c" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -M shift -P c";
+          "${modifier}+v" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P v";
+          "${modifier}+Shift+v" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -M shift -P v";
+          "${modifier}+z" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P z";
+          "${modifier}+a" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P a";
           # Search
-          "${config.wayland.windowManager.sway.config.modifier}+f" =
-            "exec ${pkgs.wtype}/bin/wtype -M ctrl -P f";
+          "${modifier}+f" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P f";
           # Print
-          "${config.wayland.windowManager.sway.config.modifier}+p" =
-            "exec ${pkgs.wtype}/bin/wtype -M ctrl -P p";
+          "${modifier}+p" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P p";
           # Save
-          "${config.wayland.windowManager.sway.config.modifier}+s" =
-            "exec ${pkgs.wtype}/bin/wtype -M ctrl -P s";
+          "${modifier}+s" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P s";
           # Chrome new tab
-          "${config.wayland.windowManager.sway.config.modifier}+t" =
-            "exec ${pkgs.wtype}/bin/wtype -M ctrl -P t";
-          "${config.wayland.windowManager.sway.config.modifier}+Shift+t" =
-            "exec ${pkgs.wtype}/bin/wtype -M ctrl -M shift -P t";
+          "${modifier}+t" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P t";
+          "${modifier}+Shift+t" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -M shift -P t";
           # Chrome close tab
-          "${config.wayland.windowManager.sway.config.modifier}+w" =
-            "exec ${pkgs.wtype}/bin/wtype -M ctrl -P w";
+          "${modifier}+w" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P w";
           # Chrome page reload
-          "${config.wayland.windowManager.sway.config.modifier}+r" =
-            "exec ${pkgs.wtype}/bin/wtype -M ctrl -P r";
+          "${modifier}+r" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P r";
           # Chrome select url
-          "${config.wayland.windowManager.sway.config.modifier}+l" =
-            "exec ${pkgs.wtype}/bin/wtype -M ctrl -P l";
+          "${modifier}+l" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P l";
           # Chrome history
-          "${config.wayland.windowManager.sway.config.modifier}+y" =
-            "exec ${pkgs.wtype}/bin/wtype -M ctrl -P h";
+          "${modifier}+y" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P h";
           # Chrome downloads (overlaps with window movements, disabled)
           # bindsym --to-code $mod+shift+j exec wtype -M ctrl -P j
 
