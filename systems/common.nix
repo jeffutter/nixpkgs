@@ -523,7 +523,9 @@ in
     enable = true;
     package = (nixGL pkgs.alacritty);
     settings = {
-      live_config_reload = true;
+      general = {
+        live_config_reload = true;
+      };
       window = {
         decorations = "none";
       };
