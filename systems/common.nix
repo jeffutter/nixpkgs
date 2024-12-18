@@ -10,8 +10,6 @@
 let
   inherit (pkgs.lib) optional optionals;
 
-  nixGL = import ./nixGL.nix { inherit pkgs config; };
-
   # Temporary until 0.11 is released
   neovim-nightly-overlay = (
     import (
@@ -521,7 +519,6 @@ in
 
   programs.alacritty = {
     enable = true;
-    package = (nixGL pkgs.alacritty);
     settings = {
       general = {
         live_config_reload = true;
@@ -554,7 +551,6 @@ in
 
   programs.wezterm = {
     enable = true;
-    package = (nixGL pkgs.wezterm);
     extraConfig = ''
       local config = wezterm.config_builder()
 
@@ -587,7 +583,6 @@ in
 
   programs.kitty = {
     enable = true;
-    package = (nixGL pkgs.kitty);
     extraConfig =
       ''
         font_features MonoLisaNerdFont-Italic +ss02

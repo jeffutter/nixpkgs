@@ -869,15 +869,6 @@ in
     executable = true;
   };
 
-  home.file."bin/systemGL" = {
-    text = ''
-      #!${pkgs.bash}/bin/bash
-      unset LIBVA_DRIVERS_PATH LIBGL_DRIVERS_PATH LD_LIBRARY_PATH __EGL_VENDOR_LIBRARY_FILENAMES
-      exec "$@"
-    '';
-    executable = true;
-  };
-
   home.file."bin/discord" = {
     text = ''
       #!${pkgs.bash}/bin/bash
