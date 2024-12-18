@@ -465,7 +465,10 @@ in
           "windows,1,4,default,popin"
         ];
         monitor = ",preferred,auto,auto";
-        exec-once = [ "${pkgs.waybar}/bin/waybar" ];
+        exec-once = [
+          "${pkgs.waybar}/bin/waybar"
+          "${pkgs.systemd}/bin/systemd-inhibit --what=handle-power-key sleep infinity"
+        ];
         exec = [
           "$(${pkgs.procps}/bin/pkill -u $USER iio_ambient || true) && ${iab}/bin/iio_ambient_brightness -s"
         ];
@@ -501,7 +504,35 @@ in
           "ALT, 8, workspace, 8"
           "ALT, 9, workspace, 9"
           "ALT, 0, workspace, 10"
+          "ALT, Return, exec, ${pkgs.kitty}/bin/kitty"
           "ALT, D, exec, ${pkgs.wofi}/bin/wofi -D show_all=false --show run"
+          # MacOS-like keybindings
+          "ALT, X, exec, ${pkgs.wtype}/bin/wtype -M ctrl -P x"
+          "ALT, C, exec, ${pkgs.wtype}/bin/wtype -M ctrl -P c"
+          "ALT SHIFT, C, exec, ${pkgs.wtype}/bin/wtype -M ctrl -M shift -P c"
+          "ALT, V, exec, ${pkgs.wtype}/bin/wtype -M ctrl -P v"
+          "ALT SHIFT, V, exec, ${pkgs.wtype}/bin/wtype -M ctrl -M shift -P v"
+          "ALT, Z, exec, ${pkgs.wtype}/bin/wtype -M ctrl -P z"
+          "ALT, A, exec, ${pkgs.wtype}/bin/wtype -M ctrl -P a"
+          # Search
+          "ALT, F, exec, ${pkgs.wtype}/bin/wtype -M ctrl -P f"
+          # Print
+          "ALT, P, exec, ${pkgs.wtype}/bin/wtype -M ctrl -P p"
+          # Save
+          "ALT, S, exec, ${pkgs.wtype}/bin/wtype -M ctrl -P s"
+          # Chrome new tab
+          "ALT, T, exec, ${pkgs.wtype}/bin/wtype -M ctrl -P t"
+          "ALT SHIFT, T, exec, ${pkgs.wtype}/bin/wtype -M ctrl -M shift -P t"
+          # Chrome close tab
+          "ALT, W, exec, ${pkgs.wtype}/bin/wtype -M ctrl -P w"
+          # Chrome page reload
+          "ALT, R, exec, ${pkgs.wtype}/bin/wtype -M ctrl -P r"
+          # Chrome select url
+          "ALT, L, exec, ${pkgs.wtype}/bin/wtype -M ctrl -P l"
+          # Chrome history
+          "ALT, Y, exec, ${pkgs.wtype}/bin/wtype -M ctrl -P h"
+          # Chrome downloads (overlaps with window movements, disabled)
+          # bindsym --to-code $mod+shift+j exec wtype -M ctrl -P j
           ", XF86SelectiveScreenshot, exec, ${pkgs.wayshot}/bin/wayshot -s \"$(${pkgs.slurp}/bin/slurp)\" --stdout | ${pkgs.wl-clipboard}/bin/wl-copy"
           ", Print, exec, ${pkgs.wayshot}/bin/wayshot --stdout | ${pkgs.wl-clipboard}/bin/wl-copy"
         ];
@@ -542,8 +573,27 @@ in
         dwindle = {
           pseudotile = "yes";
           preserve_split = "yes";
-          no_gaps_when_only = 1;
         };
+
+        workspace = map (x: "${x}, gapsout:0, gapsin:0") [
+          "w[t1]"
+          "w[tg1]"
+          "f[1]"
+        ];
+
+        windowrulev2 = lib.lists.flatten (
+          map
+            (x: [
+              "bordersize 0, floating:0, onworkspace:${x}"
+              "rounding 0, floating:0, onworkspace:${x}"
+            ])
+            [
+              "w[t1]"
+              "w[tg1]"
+              "f[1]"
+            ]
+        );
+
         master = {
           new_status = "master";
         };
