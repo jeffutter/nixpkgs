@@ -10,8 +10,6 @@
 let
   inherit (pkgs.lib) optional optionals;
 
-  nixGL = import ./nixGL.nix { inherit pkgs config; };
-
   # Temporary until 0.11 is released
   neovim-nightly-overlay = (
     import (
@@ -100,10 +98,13 @@ in
       grex
       htop
       hyperfine
+      hunspell
+      hunspellDicts.en_US
       ijq
       imagemagick
       ispell
       jq
+      jujutsu
       just
       k6
       k9s
@@ -145,6 +146,7 @@ in
       rsync
       ruplacer
       shellcheck
+      sshfs
       sqls
       ssh-copy-id
       gnutar
@@ -166,16 +168,6 @@ in
       zstd
 
       # Fonts
-      nerd-fonts.commit-mono
-      nerd-fonts.fantasque-sans-mono
-      nerd-fonts.fira-code
-      nerd-fonts.hack
-      nerd-fonts.hasklug
-      nerd-fonts.iosevka
-      nerd-fonts.monaspace
-      nerd-fonts.monoid
-      nerd-fonts.jetbrains-mono
-      nerd-fonts.sauce-code-pro
       roboto
       roboto-mono
       input-fonts
@@ -205,14 +197,52 @@ in
       sqlx-cli
 
       # Go
+      delve
       go
+      gofumpt
+      gomodifytags
       gopls
       gore
       goreleaser
       gotest
+      gotools
+      impl
     ]
-    ++ optional stdenv.isLinux inotify-tools
-    ++ optionals stdenv.isDarwin [ skhd ]
+    ++ optionals (builtins.compareVersions lib.trivial.release "24.11" == 1) [
+      nerd-fonts.commit-mono
+      nerd-fonts.fantasque-sans-mono
+      nerd-fonts.fira-code
+      nerd-fonts.hack
+      nerd-fonts.hasklug
+      nerd-fonts.iosevka
+      nerd-fonts.monaspace
+      nerd-fonts.monoid
+      nerd-fonts.jetbrains-mono
+      nerd-fonts.sauce-code-pro
+    ]
+    ++ optionals (builtins.compareVersions lib.trivial.release "24.11" == 0) [
+      (pkgs.nerdfonts.override {
+        fonts = [
+          "CommitMono"
+          "FantasqueSansMono"
+          "FiraCode"
+          "Hack"
+          "Hasklig"
+          "Iosevka"
+          "Monaspace"
+          "Monoid"
+          "JetBrainsMono"
+          "SourceCodePro"
+        ];
+      })
+    ]
+    ++ optionals stdenv.isLinux [
+      inotify-tools
+    ]
+    ++ optionals stdenv.isDarwin [
+      aerospace
+      skhd
+    ]
     ++ optionals stdenv.isDarwin (
       with darwin.apple_sdk.frameworks;
       [
@@ -407,6 +437,16 @@ in
     };
   };
 
+  programs.jujutsu = {
+    enable = true;
+    settings = {
+      user = {
+        email = "jeff@jeffutter.com";
+        name = "Jeffery Utter";
+      };
+    };
+  };
+
   programs.himalaya = {
     enable = true;
     settings = {
@@ -491,9 +531,10 @@ in
 
   programs.alacritty = {
     enable = true;
-    package = (nixGL pkgs.alacritty);
     settings = {
-      live_config_reload = true;
+      general = {
+        live_config_reload = true;
+      };
       window = {
         decorations = "none";
       };
@@ -522,7 +563,6 @@ in
 
   programs.wezterm = {
     enable = true;
-    package = (nixGL pkgs.wezterm);
     extraConfig = ''
       local config = wezterm.config_builder()
 
@@ -555,7 +595,6 @@ in
 
   programs.kitty = {
     enable = true;
-    package = (nixGL pkgs.kitty);
     extraConfig =
       ''
         font_features MonoLisaNerdFont-Italic +ss02
@@ -1082,14 +1121,14 @@ in
     time = "en_US.UTF-8";
   };
 
-  nix = {
-    package = pkgs.nix;
-    extraOptions = ''
-      experimental-features = nix-command flakes
-      substituters = https://cache.nixos.org https://jeffutter.cachix.org https://nix-community.cachix.org
-      trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= jeffutter.cachix.org-1:ANzVqMBfIdjVJm1I7wAD/Dmr7hkqtsX6gWf+VXvC7Uw= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=
-    '';
-  };
+  # nix = {
+  #   package = pkgs.nix;
+  #   extraOptions = ''
+  #     experimental-features = nix-command flakes
+  #     substituters = https://cache.nixos.org https://jeffutter.cachix.org https://nix-community.cachix.org
+  #     trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= jeffutter.cachix.org-1:ANzVqMBfIdjVJm1I7wAD/Dmr7hkqtsX6gWf+VXvC7Uw= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=
+  #   '';
+  # };
 
   # This value determines the Home Manager release that your
   # configuration is compatible with. This helps avoid breakage
@@ -1099,5 +1138,5 @@ in
   # You can update Home Manager without changing this value. See
   # the Home Manager release notes for a list of state version
   # changes in each release.
-  home.stateVersion = "22.05";
+  home.stateVersion = "24.11";
 }

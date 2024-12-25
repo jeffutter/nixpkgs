@@ -21,10 +21,14 @@ return {
 			ensure_installed = {
 				"css",
 				"elixir",
-				"helm",
 				"go",
+				"gomod",
+				"gowork",
+				"gosum",
+				"helm",
 				"javascript",
 				"json",
+				"just",
 				"lua",
 				"query",
 				"regex",
@@ -35,7 +39,6 @@ return {
 				"typescript",
 				"vim",
 				"vimdoc",
-				"just",
 				"yaml",
 			},
 			incremental_selection = {

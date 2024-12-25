@@ -7,45 +7,54 @@
 
 let
 
-  nixgl = import <nixgl> { enable32bits = false; };
-  nixGLPkg = nixgl.nixGLCommon nixgl.nixGLMesa;
-  nixGL = import ../nixGL.nix { inherit pkgs config; };
   iab =
-    (builtins.getFlake "github:jeffutter/iio_ambient_brightness/v0.2.14")
+    (builtins.getFlake "github:jeffutter/iio_ambient_brightness/v0.2.15")
     .packages.${pkgs.system}.default;
+
   my_zoom = pkgs.symlinkJoin {
     name = "zoom-us";
-    paths = [ (nixGL pkgs.zoom-us) ];
+    paths = [ pkgs.zoom-us ];
     buildInputs = [ pkgs.makeWrapper ];
     postBuild = ''
       wrapProgram $out/bin/zoom --set QT_XCB_GL_INTEGRATION xcb_egl
+    '';
+  };
+
+  my_bemoji = pkgs.symlinkJoin {
+    name = "bemoji";
+    paths = [ pkgs.bemoji ];
+    buildInputs = [ pkgs.makeWrapper ];
+    postBuild = ''
+      wrapProgram $out/bin/bemoji --prefix PATH : ${
+        lib.makeBinPath [
+          pkgs.wtype
+        ]
+      }
     '';
   };
 in
 {
   imports = [ ../common.nix ];
 
-  nixGLPrefix = lib.getExe' nixGLPkg "nixGL";
-
   home.packages = with pkgs; [
     _1password-cli
     _1password-gui
-    # llvmPackages_13.bintools-unwrapped
-    my_zoom
-    clang
-    # clang_13
-    cargo-watch
-    nixGLPkg
-    wofi
+    blueberry
+    brave
     brightnessctl
-    wlsunset
-    wl-clipboard
+    cargo-watch
+    clang
+    discord
+    iab
+    mako
+    my_zoom
+    obsidian
+    pavucontrol
     slurp
     wayshot
-    mako
-    (nixGL sway)
-    blueberry
-    pavucontrol
+    wl-clipboard
+    wlsunset
+    wofi
     (pkgs.wluma.overrideAttrs (old: rec {
       version = "4.4.0";
 
@@ -57,7 +66,6 @@ in
       cargoLock = null;
       cargoHash = lib.fakeHash;
     }))
-    iab
   ];
 
   programs.git.userEmail = "jeff@jeffutter.com";
@@ -76,34 +84,33 @@ in
 
   # programs.eww = {
   #   enable = true;
-  #   package = (nixGL pkgs.eww);
   #   enableFishIntegration = true;
   #   enableZshIntegration = true;
   # };
 
   programs.waybar = {
     enable = true;
-    package = (nixGL pkgs.waybar);
+    # style = ''
+    #   * {
+    #     font-family: "MonaspiceNe Nerd Font";
+    #   }
+    # '';
     settings = {
       mainBar = {
         layer = "top";
         position = "bottom";
         height = 25;
-        # width= 1366;
         modules-left = [
           "hyprland/workspaces"
           "sway/mode"
-          "custom/spotify"
         ];
         modules-center = [
-          "custom/ff"
-          "custom/nemo"
-          "custom/chrome"
-          "custom/libre"
         ];
         modules-right = [
           "pulseaudio"
           "network"
+          "cpu"
+          "memory"
           "battery"
           "tray"
           "clock"
@@ -133,10 +140,10 @@ in
           format-alt = "{=%Y-%m-%d}";
         };
         cpu = {
-          format = "{usage}%     ";
+          format = "{icon} {usage}%";
         };
         memory = {
-          format = "{}%   ";
+          format = "{icon} {}%";
         };
         battery = {
           bat = "BAT0";
@@ -145,7 +152,7 @@ in
             warning = 30;
             critical = 15;
           };
-          format = "{capacity}%     ";
+          format = "{icon} {capacity}%";
           # format-good= "";
           # format-full= "";
           format-icons = [
@@ -158,14 +165,14 @@ in
         };
         network = {
           # interface = "wlp2s0";
-          format-wifi = "{essid} ({signalStrength}%)     ";
-          format-ethernet = "{ifname}= {ipaddr}/{cidr} ";
-          format-disconnected = "Disconnected ⚠";
+          format-wifi = "{icon} {essid} ({signalStrength}%)";
+          format-ethernet = "{icon} {ifname}= {ipaddr}/{cidr} ";
+          format-disconnected = "{icon} Disconnected ⚠";
         };
         pulseaudio = {
           scroll-step = 5;
-          format = "    {volume}%";
-          format-bluetooth = "   {volume}%";
+          format = "{icon} {volume}%";
+          format-bluetooth = "{icon} {volume}%";
           format-muted = "";
           format-icons = {
             headphones = "";
@@ -181,163 +188,186 @@ in
           };
           on-click = "pavucontrol";
         };
-        "custom/spotify" = {
-          format = " {}";
-          max-length = 40;
-          interval = 30;
-          exec = "$HOME/.config/waybar/mediaplayer.sh 2> /dev/null";
-          exec-if = "pgrep spotify";
-        };
-        "custom/ff" = {
-          format = "    {}";
-          max-length = 40;
-          on-click = "${pkgs.hyprland}/bin/hyprctl dispatch exec /opt/firefox/firefox";
-        };
-        "custom/nemo" = {
-          format = "    {}";
-          max-length = 40;
-          on-click = "${pkgs.hyprland}/bin/hyprctl dispatch exec nemo";
-        };
-        "custom/chrome" = {
-          format = "     {}";
-          max-length = 40;
-          on-click = "${pkgs.hyprland}/bin/hyprctl dispatch exec google-chrome";
-
-        };
-        "custom/libre" = {
-          format = "     {}";
-          max-length = 40;
-          on-click = "${pkgs.hyprland}/bin/hyprctl dispatch exec libre";
-        };
       };
     };
   };
 
+  home.file."wallpapers/hyprlock.jpg".source = ../../wallpapers/3977823.jpg;
+
   programs.hyprlock = {
     enable = true;
-    # package = (nixGL pkgs.hyprlock);
-    # nix hyprlock doesn't play well with ubuntu pam
-    package = pkgs.runCommandLocal "empty" { } "mkdir $out";
     settings = {
-
       background = {
         monitor = "";
-        path = "~/wallpapers/hyprlock.png";
+        path = "~/wallpapers/hyprlock.jpg";
         blur_passes = 0;
         contrast = 0.8916;
         brightness = 0.8172;
         vibrancy = 0.1696;
         vibrancy_darkness = 0.0;
       };
+
       general = {
+        disable_loading_bar = true;
+        hide_cursor = true;
+        ignore_empty_input = false;
         no_fade_in = false;
-        grace = 0;
-        disable_loading_bar = false;
+        no_fade_out = false;
       };
 
-      label = [
+      input-field = [
         {
           monitor = "";
-          text = "Welcome!";
-          color = "rgba(216, 222, 233, .75)";
-          font_size = 55;
-          font_family = "SF Pro Display Bold";
-          position = "150, 320";
-          halign = "left";
-          valign = "center";
-        }
-
-        {
-          monitor = "";
-          text = "cmd[update:1000] echo \"<span>$(date +\"%I:%M\")</span>\"";
-          color = "rgba(216, 222, 233, .75)";
-          font_size = 40;
-          font_family = "SF Pro Display Bold";
-          position = "240, 240";
-          halign = "left";
-          valign = "center";
-        }
-
-        {
-          monitor = "";
-          text = "cmd[update:1000] echo -e \"$(date +\"%A, %B %d\")\"";
-          color = "rgba(216, 222, 233, .75)";
-          font_size = 19;
-          font_family = "SF Pro Display Bold";
-          position = "217, 175";
-          halign = "left";
-          valign = "center";
-        }
-        {
-          monitor = "";
-          text = "    $USER";
-          color = "rgba(216, 222, 233, 0.80)";
-          outline_thickness = 0;
-          dots_size = 0.2; # Scale of input-field height, 0.2 - 0.8
-          dots_spacing = 0.2; # Scale of dots' absolute size, 0.0 - 1.0;
+          size = "200, 50";
+          position = "0, -80";
+          outline_thickness = 5;
           dots_center = true;
-          font_size = 16;
-          font_family = "SF Pro Display Bold";
-          position = "275, -140";
-          halign = "left";
+          outer_color = "rgb(24, 25, 38)";
+          inner_color = "rgb(91, 96, 120)";
+          font_color = "rgb(202, 211, 245)";
+          fade_on_empty = false;
+          placeholder_text = ''<span foreground="##cad3f5">Password...</span>'';
+          shadow_passes = 2;
+          bothlock_color = -1;
+          capslock_color = "-1";
+          check_color = "rgb(204, 136, 34)";
+          dots_rounding = "-1";
+          dots_size = "0.330000";
+          dots_spacing = "0.150000";
+          fade_timeout = "2000";
+          fail_color = "rgb(204, 34, 34)";
+          fail_text = "<i>$FAIL</i>";
+          fail_transition = 300;
+          halign = "center";
+          hide_input = false;
+          invert_numlock = false;
+          numlock_color = -1;
+          rounding = -1;
+          shadow_boost = "1.200000";
+          shadow_color = "rgba(0, 0, 0, 1.0)";
+          shadow_size = 3;
+          swap_font_color = false;
           valign = "center";
         }
       ];
 
-      # image = {
-      #   monitor = "";
-      #   path = "" ~/.config/hypr/vivek.png "";
-      #   border_size = 2;
-      #   border_color = "rgba(255, 255, 255, .75)";
-      #   size = 95;
-      #   rounding = -1;
-      #   rotate = 0;
-      #   reload_time = -1;
-      #   reload_cmd = "";
-      #   position = "270, 25";
-      #   halign = "left";
-      #   valign = "center";
-      # };
+      # image = [
+      #   {
+      #     monitor = "";
+      #     size = 120;
+      #     position = "0, 45";
+      #     path = "/home/$USER/.face";
+      #     border_color = "rgb(202, 211, 245)";
+      #     border_size = 5;
+      #     halign = "center";
+      #     valign = "center";
+      #     shadow_passes = 1;
+      #     reload_cmd = "";
+      #     reload_time = -1;
+      #     rotate = "0.000000";
+      #     rounding = "-1";
+      #   }
+      # ];
 
-      shape = {
-        monitor = "";
-        size = "320, 55";
-        color = "rgba(255, 255, 255, .1)";
-        rounding = -1;
-        border_size = 0;
-        border_color = "rgba(255, 255, 255, 1)";
-        rotate = 0;
-        xray = false; # if true, make a "hole" in the background (rectangle of specified size, no rotation)
-        position = "160, -140";
-        halign = "left";
-        valign = "center";
-      };
-
-      input-field = {
-        monitor = "";
-        size = "320, 55";
-        outline_thickness = 0;
-        dots_size = 0.2; # Scale of input-field height, 0.2 - 0.8;
-        dots_spacing = 0.2; # Scale of dots' absolute size, 0.0 - 1.0;
-        dots_center = true;
-        outer_color = "rgba(255, 255, 255, 0)";
-        inner_color = "rgba(255, 255, 255, 0.1)";
-        font_color = "rgb(200, 200, 200)";
-        fade_on_empty = false;
-        font_family = "SF Pro Display Bold";
-        placeholder_text = "<i><span foreground=\"##ffffff99\">🔒  Enter Pass</span></i>";
-        hide_input = false;
-        position = "160, -220";
-        halign = "left";
-        valign = "center";
-      };
+      label = [
+        {
+          monitor = "";
+          text = ''<span font_weight="ultrabold">$TIME</span>'';
+          color = "rgb(202, 211, 245)";
+          font_size = 100;
+          font_family = "MonaspiceNe Nerd Font";
+          valign = "center";
+          halign = "center";
+          position = "0, 330";
+          shadow_passes = 2;
+          rotate = "0.000000";
+          shadow_boost = "1.200000";
+          shadow_color = "rgba(0, 0, 0, 1.0)";
+          shadow_size = 3;
+        }
+        {
+          monitor = "";
+          text = ''<span font_weight="bold"> $USER</span>'';
+          color = "rgb(202, 211, 245)";
+          font_size = 25;
+          font_family = "MonaspiceNe Nerd Font";
+          valign = "top";
+          halign = "left";
+          position = "10, 0";
+          rotate = "0.000000";
+          shadow_boost = "1.200000";
+          shadow_color = "rgba(0, 0, 0, 1.0)";
+          shadow_size = 3;
+          shadow_passes = 1;
+        }
+        {
+          monitor = "";
+          text = ''<span font_weight="ultrabold">󰌾 </span>'';
+          color = "rgb(202, 211, 245)";
+          font_size = 50;
+          font_family = "MonaspiceNe Nerd Font";
+          valign = "center";
+          halign = "center";
+          position = "15, -350";
+          rotate = "0.000000";
+          shadow_boost = "1.200000";
+          shadow_color = "rgba(0, 0, 0, 1.0)";
+          shadow_size = 3;
+          shadow_passes = 1;
+        }
+        {
+          monitor = "";
+          text = ''<span font_weight="bold">Locked</span>'';
+          color = "rgb(202, 211, 245)";
+          font_size = 25;
+          font_family = "MonaspiceNe Nerd Font";
+          valign = "center";
+          halign = "center";
+          position = "0, -430";
+          rotate = "0.000000";
+          shadow_boost = "1.200000";
+          shadow_color = "rgba(0, 0, 0, 1.0)";
+          shadow_size = 3;
+          shadow_passes = 1;
+        }
+        {
+          monitor = "";
+          text = "cmd[update:120000] echo \"<span font_weight='bold'>$(${pkgs.coreutils}/bin/date +'%a %d %B')</span>\"";
+          color = "rgb(202, 211, 245)";
+          font_size = 30;
+          font_family = "MonaspiceNe Nerd Font";
+          valign = "center";
+          halign = "center";
+          position = "0, 210";
+          rotate = "0.000000";
+          shadow_boost = "1.200000";
+          shadow_color = "rgba(0, 0, 0, 1.0)";
+          shadow_size = 3;
+          shadow_passes = 1;
+        }
+        {
+          monitor = "";
+          text = ''<span font_weight="ultrabold"> </span>'';
+          color = "rgb(202, 211, 245)";
+          font_size = 25;
+          font_family = "MonaspiceNe Nerd Font";
+          valign = "bottom";
+          halign = "right";
+          position = "5, 8";
+          rotate = "0.000000";
+          shadow_boost = "1.200000";
+          shadow_color = "rgba(0, 0, 0, 1.0)";
+          shadow_size = 3;
+          shadow_passes = 1;
+        }
+      ];
     };
   };
 
   programs.swaylock = {
     enable = true;
     # nix swaylock doesn't play well with ubuntu pam
-    package = pkgs.runCommandLocal "empty" { } "mkdir $out";
+    # package = pkgs.runCommandLocal "empty" { } "mkdir $out";
     settings = {
       color = "000000";
       daemonize = true;
@@ -429,14 +459,16 @@ in
   wayland = {
     windowManager.hyprland = {
       enable = true;
-      package = (nixGL pkgs.hyprland);
       settings = {
         animation = [
           "workspaces,1,4,default,fade"
           "windows,1,4,default,popin"
         ];
         monitor = ",preferred,auto,auto";
-        exec-once = [ "${(nixGL pkgs.waybar)}/bin/waybar" ];
+        exec-once = [
+          "${pkgs.waybar}/bin/waybar"
+          "${pkgs.systemd}/bin/systemd-inhibit --what=handle-power-key sleep infinity"
+        ];
         exec = [
           "$(${pkgs.procps}/bin/pkill -u $USER iio_ambient || true) && ${iab}/bin/iio_ambient_brightness -s"
         ];
@@ -450,6 +482,7 @@ in
           "QT_AUTO_SCREEN_SCALE_FACTOR,1"
           "MOZ_ENABLE_WAYLAND,1"
           "GDK_SCALE,1"
+          "YDOTOOL_SOCKET,/run/ydotoold/socket"
         ];
         bind = [
           "ALT SHIFT, 1, movetoworkspacesilent, 1"
@@ -472,6 +505,15 @@ in
           "ALT, 8, workspace, 8"
           "ALT, 9, workspace, 9"
           "ALT, 0, workspace, 10"
+          "ALT, up, movefocus, u"
+          "ALT, left, movefocus, l"
+          "ALT, right, movefocus, r"
+          "ALT, down, movefocus, d"
+          "ALT SHIFT, up, movewindow, u"
+          "ALT SHIFT, left, movewindow, l"
+          "ALT SHIFT, right, movewindow, r"
+          "ALT SHIFT, down, movewindow, d"
+          "ALT, Return, exec, ${pkgs.kitty}/bin/kitty"
           "ALT, D, exec, ${pkgs.wofi}/bin/wofi -D show_all=false --show run"
           ", XF86SelectiveScreenshot, exec, ${pkgs.wayshot}/bin/wayshot -s \"$(${pkgs.slurp}/bin/slurp)\" --stdout | ${pkgs.wl-clipboard}/bin/wl-copy"
           ", Print, exec, ${pkgs.wayshot}/bin/wayshot --stdout | ${pkgs.wl-clipboard}/bin/wl-copy"
@@ -482,6 +524,35 @@ in
           ", XF86MonBrightnessUp, exec, ${iab}/bin/iio_ambient_brightness --increase 10"
           ", XF86MonBrightnessDown, exec, ${iab}/bin/iio_ambient_brightness --decrease 10"
           ", XF86Search, exec, launchpad"
+          # MacOS-like keybindings
+          # https://github.com/torvalds/linux/blob/master/include/uapi/linux/input-event-codes.h
+          # "ALT, M, exec, ${pkgs.ydotool}/bin/ydotool type foo"
+          "ALT, X, exec, ${pkgs.ydotool}/bin/ydotool key 29:1 45:1 45:0 29:0"
+          "ALT, C, exec, ${pkgs.ydotool}/bin/ydotool key 29:1 46:1 46:0 29:0"
+          "ALT SHIFT, C, exec, ${pkgs.ydotool}/bin/ydotool key 29:1 42:1 46:1 46:0 42:0 29:0"
+          "ALT, V, exec, ${pkgs.ydotool}/bin/ydotool key 29:1 47:1 47:0 29:0"
+          "ALT SHIFT, V, exec, ${pkgs.ydotool}/bin/ydotool key 29:1 42:1 47:1 47:0 42:0 29:0"
+          "ALT, Z, exec, ${pkgs.ydotool}/bin/ydotool key 29:1 44:1 44:0 29:0"
+          "ALT, A, exec, ${pkgs.ydotool}/bin/ydotool key 29:1 30:1 30:0 29:0"
+          # Search
+          "ALT, F, exec, ${pkgs.ydotool}/bin/ydotool key 29:1 33:1 33:0 29:0"
+          # Print
+          "ALT, P, exec, ${pkgs.ydotool}/bin/ydotool key 29:1 25:1 25:0 29:0"
+          # Save
+          "ALT, S, exec, ${pkgs.ydotool}/bin/ydotool key 29:1 31:1 31:0 29:0"
+          # Chrome new tab
+          "ALT, T, exec, ${pkgs.ydotool}/bin/ydotool key 29:1 20:1 20:0 29:0"
+          "ALT SHIFT, T, exec, ${pkgs.ydotool}/bin/ydotool key 29:1 42:1 20:1 20:0 42:0 29:0"
+          # Chrome close tab
+          "ALT, W, exec, ${pkgs.ydotool}/bin/ydotool key 29:1 17:1 17:0 29:0"
+          # Chrome page reload
+          "ALT, R, exec, ${pkgs.ydotool}/bin/ydotool key 29:1 19:1 19:0 29:0"
+          # Chrome select url
+          "ALT, L, exec, ${pkgs.ydotool}/bin/ydotool key 29:1 38:1 38:0 29:0"
+          # Chrome history
+          "ALT, Y, exec, ${pkgs.ydotool}/bin/ydotool key 29:1 21:1 21:0 29:0"
+          # Chrome downloads (overlaps with window movements, disabled)
+          # bindsym --to-code $mod+shift+j exec wtype -M ctrl -P j
         ];
         bindl = [
           ", XF86AudioMute, exec, ${pkgs.pulseaudio}/bin/pactl set-sink-mute @DEFAULT_SINK@ toggle"
@@ -492,10 +563,26 @@ in
           ", switch:on:Lid Switch, exec, ${pkgs.hyprland}/bin/hyprctl dispatch dpms off"
           ", switch:off:Lid Switch, exec, ${pkgs.hyprland}/bin/hyprctl dispatch dpms on"
         ];
+        # debug = {
+        #   disable_logs = false;
+        # };
+        device = [
+          {
+            name = "at-translated-set-2-keyboard";
+            kb_variant = "colemak";
+            kb_options = "caps:escape";
+          }
+          {
+            name = "ydotoold-virtual-device";
+            kb_layout = "us";
+            kb_variant = "";
+            # kb_variant = "colemak";
+            kb_options = "";
+          }
+        ];
         input = {
           kb_layout = "us";
-          kb_variant = "colemak";
-          kb_options = "caps:escape";
+          kb_variant = "";
           follow_mouse = 1;
           touchpad = {
             natural_scroll = false;
@@ -513,8 +600,27 @@ in
         dwindle = {
           pseudotile = "yes";
           preserve_split = "yes";
-          no_gaps_when_only = 1;
         };
+
+        workspace = map (x: "${x}, gapsout:0, gapsin:0") [
+          "w[t1]"
+          "w[tg1]"
+          "f[1]"
+        ];
+
+        windowrulev2 = lib.lists.flatten (
+          map
+            (x: [
+              "bordersize 0, floating:0, onworkspace:${x}"
+              "rounding 0, floating:0, onworkspace:${x}"
+            ])
+            [
+              "w[t1]"
+              "w[tg1]"
+              "f[1]"
+            ]
+        );
+
         master = {
           new_status = "master";
         };
@@ -531,7 +637,6 @@ in
 
     windowManager.sway = {
       enable = true;
-      package = (nixGL pkgs.sway);
       wrapperFeatures.gtk = true;
       extraConfig = ''
         set $mode_power (l)ock, (e)xit, (p)oweroff, (r)eboot
@@ -636,16 +741,16 @@ in
         ];
         modes = lib.mkOptionDefault {
           "$mode_power" = {
-            l = "exec loginctl lock-session, mode default";
-            e = "exec i3msg exit";
-            p = "exec systemctl poweroff";
-            r = "exec systemctl reboot";
+            l = "exec ${pkgs.systemd}/bin/loginctl lock-session, mode default";
+            e = "exec ${pkgs.sway}/bin/swaymsg exit";
+            p = "exec ${pkgs.systemd}/bin/systemctl poweroff";
+            r = "exec ${pkgs.systemd}/systemctl reboot";
             Escape = "mode default";
           };
         };
         startup = [
           {
-            command = "systemd-inhibit --what=handle-power-key sleep infinity";
+            command = "${pkgs.systemd}/bin/systemd-inhibit --what=handle-power-key sleep infinity";
             always = false;
           }
           {
@@ -661,93 +766,94 @@ in
             always = true;
           }
         ];
-        keybindings = {
-          "${config.wayland.windowManager.sway.config.modifier}+Return" = "exec ${config.wayland.windowManager.sway.config.terminal}";
-          "${config.wayland.windowManager.sway.config.modifier}+Shift+q" = "kill";
-          "${config.wayland.windowManager.sway.config.modifier}+d" = "exec ${config.wayland.windowManager.sway.config.menu}";
+        keybindings = with config.wayland.windowManager.sway.config; {
+          "${modifier}+Return" = "exec ${terminal}";
+          "${modifier}+Shift+q" = "kill";
+          "${modifier}+d" = "exec ${menu}";
 
-          "${config.wayland.windowManager.sway.config.modifier}+Left" = "focus left";
-          "${config.wayland.windowManager.sway.config.modifier}+Down" = "focus down";
-          "${config.wayland.windowManager.sway.config.modifier}+Up" = "focus up";
-          "${config.wayland.windowManager.sway.config.modifier}+Right" = "focus right";
+          "${modifier}+Left" = "focus left";
+          "${modifier}+Down" = "focus down";
+          "${modifier}+Up" = "focus up";
+          "${modifier}+Right" = "focus right";
 
-          "${config.wayland.windowManager.sway.config.modifier}+Shift+Left" = "move left";
-          "${config.wayland.windowManager.sway.config.modifier}+Shift+Down" = "move down";
-          "${config.wayland.windowManager.sway.config.modifier}+Shift+Up" = "move up";
-          "${config.wayland.windowManager.sway.config.modifier}+Shift+Right" = "move right";
+          "${modifier}+Shift+Left" = "move left";
+          "${modifier}+Shift+Down" = "move down";
+          "${modifier}+Shift+Up" = "move up";
+          "${modifier}+Shift+Right" = "move right";
 
-          # "${config.wayland.windowManager.sway.config.modifier}+h" = "split h";
-          # "${config.wayland.windowManager.sway.config.modifier}+v" = "split v";
-          "${config.wayland.windowManager.sway.config.modifier}+Shift+f" = "fullscreen toggle";
+          # "${modifier}+h" = "split h";
+          # "${modifier}+v" = "split v";
+          "${modifier}+Shift+f" = "fullscreen toggle";
 
-          "${config.wayland.windowManager.sway.config.modifier}+Shift+s" = "layout stacking";
-          "${config.wayland.windowManager.sway.config.modifier}+Shift+w" = "layout tabbed";
-          "${config.wayland.windowManager.sway.config.modifier}+Shift+e" = "layout toggle split";
+          "${modifier}+Shift+s" = "layout stacking";
+          "${modifier}+Shift+w" = "layout tabbed";
+          "${modifier}+Shift+e" = "layout toggle split";
 
-          "${config.wayland.windowManager.sway.config.modifier}+Shift+space" = "floating toggle";
-          "${config.wayland.windowManager.sway.config.modifier}+space" = "focus mode_toggle";
+          "${modifier}+Shift+space" = "floating toggle";
+          "${modifier}+space" = "focus mode_toggle";
 
-          # "${config.wayland.windowManager.sway.config.modifier}+a" = "focus parent";
+          # "${modifier}+a" = "focus parent";
 
-          "${config.wayland.windowManager.sway.config.modifier}+Shift+minus" = "move scratchpad";
-          "${config.wayland.windowManager.sway.config.modifier}+minus" = "scratchpad show";
+          "${modifier}+Shift+minus" = "move scratchpad";
+          "${modifier}+minus" = "scratchpad show";
 
-          "${config.wayland.windowManager.sway.config.modifier}+1" = "workspace number 1";
-          "${config.wayland.windowManager.sway.config.modifier}+2" = "workspace number 2";
-          "${config.wayland.windowManager.sway.config.modifier}+3" = "workspace number 3";
-          "${config.wayland.windowManager.sway.config.modifier}+4" = "workspace number 4";
-          "${config.wayland.windowManager.sway.config.modifier}+5" = "workspace number 5";
-          "${config.wayland.windowManager.sway.config.modifier}+6" = "workspace number 6";
-          "${config.wayland.windowManager.sway.config.modifier}+7" = "workspace number 7";
-          "${config.wayland.windowManager.sway.config.modifier}+8" = "workspace number 8";
-          "${config.wayland.windowManager.sway.config.modifier}+9" = "workspace number 9";
-          "${config.wayland.windowManager.sway.config.modifier}+0" = "workspace number 10";
+          "${modifier}+1" = "workspace number 1";
+          "${modifier}+2" = "workspace number 2";
+          "${modifier}+3" = "workspace number 3";
+          "${modifier}+4" = "workspace number 4";
+          "${modifier}+5" = "workspace number 5";
+          "${modifier}+6" = "workspace number 6";
+          "${modifier}+7" = "workspace number 7";
+          "${modifier}+8" = "workspace number 8";
+          "${modifier}+9" = "workspace number 9";
+          "${modifier}+0" = "workspace number 10";
 
-          "${config.wayland.windowManager.sway.config.modifier}+Shift+1" = "move container to workspace number 1";
-          "${config.wayland.windowManager.sway.config.modifier}+Shift+2" = "move container to workspace number 2";
-          "${config.wayland.windowManager.sway.config.modifier}+Shift+3" = "move container to workspace number 3";
-          "${config.wayland.windowManager.sway.config.modifier}+Shift+4" = "move container to workspace number 4";
-          "${config.wayland.windowManager.sway.config.modifier}+Shift+5" = "move container to workspace number 5";
-          "${config.wayland.windowManager.sway.config.modifier}+Shift+6" = "move container to workspace number 6";
-          "${config.wayland.windowManager.sway.config.modifier}+Shift+7" = "move container to workspace number 7";
-          "${config.wayland.windowManager.sway.config.modifier}+Shift+8" = "move container to workspace number 8";
-          "${config.wayland.windowManager.sway.config.modifier}+Shift+9" = "move container to workspace number 9";
-          "${config.wayland.windowManager.sway.config.modifier}+Shift+0" = "move container to workspace number 10";
+          "${modifier}+Shift+1" = "move container to workspace number 1";
+          "${modifier}+Shift+2" = "move container to workspace number 2";
+          "${modifier}+Shift+3" = "move container to workspace number 3";
+          "${modifier}+Shift+4" = "move container to workspace number 4";
+          "${modifier}+Shift+5" = "move container to workspace number 5";
+          "${modifier}+Shift+6" = "move container to workspace number 6";
+          "${modifier}+Shift+7" = "move container to workspace number 7";
+          "${modifier}+Shift+8" = "move container to workspace number 8";
+          "${modifier}+Shift+9" = "move container to workspace number 9";
+          "${modifier}+Shift+0" = "move container to workspace number 10";
 
-          "${config.wayland.windowManager.sway.config.modifier}+Shift+r" = "reload";
-          "${config.wayland.windowManager.sway.config.modifier}+Shift+x" = "restart";
-          # "${config.wayland.windowManager.sway.config.modifier}+Shift+e" = "exec i3-nagbar -t warning -m 'Do you want to exit i3?' -b 'Yes' 'i3-msg exit'";
+          "${modifier}+Shift+r" = "reload";
+          "${modifier}+Shift+x" = "restart";
+          "${modifier}+e" = "exec ${my_bemoji}/bin/bemoji -t";
+          # "${modifier}+Shift+e" = "exec i3-nagbar -t warning -m 'Do you want to exit i3?' -b 'Yes' 'i3-msg exit'";
 
-          "${config.wayland.windowManager.sway.config.modifier}+n" = "exec ${pkgs.mako}/bin/makoctl dismiss";
-          "${config.wayland.windowManager.sway.config.modifier}+Shift+n" = "exec ${pkgs.mako}/bin/makoctl dismiss -a";
+          "${modifier}+n" = "exec ${pkgs.mako}/bin/makoctl dismiss";
+          "${modifier}+Shift+n" = "exec ${pkgs.mako}/bin/makoctl dismiss -a";
 
-          # "${config.wayland.windowManager.sway.config.modifier}+r" = "mode resize";
+          # "${modifier}+r" = "mode resize";
 
           # MacOS-like keybindings
-          "${config.wayland.windowManager.sway.config.modifier}+x" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P x";
-          "${config.wayland.windowManager.sway.config.modifier}+c" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P c";
-          "${config.wayland.windowManager.sway.config.modifier}+Shift+c" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -M shift -P c";
-          "${config.wayland.windowManager.sway.config.modifier}+v" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P v";
-          "${config.wayland.windowManager.sway.config.modifier}+Shift+v" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -M shift -P v";
-          "${config.wayland.windowManager.sway.config.modifier}+z" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P z";
-          "${config.wayland.windowManager.sway.config.modifier}+a" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P a";
+          "${modifier}+x" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P x";
+          "${modifier}+c" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P c";
+          "${modifier}+Shift+c" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -M shift -P c";
+          "${modifier}+v" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P v";
+          "${modifier}+Shift+v" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -M shift -P v";
+          "${modifier}+z" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P z";
+          "${modifier}+a" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P a";
           # Search
-          "${config.wayland.windowManager.sway.config.modifier}+f" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P f";
+          "${modifier}+f" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P f";
           # Print
-          "${config.wayland.windowManager.sway.config.modifier}+p" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P p";
+          "${modifier}+p" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P p";
           # Save
-          "${config.wayland.windowManager.sway.config.modifier}+s" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P s";
+          "${modifier}+s" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P s";
           # Chrome new tab
-          "${config.wayland.windowManager.sway.config.modifier}+t" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P t";
-          "${config.wayland.windowManager.sway.config.modifier}+Shift+t" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -M shift -P t";
+          "${modifier}+t" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P t";
+          "${modifier}+Shift+t" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -M shift -P t";
           # Chrome close tab
-          "${config.wayland.windowManager.sway.config.modifier}+w" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P w";
+          "${modifier}+w" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P w";
           # Chrome page reload
-          "${config.wayland.windowManager.sway.config.modifier}+r" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P r";
+          "${modifier}+r" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P r";
           # Chrome select url
-          "${config.wayland.windowManager.sway.config.modifier}+l" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P l";
+          "${modifier}+l" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P l";
           # Chrome history
-          "${config.wayland.windowManager.sway.config.modifier}+y" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P h";
+          "${modifier}+y" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P h";
           # Chrome downloads (overlaps with window movements, disabled)
           # bindsym --to-code $mod+shift+j exec wtype -M ctrl -P j
 
@@ -760,7 +866,8 @@ in
           "XF86AudioMicMute" = "exec ${pkgs.pulseaudio}/bin/pactl set-source-mute @DEFAULT_SINK@ toggle";
           "XF86AudioRaiseVolume" = "exec ${pkgs.pulseaudio}/bin/pactl set-sink-volume @DEFAULT_SINK@ +5%";
           "XF86AudioLowerVolume" = "exec ${pkgs.pulseaudio}/bin/pactl set-sink-volume @DEFAULT_SINK@ -5%";
-          "XF86SelectiveScreenshot" = "exec ${pkgs.wayshot}/bin/wayshot -s \"$(${pkgs.slurp}/bin/slurp)\" --stdout | ${pkgs.wl-clipboard}/bin/wl-copy";
+          "XF86SelectiveScreenshot" =
+            "exec ${pkgs.wayshot}/bin/wayshot -s \"$(${pkgs.slurp}/bin/slurp)\" --stdout | ${pkgs.wl-clipboard}/bin/wl-copy";
           "Print" = "exec ${pkgs.wayshot}/bin/wayshot --stdout | ${pkgs.wl-clipboard}/bin/wl-copy";
 
           "--release XF86PowerOff" = "mode \"$mode_power\"";
@@ -769,26 +876,17 @@ in
     };
   };
 
-  services.syncthing = {
-    enable = true;
-    extraOptions = [
-      "--gui-address=0.0.0.0:8384"
-      "--no-default-folder"
-      "--no-browser"
-    ];
-  };
-
   services.swayidle = {
     enable = true;
     extraArgs = [ "-d" ];
     events = [
       {
         event = "before-sleep";
-        command = "/usr/bin/swaylock";
+        command = "${pkgs.hyprlock}/bin/hyprlock";
       }
       {
         event = "lock";
-        command = "/usr/bin/swaylock";
+        command = "${pkgs.hyprlock}/bin/hyprlock";
       }
     ];
     timeouts = [
@@ -799,27 +897,44 @@ in
       }
       {
         timeout = 120;
-        command = "/usr/bin/swaylock";
+        command = "${pkgs.hyprlock}/bin/hyprlock";
       }
       {
         timeout = 300;
-        command = "[ \"$(cat /sys/class/power_supply/AC0/online)\" = \"0\" ] && /usr/bin/systemctl suspend";
+        command = "[ \"$(${pkgs.coreutils}/bin/cat /sys/class/power_supply/AC0/online)\" = \"0\" ] && ${pkgs.systemd}/bin/systemctl suspend";
       }
       {
-        timeout = 10;
-        command = "if ${pkgs.procps}/bin/pgrep -x swaylock; then ${pkgs.sway}/bin/swaymsg \"output * power off\"; fi";
+        timeout = 180;
+        command = "if ${pkgs.procps}/bin/pgrep -x hyprlock; then ${pkgs.sway}/bin/swaymsg \"output * power off\"; fi";
         resumeCommand = "${pkgs.sway}/bin/swaymsg \"output * power on\"";
       }
     ];
   };
 
   fonts.fontconfig.enable = true;
+
+  dconf.settings = {
+    "org/gnome/desktop/background" = {
+      picture-uri-dark = "file://${pkgs.nixos-artwork.wallpapers.nineish-dark-gray.src}";
+    };
+    "org/gnome/desktop/interface" = {
+      color-scheme = "prefer-dark";
+    };
+  };
+
   gtk = {
     enable = true;
-    theme.name = "Adwaita-dark";
+    theme = {
+      name = "Adwaita-dark";
+      package = pkgs.gnome-themes-extra;
+    };
     font = {
       name = "MonaspiceNe Nerd Font";
-      package = pkgs.nerdfonts.override { fonts = [ "Monaspace" ]; };
+      package =
+        if (builtins.compareVersions lib.trivial.release "24.11" == 0) then
+          pkgs.nerdfonts.override { fonts = [ "Monaspace" ]; }
+        else
+          pkgs.nerd-fonts.monaspace;
     };
     gtk3.extraConfig = {
       gtk-application-prefer-dark-theme = true;
@@ -828,6 +943,15 @@ in
       gtk-application-prefer-dark-theme = true;
     };
   };
+
+  home.pointerCursor = {
+    x11.enable = true;
+    gtk.enable = true;
+    package = pkgs.adwaita-icon-theme;
+    name = "Adwaita";
+    size = 48;
+  };
+  home.file.".icons/default".source = "${pkgs.adwaita-icon-theme}/share/icons/Adwaita";
 
   xdg.configFile."wluma/config.toml".text = ''
     [als.iio]
@@ -849,27 +973,10 @@ in
     executable = true;
   };
 
-  home.file."bin/systemGL" = {
-    text = ''
-      #!${pkgs.bash}/bin/bash
-      unset LIBVA_DRIVERS_PATH LIBGL_DRIVERS_PATH LD_LIBRARY_PATH __EGL_VENDOR_LIBRARY_FILENAMES
-      exec "$@"
-    '';
-    executable = true;
-  };
-
-  home.file."bin/brave-browser" = {
-    text = ''
-      #!${pkgs.bash}/bin/bash
-      exec -a "$0" ~/bin/systemGL /usr/bin/brave-browser --enable-features=VaapiVideoDecodeLinuxGL --use-gl=angle --use-angle=gl --ozone-platform=wayland "$@"
-    '';
-    executable = true;
-  };
-
   home.file."bin/discord" = {
     text = ''
       #!${pkgs.bash}/bin/bash
-      exec -a "$0" ~/bin/systemGL /usr/bin/discord --enable-features=UseOzonePlatform --ozone-platform=wayland "$@"
+      exec -a "$0" ~/bin/systemGL ${pkgs.discord}/bin/discord --enable-features=UseOzonePlatform --ozone-platform=wayland "$@"
     '';
     executable = true;
   };
@@ -878,7 +985,7 @@ in
     text = ''
       #!${pkgs.bash}/bin/bash
       export OBSIDIAN_USE_WAYLAND=1
-      exec -a "$0" ~/bin/systemGL /snap/bin/obsidian --ozone-platform=wayland --ozone-platform-hint=auto --enable-features=UseOzonePlatform,WaylandWindowDecorations "$@"
+      exec -a "$0" ~/bin/systemGL ${pkgs.obsidian}/bin/obsidian --ozone-platform=wayland --ozone-platform-hint=auto --enable-features=UseOzonePlatform,WaylandWindowDecorations "$@"
     '';
     executable = true;
   };

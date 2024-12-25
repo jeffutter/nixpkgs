@@ -39,6 +39,7 @@ return {
 				},
 				clangd = {},
 				cssls = {},
+				gopls = {},
 				helm_ls = {},
 				html = {},
 				jsonls = {},
