@@ -192,6 +192,7 @@ in
       cargo-cross
       cargo-expand
       cargo-flamegraph
+      cargo-generate
       cargo-llvm-lines
       cargo-outdated
       cargo-workspaces
