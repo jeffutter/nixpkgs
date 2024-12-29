@@ -482,7 +482,7 @@ in
   };
 
   programs.git = {
-    package = pkgs.gitAndTools.gitFull;
+    package = pkgs.gitAndTools.gitFull.override { svnSupport = false; };
     enable = true;
     userName = "Jeffery Utter";
     extraConfig = {
