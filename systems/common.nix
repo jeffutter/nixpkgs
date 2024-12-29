@@ -55,13 +55,17 @@ let
   tokyonights = pkgs.fetchFromGitHub {
     owner = "folke";
     repo = "tokyonight.nvim";
-    rev = "v3.0.1";
-    sha256 = "sha256-Hgp4mN7uVTWzr3qTozeM6zHcxxe1wkC3xGBnrogsJ4g=";
+    rev = "v4.11.0";
+    sha256 = "sha256-pMzk1gRQFA76BCnIEGBRjJ0bQ4YOf3qecaU6Fl/nqLE=";
   };
+
+  ghostty = (builtins.getFlake "github:ghostty-org/ghostty/v1.0.0").packages.${pkgs.system}.default;
 in
 
 {
-  imports = [ ./options.nix ];
+  imports = [
+    ./ghostty.nix
+  ];
 
   home.packages =
     with pkgs;
@@ -156,7 +160,7 @@ in
       unixtools.watch
       vale
       viddy
-      vimPlugins.vimproc-vim
+      # vimPlugins.vimproc-vim
       vips
       vivid
       my_wakeonlan
@@ -238,6 +242,7 @@ in
     ]
     ++ optionals stdenv.isLinux [
       inotify-tools
+      ghostty
     ]
     ++ optionals stdenv.isDarwin [
       aerospace
@@ -557,7 +562,9 @@ in
         };
         size = 11.0;
       };
-      colors = (fromYaml (tokyonights + "/extras/alacritty/tokyonight_moon.yml")).colors;
+      colors =
+        (builtins.fromTOML (builtins.readFile (tokyonights + "/extras/alacritty/tokyonight_moon.toml")))
+        .colors;
     };
   };
 
@@ -617,6 +624,23 @@ in
 
       dynamic_background_opacity = "yes";
       background_blur = "33";
+    };
+  };
+
+  programs.ghostty = {
+    enable = true;
+    settings = {
+      shell-integration-features = "no-cursor";
+      font-family = "MonaspiceNe Nerd Font Mono";
+      font-thicken = false;
+      font-size = 11;
+      font-feature = [ "+ss02" ];
+      window-decoration = false;
+      macos-titlebar-style = "hidden";
+
+      cursor-style-blink = false;
+
+      theme = (tokyonights + "/extras/ghostty/tokyonight_moon");
     };
   };
 
