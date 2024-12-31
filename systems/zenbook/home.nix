@@ -32,6 +32,8 @@ let
       }
     '';
   };
+
+  ghostty = (builtins.getFlake "github:ghostty-org/ghostty/v1.0.0").packages.${pkgs.system}.default;
 in
 {
   imports = [ ../common.nix ];
@@ -513,7 +515,7 @@ in
           "ALT SHIFT, left, movewindow, l"
           "ALT SHIFT, right, movewindow, r"
           "ALT SHIFT, down, movewindow, d"
-          "ALT, Return, exec, ${pkgs.kitty}/bin/kitty"
+          "ALT, Return, exec, ${ghostty}/bin/ghostty"
           "ALT, D, exec, ${pkgs.wofi}/bin/wofi -D show_all=false --show run"
           ", XF86SelectiveScreenshot, exec, ${pkgs.wayshot}/bin/wayshot -s \"$(${pkgs.slurp}/bin/slurp)\" --stdout | ${pkgs.wl-clipboard}/bin/wl-copy"
           ", Print, exec, ${pkgs.wayshot}/bin/wayshot --stdout | ${pkgs.wl-clipboard}/bin/wl-copy"
@@ -643,7 +645,7 @@ in
       '';
       config = {
         defaultWorkspace = "workspace number 1";
-        terminal = "${pkgs.kitty}/bin/kitty";
+        terminal = "${ghostty}/bin/ghostty";
         menu = "${pkgs.wofi}/bin/wofi -D show_all=false --show run";
         input = {
           "1:1:AT_Translated_Set_2_keyboard" = {
