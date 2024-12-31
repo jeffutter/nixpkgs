@@ -23,6 +23,11 @@
   };
   boot.kernelPackages = pkgs.linuxPackages_latest;
   boot.kernelParams = [ "i915.force_probe=7d45" ];
+  boot.extraModprobeConfig = ''
+    options iwlwifi power_save=1
+    options iwlwifi power_level=1
+    options iwlmvm power_scheme=3
+  '';
   boot.initrd =
     let
       interface = "wlo1";
@@ -77,7 +82,10 @@
   # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
 
   # Enable networking
-  networking.networkmanager.enable = true;
+  networking.networkmanager = {
+    enable = true;
+    wifi.powersave = true;
+  };
 
   # Set your time zone.
   time.timeZone = "America/Chicago";
@@ -211,15 +219,21 @@
   # List services that you want to enable:
 
   # Enable the OpenSSH daemon.
-  services.openssh.enable = true;
+  services.openssh = {
+    enable = true;
+    ports = [ 22 ];
+    openFirewall = true;
+  };
 
   services.tailscale.enable = true;
 
   # Open ports in the firewall.
-  # networking.firewall.allowedTCPPorts = [ ... ];
+  networking.firewall = {
+    allowedTCPPorts = [ 22 ];
+    # Or disable the firewall altogether.
+    enable = true;
+  };
   # networking.firewall.allowedUDPPorts = [ ... ];
-  # Or disable the firewall altogether.
-  # networking.firewall.enable = false;
 
   hardware.graphics = {
     enable = true;
