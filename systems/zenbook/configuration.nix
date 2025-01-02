@@ -288,6 +288,24 @@
   system.autoUpgrade.enable = true;
   system.autoUpgrade.allowReboot = false;
 
+  programs._1password.enable = true;
+  programs._1password-gui = {
+    enable = true;
+    # Certain features, including CLI integration and system authentication support,
+    # require enabling PolKit integration on some desktop environments (e.g. Plasma).
+    polkitPolicyOwners = [ "jeffutter" ];
+  };
+
+  environment.etc = {
+    "1password/custom_allowed_browsers" = {
+      text = ''
+        zen
+        .zen-wrapped
+      '';
+      mode = "0755";
+    };
+  };
+
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions
   # on your system were taken. It‘s perfectly fine and recommended to leave

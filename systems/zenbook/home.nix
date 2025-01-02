@@ -11,6 +11,9 @@ let
     (builtins.getFlake "github:jeffutter/iio_ambient_brightness/v0.2.15")
     .packages.${pkgs.system}.default;
 
+  zenbrowser =
+    (builtins.getFlake "github:0xc000022070/zen-browser-flake").packages.${pkgs.system}.default;
+
   my_zoom = pkgs.symlinkJoin {
     name = "zoom-us";
     paths = [ pkgs.zoom-us ];
@@ -68,6 +71,7 @@ in
       cargoLock = null;
       cargoHash = lib.fakeHash;
     }))
+    zenbrowser
   ];
 
   programs.git.userEmail = "jeff@jeffutter.com";
