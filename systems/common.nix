@@ -63,9 +63,7 @@ let
 in
 
 {
-  imports = [
-    ./ghostty.nix
-  ];
+  imports = [ ];
 
   home.packages =
     with pkgs;
@@ -629,6 +627,10 @@ in
 
   programs.ghostty = {
     enable = true;
+    package = lib.mkIf pkgs.stdenv.targetPlatform.isDarwin (
+      pkgs.runCommandLocal "empty" { } "mkdir $out"
+    );
+    installBatSyntax = lib.mkIf pkgs.stdenv.targetPlatform.isDarwin false; # Fix in master
     settings = {
       shell-integration-features = "no-cursor";
       font-family = "MonaspiceNe Nerd Font Mono";
