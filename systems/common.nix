@@ -633,10 +633,25 @@ in
     installBatSyntax = lib.mkIf pkgs.stdenv.targetPlatform.isDarwin false; # Fix in master
     settings = {
       shell-integration-features = "no-cursor";
-      font-family = "MonaspiceNe Nerd Font Mono";
+      font-family = "MonaspiceNe NFM";
+      font-family-bold = "MonaspiceNe NFM Bold";
+      font-family-italic = "MonaspiceRn NFM Italic";
+      font-family-bold-italic = "MonaspiceRn NFM Bold Italic";
       font-thicken = false;
       font-size = 11;
-      font-feature = [ "+ss02" ];
+      font-feature = [
+        "ss01"
+        "ss02"
+        "ss03"
+        "ss04"
+        "ss05"
+        "ss06"
+        "ss07"
+        "ss08"
+        "ss09"
+        "calt"
+        "liga"
+      ];
       window-decoration = false;
       macos-titlebar-style = "hidden";
 
