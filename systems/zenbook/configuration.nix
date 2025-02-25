@@ -19,7 +19,7 @@
   boot.loader.efi.canTouchEfiVariables = true;
   boot.loader.grub = {
     useOSProber = true;
-    configurationLimit = 3;
+    configurationLimit = 4;
   };
   boot.kernelPackages = pkgs.linuxPackages_latest;
   boot.kernelParams = [ "i915.force_probe=7d45" ];
