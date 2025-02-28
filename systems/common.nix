@@ -53,8 +53,6 @@ let
     rev = "v4.11.0";
     sha256 = "sha256-pMzk1gRQFA76BCnIEGBRjJ0bQ4YOf3qecaU6Fl/nqLE=";
   };
-
-  ghostty = (builtins.getFlake "github:ghostty-org/ghostty/v1.0.0").packages.${pkgs.system}.default;
 in
 
 {

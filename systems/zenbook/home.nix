@@ -36,7 +36,6 @@ let
     '';
   };
 
-  ghostty = (builtins.getFlake "github:ghostty-org/ghostty/v1.0.0").packages.${pkgs.system}.default;
 in
 {
   imports = [ ../common.nix ];
@@ -369,6 +368,8 @@ in
       ];
     };
   };
+
+  programs.ghostty.settings.font-size = 10;
 
   programs.swaylock = {
     enable = true;
