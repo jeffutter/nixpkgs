@@ -11,13 +11,8 @@ let
   inherit (pkgs.lib) optional optionals;
 
   # Temporary until 0.11 is released
-  neovim-nightly-overlay = (
-    import (
-      builtins.fetchTarball {
-        url = "https://github.com/nix-community/neovim-nightly-overlay/archive/master.tar.gz";
-      }
-    )
-  );
+  neovim-nightly =
+    (builtins.getFlake "github:nix-community/neovim-nightly-overlay").packages.${pkgs.system}.default;
 
   ssh-copy-id = pkgs.runCommand "ssh-copy-id" { } ''
     mkdir -p $out/bin
@@ -254,7 +249,6 @@ in
       ]
     );
 
-  nixpkgs.overlays = [ neovim-nightly-overlay ];
   nixpkgs.config.permittedInsecurePackages = [ "p7zip-16.02" ];
 
   nixpkgs.config.allowUnfree = true;
@@ -464,7 +458,7 @@ in
   };
 
   programs.neovim = {
-    package = pkgs.neovim;
+    package = neovim-nightly;
     enable = true;
     vimAlias = true;
     plugins = with pkgs.vimPlugins; [ ];
