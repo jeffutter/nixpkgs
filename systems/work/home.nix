@@ -53,17 +53,29 @@ in
     package = pkgs.jdk;
   };
 
-  programs.git = {
-    userEmail = "jeffery.utter@thescore.com";
-    signing.key = "577723BC097175AA";
-    signing.signByDefault = true;
-    ignores = [
-      ".classpath"
-      ".factorypath"
-      ".project"
-      ".settings"
-    ];
-  };
+  programs.git =
+    let
+      mkWorkConfig = dir: {
+        condition = "gitdir:${dir}";
+        contents = {
+          user.email = "jeffery.utter@thescore.com";
+          signing.key = "577723BC097175AA";
+          commit.gpgSign = true;
+          tag.gpgSign = true;
+        };
+      };
+    in
+    {
+      includes = [
+        (mkWorkConfig "~/theScore/")
+      ];
+      ignores = [
+        ".classpath"
+        ".factorypath"
+        ".project"
+        ".settings"
+      ];
+    };
 
   programs.zsh.oh-my-zsh.plugins = [
     "git"

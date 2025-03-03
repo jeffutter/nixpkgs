@@ -475,6 +475,7 @@ in
     package = pkgs.gitAndTools.gitFull.override { svnSupport = false; };
     enable = true;
     userName = "Jeffery Utter";
+    userEmail = "jeff@jeffutter.com";
     extraConfig = {
       github = {
         user = "jeffutter";
