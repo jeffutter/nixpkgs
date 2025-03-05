@@ -59,7 +59,7 @@ in
         condition = "gitdir:${dir}";
         contents = {
           user.email = "jeffery.utter@thescore.com";
-          signing.key = "577723BC097175AA";
+          signing.key = "~/.ssh/id_ed25519";
           commit.gpgSign = true;
           tag.gpgSign = true;
         };
