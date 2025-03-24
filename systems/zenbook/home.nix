@@ -667,11 +667,26 @@ in
             click_method = "clickfinger";
           };
         };
+        floating = {
+          criteria = [
+            { title = "Picture-in-Picture"; }
+          ];
+        };
         focus = {
           followMouse = false;
           wrapping = "workspace";
         };
-        window.hideEdgeBorders = "smart";
+        window = {
+          commands = [
+            {
+              command = "move position 1000 630, sticky enable";
+              criteria = {
+                title = "Picture-in-Picture";
+              };
+            }
+          ];
+          hideEdgeBorders = "smart";
+        };
         gaps = {
           inner = 5;
           outer = 2;
