@@ -20,7 +20,7 @@ rustPlatform.buildRustPackage rec {
     sha256 = "sha256-Ne4ZABsVNunAKoDoLflla5Tp0mMUmP1XHf1ijWRzjGs=";
   };
 
-  cargoHash = "sha256-h51kf+4zfwUYOtbpCCMYIfp/AzHgdOCy5HPimiB3hlA=";
+  cargoHash = "sha256-TMsaxniSES47Y/+/+3Apcw0QWG1diVqjInt3V1DZwN8=";
 
   meta = with lib; {
     description = "Simple wake-on-lan program written in Rust";
