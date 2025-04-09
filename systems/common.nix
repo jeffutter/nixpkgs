@@ -127,6 +127,7 @@ in
       nodejs
       ngrok
       nodePackages.bash-language-server
+      ollama
       p7zip
       pigz
       pixz
