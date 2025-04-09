@@ -16,6 +16,56 @@ in
       accordion-padding = 30;
       on-focused-monitor-changed = [ "move-mouse monitor-lazy-center" ];
       on-focus-changed = [ "move-mouse window-lazy-center" ];
+      on-window-detected = [
+        {
+          "if" = {
+            app-id = "com.mitchellh.ghostty";
+          };
+          run = "move-node-to-workspace 1";
+        }
+        {
+          "if" = {
+            app-id = "app.zen-browser.zen";
+          };
+          run = "move-node-to-workspace 1";
+        }
+        {
+          "if" = {
+            app-id = "com.tinyspeck.slackmacgap";
+          };
+          run = "move-node-to-workspace 2";
+        }
+        {
+          "if" = {
+            app-id = "com.apple.MobileSMS";
+          };
+          run = "move-node-to-workspace 2";
+        }
+        {
+          "if" = {
+            app-id = "com.hnc.Discord";
+          };
+          run = "move-node-to-workspace 2";
+        }
+        {
+          "if" = {
+            app-id = "com.apple.mail";
+          };
+          run = "move-node-to-workspace 3";
+        }
+        {
+          "if" = {
+            app-id = "com.microsoft.Outlook";
+          };
+          run = "move-node-to-workspace 3";
+        }
+        {
+          "if" = {
+            app-id = "com.apple.iCal";
+          };
+          run = "move-node-to-workspace 4";
+        }
+      ];
       after-startup-command = [
         "exec-and-forget borders active_color=0xffe1e3e4 inactive_color=0xff494d64 width=5.0"
       ];
@@ -60,6 +110,8 @@ in
       mode = {
         main = {
           binding = {
+            cmd-h = [ ];
+            cmd-alt-h = [ ];
             alt-enter = "exec-and-forget open -n ~/Applications/Ghostty.app";
             alt-left = "focus left";
             alt-down = "focus down";
