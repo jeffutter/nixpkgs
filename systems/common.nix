@@ -10,10 +10,6 @@
 let
   inherit (pkgs.lib) optional optionals;
 
-  # Temporary until 0.11 is released
-  neovim-nightly =
-    (builtins.getFlake "github:nix-community/neovim-nightly-overlay").packages.${pkgs.system}.default;
-
   ssh-copy-id = pkgs.runCommand "ssh-copy-id" { } ''
     mkdir -p $out/bin
     ln -s ${pkgs.openssh}/bin/ssh-copy-id $out/bin/ssh-copy-id
@@ -457,7 +453,6 @@ in
   };
 
   programs.neovim = {
-    package = neovim-nightly;
     enable = true;
     vimAlias = true;
     plugins = with pkgs.vimPlugins; [ ];
