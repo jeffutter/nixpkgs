@@ -57,6 +57,7 @@ in
   home.packages =
     with pkgs;
     [
+      aider-chat
       aspell
       aspellDicts.en
       aspellDicts.en-computers
