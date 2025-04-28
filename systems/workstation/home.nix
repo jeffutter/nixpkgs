@@ -13,6 +13,10 @@ in
     cargo-watch
   ];
 
+  programs.ghostty = {
+    enable = false;
+  };
+
   programs.git.userEmail = "jeff@jeffutter.com";
 
   programs.zsh.oh-my-zsh.plugins = [

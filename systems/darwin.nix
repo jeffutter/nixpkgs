@@ -8,6 +8,10 @@ in
     tilesize = 48;
   };
 
+  programs.ghostty = {
+    enable = true;
+  };
+
   programs.aerospace = {
     enable = true;
     userSettings = {

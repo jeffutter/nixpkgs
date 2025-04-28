@@ -231,7 +231,6 @@ in
     ]
     ++ optionals stdenv.isLinux [
       inotify-tools
-      ghostty
     ]
     ++ optionals stdenv.isDarwin [
       aerospace
@@ -616,7 +615,6 @@ in
   };
 
   programs.ghostty = {
-    enable = true;
     package = lib.mkIf pkgs.stdenv.targetPlatform.isDarwin (
       pkgs.runCommandLocal "empty" { } "mkdir $out"
     );
