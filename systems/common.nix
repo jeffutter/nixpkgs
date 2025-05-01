@@ -57,6 +57,7 @@ in
   home.packages =
     with pkgs;
     [
+      aider-chat
       aspell
       aspellDicts.en
       aspellDicts.en-computers
@@ -503,21 +504,22 @@ in
     };
     includes = [ { path = (tokyonights + "/extras/delta/tokyonight_moon.gitconfig"); } ];
     ignores = [
-      "DS_Store"
       ".DS_Store?"
-      "._*"
       ".Spotlight-V100"
       ".Trashes"
-      "ehthumbs.db"
+      "._*"
+      ".aider*"
+      ".direnv"
+      ".elixir_ls"
+      ".envrc"
+      ".vscode"
+      "DS_Store"
       "Thumbs.db"
+      "ehthumbs.db"
+      "hs_err*"
       "project-notes.org"
       "project_notes.org"
-      ".elixir_ls"
-      ".vscode"
       "shell.nix"
-      ".envrc"
-      ".direnv"
-      "hs_err*"
     ];
   };
 
