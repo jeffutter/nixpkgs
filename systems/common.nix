@@ -30,18 +30,7 @@ let
       ];
   });
 
-  my_wakeonlan = pkgs.callPackage ../pkgs/wakeonlan { };
-
   ltex-lsp = pkgs.callPackage ../pkgs/ltex-lsp { };
-
-  fromYaml =
-    path:
-    let
-      jsonOutputDrv = pkgs.runCommand "from-yaml" {
-        nativeBuildInputs = [ pkgs.remarshal ];
-      } ''remarshal -if yaml -i "${path}" -of json -o "$out"'';
-    in
-    builtins.fromJSON (builtins.readFile jsonOutputDrv);
 
   tokyonights = pkgs.fetchFromGitHub {
     owner = "folke";
@@ -152,7 +141,7 @@ in
       # vimPlugins.vimproc-vim
       vips
       vivid
-      my_wakeonlan
+      (builtins.getFlake "github:jeffutter/wakeonlan-rust/v0.1.1")
       wavpack
       wget
       xz
