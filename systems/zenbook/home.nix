@@ -49,6 +49,7 @@ in
     cargo-watch
     clang
     discord
+    gnome-power-manager
     iab
     mako
     my_zoom
