@@ -30,18 +30,7 @@ let
       ];
   });
 
-  my_wakeonlan = pkgs.callPackage ../pkgs/wakeonlan { };
-
   ltex-lsp = pkgs.callPackage ../pkgs/ltex-lsp { };
-
-  fromYaml =
-    path:
-    let
-      jsonOutputDrv = pkgs.runCommand "from-yaml" {
-        nativeBuildInputs = [ pkgs.remarshal ];
-      } ''remarshal -if yaml -i "${path}" -of json -o "$out"'';
-    in
-    builtins.fromJSON (builtins.readFile jsonOutputDrv);
 
   tokyonights = pkgs.fetchFromGitHub {
     owner = "folke";
@@ -152,7 +141,7 @@ in
       # vimPlugins.vimproc-vim
       vips
       vivid
-      my_wakeonlan
+      (builtins.getFlake "github:jeffutter/wakeonlan-rust/v0.1.1")
       wavpack
       wget
       xz
@@ -168,7 +157,7 @@ in
       # Elixir
       elixir
       elixir_ls
-      beamMinimalPackages.erlang
+      erlang_nox
 
       # Rust
       cargo
@@ -503,21 +492,22 @@ in
     };
     includes = [ { path = (tokyonights + "/extras/delta/tokyonight_moon.gitconfig"); } ];
     ignores = [
-      "DS_Store"
       ".DS_Store?"
-      "._*"
       ".Spotlight-V100"
       ".Trashes"
-      "ehthumbs.db"
+      "._*"
+      ".aider*"
+      ".direnv"
+      ".elixir_ls"
+      ".envrc"
+      ".vscode"
+      "DS_Store"
       "Thumbs.db"
+      "ehthumbs.db"
+      "hs_err*"
       "project-notes.org"
       "project_notes.org"
-      ".elixir_ls"
-      ".vscode"
       "shell.nix"
-      ".envrc"
-      ".direnv"
-      "hs_err*"
     ];
   };
 
