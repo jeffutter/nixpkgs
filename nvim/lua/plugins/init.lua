@@ -542,6 +542,13 @@ return {
 	},
 
 	{
+		"saecki/crates.nvim",
+		tag = "stable",
+		config = function()
+			require("crates").setup()
+		end,
+	},
+	{
 		"pwntester/octo.nvim",
 		cmd = "Octo",
 		config = true,
