@@ -155,9 +155,9 @@ in
       input-fonts
 
       # Elixir
-      elixir
-      elixir_ls
-      erlang_nox
+      beamMinimalPackages.elixir
+      beamMinimalPackages.elixir-ls
+      beamMinimalPackages.erlang
 
       # Rust
       cargo
