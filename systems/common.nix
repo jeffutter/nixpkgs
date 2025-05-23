@@ -153,6 +153,7 @@ in
       roboto
       roboto-mono
       input-fonts
+      font-awesome
 
       # Elixir
       elixir
