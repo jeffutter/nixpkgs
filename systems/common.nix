@@ -158,7 +158,7 @@ in
       # Elixir
       elixir
       elixir_ls
-      erlang_nox
+      beamMinimalPackages.erlang
 
       # Rust
       cargo
