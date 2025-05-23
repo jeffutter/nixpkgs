@@ -35,7 +35,6 @@ let
       }
     '';
   };
-
 in
 {
   imports = [ ../common.nix ];
@@ -73,6 +72,10 @@ in
     }))
     zenbrowser
   ];
+
+  programs.ghostty = {
+    enable = true;
+  };
 
   programs.git.userEmail = "jeff@jeffutter.com";
 

@@ -156,8 +156,8 @@ in
       font-awesome
 
       # Elixir
-      elixir
-      elixir_ls
+      beamMinimalPackages.elixir
+      beamMinimalPackages.elixir-ls
       beamMinimalPackages.erlang
 
       # Rust
@@ -221,7 +221,6 @@ in
     ]
     ++ optionals stdenv.isLinux [
       inotify-tools
-      ghostty
     ]
     ++ optionals stdenv.isDarwin [
       aerospace
@@ -459,7 +458,6 @@ in
   };
 
   programs.git = {
-    package = pkgs.gitAndTools.gitFull.override { svnSupport = false; };
     enable = true;
     userName = "Jeffery Utter";
     userEmail = "jeff@jeffutter.com";
@@ -607,7 +605,6 @@ in
   };
 
   programs.ghostty = {
-    enable = true;
     package = lib.mkIf pkgs.stdenv.targetPlatform.isDarwin (
       pkgs.runCommandLocal "empty" { } "mkdir $out"
     );
