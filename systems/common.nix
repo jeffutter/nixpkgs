@@ -237,8 +237,6 @@ in
     ++ optionals stdenv.isDarwin (
       with darwin.apple_sdk.frameworks;
       [
-        CoreFoundation
-        CoreServices
       ]
     );
 
@@ -911,7 +909,6 @@ in
     enable = true;
     enableZshIntegration = true;
     enableFishIntegration = true;
-    inheritType = "any";
   };
 
   programs.starship = {
