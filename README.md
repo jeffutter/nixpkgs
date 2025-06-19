@@ -2,9 +2,9 @@
 
 ## Install Nix
 ```bash
-mkdir .config
-git clone git@github.com:jeffutter/nixpkgs.git .config/home-manager
-ln -s .config/nixpkgs/systems/<name>/home.nix .config/home-manager/home.nix
+mkdir -p ~/.config
+git clone git@github.com:jeffutter/nixpkgs.git ~/.config/home-manager
+ln -s ~/.config/home-manager/systems/<name>/home.nix ~/.config/home-manager/home.nix
 sh <(curl -L https://nixos.org/nix/install)
 ```
 

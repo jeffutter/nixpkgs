@@ -192,7 +192,7 @@ in
       go
       gofumpt
       gomodifytags
-      gopls
+      #gopls
       gore
       goreleaser
       gotest
@@ -851,7 +851,7 @@ in
         autoload -U $fpath[1]/*(:t)
       fi
     '';
-    initExtra = ''
+    initContent = ''
       if [ "$(command -v eza)" ]; then
           unalias -m 'll'
           unalias -m 'l'
