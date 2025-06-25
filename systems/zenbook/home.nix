@@ -35,6 +35,15 @@ let
       }
     '';
   };
+
+  my_todoist = pkgs.symlinkJoin {
+    name = "todist-electron";
+    paths = [ pkgs.todoist-electron ];
+    buildInputs = [ pkgs.makeWrapper ];
+    postBuild = ''
+      wrapProgram $out/bin/todoist-electron --add-flags '--ozone-platform-hint=auto --enable-features=WaylandWindowDecorations --enable-wayland-ime=true'
+    '';
+  };
 in
 {
   imports = [ ../common.nix ];
@@ -55,21 +64,12 @@ in
     obsidian
     pavucontrol
     slurp
+    my_todoist
     wayshot
     wl-clipboard
     wlsunset
     wofi
-    (pkgs.wluma.overrideAttrs (old: rec {
-      version = "4.4.0";
-
-      src = old.src.overrideAttrs (_: {
-        sha256 = "sha256-Ow3SjeulYiHY9foXrmTtLK3F+B3+DrtDjBUke3bJeDw=";
-        rev = version;
-      });
-
-      cargoLock = null;
-      cargoHash = lib.fakeHash;
-    }))
+    wluma
     zenbrowser
   ];
 
@@ -99,13 +99,13 @@ in
 
   programs.waybar = {
     enable = true;
-    # style = ''
-    #   * {
-    #     font-family: "MonaspiceNe Nerd Font";
-    #   }
-    # '';
     settings = {
       mainBar = {
+        style = ''
+          * {
+            font-family: "MonaspiceNe Nerd Font", Font Awesome 6 Free Solid;
+          }
+        '';
         layer = "top";
         position = "bottom";
         height = 25;
@@ -453,7 +453,9 @@ in
             block = "cpu";
             interval = 1;
           }
-          { block = "sound"; }
+          {
+            block = "sound";
+          }
           { block = "backlight"; }
           # { block = "hueshift"; }
           { block = "battery"; }
