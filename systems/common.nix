@@ -105,6 +105,7 @@ in
         }
       ))
       lftp
+      lua-language-server
       ltex-lsp
       mprocs
       mosh

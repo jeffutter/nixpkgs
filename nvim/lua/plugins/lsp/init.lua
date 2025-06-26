@@ -54,7 +54,7 @@ return {
 					flags = { debounce_text_changes = 300 },
 				},
 				lua_ls = {
-					-- mason = false, -- set to false if you don't want this server to be installed with mason
+					mason = false, -- set to false if you don't want this server to be installed with mason
 					settings = {
 						Lua = {
 							workspace = {
