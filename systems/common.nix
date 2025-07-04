@@ -182,11 +182,19 @@ in
       cargo-workspaces
       cargo-udeps
       clippy
-      evcxr
       rust-analyzer
       rustc
       rustfmt
       sqlx-cli
+
+      # Ai
+      claude-code
+      (python3Packages.python.withPackages (
+        ps: with ps; [
+          pandas
+          pyarrow
+        ]
+      ))
 
       # Go
       delve
