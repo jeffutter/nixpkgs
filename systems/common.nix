@@ -115,15 +115,16 @@ in
       nodejs
       ngrok
       nodePackages.bash-language-server
-      (pkgs.ollama.overrideAttrs (old: rec {
-        version = "0.9.0";
-        src = pkgs.fetchFromGitHub {
-          owner = "ollama";
-          repo = "ollama";
-          rev = "v${version}";
-          sha256 = "sha256-+8UHE9M2JWUARuuIRdKwNkn1hoxtuitVH7do5V5uEg0=";
-        };
-      }))
+      ollama
+      # (pkgs.ollama.overrideAttrs (old: rec {
+      #   version = "0.9.0";
+      #   src = pkgs.fetchFromGitHub {
+      #     owner = "ollama";
+      #     repo = "ollama";
+      #     rev = "v${version}";
+      #     sha256 = "sha256-+8UHE9M2JWUARuuIRdKwNkn1hoxtuitVH7do5V5uEg0=";
+      #   };
+      # }))
       p7zip
       pigz
       pixz
