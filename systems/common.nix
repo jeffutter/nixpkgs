@@ -60,6 +60,7 @@ in
       brotli
       bzip2
       cachix
+      colmena
       comma
       curl
       difftastic
