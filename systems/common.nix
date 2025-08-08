@@ -46,7 +46,6 @@ in
   home.packages =
     with pkgs;
     [
-      aider-chat
       aspell
       aspellDicts.en
       aspellDicts.en-computers
@@ -113,18 +112,8 @@ in
       ncdu_1
       nixfmt-rfc-style
       nodejs
-      ngrok
       nodePackages.bash-language-server
       ollama
-      # (pkgs.ollama.overrideAttrs (old: rec {
-      #   version = "0.9.0";
-      #   src = pkgs.fetchFromGitHub {
-      #     owner = "ollama";
-      #     repo = "ollama";
-      #     rev = "v${version}";
-      #     sha256 = "sha256-+8UHE9M2JWUARuuIRdKwNkn1hoxtuitVH7do5V5uEg0=";
-      #   };
-      # }))
       p7zip
       pigz
       pixz
