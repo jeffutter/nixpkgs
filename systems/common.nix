@@ -927,10 +927,19 @@ in
           Ciphers = "3des-cbc";
         };
       };
-      "k3s" = {
-        host = "k3s";
+      "homelab" = {
+        host = "homelab";
         hostname = "192.168.10.4";
-        user = "jeffutter";
+        user = "root";
+        forwardAgent = true;
+        extraOptions = {
+          RequestTTY = "yes";
+        };
+      };
+      "ns1" = {
+        host = "ns1";
+        hostname = "192.168.10.11";
+        user = "root";
         forwardAgent = true;
         extraOptions = {
           RequestTTY = "yes";
@@ -976,15 +985,6 @@ in
         host = "work";
         hostname = "192.168.10.6";
         user = "Jeffery.Utter";
-        forwardAgent = true;
-        extraOptions = {
-          RequestTTY = "yes";
-        };
-      };
-      "uconsole" = {
-        host = "uconsole";
-        hostname = "192.168.10.16";
-        user = "jeffutter";
         forwardAgent = true;
         extraOptions = {
           RequestTTY = "yes";
