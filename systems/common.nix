@@ -232,7 +232,6 @@ in
     ]
     ++ optionals stdenv.isDarwin [
       aerospace
-      skhd
     ]
     ++ optionals stdenv.isDarwin (
       with darwin.apple_sdk.frameworks;
@@ -272,74 +271,6 @@ in
     source = ../bin/upgrade;
     executable = true;
   };
-
-  home.file.".amethyst.yml" = lib.mkIf pkgs.stdenv.targetPlatform.isDarwin {
-    text = ''
-      layouts:
-          - fullscreen
-          - middle-wide
-          - wide
-          - widescreen-tall
-          - column
-          - bsp
-
-      mod1:
-          - option
-          - shift
-      mod2:
-          - option
-          - shift
-          - control
-
-      window-margins: true
-      window-margin-size: 10
-      smart-window-margins: true
-      mouse-follows-focus: true
-      focus-follows-mouse: false
-    '';
-  };
-
-  home.file.".config/skhd/skhdrc" = lib.mkIf pkgs.stdenv.targetPlatform.isDarwin {
-    text = ''
-      cmd + alt - b ; launcher
-      launcher < b : open -a 'Brave Browser'
-      launcher < m : open -a 'Messages'
-      launcher < o : open -a 'Obsidian'
-      launcher < a : open -a 'Alacritty'
-      launcher < l : open -a 'Mail'
-      launcher < c : open -a 'Calendar'
-      ctrl + alt + shift - b : open -a 'Brave Browser'
-      ctrl + alt + shift - m : open -a 'Messages'
-      ctrl + alt + shift - o : open -a 'Obsidian'
-      ctrl + alt + shift - a : open -a 'Alacritty'
-      ctrl + alt + shift - l : open -a 'Mail'
-      ctrl + alt + shift - c : open -a 'Calendar'
-      cmd - return : open -a 'Alacritty'
-    '';
-  };
-
-  # launchd.agents.skhd = lib.mkIf pkgs.stdenv.targetPlatform.isDarwin {
-  #   enable = true;
-  #   config = {
-  #     ProgramArguments = [
-  #       "${pkgs.skhd}/bin/skhd"
-  #       "-c"
-  #       "${config.xdg.configHome}/skhd/skhdrc"
-  #     ];
-  #     KeepAlive = true;
-  #     ProcessType = "Interactive";
-  #     EnvironmentVariables = {
-  #       PATH = lib.concatStringsSep ":" [
-  #         "${config.home.homeDirectory}/.nix-profile/bin"
-  #         "/run/current-system/sw/bin"
-  #         "/nix/var/nix/profiles/default/"
-  #         "/usr/bin"
-  #       ];
-  #     };
-  #     StandardOutPath = "${config.xdg.cacheHome}/skhd.out.log";
-  #     StandardErrorPath = "${config.xdg.cacheHome}/skhd.err.log";
-  #   };
-  # };
 
   home.file.".config/vivid" = {
     source = ../vivid;
@@ -517,82 +448,15 @@ in
     ];
   };
 
-  programs.alacritty = {
-    enable = true;
-    settings = {
-      general = {
-        live_config_reload = true;
-      };
-      window = {
-        decorations = "none";
-      };
-      font = {
-        normal = {
-          family = "MonaspiceNe Nerd Font Mono";
-          style = "Regular";
-        };
-        bold = {
-          family = "MonaspiceNe Nerd Font Mono";
-          style = "Bold";
-        };
-        italic = {
-          family = "MonaspiceRn Nerd Font Mono";
-          style = "Regular";
-        };
-        bold_italic = {
-          family = "MonaspiceRn Nerd Font Mono";
-          style = "Bold";
-        };
-        size = 11.0;
-      };
-      colors =
-        (builtins.fromTOML (builtins.readFile (tokyonights + "/extras/alacritty/tokyonight_moon.toml")))
-        .colors;
-    };
-  };
-
-  programs.wezterm = {
-    enable = true;
-    extraConfig = ''
-      local config = wezterm.config_builder()
-
-      config.color_scheme = 'tokyonight_storm'
-      config.enable_tab_bar = false
-      config.font = wezterm.font({ family = "MonaspiceNe Nerd Font Mono", weight = "Medium" })
-      config.font_size = 11.0
-      config.font_rules = {
-        {
-          intensity = "Normal",
-          italic = true,
-          font = wezterm.font { family = "MonaspiceRn Nerd Font Mono", weight = "Regular", harfbuzz_features = { 'ss02' } },
-        },
-        {
-          intensity = "Bold",
-          italic = false,
-          font = wezterm.font { family = "MonaspiceNe Nerd Font Mono", weight = "ExtraBold" },
-        },
-        {
-          intensity = "Bold",
-          italic = true,
-          font = wezterm.font { family = "MonaspiceRn Nerd Font Mono", weight = "ExtraBold", harfbuzz_features = { 'ss02' } },
-        },
-      }
-      config.window_decorations = "RESIZE"
-
-      return config
-    '';
-  };
-
   programs.kitty = {
     enable = true;
-    extraConfig =
-      ''
-        font_features MonoLisaNerdFont-Italic +ss02
-        font_features MonoLisaNerdFont-Bold-Italic +ss02
-        font_features MonaspiceRnNFM-Italic +ss02
-        font_features MonaspiceRnNFM-BoldItalic +ss02
-      ''
-      + builtins.readFile (tokyonights + "/extras/kitty/tokyonight_moon.conf");
+    extraConfig = ''
+      font_features MonoLisaNerdFont-Italic +ss02
+      font_features MonoLisaNerdFont-Bold-Italic +ss02
+      font_features MonaspiceRnNFM-Italic +ss02
+      font_features MonaspiceRnNFM-BoldItalic +ss02
+    ''
+    + builtins.readFile (tokyonights + "/extras/kitty/tokyonight_moon.conf");
     settings = {
       font_family = "MonaspiceNe Nerd Font Mono";
       bold_font = "MonaspiceNe Nerd Font Mono Bold";
@@ -664,18 +528,17 @@ in
     shell = "${pkgs.fish}/bin/fish";
     shortcut = "a";
     terminal = "tmux-256color";
-    extraConfig =
-      ''
-        set-option -g default-command "fish"
-        set -ga terminal-overrides ",*256col*:Tc"
-        set -as terminal-overrides ',*:Smulx=\E[4::%p1%dm'  # undercurl support
-        set -as terminal-overrides ',*:Setulc=\E[58::2::%p1%{65536}%/%d::%p1%{256}%/%{255}%&%d::%p1%{255}%&%d%;m'  # underscore colours - needs tmux-3.0
-        set -g status-keys vi
-        set -g mode-keys   vi
-        bind-key N swap-window -t +1 \; next-window
-        bind-key P swap-window -t -1 \; previous-window
-      ''
-      + builtins.readFile (tokyonights + "/extras/tmux/tokyonight_moon.tmux");
+    extraConfig = ''
+      set-option -g default-command "fish"
+      set -ga terminal-overrides ",*256col*:Tc"
+      set -as terminal-overrides ',*:Smulx=\E[4::%p1%dm'  # undercurl support
+      set -as terminal-overrides ',*:Setulc=\E[58::2::%p1%{65536}%/%d::%p1%{256}%/%{255}%&%d::%p1%{255}%&%d%;m'  # underscore colours - needs tmux-3.0
+      set -g status-keys vi
+      set -g mode-keys   vi
+      bind-key N swap-window -t +1 \; next-window
+      bind-key P swap-window -t -1 \; previous-window
+    ''
+    + builtins.readFile (tokyonights + "/extras/tmux/tokyonight_moon.tmux");
     plugins = with pkgs.tmuxPlugins; [
       yank
       prefix-highlight
@@ -760,26 +623,25 @@ in
       set -gx ATUIN_NOBIND "true"
       set -x RUST_SRC_PATH "${pkgs.rust.packages.stable.rustPlatform.rustLibSrc}";
     '';
-    interactiveShellInit =
-      ''
-        fish_vi_key_bindings
-        bind -M default vv edit_command_buffer
+    interactiveShellInit = ''
+      fish_vi_key_bindings
+      bind -M default vv edit_command_buffer
 
-        bind \cr _atuin_search
-        bind -M insert \cr _atuin_search
+      bind \cr _atuin_search
+      bind -M insert \cr _atuin_search
 
-        source ${pkgs.docker}/share/fish/vendor_completions.d/docker.fish
+      source ${pkgs.docker}/share/fish/vendor_completions.d/docker.fish
 
-        set -x GPG_TTY (tty)
-        set -x PINENTRY_USER_DATA "USE_CURSES=1"
-        set -x COLORTERM truecolor
-        set -x AWS_DEFAULT_REGION "us-east-1";
-        set -x AWS_PAGER "";
-        set -x EDITOR "nvim";
+      set -x GPG_TTY (tty)
+      set -x PINENTRY_USER_DATA "USE_CURSES=1"
+      set -x COLORTERM truecolor
+      set -x AWS_DEFAULT_REGION "us-east-1";
+      set -x AWS_PAGER "";
+      set -x EDITOR "nvim";
 
-        set -x LS_COLORS "$(vivid generate tokyonight_moon)"
-      ''
-      + builtins.readFile (tokyonights + "/extras/fish/tokyonight_moon.fish");
+      set -x LS_COLORS "$(vivid generate tokyonight_moon)"
+    ''
+    + builtins.readFile (tokyonights + "/extras/fish/tokyonight_moon.fish");
   };
 
   programs.zsh = {
