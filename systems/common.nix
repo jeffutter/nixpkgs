@@ -85,7 +85,6 @@ in
       imagemagick
       ispell
       jq
-      jujutsu
       just
       k6
       k9s
@@ -353,16 +352,6 @@ in
         "--fields"
         "password"
       ];
-    };
-  };
-
-  programs.jujutsu = {
-    enable = true;
-    settings = {
-      user = {
-        email = "jeff@jeffutter.com";
-        name = "Jeffery Utter";
-      };
     };
   };
 
