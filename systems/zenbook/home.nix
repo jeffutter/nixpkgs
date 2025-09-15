@@ -980,7 +980,6 @@ in
     gtk.enable = true;
     package = pkgs.adwaita-icon-theme;
     name = "Adwaita";
-    size = 48;
   };
   home.file.".icons/default".source = "${pkgs.adwaita-icon-theme}/share/icons/Adwaita";
 
