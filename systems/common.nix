@@ -16,18 +16,17 @@ let
   '';
 
   gnutar = pkgs.gnutar.overrideAttrs (old: {
-    configureFlags =
-      [
-        "--with-gzip=pigz"
-        "--with-xz=pixz"
-        "--with-bzip2=pbzip2"
-        "--with-zstd=pzstd"
-      ]
-      ++ optionals pkgs.stdenv.isDarwin [
-        "gt_cv_func_CFPreferencesCopyAppValue=no"
-        "gt_cv_func_CFLocaleCopyCurrent=no"
-        "gt_cv_func_CFLocaleCopyPreferredLanguages=no"
-      ];
+    configureFlags = [
+      "--with-gzip=pigz"
+      "--with-xz=pixz"
+      "--with-bzip2=pbzip2"
+      "--with-zstd=pzstd"
+    ]
+    ++ optionals pkgs.stdenv.isDarwin [
+      "gt_cv_func_CFPreferencesCopyAppValue=no"
+      "gt_cv_func_CFLocaleCopyCurrent=no"
+      "gt_cv_func_CFLocaleCopyPreferredLanguages=no"
+    ];
   });
 
   ltex-lsp = pkgs.callPackage ../pkgs/ltex-lsp { };
