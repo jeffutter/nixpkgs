@@ -362,6 +362,9 @@ in
         email = "jeff@jeffutter.com";
         name = "Jeffery Utter";
       };
+      ui = {
+        default-command = "log";
+      };
     };
   };
 
