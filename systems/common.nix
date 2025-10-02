@@ -899,6 +899,7 @@ in
 
   programs.ssh = {
     enable = true;
+    enableDefaultConfig = false;
     extraOptionOverrides = {
       StrictHostKeyChecking = "no";
       userKnownHostsFile = "/dev/null";
@@ -907,6 +908,14 @@ in
       AddKeysToAgent = "yes";
     };
     matchBlocks = {
+      "*" = {
+        forwardAgent = false;
+        compression = true;
+        addKeysToAgent = "no";
+        hashKnownHosts = true;
+        userKnownHostsFile = "~/.ssh/known_hosts";
+        identityFile = "~/.ssh/id_ed25519";
+      };
       "borg" = {
         host = "borg";
         hostname = "192.168.10.8";
