@@ -912,7 +912,6 @@ in
         addKeysToAgent = "no";
         hashKnownHosts = true;
         userKnownHostsFile = "~/.ssh/known_hosts";
-        identityFile = "~/.ssh/id_ed25519";
       };
       "borg" = {
         host = "borg";
@@ -921,6 +920,7 @@ in
         extraOptions = {
           Ciphers = "3des-cbc";
         };
+        identityFile = "~/.ssh/id_ed25519";
       };
       "homelab" = {
         host = "homelab";
@@ -930,6 +930,7 @@ in
         extraOptions = {
           RequestTTY = "yes";
         };
+        identityFile = "~/.ssh/id_ed25519";
       };
       "ns1" = {
         host = "ns1";
@@ -939,6 +940,7 @@ in
         extraOptions = {
           RequestTTY = "yes";
         };
+        identityFile = "~/.ssh/id_ed25519";
       };
       "workstation" = {
         host = "workstation";
@@ -948,6 +950,7 @@ in
         extraOptions = {
           RequestTTY = "yes";
         };
+        identityFile = "~/.ssh/id_ed25519";
       };
       "zenbook" = {
         host = "zenbook";
@@ -957,6 +960,7 @@ in
         extraOptions = {
           RequestTTY = "yes";
         };
+        identityFile = "~/.ssh/id_ed25519";
       };
       "laptop" = {
         host = "laptop";
@@ -966,6 +970,7 @@ in
         extraOptions = {
           RequestTTY = "yes";
         };
+        identityFile = "~/.ssh/id_ed25519";
       };
       "old-laptop" = {
         host = "old-laptop";
@@ -975,6 +980,7 @@ in
         extraOptions = {
           RequestTTY = "yes";
         };
+        identityFile = "~/.ssh/id_ed25519";
       };
       "work" = {
         host = "work";
@@ -984,6 +990,7 @@ in
         extraOptions = {
           RequestTTY = "yes";
         };
+        identityFile = "~/.ssh/id_ed25519";
       };
     };
   };

@@ -104,7 +104,10 @@ in
     };
   };
 
-  programs.keychain.keys = [ "id_ed25519" ];
+  programs.keychain.keys = [
+    "id_ed25519"
+    "id_ed25519-penn-interactive"
+  ];
 
   home.file."Brewfile".text = builtins.concatStringsSep "\n" [
     (builtins.readFile ../Brewfile.common)
