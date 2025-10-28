@@ -383,11 +383,24 @@ in
     recursive = true;
   };
 
+  programs.difftastic = {
+    enable = true;
+    git = {
+      enable = true;
+    };
+  };
+
   programs.git = {
     enable = true;
-    userName = "Jeffery Utter";
-    userEmail = "jeff@jeffutter.com";
-    extraConfig = {
+    settings = {
+      user = {
+        email = "jeff@jeffutter.com";
+        name = "Jeffery Utter";
+      };
+      aliases = {
+        dft = "difftool";
+        diffp = "--no-ext-diff";
+      };
       github = {
         user = "jeffutter";
       };
@@ -401,22 +414,6 @@ in
         defaultBranch = "main";
       };
     };
-    aliases = {
-      dft = "difftool";
-      diffp = "--no-ext-diff";
-    };
-    delta = {
-      enable = false;
-      options = {
-        side-by-side = true;
-        line-numbers-left-format = "";
-        line-numbers-right-format = "│ ";
-      };
-    };
-    difftastic = {
-      enable = true;
-    };
-    includes = [ { path = (tokyonights + "/extras/delta/tokyonight_moon.gitconfig"); } ];
     ignores = [
       ".DS_Store?"
       ".Spotlight-V100"

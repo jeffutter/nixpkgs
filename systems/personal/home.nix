@@ -15,7 +15,7 @@ in
     cargo-watch
   ];
 
-  programs.git.userEmail = "jeff@jeffutter.com";
+  programs.git.settings.user.email = "jeff@jeffutter.com";
 
   programs.zsh.oh-my-zsh.plugins = [
     "git"
