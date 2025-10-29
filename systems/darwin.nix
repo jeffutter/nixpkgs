@@ -59,6 +59,12 @@ in
         }
         {
           "if" = {
+            app-id = "com.fastmail.mac.Fastmail";
+          };
+          run = "move-node-to-workspace 3";
+        }
+        {
+          "if" = {
             app-id = "com.microsoft.Outlook";
           };
           run = "move-node-to-workspace 3";
