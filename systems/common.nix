@@ -156,7 +156,7 @@ in
 
       # Elixir
       beamMinimalPackages.elixir
-      beamMinimalPackages.elixir-ls
+      # beamMinimalPackages.elixir-ls
       beamMinimalPackages.erlang
 
       # Rust
@@ -197,8 +197,8 @@ in
       gotest
       gotools
       impl
-    ]
-    ++ optionals (builtins.compareVersions lib.trivial.release "24.11" == 1) [
+
+      # Fonts
       nerd-fonts.commit-mono
       nerd-fonts.fantasque-sans-mono
       nerd-fonts.fira-code
@@ -209,22 +209,6 @@ in
       nerd-fonts.monoid
       nerd-fonts.jetbrains-mono
       nerd-fonts.sauce-code-pro
-    ]
-    ++ optionals (builtins.compareVersions lib.trivial.release "24.11" == 0) [
-      (pkgs.nerdfonts.override {
-        fonts = [
-          "CommitMono"
-          "FantasqueSansMono"
-          "FiraCode"
-          "Hack"
-          "Hasklig"
-          "Iosevka"
-          "Monaspace"
-          "Monoid"
-          "JetBrainsMono"
-          "SourceCodePro"
-        ];
-      })
     ]
     ++ optionals stdenv.isLinux [
       inotify-tools
@@ -397,24 +381,18 @@ in
     recursive = true;
   };
 
-  programs.difftastic = {
-    enable = true;
-    git = {
-      enable = true;
-    };
-  };
+  # programs.difftastic = {
+  #   enable = true;
+  #   git = {
+  #     enable = true;
+  #   };
+  # };
 
   programs.git = {
     enable = true;
-    settings = {
-      user = {
-        email = "jeff@jeffutter.com";
-        name = "Jeffery Utter";
-      };
-      aliases = {
-        dft = "difftool";
-        diffp = "--no-ext-diff";
-      };
+    userName = "Jeffery Utter";
+    userEmail = "jeff@jeffutter.com";
+    extraConfig = {
       github = {
         user = "jeffutter";
       };
@@ -428,6 +406,22 @@ in
         defaultBranch = "main";
       };
     };
+    aliases = {
+      dft = "difftool";
+      diffp = "--no-ext-diff";
+    };
+    delta = {
+      enable = false;
+      options = {
+        side-by-side = true;
+        line-numbers-left-format = "";
+        line-numbers-right-format = "│ ";
+      };
+    };
+    difftastic = {
+      enable = true;
+    };
+    includes = [ { path = (tokyonights + "/extras/delta/tokyonight_moon.gitconfig"); } ];
     ignores = [
       ".DS_Store?"
       ".Spotlight-V100"
@@ -911,7 +905,6 @@ in
 
   programs.ssh = {
     enable = true;
-    enableDefaultConfig = false;
     extraOptionOverrides = {
       StrictHostKeyChecking = "no";
       userKnownHostsFile = "/dev/null";
@@ -920,13 +913,6 @@ in
       AddKeysToAgent = "yes";
     };
     matchBlocks = {
-      "*" = {
-        forwardAgent = false;
-        compression = true;
-        addKeysToAgent = "no";
-        hashKnownHosts = true;
-        userKnownHostsFile = "~/.ssh/known_hosts";
-      };
       "borg" = {
         host = "borg";
         hostname = "192.168.10.8";
@@ -934,7 +920,6 @@ in
         extraOptions = {
           Ciphers = "3des-cbc";
         };
-        identityFile = "~/.ssh/id_ed25519";
       };
       "homelab" = {
         host = "homelab";
@@ -944,7 +929,6 @@ in
         extraOptions = {
           RequestTTY = "yes";
         };
-        identityFile = "~/.ssh/id_ed25519";
       };
       "ns1" = {
         host = "ns1";
@@ -954,7 +938,6 @@ in
         extraOptions = {
           RequestTTY = "yes";
         };
-        identityFile = "~/.ssh/id_ed25519";
       };
       "workstation" = {
         host = "workstation";
@@ -964,7 +947,6 @@ in
         extraOptions = {
           RequestTTY = "yes";
         };
-        identityFile = "~/.ssh/id_ed25519";
       };
       "zenbook" = {
         host = "zenbook";
@@ -974,7 +956,6 @@ in
         extraOptions = {
           RequestTTY = "yes";
         };
-        identityFile = "~/.ssh/id_ed25519";
       };
       "laptop" = {
         host = "laptop";
@@ -984,7 +965,6 @@ in
         extraOptions = {
           RequestTTY = "yes";
         };
-        identityFile = "~/.ssh/id_ed25519";
       };
       "old-laptop" = {
         host = "old-laptop";
@@ -994,7 +974,6 @@ in
         extraOptions = {
           RequestTTY = "yes";
         };
-        identityFile = "~/.ssh/id_ed25519";
       };
       "work" = {
         host = "work";
@@ -1004,6 +983,18 @@ in
         extraOptions = {
           RequestTTY = "yes";
         };
+      };
+    };
+  }
+  // lib.optionalAttrs (builtins.compareVersions lib.trivial.release "25.05" == 1) {
+    enableDefaultConfig = false;
+    matchBlocks = {
+      "*" = {
+        forwardAgent = false;
+        compression = true;
+        addKeysToAgent = "no";
+        hashKnownHosts = true;
+        userKnownHostsFile = "~/.ssh/known_hosts";
         identityFile = "~/.ssh/id_ed25519";
       };
     };

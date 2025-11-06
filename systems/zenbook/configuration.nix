@@ -21,7 +21,8 @@
     useOSProber = true;
     configurationLimit = 3;
   };
-  boot.kernelPackages = pkgs.linuxPackages_latest;
+  # boot.kernelPackages = pkgs.linuxPackages_latest;
+  boot.kernelPackages = pkgs.linuxKernel.packages.linux_6_16;
   boot.kernelParams = [ "i915.force_probe=7d45" ];
   boot.extraModprobeConfig = ''
     options iwlwifi power_save=1
