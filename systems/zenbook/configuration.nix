@@ -21,8 +21,8 @@
     useOSProber = true;
     configurationLimit = 3;
   };
-  # boot.kernelPackages = pkgs.linuxPackages_latest;
-  boot.kernelPackages = pkgs.linuxKernel.packages.linux_6_16;
+  boot.kernelPackages = pkgs.linuxPackages_latest;
+  #boot.kernelPackages = pkgs.linuxKernel.packages.linux_6_16;
   boot.kernelParams = [ "i915.force_probe=7d45" ];
   boot.extraModprobeConfig = ''
     options iwlwifi power_save=1
@@ -44,6 +44,7 @@
 
       compressor = "zstd";
       compressorArgs = [ "-12" ];
+      extraFirmwarePaths = [ "iwlwifi-ma-b0-gf-a0-89.ucode.zst" ];
 
       systemd = {
         enable = true;
@@ -143,6 +144,7 @@
   # Enable CUPS to print documents.
   services.printing.enable = true;
 
+  hardware.enableRedistributableFirmware = true;
   hardware.bluetooth.enable = true;
   services.blueman.enable = true;
 

@@ -10,7 +10,7 @@ let
     (builtins.getFlake "github:k3d3/claude-desktop-linux-flake").packages.${pkgs.system}.default;
 
   iab =
-    (builtins.getFlake "github:jeffutter/iio_ambient_brightness/v0.2.15")
+    (builtins.getFlake "github:jeffutter/iio_ambient_brightness/v0.2.16")
     .packages.${pkgs.system}.default;
 
   zenbrowser =
