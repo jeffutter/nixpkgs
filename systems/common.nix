@@ -65,12 +65,12 @@ in
       dive
       docker
       doctl
-      du-dust
+      dust
       duf
       eza
       fd
       gawk
-      gitAndTools.gh
+      gh
       git-absorb
       git-lfs
       gnused
@@ -248,7 +248,7 @@ in
       apps = pkgs.buildEnv {
         name = "home-manager-applications";
         paths = config.home.packages;
-        pathsToLink = "/Applications";
+        pathsToLink = [ "/Applications" ];
       };
     in
     lib.mkIf pkgs.stdenv.targetPlatform.isDarwin {
