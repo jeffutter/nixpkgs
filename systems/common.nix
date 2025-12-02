@@ -221,6 +221,7 @@ in
     ++ optionals stdenv.isDarwin [
       aerospace
       fastmail-desktop
+      telegram-desktop
     ]
     ++ optionals stdenv.isDarwin (
       with darwin.apple_sdk.frameworks;
