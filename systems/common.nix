@@ -29,7 +29,7 @@ let
     ];
   });
 
-  ltex-lsp = pkgs.callPackage ../pkgs/ltex-lsp { };
+  # ltex-lsp = pkgs.callPackage ../pkgs/ltex-lsp { };
 
   tokyonights = pkgs.fetchFromGitHub {
     owner = "folke";
@@ -105,7 +105,7 @@ in
       ))
       lftp
       lua-language-server
-      ltex-lsp
+      # ltex-lsp
       mprocs
       mosh
       ncdu_1
@@ -140,7 +140,7 @@ in
       # vimPlugins.vimproc-vim
       vips
       vivid
-      (builtins.getFlake "github:jeffutter/wakeonlan-rust/v0.1.1")
+      # (builtins.getFlake "github:jeffutter/wakeonlan-rust/v0.1.1")
       wavpack
       wget
       xz
@@ -179,6 +179,11 @@ in
 
       # Ai
       claude-code
+      (llm.withPlugins {
+        llm-cmd = true;
+        llm-jq = true;
+      })
+      shell-gpt
       (python3Packages.python.withPackages (
         ps: with ps; [
           pandas
