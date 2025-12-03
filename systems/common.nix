@@ -8,6 +8,12 @@
 }:
 
 let
+  unstable =
+    import (builtins.fetchTarball "https://github.com/nixos/nixpkgs/tarball/nixpkgs-unstable")
+      {
+        config = config.nixpkgs.config;
+      };
+
   inherit (pkgs.lib) optional optionals;
 
   ssh-copy-id = pkgs.runCommand "ssh-copy-id" { } ''
@@ -104,6 +110,7 @@ in
         }
       ))
       lftp
+      # luajitPackages.lua-lsp
       lua-language-server
       # ltex-lsp
       mprocs
@@ -178,12 +185,13 @@ in
       sqlx-cli
 
       # Ai
-      claude-code
-      (llm.withPlugins {
+      unstable.claude-code
+      (unstable.llm.withPlugins {
         llm-cmd = true;
         llm-jq = true;
       })
-      shell-gpt
+      unstable.shell-gpt
+
       (python3Packages.python.withPackages (
         ps: with ps; [
           pandas
@@ -387,18 +395,34 @@ in
     recursive = true;
   };
 
-  # programs.difftastic = {
-  #   enable = true;
-  #   git = {
-  #     enable = true;
-  #   };
-  # };
+  programs.difftastic = {
+    enable = true;
+    git = {
+      enable = true;
+    };
+  };
+
+  programs.delta = {
+    enable = false;
+    options = {
+      side-by-side = true;
+      line-numbers-left-format = "";
+      line-numbers-right-format = "│ ";
+    };
+
+  };
 
   programs.git = {
     enable = true;
-    userName = "Jeffery Utter";
-    userEmail = "jeff@jeffutter.com";
-    extraConfig = {
+    settings = {
+      aliases = {
+        dft = "difftool";
+        diffp = "--no-ext-diff";
+      };
+      user = {
+        name = "Jeffery Utter";
+        email = "jeff@jeffutter.com";
+      };
       github = {
         user = "jeffutter";
       };
@@ -411,21 +435,6 @@ in
       init = {
         defaultBranch = "main";
       };
-    };
-    aliases = {
-      dft = "difftool";
-      diffp = "--no-ext-diff";
-    };
-    delta = {
-      enable = false;
-      options = {
-        side-by-side = true;
-        line-numbers-left-format = "";
-        line-numbers-right-format = "│ ";
-      };
-    };
-    difftastic = {
-      enable = true;
     };
     includes = [ { path = (tokyonights + "/extras/delta/tokyonight_moon.gitconfig"); } ];
     ignores = [
@@ -911,6 +920,7 @@ in
 
   programs.ssh = {
     enable = true;
+    enableDefaultConfig = false;
     extraOptionOverrides = {
       StrictHostKeyChecking = "no";
       userKnownHostsFile = "/dev/null";
@@ -919,26 +929,9 @@ in
       AddKeysToAgent = "yes";
     };
     matchBlocks = {
-      "borg" = {
-        host = "borg";
-        hostname = "192.168.10.8";
-        user = "borg-backup";
-        extraOptions = {
-          Ciphers = "3des-cbc";
-        };
-      };
       "homelab" = {
         host = "homelab";
         hostname = "192.168.10.4";
-        user = "root";
-        forwardAgent = true;
-        extraOptions = {
-          RequestTTY = "yes";
-        };
-      };
-      "ns1" = {
-        host = "ns1";
-        hostname = "192.168.10.11";
         user = "root";
         forwardAgent = true;
         extraOptions = {
@@ -954,19 +947,10 @@ in
           RequestTTY = "yes";
         };
       };
-      "zenbook" = {
-        host = "zenbook";
-        hostname = "192.168.10.12";
-        user = "jeffutter";
-        forwardAgent = true;
-        extraOptions = {
-          RequestTTY = "yes";
-        };
-      };
-      "laptop" = {
-        host = "laptop";
-        hostname = "192.168.10.9";
-        user = "jeffutter";
+      "work" = {
+        host = "work";
+        hostname = "192.168.10.6";
+        user = "Jeffery.Utter";
         forwardAgent = true;
         extraOptions = {
           RequestTTY = "yes";
@@ -981,10 +965,45 @@ in
           RequestTTY = "yes";
         };
       };
-      "work" = {
-        host = "work";
-        hostname = "192.168.10.6";
-        user = "Jeffery.Utter";
+      "borg" = {
+        host = "borg";
+        hostname = "192.168.10.8";
+        user = "borg-backup";
+        extraOptions = {
+          Ciphers = "3des-cbc";
+        };
+      };
+      "laptop" = {
+        host = "laptop";
+        hostname = "192.168.10.9";
+        user = "jeffutter";
+        forwardAgent = true;
+        extraOptions = {
+          RequestTTY = "yes";
+        };
+      };
+      "ns1" = {
+        host = "ns1";
+        hostname = "192.168.10.11";
+        user = "root";
+        forwardAgent = true;
+        extraOptions = {
+          RequestTTY = "yes";
+        };
+      };
+      "zenbook" = {
+        host = "zenbook";
+        hostname = "192.168.10.12";
+        user = "jeffutter";
+        forwardAgent = true;
+        extraOptions = {
+          RequestTTY = "yes";
+        };
+      };
+      "llm" = {
+        host = "llm";
+        hostname = "192.168.10.17";
+        user = "root";
         forwardAgent = true;
         extraOptions = {
           RequestTTY = "yes";
@@ -992,7 +1011,7 @@ in
       };
     };
   }
-  // lib.optionalAttrs (builtins.compareVersions lib.trivial.release "25.05" == 1) {
+  // lib.optionalAttrs (builtins.compareVersions lib.trivial.release "25.05" <= 0) {
     enableDefaultConfig = false;
     matchBlocks = {
       "*" = {

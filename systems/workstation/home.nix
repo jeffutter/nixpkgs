@@ -8,8 +8,8 @@ in
   home.packages = with pkgs; [
     _1password-cli
     # binutils
-    llvmPackages_13.bintools-unwrapped
-    clang_13
+    # llvmPackages_13.bintools-unwrapped
+    # clang_13
     cargo-watch
   ];
 
@@ -17,7 +17,7 @@ in
     enable = false;
   };
 
-  programs.git.userEmail = "jeff@jeffutter.com";
+  programs.git.settings.user.email = "jeff@jeffutter.com";
 
   programs.zsh.oh-my-zsh.plugins = [
     "git"
