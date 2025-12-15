@@ -71,6 +71,7 @@ in
       dive
       docker
       doctl
+      duckdb
       dust
       duf
       eza
