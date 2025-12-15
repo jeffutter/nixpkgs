@@ -1010,6 +1010,9 @@ in
           RequestTTY = "yes";
         };
       };
+      "* !github.com-penn-interactive" = {
+        identityFile = "~/.ssh/id_ed25519";
+      };
     };
   }
   // lib.optionalAttrs (builtins.compareVersions lib.trivial.release "25.05" <= 0) {

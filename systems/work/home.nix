@@ -59,7 +59,7 @@ in
         condition = "gitdir:${dir}";
         contents = {
           user.email = "jeffery.utter@thescore.com";
-          signing.key = "~/.ssh/id_ed25519";
+          signing.key = "~/.ssh/id_ed25519-penn-interactive";
           commit.gpgSign = true;
           tag.gpgSign = true;
         };
@@ -75,6 +75,11 @@ in
         ".project"
         ".settings"
       ];
+      settings = {
+        url."git@github.com-penn-interactive:penn-interactive/" = {
+          insteadOf = "git@github.com:penn-interactive/";
+        };
+      };
     };
 
   programs.zsh.oh-my-zsh.plugins = [
@@ -89,7 +94,17 @@ in
     "1password"
   ];
 
-  programs.ssh.extraOptionOverrides.identityFile = "~/.ssh/id_ed25519";
+  programs.ssh = {
+    matchBlocks = {
+      "github.com-penn-interactive" = {
+        hostname = "github.com";
+        user = "git";
+        addKeysToAgent = "yes";
+        identitiesOnly = true;
+        identityFile = "~/.ssh/id_ed25519-penn-interactive";
+      };
+    };
+  };
 
   programs.keychain.keys = [ "id_ed25519" ];
 
