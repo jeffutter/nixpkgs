@@ -14,7 +14,7 @@ in
 
   programs.aerospace = {
     enable = true;
-    userSettings = {
+    settings = {
       enable-normalization-flatten-containers = true;
       enable-normalization-opposite-orientation-for-nested-containers = true;
       accordion-padding = 30;

@@ -333,6 +333,8 @@ return {
 
 			elixir.setup({
 				elixirls = {
+					repo = "elixir-lsp/elixir-ls",
+					branch = "master",
 					enable = true,
 					settings = elixirls.settings({
 						dialyzerEnabled = false,
@@ -541,13 +543,13 @@ return {
 		opts = {}, -- required, even if empty
 	},
 
-	{
-		"saecki/crates.nvim",
-		tag = "stable",
-		config = function()
-			require("crates").setup()
-		end,
-	},
+	-- {
+	-- 	"saecki/crates.nvim",
+	-- 	tag = "stable",
+	-- 	config = function()
+	-- 		require("crates").setup()
+	-- 	end,
+	-- },
 	{
 		"pwntester/octo.nvim",
 		cmd = "Octo",
@@ -652,6 +654,10 @@ return {
 				-- Configuration here, or leave empty to use defaults
 			})
 		end,
+	},
+
+	{
+		"github/copilot.vim",
 	},
 }
 

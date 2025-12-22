@@ -8,6 +8,12 @@
 }:
 
 let
+  unstable =
+    import (builtins.fetchTarball "https://github.com/nixos/nixpkgs/tarball/nixpkgs-unstable")
+      {
+        config = config.nixpkgs.config;
+      };
+
   inherit (pkgs.lib) optional optionals;
 
   ssh-copy-id = pkgs.runCommand "ssh-copy-id" { } ''
@@ -29,7 +35,7 @@ let
     ];
   });
 
-  ltex-lsp = pkgs.callPackage ../pkgs/ltex-lsp { };
+  # ltex-lsp = pkgs.callPackage ../pkgs/ltex-lsp { };
 
   tokyonights = pkgs.fetchFromGitHub {
     owner = "folke";
@@ -65,12 +71,12 @@ in
       dive
       docker
       doctl
-      du-dust
+      dust
       duf
       eza
       fd
       gawk
-      gitAndTools.gh
+      gh
       git-absorb
       git-lfs
       gnused
@@ -104,8 +110,9 @@ in
         }
       ))
       lftp
+      # luajitPackages.lua-lsp
       lua-language-server
-      ltex-lsp
+      # ltex-lsp
       mprocs
       mosh
       ncdu_1
@@ -141,7 +148,7 @@ in
       # vimPlugins.vimproc-vim
       vips
       vivid
-      (builtins.getFlake "github:jeffutter/wakeonlan-rust/v0.1.1")
+      # (builtins.getFlake "github:jeffutter/wakeonlan-rust/v0.1.1")
       wavpack
       wget
       xz
@@ -179,7 +186,13 @@ in
       sqlx-cli
 
       # Ai
-      claude-code
+      unstable.claude-code
+      (unstable.llm.withPlugins {
+        llm-cmd = true;
+        llm-jq = true;
+      })
+      unstable.shell-gpt
+
       (python3Packages.python.withPackages (
         ps: with ps; [
           pandas
@@ -217,6 +230,7 @@ in
     ++ optionals stdenv.isDarwin [
       aerospace
       fastmail-desktop
+      telegram-desktop
     ]
     ++ optionals stdenv.isDarwin (
       with darwin.apple_sdk.frameworks;
@@ -244,7 +258,7 @@ in
       apps = pkgs.buildEnv {
         name = "home-manager-applications";
         paths = config.home.packages;
-        pathsToLink = "/Applications";
+        pathsToLink = [ "/Applications" ];
       };
     in
     lib.mkIf pkgs.stdenv.targetPlatform.isDarwin {
@@ -382,18 +396,34 @@ in
     recursive = true;
   };
 
-  # programs.difftastic = {
-  #   enable = true;
-  #   git = {
-  #     enable = true;
-  #   };
-  # };
+  programs.difftastic = {
+    enable = true;
+    git = {
+      enable = true;
+    };
+  };
+
+  programs.delta = {
+    enable = false;
+    options = {
+      side-by-side = true;
+      line-numbers-left-format = "";
+      line-numbers-right-format = "│ ";
+    };
+
+  };
 
   programs.git = {
     enable = true;
-    userName = "Jeffery Utter";
-    userEmail = "jeff@jeffutter.com";
-    extraConfig = {
+    settings = {
+      aliases = {
+        dft = "difftool";
+        diffp = "--no-ext-diff";
+      };
+      user = {
+        name = "Jeffery Utter";
+        email = "jeff@jeffutter.com";
+      };
       github = {
         user = "jeffutter";
       };
@@ -406,21 +436,6 @@ in
       init = {
         defaultBranch = "main";
       };
-    };
-    aliases = {
-      dft = "difftool";
-      diffp = "--no-ext-diff";
-    };
-    delta = {
-      enable = false;
-      options = {
-        side-by-side = true;
-        line-numbers-left-format = "";
-        line-numbers-right-format = "│ ";
-      };
-    };
-    difftastic = {
-      enable = true;
     };
     includes = [ { path = (tokyonights + "/extras/delta/tokyonight_moon.gitconfig"); } ];
     ignores = [
@@ -906,6 +921,7 @@ in
 
   programs.ssh = {
     enable = true;
+    enableDefaultConfig = false;
     extraOptionOverrides = {
       StrictHostKeyChecking = "no";
       userKnownHostsFile = "/dev/null";
@@ -914,26 +930,9 @@ in
       AddKeysToAgent = "yes";
     };
     matchBlocks = {
-      "borg" = {
-        host = "borg";
-        hostname = "192.168.10.8";
-        user = "borg-backup";
-        extraOptions = {
-          Ciphers = "3des-cbc";
-        };
-      };
       "homelab" = {
         host = "homelab";
         hostname = "192.168.10.4";
-        user = "root";
-        forwardAgent = true;
-        extraOptions = {
-          RequestTTY = "yes";
-        };
-      };
-      "ns1" = {
-        host = "ns1";
-        hostname = "192.168.10.11";
         user = "root";
         forwardAgent = true;
         extraOptions = {
@@ -949,19 +948,10 @@ in
           RequestTTY = "yes";
         };
       };
-      "zenbook" = {
-        host = "zenbook";
-        hostname = "192.168.10.12";
-        user = "jeffutter";
-        forwardAgent = true;
-        extraOptions = {
-          RequestTTY = "yes";
-        };
-      };
-      "laptop" = {
-        host = "laptop";
-        hostname = "192.168.10.9";
-        user = "jeffutter";
+      "work" = {
+        host = "work";
+        hostname = "192.168.10.6";
+        user = "Jeffery.Utter";
         forwardAgent = true;
         extraOptions = {
           RequestTTY = "yes";
@@ -976,10 +966,45 @@ in
           RequestTTY = "yes";
         };
       };
-      "work" = {
-        host = "work";
-        hostname = "192.168.10.6";
-        user = "Jeffery.Utter";
+      "borg" = {
+        host = "borg";
+        hostname = "192.168.10.8";
+        user = "borg-backup";
+        extraOptions = {
+          Ciphers = "3des-cbc";
+        };
+      };
+      "laptop" = {
+        host = "laptop";
+        hostname = "192.168.10.9";
+        user = "jeffutter";
+        forwardAgent = true;
+        extraOptions = {
+          RequestTTY = "yes";
+        };
+      };
+      "ns1" = {
+        host = "ns1";
+        hostname = "192.168.10.11";
+        user = "root";
+        forwardAgent = true;
+        extraOptions = {
+          RequestTTY = "yes";
+        };
+      };
+      "zenbook" = {
+        host = "zenbook";
+        hostname = "192.168.10.12";
+        user = "jeffutter";
+        forwardAgent = true;
+        extraOptions = {
+          RequestTTY = "yes";
+        };
+      };
+      "llm" = {
+        host = "llm";
+        hostname = "192.168.10.17";
+        user = "root";
         forwardAgent = true;
         extraOptions = {
           RequestTTY = "yes";
@@ -987,7 +1012,7 @@ in
       };
     };
   }
-  // lib.optionalAttrs (builtins.compareVersions lib.trivial.release "25.05" == 1) {
+  // lib.optionalAttrs (builtins.compareVersions lib.trivial.release "25.05" <= 0) {
     enableDefaultConfig = false;
     matchBlocks = {
       "*" = {

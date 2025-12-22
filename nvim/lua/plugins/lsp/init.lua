@@ -140,7 +140,9 @@ return {
 						return
 					end
 				end
-				require("lspconfig")[server].setup(server_opts)
+				-- require("lspconfig")[server].setup(server_opts)
+				vim.lsp.enable(server)
+				vim.lsp.config(server, server_opts)
 			end
 
 			local mlsp = require("mason-lspconfig")
@@ -158,9 +160,6 @@ return {
 					end
 				end
 			end
-
-			require("mason-lspconfig").setup({ ensure_installed = ensure_installed })
-			require("mason-lspconfig").setup_handlers({ setup })
 		end,
 	},
 
