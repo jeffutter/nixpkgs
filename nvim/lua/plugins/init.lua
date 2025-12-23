@@ -209,17 +209,20 @@ return {
 		},
 	},
 
-	-- Fuzzy Finder (files, lsp, etc)
+	-- Fuzzy Finder (files, lsp, etc) using Snacks picker
 	{
-		"nvim-telescope/telescope.nvim",
-		branch = "0.1.x",
-		dependencies = { "nvim-lua/plenary.nvim" },
+		"folke/snacks.nvim",
+		priority = 1000,
+		lazy = false,
 		opts = {
-			defaults = {
-				mappings = {
-					i = {
-						["<C-u>"] = false,
-						["<C-d>"] = false,
+			picker = {
+				-- Use default layout similar to telescope
+				win = {
+					input = {
+						keys = {
+							["<C-u>"] = false,
+							["<C-d>"] = false,
+						},
 					},
 				},
 			},
@@ -228,75 +231,68 @@ return {
 			{
 				"<leader>?",
 				function()
-					require("telescope.builtin").oldfiles()
+					Snacks.picker.recent()
 				end,
 				desc = "[?] Find recently opened files",
 			},
 			{
 				"<leader><space>",
 				function()
-					require("telescope.builtin").buffers()
+					Snacks.picker.buffers()
 				end,
 				desc = "[ ] Find existing buffers",
 			},
 			{
 				"<leader>/",
 				function()
-					-- You can pass additional configuration to telescope to change theme, layout, etc.
-					require("telescope.builtin").current_buffer_fuzzy_find(require("telescope.themes").get_dropdown({
-						winblend = 10,
-						previewer = false,
-					}))
+					Snacks.picker.lines()
 				end,
-				desc = "[/] Fuzzily search in current buffer]",
+				desc = "[/] Fuzzily search in current buffer",
 			},
-
 			{
 				"<leader>sf",
 				function()
-					require("telescope.builtin").find_files()
+					Snacks.picker.files()
 				end,
 				desc = "[S]earch [F]iles",
 			},
 			{
 				"<leader>sh",
 				function()
-					require("telescope.builtin").help_tags()
+					Snacks.picker.help()
 				end,
 				desc = "[S]earch [H]elp",
 			},
 			{
 				"<leader>sw",
 				function()
-					require("telescope.builtin").grep_string()
+					Snacks.picker.grep_word()
 				end,
 				desc = "[S]earch current [W]ord",
 			},
 			{
 				"<leader>sg",
 				function()
-					require("telescope.builtin").live_grep()
+					Snacks.picker.grep()
 				end,
 				desc = "[S]earch by [G]rep",
 			},
 			{
 				"<leader>sd",
 				function()
-					require("telescope.builtin").diagnostics()
+					Snacks.picker.diagnostics()
 				end,
 				desc = "[S]earch [D]iagnostics",
 			},
+			{
+				"<leader>cy",
+				function()
+					Snacks.picker.registers()
+				end,
+				desc = "[C]lipboard [Y]ank (Registers)",
+			},
 		},
-		config = function()
-			-- Enable telescope fzf native, if installed
-			pcall(require("telescope").load_extension, "fzf")
-			pcall(require("telescope").load_extension, "notify")
-			pcall(require("telescope").load_extension, "neoclip")
-		end,
 	},
-
-	-- Fuzzy Finder Algorithm which requires local dependencies to be built. Only load if `make` is available
-	{ "nvim-telescope/telescope-fzf-native.nvim", run = "make", cond = vim.fn.executable("make") == 1 },
 
 	-- Visualize lsp progress
 	{
@@ -556,7 +552,6 @@ return {
 		config = true,
 		dependencies = {
 			"nvim-lua/plenary.nvim",
-			"nvim-telescope/telescope.nvim",
 			"nvim-tree/nvim-web-devicons",
 		},
 	},
@@ -586,22 +581,8 @@ return {
 		end,
 	},
 
-	{
-		"AckslD/nvim-neoclip.lua",
-		dependencies = {
-			"nvim-telescope/telescope.nvim",
-		},
-		keys = {
-			{
-				"<leader>cy",
-				function()
-					require("telescope").extensions.neoclip.default()
-				end,
-				desc = "[C]lipboard [Y]ank",
-			},
-		},
-		config = true,
-	},
+	-- Neoclip removed - using Snacks picker's built-in registers instead
+	-- Use <leader>cy to access registers via Snacks picker
 
 	{
 		"luukvbaal/statuscol.nvim",
@@ -628,19 +609,7 @@ return {
 			vim.keymap.set({ "v", "n" }, "gf", require("actions-preview").code_actions)
 
 			require("actions-preview").setup({
-				telescope = {
-					sorting_strategy = "ascending",
-					layout_strategy = "vertical",
-					layout_config = {
-						width = 0.8,
-						height = 0.9,
-						prompt_position = "top",
-						preview_cutoff = 20,
-						preview_height = function(_, _, max_lines)
-							return max_lines - 15
-						end,
-					},
-				},
+				-- Using default backend (no telescope config needed)
 			})
 		end,
 	},
