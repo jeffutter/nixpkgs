@@ -138,6 +138,7 @@ in
       sshfs
       sqls
       ssh-copy-id
+      telegram-desktop
       gnutar
       #tlaplus
       tmate
