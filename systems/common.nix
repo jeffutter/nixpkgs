@@ -40,13 +40,21 @@ let
   tokyonights = pkgs.fetchFromGitHub {
     owner = "folke";
     repo = "tokyonight.nvim";
-    rev = "v4.11.0";
-    sha256 = "sha256-pMzk1gRQFA76BCnIEGBRjJ0bQ4YOf3qecaU6Fl/nqLE=";
+    rev = "v4.14.1";
+    sha256 = "sha256-kQsV0x8/ycFp3+S6YKyiKFsAG5taOdQmx/dMuDqGyEQ=";
   };
+
+  nixvim = import (fetchGit {
+    url = "https://github.com/nix-community/nixvim";
+    # If you are not running an unstable channel of nixpkgs, select the corresponding branch of Nixvim.
+    # ref = "nixos-25.11";
+  });
+
+  expert = (builtins.getFlake "github:elixir-lang/expert").packages.${pkgs.system}.default;
 in
 
 {
-  imports = [ ];
+  imports = [ nixvim.homeModules.nixvim ];
 
   home.packages =
     with pkgs;
@@ -382,19 +390,451 @@ in
     enableZshIntegration = true;
   };
 
-  programs.neovim = {
+  programs.nixvim = {
     enable = true;
-    vimAlias = true;
-    plugins = with pkgs.vimPlugins; [ ];
-  };
 
-  home.file.".config/nvim/init.lua" = {
-    source = ../nvim/init.lua;
-  };
+    globals.mapleader = " ";
 
-  home.file.".config/nvim/lua" = {
-    source = ../nvim/lua;
-    recursive = true;
+    globalOpts = {
+      termguicolors = true;
+      encoding = "utf-8";
+      fileencoding = "utf-8";
+    };
+
+    opts = {
+      foldenable = true;
+      foldexpr = "v:lua.vim.treesitter.foldexpr()";
+      foldlevel = 5;
+      foldlevelstart = 99;
+      foldmethod = "expr";
+      number = true;
+      spell = true;
+      spelllang = "en_us";
+    };
+
+    colorschemes.tokyonight = {
+      enable = true;
+      style = "moon";
+    };
+
+    lsp = {
+      enable = true;
+      inlayHints.enable = true;
+
+      # lazyLoad = {
+      #   enable = true;
+      #   settings = {
+      #     event = "User FilePost";
+      #     cmd = [
+      #       "LspRestart"
+      #       "LspLog"
+      #       "LspInfo"
+      #       "LspStart"
+      #       "LspStop"
+      #     ];
+      #   };
+      # };
+
+      servers = {
+        lua_ls.enable = true;
+        nixd = {
+          enable = true;
+          config = {
+            formatting.command = [ "nixpkgs-fmt" ];
+            options = {
+              home-manager = {
+                expr = "(import <home-manager/modules> { configuration = ~/.config/home-manager/home.nix; pkgs = import <nixpkgs> {}; }).options";
+              };
+            };
+          };
+        };
+        expert = {
+          enable = true;
+          package = expert;
+        };
+        rust_analyzer = {
+          enable = true;
+        };
+      };
+
+      keymaps = [
+        {
+          key = "grr";
+          action = nixvim.lib.nixvim.mkRaw "function() Snacks.picker.lsp_references() end";
+          options.desc = "Lsp References";
+        }
+        {
+          key = "gd";
+          action = nixvim.lib.nixvim.mkRaw "function() Snacks.picker.lsp_definitions() end";
+          options.desc = "Lsp Definitions";
+        }
+        {
+          key = "gry";
+          action = nixvim.lib.nixvim.mkRaw "function() Snacks.picker.lsp_type_definitions() end";
+          options.desc = "Lsp T[y]pe Definitions";
+        }
+        {
+          key = "<leader>ss";
+          action = nixvim.lib.nixvim.mkRaw "function() Snacks.picker.lsp_symbols() end";
+          options.desc = "Lsp Symbols";
+        }
+        {
+          key = "<leader>sS";
+          action = nixvim.lib.nixvim.mkRaw "function() Snacks.picker.lsp_workspace_symbols() end";
+          options.desc = "Lsp Workspace Symbols";
+        }
+
+        {
+          key = "<leader>ca";
+          lspBufAction = "code_action";
+          options.desc = "[C]ode [Action]";
+        }
+
+        {
+          mode = "n";
+          key = "<leader>Rr";
+          action = "<cmd>RustLsp runnables<CR>";
+          options.desc = "Rust Runnables";
+        }
+        {
+          mode = "n";
+          key = "<leader>dR";
+          action = "<cmd>RustLsp debuggables<CR>";
+          options.desc = "Rust Debuggables";
+        }
+        {
+          mode = "n";
+          key = "<leader>Ra";
+          action = "<cmd>RustLsp codeAction<CR>";
+          options.desc = "Code Action (Rust)";
+        }
+        {
+          mode = "n";
+          key = "<leader>Rh";
+          action = "<cmd>RustLsp hover actions<CR>";
+          options.desc = "Hover Actions (Rust)";
+        }
+        {
+          mode = "n";
+          key = "<leader>Rm";
+          action = "<cmd>RustLsp expandMacro<CR>";
+          options.desc = "Expand Macro";
+        }
+        {
+          mode = "n";
+          key = "<leader>RM";
+          action = "<cmd>RustLsp rebuildProcMacros<CR>";
+          options.desc = "Rebuild Proc Macros";
+        }
+        {
+          mode = "n";
+          key = "<leader>Rd";
+          action = "<cmd>RustLsp openDocs<CR>";
+          options.desc = "Open Docs";
+        }
+        {
+          mode = "n";
+          key = "<leader>Rc";
+          action = "<cmd>RustLsp openCargo<CR>";
+          options.desc = "Open Cargo.toml";
+        }
+        {
+          mode = "n";
+          key = "<leader>Rg";
+          action = "<cmd>RustLsp crateGraph<CR>";
+          options.desc = "Crate Graph";
+        }
+      ];
+    };
+
+    plugins = {
+      actions-preview.enable = true;
+      blink-emoji.enable = true;
+      blink-ripgrep.enable = true;
+      blink-cmp-spell.enable = true;
+      comment.enable = true;
+      cursorline.enable = true;
+      fidget.enable = true;
+      gitsigns.enable = true;
+      lastplace.enable = true;
+      lspconfig.enable = true;
+      lualine.enable = true;
+      luasnip.enable = true;
+      nix.enable = true;
+      nvim-surround.enable = true;
+      nvim-autopairse.enable = true;
+      rustaceanvim.enable = true;
+      sleuth.enable = true;
+      todo-comments.enable = true;
+      trouble.enable = true;
+      web-devicons.enable = true;
+      which-key.enable = true;
+      spectre.enable = true;
+
+      blink-cmp = {
+        enable = true;
+
+        settings = {
+
+          keymap.preset = "super-tab";
+
+          completion = {
+            documentation = {
+              auto_show = true;
+              auto_show_delay_ms = 500;
+            };
+            ghost_text = {
+              enabled = true;
+            };
+            accept.auto_brackets.enabled = true;
+          };
+
+          sources = {
+            default = [
+              "lsp"
+              "path"
+              "snippets"
+              "emoji"
+              "buffer"
+              "ripgrep"
+              "spell"
+            ];
+            providers = {
+              lsp = {
+                fallbacks = [ ];
+                score_offset = 10;
+              };
+              emoji = {
+                module = "blink-emoji";
+                name = "Emoji";
+                score_offset = 15;
+                opts = {
+                  insert = true;
+                };
+              };
+              spell = {
+                module = "blink-cmp-spell";
+                name = "Spell";
+                opts = {
+                  spell = false;
+                  spelllang = "en_us";
+                };
+              };
+              ripgrep = {
+                async = true;
+                module = "blink-ripgrep";
+                name = "Ripgrep";
+                score_offset = -5;
+                opts = {
+                  prefix_min_len = 3;
+                  backend = {
+                    context_size = 5;
+                    max_filesize = "2M";
+                    search_casing = "--smart-case";
+                  };
+                };
+              };
+            };
+          };
+
+          snippets = {
+            preset = "luasnip";
+          };
+
+          signature = {
+            enabled = true;
+          };
+        };
+      };
+
+      conform-nvim = {
+        enable = true;
+        settings = {
+          format_on_save = {
+            timeout_ms = 5000;
+            lsp_fallback = true;
+          };
+        };
+      };
+
+      flash = {
+        enable = true;
+        settings = {
+          continue = true;
+          modes.char.jump_labels = true; # `f` `t` `F` and `T` with labels
+        };
+      };
+
+      neotest = {
+        enable = true;
+        adapters = {
+          elixir.enable = true;
+          rust.enable = true;
+        };
+      };
+
+      snacks = {
+        enable = true;
+        settings = {
+          bigfile.enabled = true;
+          explorer.enabled = true;
+          indent.enable = true;
+          picker = {
+            enabled = true;
+            ui_select = true;
+          };
+          notifier.enabled = true;
+          statuscolumn.enabled = true;
+          words.enabled = true;
+        };
+      };
+
+      treesitter = {
+        enable = true;
+        autoLoad = true;
+
+        nixvimInjections = true;
+
+        settings = {
+          folding.enable = true;
+          highlight.enable = true;
+          indent.enable = true;
+        };
+
+        grammarPackages = with pkgs.vimPlugins.nvim-treesitter.builtGrammars; [
+          bash
+          elixir
+          erlang
+          json
+          graphql
+          lua
+          make
+          markdown
+          nix
+          regex
+          rust
+          toml
+          yaml
+        ];
+      };
+    };
+
+    keymaps = [
+      {
+        key = "<leader>sf";
+        mode = [ "n" ];
+        action = nixvim.lib.nixvim.mkRaw "function() Snacks.picker.files() end";
+        options.desc = "[S]earch [F]iles";
+      }
+      {
+        key = "<leader><leader>";
+        mode = [ "n" ];
+        action = nixvim.lib.nixvim.mkRaw "function() Snacks.picker.buffers() end";
+        options.desc = "Search Buffers";
+      }
+      {
+        key = "<leader>sr";
+        mode = [ "n" ];
+        action = nixvim.lib.nixvim.mkRaw "function() Snacks.picker.recent() end";
+        options.desc = "[S]earch [R]ecent";
+      }
+
+      {
+        key = "<leader>sg";
+        mode = [ "n" ];
+        action = nixvim.lib.nixvim.mkRaw "function() Snacks.picker.grep() end";
+        options.desc = "[S]earch [G]rep";
+      }
+
+      {
+        key = "<leader>hk";
+        mode = [ "n" ];
+        action = nixvim.lib.nixvim.mkRaw "function() Snacks.picker.keymaps() end";
+        options.desc = "Search [H]elp [K]eymaps";
+      }
+      {
+        key = "<leader>hC";
+        mode = [ "n" ];
+        action = nixvim.lib.nixvim.mkRaw "function() Snacks.picker.commands() end";
+        options.desc = "Search [H]elp [C]ommands";
+      }
+      {
+        key = "<leader>ht";
+        mode = [ "n" ];
+        action = nixvim.lib.nixvim.mkRaw "function() Snacks.picker.help() end";
+        options.desc = "Search [H]elp [T]ags";
+      }
+
+      {
+        key = "<leader>ft";
+        mode = [ "n" ];
+        action = nixvim.lib.nixvim.mkRaw "function() Snacks.explorer() end";
+        options.desc = "[F]ile [T]ree";
+      }
+
+      {
+        key = "<leader>xx";
+        mode = [ "n" ];
+        action = "<cmd>Trouble diagnostics toggle<CR>";
+        options.desc = "Diagnostics";
+      }
+      {
+        key = "<leader>xX";
+        mode = [ "n" ];
+        action = "<cmd>Trouble diagnostics toggle filter.buf=0<CR>";
+        options.desc = "Buffer Diagnostics";
+      }
+
+      {
+        key = "<leader>S";
+        mode = [ "n" ];
+        action = nixvim.lib.nixvim.mkRaw "function() require(\"spectre\").open() end";
+        options.desc = "[S]pectre";
+      }
+      {
+        key = "<leader>sw";
+        mode = [ "n" ];
+        action = nixvim.lib.nixvim.mkRaw "function() require(\"spectre\").open_visual({ select_word = true }) end";
+        options.desc = "[S]pectre [W]ord";
+      }
+      {
+        key = "<leader>sp";
+        mode = [ "n" ];
+        action = nixvim.lib.nixvim.mkRaw "function() require(\"spectre\").open_file_search() end";
+        options.desc = "[S]pectre [p]File";
+      }
+
+      {
+        key = "<leader>mta";
+        mode = [ "n" ];
+        action = nixvim.lib.nixvim.mkRaw "function() require(\"neotest\").run.run({suite=true}) end";
+        options.desc = "[T]est [A]ll";
+      }
+      {
+        key = "<leader>mts";
+        mode = [ "n" ];
+        action = nixvim.lib.nixvim.mkRaw "function() require(\"neotest\").run.run() end";
+        options.desc = "[T]est [S]ingle";
+      }
+      {
+        key = "<leader>mtf";
+        mode = [ "n" ];
+        action = nixvim.lib.nixvim.mkRaw "function() require(\"neotest\").run.run(vim.fn.expand(\"%\")) end";
+        options.desc = "[T]est [F]ile";
+      }
+      {
+        key = "<leader>mtr";
+        mode = [ "n" ];
+        action = nixvim.lib.nixvim.mkRaw "function() require(\"neotest\").run.run_last() end";
+        options.desc = "[T]est [R]erun [L]ast";
+      }
+      {
+        key = "<leader>mtS";
+        mode = [ "n" ];
+        action = nixvim.lib.nixvim.mkRaw "function() require(\"neotest\").summary.toggle() end";
+        options.desc = "[T]est [S]ummary";
+      }
+    ];
   };
 
   programs.difftastic = {
