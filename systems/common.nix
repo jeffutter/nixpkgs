@@ -70,6 +70,7 @@ in
       btop
       broot
       brotli
+      bun
       bzip2
       cachix
       colmena
