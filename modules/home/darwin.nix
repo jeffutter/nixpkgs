@@ -5,6 +5,7 @@ in
 {
   home.packages = with pkgs; [
     jankyborders
+    telegram-desktop
   ];
 
   targets.darwin.defaults."com.apple.dock" = {

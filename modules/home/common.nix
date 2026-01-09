@@ -46,10 +46,7 @@ in
       bandwhich
       bash-completion
       bash
-      # borgbackup
       btop
-      broot
-      brotli
       bun
       bzip2
       cachix
@@ -57,9 +54,7 @@ in
       comma
       curl
       difftastic
-      dive
       docker
-      doctl
       duckdb
       dust
       duf
@@ -81,13 +76,9 @@ in
       ispell
       jq
       jujutsu
-      just
       k6
-      k9s
       kubectl
       kubectx
-      kubernetes-helm
-      kubeseal
       (pkgs.kubectl-node-shell.overrideAttrs (
         {
           meta ? { },
@@ -100,42 +91,32 @@ in
         }
       ))
       lftp
-      # luajitPackages.lua-lsp
-      lua-language-server
-      # ltex-lsp
       mprocs
       mosh
-      ncdu_1
+      ncdu
       nixfmt
       nodejs
-      nodePackages.bash-language-server
       ollama
       p7zip
       pigz
       pixz
       pbzip2
-      postgresql
       protobuf
       pstree
       pv
       ripgrep
-      nil
       restic
       rsync
       ruplacer
       shellcheck
       sshfs
-      sqls
       ssh-copy-id
-      telegram-desktop
       gnutar
       #tlaplus
       tmate
       unzip
       unixtools.watch
-      vale
       viddy
-      # vimPlugins.vimproc-vim
       vips
       vivid
       # (builtins.getFlake "github:jeffutter/wakeonlan-rust/v0.1.1")
@@ -147,20 +128,29 @@ in
       zstd
 
       # Fonts
+      font-awesome
+      input-fonts
+      nerd-fonts.commit-mono
+      nerd-fonts.fantasque-sans-mono
+      nerd-fonts.fira-code
+      nerd-fonts.hack
+      nerd-fonts.hasklug
+      nerd-fonts.iosevka
+      nerd-fonts.jetbrains-mono
+      nerd-fonts.monaspace
+      nerd-fonts.monoid
+      nerd-fonts.sauce-code-pro
       roboto
       roboto-mono
-      input-fonts
-      font-awesome
 
       # Elixir
       beamMinimalPackages.elixir
-      # beamMinimalPackages.elixir-ls
       beamMinimalPackages.erlang
 
       # Rust
       cargo
       cargo-bloat
-      # cargo-criterion
+      cargo-criterion
       cargo-cross
       cargo-expand
       cargo-flamegraph
@@ -196,24 +186,11 @@ in
       go
       gofumpt
       gomodifytags
-      #gopls
       gore
       goreleaser
       gotest
       gotools
       impl
-
-      # Fonts
-      nerd-fonts.commit-mono
-      nerd-fonts.fantasque-sans-mono
-      nerd-fonts.fira-code
-      nerd-fonts.hack
-      nerd-fonts.hasklug
-      nerd-fonts.iosevka
-      nerd-fonts.monaspace
-      nerd-fonts.monoid
-      nerd-fonts.jetbrains-mono
-      nerd-fonts.sauce-code-pro
     ]
     ++ optionals stdenv.isLinux [
       inotify-tools
@@ -221,13 +198,7 @@ in
     ++ optionals stdenv.isDarwin [
       aerospace
       fastmail-desktop
-      telegram-desktop
-    ]
-    ++ optionals stdenv.isDarwin (
-      with darwin.apple_sdk.frameworks;
-      [
-      ]
-    );
+    ];
 
   # nixpkgs.config is set at the NixOS/flake level when using useGlobalPkgs
 
@@ -410,7 +381,10 @@ in
       # };
 
       servers = {
+        bashls.enable = true;
         lua_ls.enable = true;
+        sqls.enable = true;
+        vale_ls.enable = true;
         nixd = {
           enable = true;
           config = {

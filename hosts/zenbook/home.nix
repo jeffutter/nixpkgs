@@ -58,16 +58,17 @@ in
     gnome-power-manager
     iab
     mako
+    my_todoist
     my_zoom
     obsidian
     pavucontrol
     slurp
-    my_todoist
+    telegram-desktop
     wayshot
     wl-clipboard
     wlsunset
-    wofi
     wluma
+    wofi
     zenbrowser
     # claude-desktop
   ];
