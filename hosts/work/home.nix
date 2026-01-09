@@ -1,48 +1,28 @@
-{ pkgs, lib, inputs, ... }:
+{
+  pkgs,
+  lib,
+  inputs,
+  ...
+}:
 
 let
-
-  wrk2 = pkgs.wrk2.overrideAttrs (old: {
-    buildPhase = ''
-      export MACOSX_DEPLOYMENT_TAREGT=''${MACOSX_DEPLOYMENT_TARGET:-10.12}
-      make
-    '';
-
-    meta.platforms = lib.platforms.darwin;
-  });
-
   my_google-cloud-sdk = pkgs.google-cloud-sdk.withExtraComponents [
     pkgs.google-cloud-sdk.components.gke-gcloud-auth-plugin
   ];
 in
 {
-  # imports handled by flake.nix
-
   home.packages = with pkgs; [
     argocd
 
     llvmPackages.bintools
-    # wrk2
 
     my_google-cloud-sdk
-    aws-iam-authenticator
-    awscli
 
-    jdt-language-server
     maven
     google-java-format
     grpcurl
 
-    kotlin
-    kotlin-language-server
-    ktlint
-    # kcat
-
     colima
-
-    # These won't build on aarch64, can be moved back into common once they do
-    #topgrade
-    cargo-watch
   ];
 
   programs.java = {
@@ -108,12 +88,17 @@ in
   home.file."Brewfile".text = builtins.concatStringsSep "\n" [
     (builtins.readFile ../../systems/Brewfile.common)
     ''
+      cask "balenaetcher"
+      cask "deskpad"
       cask "intellij-idea-ce"
       cask "jetbrains-toolbox"
-      cask "swiftbar"
-      mas "MuteKey", id: 1509590766
-      mas "Slack", id: 803453959
+      cask "pullbar"
+      cask "rode-central"
+      cask "shottr"
       mas "Jira", id: 1475897096
+      mas "Slack", id: 803453959
+      mas "Xcode", id: 497799835
+      tap "menubar-apps/menubar-apps"
     ''
   ];
 

@@ -1,4 +1,9 @@
-{ pkgs, config, inputs, ... }:
+{
+  pkgs,
+  config,
+  inputs,
+  ...
+}:
 
 let
   m8c = pkgs.callPackage ../../pkgs/m8c { };
@@ -30,13 +35,12 @@ in
   home.file."Brewfile".text = builtins.concatStringsSep "\n" [
     (builtins.readFile ../../systems/Brewfile.common)
     ''
-      brew "exercism"
       cask "adobe-dng-converter"
       cask "calibre"
       cask "fastrawviewer"
       cask "reaper"
+      cask "rustdesk"
       cask "steam"
-      mas "Serial", id: 877615577
     ''
   ];
 

@@ -1,8 +1,12 @@
-{ ... }:
+{ pkgs, ... }:
 
 let
 in
 {
+  home.packages = with pkgs; [
+    jankyborders
+  ];
+
   targets.darwin.defaults."com.apple.dock" = {
     size-immutable = true;
     tilesize = 48;
@@ -77,7 +81,7 @@ in
         }
       ];
       after-startup-command = [
-        "exec-and-forget borders active_color=0xffe1e3e4 inactive_color=0xff494d64 width=5.0"
+        "exec-and-forget ${pkgs.jankyborders}/bin/borders active_color=0xffe1e3e4 inactive_color=0xff494d64 width=5.0"
       ];
       key-mapping = {
         key-notation-to-key-code = {

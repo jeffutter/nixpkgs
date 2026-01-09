@@ -167,6 +167,7 @@ in
       cargo-generate
       cargo-llvm-lines
       cargo-outdated
+      cargo-watch
       cargo-workspaces
       cargo-udeps
       clippy
@@ -234,11 +235,6 @@ in
   programs.home-manager.enable = true;
 
   #manual.manpages.enable = false;
-
-  home.file.".zfunc" = {
-    source = ../../zfunc;
-    recursive = true;
-  };
 
   home.file."Applications" =
     let

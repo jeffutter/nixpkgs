@@ -1,24 +1,19 @@
-tap "1password/tap"
-tap "buo/cask-upgrade"
-tap "homebrew/bundle"
-tap "homebrew/cask"
-tap "homebrew/cask-drivers"
-tap "homebrew/cask-versions"
-tap "homebrew/core"
-tap "homebrew/services"
 brew "git"
 brew "mas"
 cask "1password"
 cask "1password-cli"
 cask "charles"
+cask "claude"
 cask "contexts"
 cask "cyberduck"
 cask "dash"
 cask "discord"
-cask "docker"
+cask "docker-desktop"
 cask "fujifilm-x-webcam"
+cask "ghostty"
 cask "home-assistant"
 cask "jordanbaird-ice"
+cask "localsend"
 cask "loopback"
 cask "obsidian"
 cask "paw"
@@ -29,20 +24,25 @@ cask "soundsource"
 cask "stats"
 cask "switchresx"
 cask "visual-studio-code"
-cask "wireshark"
-cask "xcodes"
+cask "voiceink"
+cask "wireshark-app"
+cask "zen"
 cask "zoom"
+mas "1Password for Safari", id: 1569813296
 mas "Amphetamine", id: 937984704
-mas "CARROT Weather", id: 993487541
+mas "CARROTweather", id: 993487541
+mas "Foodnoms", id: 1479461686
 mas "GIPHY CAPTURE", id: 668208984
 mas "Home Assistant", id: 1099568401
 mas "Keynote", id: 409183694
 mas "Numbers", id: 409203825
 mas "Pages", id: 409201541
-mas "Parcel", id: 639968404
+mas "Parcel", id: 375589283 
 mas "Serial", id: 877615577
-mas "Soulver 3", id: 1508732804
 mas "Tailscale", id: 1475387142
 mas "Todoist", id: 585829637
 mas "WireGuard", id: 1451685025
-mas "iMovie", id: 408981434
+tap "1password/tap"
+tap "buo/cask-upgrade"
+tap "homebrew/cask"
+tap "homebrew/core"

@@ -51,7 +51,6 @@ in
     _1password-cli
     _1password-gui
     blueberry
-    brave
     brightnessctl
     cargo-watch
     clang
