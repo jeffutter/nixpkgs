@@ -1106,11 +1106,6 @@ in
         . ${config.home.homeDirectory}/.nix-profile/etc/profile.d/nix.sh
         export NIX_HOME_SOURCED="true"
       fi
-
-      if [ -n "$(find ~/.zfunc -prune -empty)" ]; then
-        export fpath=( ~/.zfunc "''${fpath[@]}" )
-        autoload -U $fpath[1]/*(:t)
-      fi
     '';
     initContent = ''
       if [ "$(command -v eza)" ]; then
