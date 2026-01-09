@@ -1,4 +1,4 @@
-{ pkgs, lib, ... }:
+{ pkgs, lib, inputs, ... }:
 
 let
 
@@ -16,10 +16,7 @@ let
   ];
 in
 {
-  imports = [
-    ../common.nix
-    ../darwin.nix
-  ];
+  # imports handled by flake.nix
 
   home.packages = with pkgs; [
     argocd
@@ -109,7 +106,7 @@ in
   programs.keychain.keys = [ "id_ed25519" ];
 
   home.file."Brewfile".text = builtins.concatStringsSep "\n" [
-    (builtins.readFile ../Brewfile.common)
+    (builtins.readFile ../../systems/Brewfile.common)
     ''
       cask "intellij-idea-ce"
       cask "jetbrains-toolbox"

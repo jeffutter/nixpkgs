@@ -1,13 +1,10 @@
-{ pkgs, config, ... }:
+{ pkgs, config, inputs, ... }:
 
 let
   m8c = pkgs.callPackage ../../pkgs/m8c { };
 in
 {
-  imports = [
-    ../common.nix
-    ../darwin.nix
-  ];
+  # imports handled by flake.nix
 
   home.packages = with pkgs; [
     # m8c
@@ -31,7 +28,7 @@ in
   programs.ssh.extraOptionOverrides.identityFile = "~/.ssh/id_rsa";
 
   home.file."Brewfile".text = builtins.concatStringsSep "\n" [
-    (builtins.readFile ../Brewfile.common)
+    (builtins.readFile ../../systems/Brewfile.common)
     ''
       brew "exercism"
       cask "adobe-dng-converter"

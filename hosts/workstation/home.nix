@@ -1,9 +1,9 @@
-{ pkgs, config, ... }:
+{ pkgs, config, inputs, ... }:
 
 let
 in
 {
-  imports = [ ../common.nix ];
+  # imports handled by flake.nix
 
   home.packages = with pkgs; [
     _1password-cli

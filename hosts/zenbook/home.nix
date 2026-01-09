@@ -2,19 +2,16 @@
   pkgs,
   lib,
   config,
+  inputs,
   ...
 }:
 
 let
-  claude-desktop =
-    (builtins.getFlake "github:k3d3/claude-desktop-linux-flake").packages.${pkgs.system}.default;
+  # claude-desktop = inputs.claude-desktop.packages.${pkgs.system}.default;
 
-  iab =
-    (builtins.getFlake "github:jeffutter/iio_ambient_brightness/v0.2.16")
-    .packages.${pkgs.system}.default;
+  iab = inputs.iio-ambient-brightness.packages.${pkgs.system}.default;
 
-  zenbrowser =
-    (builtins.getFlake "github:0xc000022070/zen-browser-flake").packages.${pkgs.system}.default;
+  zenbrowser = inputs.zen-browser.packages.${pkgs.system}.default;
 
   my_zoom = pkgs.symlinkJoin {
     name = "zoom-us";
@@ -48,7 +45,7 @@ let
   };
 in
 {
-  imports = [ ../common.nix ];
+  # imports handled by flake.nix
 
   home.packages = with pkgs; [
     _1password-cli
@@ -73,7 +70,7 @@ in
     wofi
     wluma
     zenbrowser
-    claude-desktop
+    # claude-desktop
   ];
 
   programs.ghostty = {
@@ -130,9 +127,9 @@ in
         "hyprland/workspaces" = {
           format = "{name}";
           format-icons = {
-            active = "";
+            active = "";
             default = "o";
-            persistent = "";
+            persistent = "";
           };
           on-scroll-up = "${pkgs.hyprland}/bin/hyprctl dispatch workspace r-1";
           on-scroll-down = "${pkgs.hyprland}/bin/hyprctl dispatch workspace r+1";
@@ -168,34 +165,34 @@ in
           # format-good= "";
           # format-full= "";
           format-icons = [
-            ""
-            ""
-            ""
-            ""
-            ""
+            ""
+            ""
+            ""
+            ""
+            ""
           ];
         };
         network = {
           # interface = "wlp2s0";
           format-wifi = "{icon} {essid} ({signalStrength}%)";
-          format-ethernet = "{icon} {ifname}= {ipaddr}/{cidr} ";
-          format-disconnected = "{icon} Disconnected ⚠";
+          format-ethernet = "{icon} {ifname}= {ipaddr}/{cidr} ";
+          format-disconnected = "{icon} Disconnected";
         };
         pulseaudio = {
           scroll-step = 5;
           format = "{icon} {volume}%";
           format-bluetooth = "{icon} {volume}%";
-          format-muted = "";
+          format-muted = "";
           format-icons = {
-            headphones = "";
-            handsfree = "";
-            headset = "";
-            phone = "";
-            portable = "";
-            car = "";
+            headphones = "";
+            handsfree = "";
+            headset = "";
+            phone = "";
+            portable = "";
+            car = "";
             default = [
-              ""
-              ""
+              ""
+              ""
             ];
           };
           on-click = "pavucontrol";
@@ -263,24 +260,6 @@ in
         }
       ];
 
-      # image = [
-      #   {
-      #     monitor = "";
-      #     size = 120;
-      #     position = "0, 45";
-      #     path = "/home/$USER/.face";
-      #     border_color = "rgb(202, 211, 245)";
-      #     border_size = 5;
-      #     halign = "center";
-      #     valign = "center";
-      #     shadow_passes = 1;
-      #     reload_cmd = "";
-      #     reload_time = -1;
-      #     rotate = "0.000000";
-      #     rounding = "-1";
-      #   }
-      # ];
-
       label = [
         {
           monitor = "";
@@ -299,7 +278,7 @@ in
         }
         {
           monitor = "";
-          text = ''<span font_weight="bold"> $USER</span>'';
+          text = ''<span font_weight="bold"> $USER</span>'';
           color = "rgb(202, 211, 245)";
           font_size = 25;
           font_family = "MonaspiceNe Nerd Font";
@@ -314,7 +293,7 @@ in
         }
         {
           monitor = "";
-          text = ''<span font_weight="ultrabold">󰌾 </span>'';
+          text = ''<span font_weight="ultrabold"> </span>'';
           color = "rgb(202, 211, 245)";
           font_size = 50;
           font_family = "MonaspiceNe Nerd Font";
@@ -541,8 +520,6 @@ in
           ", XF86MonBrightnessDown, exec, ${iab}/bin/iio_ambient_brightness --decrease 10"
           ", XF86Search, exec, launchpad"
           # MacOS-like keybindings
-          # https://github.com/torvalds/linux/blob/master/include/uapi/linux/input-event-codes.h
-          # "ALT, M, exec, ${pkgs.ydotool}/bin/ydotool type foo"
           "ALT, X, exec, ${pkgs.ydotool}/bin/ydotool key 29:1 45:1 45:0 29:0"
           "ALT, C, exec, ${pkgs.ydotool}/bin/ydotool key 29:1 46:1 46:0 29:0"
           "ALT SHIFT, C, exec, ${pkgs.ydotool}/bin/ydotool key 29:1 42:1 46:1 46:0 42:0 29:0"
@@ -567,21 +544,13 @@ in
           "ALT, L, exec, ${pkgs.ydotool}/bin/ydotool key 29:1 38:1 38:0 29:0"
           # Chrome history
           "ALT, Y, exec, ${pkgs.ydotool}/bin/ydotool key 29:1 21:1 21:0 29:0"
-          # Chrome downloads (overlaps with window movements, disabled)
-          # bindsym --to-code $mod+shift+j exec wtype -M ctrl -P j
         ];
         bindl = [
           ", XF86AudioMute, exec, ${pkgs.pulseaudio}/bin/pactl set-sink-mute @DEFAULT_SINK@ toggle"
           ", XF86AudioMicMute, exec, ${pkgs.pulseaudio}/bin/pactl set-source-mute @DEFAULT_SINK@ toggle"
-          # ", XF86AudioPlay, exec, playerctl play-pause"
-          # ", XF86AudioNext, exec, playerctl next"
-          # ", XF86AudioPrev, exec, playerctl previous"
           ", switch:on:Lid Switch, exec, ${pkgs.hyprland}/bin/hyprctl dispatch dpms off"
           ", switch:off:Lid Switch, exec, ${pkgs.hyprland}/bin/hyprctl dispatch dpms on"
         ];
-        # debug = {
-        #   disable_logs = false;
-        # };
         device = [
           {
             name = "at-translated-set-2-keyboard";
@@ -592,7 +561,6 @@ in
             name = "ydotoold-virtual-device";
             kb_layout = "us";
             kb_variant = "";
-            # kb_variant = "colemak";
             kb_options = "";
           }
         ];
@@ -812,8 +780,6 @@ in
           "${modifier}+Shift+Up" = "move up";
           "${modifier}+Shift+Right" = "move right";
 
-          # "${modifier}+h" = "split h";
-          # "${modifier}+v" = "split v";
           "${modifier}+Shift+f" = "fullscreen toggle";
 
           "${modifier}+Shift+s" = "layout stacking";
@@ -822,8 +788,6 @@ in
 
           "${modifier}+Shift+space" = "floating toggle";
           "${modifier}+space" = "focus mode_toggle";
-
-          # "${modifier}+a" = "focus parent";
 
           "${modifier}+Shift+minus" = "move scratchpad";
           "${modifier}+minus" = "scratchpad show";
@@ -853,12 +817,9 @@ in
           "${modifier}+Shift+r" = "reload";
           "${modifier}+Shift+x" = "restart";
           "${modifier}+e" = "exec ${my_bemoji}/bin/bemoji -t";
-          # "${modifier}+Shift+e" = "exec i3-nagbar -t warning -m 'Do you want to exit i3?' -b 'Yes' 'i3-msg exit'";
 
           "${modifier}+n" = "exec ${pkgs.mako}/bin/makoctl dismiss";
           "${modifier}+Shift+n" = "exec ${pkgs.mako}/bin/makoctl dismiss -a";
-
-          # "${modifier}+r" = "mode resize";
 
           # MacOS-like keybindings
           "${modifier}+x" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P x";
@@ -885,11 +846,7 @@ in
           "${modifier}+l" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P l";
           # Chrome history
           "${modifier}+y" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P h";
-          # Chrome downloads (overlaps with window movements, disabled)
-          # bindsym --to-code $mod+shift+j exec wtype -M ctrl -P j
 
-          # "XF86MonBrightnessDown" = "exec ${pkgs.brightnessctl}/bin/brightnessctl s 10%-";
-          # "XF86MonBrightnessUp" = "exec ${pkgs.brightnessctl}/bin/brightnessctl s 10%+";
           "XF86MonBrightnessDown" = "exec ${iab}/bin/iio_ambient_brightness --decrease 10";
           "XF86MonBrightnessUp" = "exec ${iab}/bin/iio_ambient_brightness --increase 10";
 
@@ -910,16 +867,10 @@ in
   services.swayidle = {
     enable = true;
     extraArgs = [ "-d" ];
-    events = [
-      {
-        event = "before-sleep";
-        command = "${pkgs.hyprlock}/bin/hyprlock";
-      }
-      {
-        event = "lock";
-        command = "${pkgs.hyprlock}/bin/hyprlock";
-      }
-    ];
+    events = {
+      before-sleep = "${pkgs.hyprlock}/bin/hyprlock";
+      lock = "${pkgs.hyprlock}/bin/hyprlock";
+    };
     timeouts = [
       {
         timeout = 60;

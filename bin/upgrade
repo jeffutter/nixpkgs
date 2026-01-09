@@ -1,4 +1,12 @@
-#!env bash
-set -eo pipefail
+#!/usr/bin/env bash
+set -euo pipefail
 
+FLAKE_DIR="${HOME}/.config/home-manager"
+
+# Update flake inputs
+echo "Updating flake inputs..."
+cd "${FLAKE_DIR}"
+nix flake update
+
+# Run topgrade for other updates
 topgrade

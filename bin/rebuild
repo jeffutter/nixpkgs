@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+FLAKE_DIR="${HOME}/.config/home-manager"
+HOSTNAME=$(hostname)
+
+case "$(uname -s)" in
+  Linux)
+    if [ -f /etc/NIXOS ]; then
+      echo "Rebuilding NixOS configuration for ${HOSTNAME}..."
+      sudo nixos-rebuild switch --flake "${FLAKE_DIR}#${HOSTNAME}"
+    else
+      echo "Rebuilding home-manager for ${USER}@${HOSTNAME}..."
+      home-manager switch --flake "${FLAKE_DIR}#${USER}@${HOSTNAME}"
+    fi
+    ;;
+  Darwin)
+    echo "Rebuilding home-manager for ${USER}@${HOSTNAME}..."
+    home-manager switch --flake "${FLAKE_DIR}#${USER}@${HOSTNAME}"
+    ;;
+  *)
+    echo "Unknown operating system"
+    exit 1
+    ;;
+esac

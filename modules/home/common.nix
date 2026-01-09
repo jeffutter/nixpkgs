@@ -2,18 +2,11 @@
   config,
   pkgs,
   lib,
-  mkIf,
-  platforms,
+  inputs,
   ...
 }:
 
 let
-  unstable =
-    import (builtins.fetchTarball "https://github.com/nixos/nixpkgs/tarball/nixpkgs-unstable")
-      {
-        config = config.nixpkgs.config;
-      };
-
   inherit (pkgs.lib) optional optionals;
 
   ssh-copy-id = pkgs.runCommand "ssh-copy-id" { } ''
@@ -35,26 +28,13 @@ let
     ];
   });
 
-  # ltex-lsp = pkgs.callPackage ../pkgs/ltex-lsp { };
+  tokyonights = inputs.tokyonight;
 
-  tokyonights = pkgs.fetchFromGitHub {
-    owner = "folke";
-    repo = "tokyonight.nvim";
-    rev = "v4.14.1";
-    sha256 = "sha256-kQsV0x8/ycFp3+S6YKyiKFsAG5taOdQmx/dMuDqGyEQ=";
-  };
-
-  nixvim = import (fetchGit {
-    url = "https://github.com/nix-community/nixvim";
-    # If you are not running an unstable channel of nixpkgs, select the corresponding branch of Nixvim.
-    # ref = "nixos-25.11";
-  });
-
-  expert = (builtins.getFlake "github:elixir-lang/expert").packages.${pkgs.system}.default;
+  expert = inputs.expert.packages.${pkgs.system}.default;
 in
 
 {
-  imports = [ nixvim.homeModules.nixvim ];
+  imports = [ inputs.nixvim.homeModules.nixvim ];
 
   home.packages =
     with pkgs;
@@ -126,7 +106,7 @@ in
       mprocs
       mosh
       ncdu_1
-      nixfmt-rfc-style
+      nixfmt
       nodejs
       nodePackages.bash-language-server
       ollama
@@ -196,12 +176,12 @@ in
       sqlx-cli
 
       # Ai
-      unstable.claude-code
-      (unstable.llm.withPlugins {
+      claude-code
+      (llm.withPlugins {
         llm-cmd = true;
         llm-jq = true;
       })
-      unstable.shell-gpt
+      shell-gpt
 
       (python3Packages.python.withPackages (
         ps: with ps; [
@@ -248,10 +228,7 @@ in
       ]
     );
 
-  nixpkgs.config.permittedInsecurePackages = [ "p7zip-16.02" ];
-
-  nixpkgs.config.allowUnfree = true;
-  nixpkgs.config.input-fonts.acceptLicense = true;
+  # nixpkgs.config is set at the NixOS/flake level when using useGlobalPkgs
 
   # Let Home Manager install and manage itself.
   programs.home-manager.enable = true;
@@ -259,7 +236,7 @@ in
   #manual.manpages.enable = false;
 
   home.file.".zfunc" = {
-    source = ../zfunc;
+    source = ../../zfunc;
     recursive = true;
   };
 
@@ -277,12 +254,12 @@ in
     };
 
   home.file."bin/upgrade" = {
-    source = ../bin/upgrade;
+    source = ../../bin/upgrade;
     executable = true;
   };
 
   home.file.".config/vivid" = {
-    source = ../vivid;
+    source = ../../vivid;
   };
 
   home.file.".config/warpd/config" = {
@@ -461,27 +438,27 @@ in
       keymaps = [
         {
           key = "grr";
-          action = nixvim.lib.nixvim.mkRaw "function() Snacks.picker.lsp_references() end";
+          action = inputs.nixvim.lib.nixvim.mkRaw "function() Snacks.picker.lsp_references() end";
           options.desc = "Lsp References";
         }
         {
           key = "gd";
-          action = nixvim.lib.nixvim.mkRaw "function() Snacks.picker.lsp_definitions() end";
+          action = inputs.nixvim.lib.nixvim.mkRaw "function() Snacks.picker.lsp_definitions() end";
           options.desc = "Lsp Definitions";
         }
         {
           key = "gry";
-          action = nixvim.lib.nixvim.mkRaw "function() Snacks.picker.lsp_type_definitions() end";
+          action = inputs.nixvim.lib.nixvim.mkRaw "function() Snacks.picker.lsp_type_definitions() end";
           options.desc = "Lsp T[y]pe Definitions";
         }
         {
           key = "<leader>ss";
-          action = nixvim.lib.nixvim.mkRaw "function() Snacks.picker.lsp_symbols() end";
+          action = inputs.nixvim.lib.nixvim.mkRaw "function() Snacks.picker.lsp_symbols() end";
           options.desc = "Lsp Symbols";
         }
         {
           key = "<leader>sS";
-          action = nixvim.lib.nixvim.mkRaw "function() Snacks.picker.lsp_workspace_symbols() end";
+          action = inputs.nixvim.lib.nixvim.mkRaw "function() Snacks.picker.lsp_workspace_symbols() end";
           options.desc = "Lsp Workspace Symbols";
         }
 
@@ -724,52 +701,52 @@ in
       {
         key = "<leader>sf";
         mode = [ "n" ];
-        action = nixvim.lib.nixvim.mkRaw "function() Snacks.picker.files() end";
+        action = inputs.nixvim.lib.nixvim.mkRaw "function() Snacks.picker.files() end";
         options.desc = "[S]earch [F]iles";
       }
       {
         key = "<leader><leader>";
         mode = [ "n" ];
-        action = nixvim.lib.nixvim.mkRaw "function() Snacks.picker.buffers() end";
+        action = inputs.nixvim.lib.nixvim.mkRaw "function() Snacks.picker.buffers() end";
         options.desc = "Search Buffers";
       }
       {
         key = "<leader>sr";
         mode = [ "n" ];
-        action = nixvim.lib.nixvim.mkRaw "function() Snacks.picker.recent() end";
+        action = inputs.nixvim.lib.nixvim.mkRaw "function() Snacks.picker.recent() end";
         options.desc = "[S]earch [R]ecent";
       }
 
       {
         key = "<leader>sg";
         mode = [ "n" ];
-        action = nixvim.lib.nixvim.mkRaw "function() Snacks.picker.grep() end";
+        action = inputs.nixvim.lib.nixvim.mkRaw "function() Snacks.picker.grep() end";
         options.desc = "[S]earch [G]rep";
       }
 
       {
         key = "<leader>hk";
         mode = [ "n" ];
-        action = nixvim.lib.nixvim.mkRaw "function() Snacks.picker.keymaps() end";
+        action = inputs.nixvim.lib.nixvim.mkRaw "function() Snacks.picker.keymaps() end";
         options.desc = "Search [H]elp [K]eymaps";
       }
       {
         key = "<leader>hC";
         mode = [ "n" ];
-        action = nixvim.lib.nixvim.mkRaw "function() Snacks.picker.commands() end";
+        action = inputs.nixvim.lib.nixvim.mkRaw "function() Snacks.picker.commands() end";
         options.desc = "Search [H]elp [C]ommands";
       }
       {
         key = "<leader>ht";
         mode = [ "n" ];
-        action = nixvim.lib.nixvim.mkRaw "function() Snacks.picker.help() end";
+        action = inputs.nixvim.lib.nixvim.mkRaw "function() Snacks.picker.help() end";
         options.desc = "Search [H]elp [T]ags";
       }
 
       {
         key = "<leader>ft";
         mode = [ "n" ];
-        action = nixvim.lib.nixvim.mkRaw "function() Snacks.explorer() end";
+        action = inputs.nixvim.lib.nixvim.mkRaw "function() Snacks.explorer() end";
         options.desc = "[F]ile [T]ree";
       }
 
@@ -789,50 +766,50 @@ in
       {
         key = "<leader>S";
         mode = [ "n" ];
-        action = nixvim.lib.nixvim.mkRaw "function() require(\"spectre\").open() end";
+        action = inputs.nixvim.lib.nixvim.mkRaw "function() require(\"spectre\").open() end";
         options.desc = "[S]pectre";
       }
       {
         key = "<leader>sw";
         mode = [ "n" ];
-        action = nixvim.lib.nixvim.mkRaw "function() require(\"spectre\").open_visual({ select_word = true }) end";
+        action = inputs.nixvim.lib.nixvim.mkRaw "function() require(\"spectre\").open_visual({ select_word = true }) end";
         options.desc = "[S]pectre [W]ord";
       }
       {
         key = "<leader>sp";
         mode = [ "n" ];
-        action = nixvim.lib.nixvim.mkRaw "function() require(\"spectre\").open_file_search() end";
+        action = inputs.nixvim.lib.nixvim.mkRaw "function() require(\"spectre\").open_file_search() end";
         options.desc = "[S]pectre [p]File";
       }
 
       {
         key = "<leader>mta";
         mode = [ "n" ];
-        action = nixvim.lib.nixvim.mkRaw "function() require(\"neotest\").run.run({suite=true}) end";
+        action = inputs.nixvim.lib.nixvim.mkRaw "function() require(\"neotest\").run.run({suite=true}) end";
         options.desc = "[T]est [A]ll";
       }
       {
         key = "<leader>mts";
         mode = [ "n" ];
-        action = nixvim.lib.nixvim.mkRaw "function() require(\"neotest\").run.run() end";
+        action = inputs.nixvim.lib.nixvim.mkRaw "function() require(\"neotest\").run.run() end";
         options.desc = "[T]est [S]ingle";
       }
       {
         key = "<leader>mtf";
         mode = [ "n" ];
-        action = nixvim.lib.nixvim.mkRaw "function() require(\"neotest\").run.run(vim.fn.expand(\"%\")) end";
+        action = inputs.nixvim.lib.nixvim.mkRaw "function() require(\"neotest\").run.run(vim.fn.expand(\"%\")) end";
         options.desc = "[T]est [F]ile";
       }
       {
         key = "<leader>mtr";
         mode = [ "n" ];
-        action = nixvim.lib.nixvim.mkRaw "function() require(\"neotest\").run.run_last() end";
+        action = inputs.nixvim.lib.nixvim.mkRaw "function() require(\"neotest\").run.run_last() end";
         options.desc = "[T]est [R]erun [L]ast";
       }
       {
         key = "<leader>mtS";
         mode = [ "n" ];
-        action = nixvim.lib.nixvim.mkRaw "function() require(\"neotest\").summary.toggle() end";
+        action = inputs.nixvim.lib.nixvim.mkRaw "function() require(\"neotest\").summary.toggle() end";
         options.desc = "[T]est [S]ummary";
       }
     ];
@@ -1231,7 +1208,7 @@ in
     enableFishIntegration = true;
     settings = {
       kubernetes.context_aliases = {
-        "gke_[\\\\w]+-prod[\\\\w-]+_scorebet-(?P<cluster>[\\\\w-]+)" = "🔥PROD $cluster PROD🔥";
+        "gke_[\\\\w]+-prod[\\\\w-]+_scorebet-(?P<cluster>[\\\\w-]+)" = "PROD $cluster PROD";
         "gke_s[\\\\w]+-[\\\\w-]+_scorebet-(?P<cluster>[\\\\w-]+)" = "$cluster";
       };
       format = lib.strings.replaceStrings [ "\n" ] [ "" ] ''
@@ -1276,32 +1253,32 @@ in
         $status
         $character
       '';
-      aws.symbol = " ";
-      battery.full_symbol = "";
-      battery.charging_symbol = "";
-      battery.discharging_symbol = "";
-      conda.symbol = " ";
-      dart.symbol = " ";
-      docker_context.symbol = " ";
-      elixir.symbol = " ";
-      elm.symbol = " ";
-      git_branch.symbol = " ";
-      golang.symbol = " ";
-      # haskell.symbol = " ";
-      hg_branch.symbol = " ";
+      aws.symbol = " ";
+      battery.full_symbol = "";
+      battery.charging_symbol = "";
+      battery.discharging_symbol = "";
+      conda.symbol = " ";
+      dart.symbol = " ";
+      docker_context.symbol = " ";
+      elixir.symbol = " ";
+      elm.symbol = " ";
+      git_branch.symbol = " ";
+      golang.symbol = " ";
+      # haskell.symbol = " ";
+      hg_branch.symbol = " ";
       kubernetes.disabled = false;
-      java.symbol = " ";
-      julia.symbol = " ";
-      memory_usage.symbol = " ";
-      nim.symbol = " ";
-      nix_shell.symbol = " ";
-      nodejs.symbol = " ";
-      package.symbol = " ";
-      perl.symbol = " ";
-      php.symbol = " ";
-      python.symbol = " ";
-      ruby.symbol = " ";
-      rust.symbol = " ";
+      java.symbol = " ";
+      julia.symbol = " ";
+      memory_usage.symbol = " ";
+      nim.symbol = " ";
+      nix_shell.symbol = " ";
+      nodejs.symbol = " ";
+      package.symbol = " ";
+      perl.symbol = " ";
+      php.symbol = " ";
+      python.symbol = " ";
+      ruby.symbol = " ";
+      rust.symbol = " ";
       swift.symbol = "ﯣ ";
     };
   };
@@ -1484,15 +1461,6 @@ in
     numeric = "en_US.UTF-8";
     time = "en_US.UTF-8";
   };
-
-  # nix = {
-  #   package = pkgs.nix;
-  #   extraOptions = ''
-  #     experimental-features = nix-command flakes
-  #     substituters = https://cache.nixos.org https://jeffutter.cachix.org https://nix-community.cachix.org
-  #     trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= jeffutter.cachix.org-1:ANzVqMBfIdjVJm1I7wAD/Dmr7hkqtsX6gWf+VXvC7Uw= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=
-  #   '';
-  # };
 
   # This value determines the Home Manager release that your
   # configuration is compatible with. This helps avoid breakage
