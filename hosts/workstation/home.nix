@@ -1,4 +1,9 @@
-{ pkgs, config, inputs, ... }:
+{
+  pkgs,
+  config,
+  inputs,
+  ...
+}:
 
 let
 in
@@ -7,10 +12,6 @@ in
 
   home.packages = with pkgs; [
     _1password-cli
-    # binutils
-    # llvmPackages_13.bintools-unwrapped
-    # clang_13
-    cargo-watch
   ];
 
   programs.ghostty = {

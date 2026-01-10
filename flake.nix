@@ -161,6 +161,30 @@
             }
           ];
         };
+
+        personal = nix-darwin.lib.darwinSystem {
+          system = "aarch64-darwin";
+          specialArgs = { inherit inputs; };
+          modules = [
+            ./hosts/personal/default.nix
+            home-manager.darwinModules.home-manager
+            {
+              nixpkgs.config.allowUnfree = true;
+              nixpkgs.config.input-fonts.acceptLicense = true;
+              nixpkgs.config.permittedInsecurePackages = [ "p7zip-16.02" ];
+              home-manager.useGlobalPkgs = true;
+              home-manager.useUserPackages = false; # Keep packages in ~/.nix-profile/bin/
+              home-manager.extraSpecialArgs = { inherit inputs; };
+              home-manager.users.jeffutter = {
+                imports = [
+                  ./modules/home/common.nix
+                  ./modules/home/darwin.nix
+                  ./hosts/personal/home.nix
+                ];
+              };
+            }
+          ];
+        };
       };
 
       homeConfigurations = {

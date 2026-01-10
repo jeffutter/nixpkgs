@@ -9,12 +9,9 @@ let
   m8c = pkgs.callPackage ../../pkgs/m8c { };
 in
 {
-  # imports handled by flake.nix
-
   home.packages = with pkgs; [
     # m8c
     llvmPackages.bintools
-    cargo-watch
   ];
 
   programs.git.settings.user.email = "jeff@jeffutter.com";
@@ -31,19 +28,4 @@ in
   ];
 
   programs.ssh.extraOptionOverrides.identityFile = "~/.ssh/id_rsa";
-
-  home.file."Brewfile".text = builtins.concatStringsSep "\n" [
-    (builtins.readFile ../../systems/Brewfile.common)
-    ''
-      cask "adobe-dng-converter"
-      cask "calibre"
-      cask "fastrawviewer"
-      cask "reaper"
-      cask "rustdesk"
-      cask "steam"
-    ''
-  ];
-
-  home.username = "jeffutter";
-  home.homeDirectory = "/Users/jeffutter";
 }

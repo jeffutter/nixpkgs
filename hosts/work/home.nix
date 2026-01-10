@@ -84,24 +84,4 @@ in
   };
 
   programs.keychain.keys = [ "id_ed25519" ];
-
-  home.file."Brewfile".text = builtins.concatStringsSep "\n" [
-    (builtins.readFile ../../systems/Brewfile.common)
-    ''
-      cask "balenaetcher"
-      cask "deskpad"
-      cask "intellij-idea-ce"
-      cask "jetbrains-toolbox"
-      cask "pullbar"
-      cask "rode-central"
-      cask "shottr"
-      mas "Jira", id: 1475897096
-      mas "Slack", id: 803453959
-      mas "Xcode", id: 497799835
-      tap "menubar-apps/menubar-apps"
-    ''
-  ];
-
-  home.username = "jeffery.utter";
-  home.homeDirectory = "/Users/Jeffery.Utter";
 }

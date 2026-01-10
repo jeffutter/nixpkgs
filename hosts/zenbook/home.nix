@@ -52,7 +52,6 @@ in
     _1password-gui
     blueberry
     brightnessctl
-    cargo-watch
     clang
     discord
     gnome-power-manager
