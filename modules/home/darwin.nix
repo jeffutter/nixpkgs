@@ -8,11 +8,6 @@ in
     telegram-desktop
   ];
 
-  targets.darwin.defaults."com.apple.dock" = {
-    size-immutable = true;
-    tilesize = 48;
-  };
-
   programs.ghostty = {
     enable = true;
   };

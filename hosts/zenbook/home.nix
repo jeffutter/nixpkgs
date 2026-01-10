@@ -7,11 +7,11 @@
 }:
 
 let
-  # claude-desktop = inputs.claude-desktop.packages.${pkgs.system}.default;
+  # claude-desktop = inputs.claude-desktop.packages.${pkgs.stdenv.hostPlatform.system}.default;
 
-  iab = inputs.iio-ambient-brightness.packages.${pkgs.system}.default;
+  iab = inputs.iio-ambient-brightness.packages.${pkgs.stdenv.hostPlatform.system}.default;
 
-  zenbrowser = inputs.zen-browser.packages.${pkgs.system}.default;
+  zenbrowser = inputs.zen-browser.packages.${pkgs.stdenv.hostPlatform.system}.default;
 
   my_zoom = pkgs.symlinkJoin {
     name = "zoom-us";

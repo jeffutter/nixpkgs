@@ -30,7 +30,7 @@ let
 
   tokyonights = inputs.tokyonight;
 
-  expert = inputs.expert.packages.${pkgs.system}.default;
+  expert = inputs.expert.packages.${pkgs.stdenv.hostPlatform.system}.default;
 in
 
 {

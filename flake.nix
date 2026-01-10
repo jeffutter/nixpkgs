@@ -9,6 +9,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    nix-darwin = {
+      url = "github:LnL7/nix-darwin";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     nixos-hardware.url = "github:NixOS/nixos-hardware/master";
 
     nixvim = {
@@ -48,6 +53,7 @@
       self,
       nixpkgs,
       home-manager,
+      nix-darwin,
       nixos-hardware,
       nixvim,
       expert,
@@ -124,6 +130,32 @@
                 imports = [
                   ./modules/home/common.nix
                   ./hosts/workstation/home.nix
+                ];
+              };
+            }
+          ];
+        };
+      };
+
+      darwinConfigurations = {
+        work = nix-darwin.lib.darwinSystem {
+          system = "aarch64-darwin";
+          specialArgs = { inherit inputs; };
+          modules = [
+            ./hosts/work/default.nix
+            home-manager.darwinModules.home-manager
+            {
+              nixpkgs.config.allowUnfree = true;
+              nixpkgs.config.input-fonts.acceptLicense = true;
+              nixpkgs.config.permittedInsecurePackages = [ "p7zip-16.02" ];
+              home-manager.useGlobalPkgs = true;
+              home-manager.useUserPackages = false; # Keep packages in ~/.nix-profile/bin/
+              home-manager.extraSpecialArgs = { inherit inputs; };
+              home-manager.users."jeffery.utter" = {
+                imports = [
+                  ./modules/home/common.nix
+                  ./modules/home/darwin.nix
+                  ./hosts/work/home.nix
                 ];
               };
             }

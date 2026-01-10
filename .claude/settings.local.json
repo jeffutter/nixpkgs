@@ -6,7 +6,9 @@
       "Bash(tree:*)",
       "Bash(nix flake check:*)",
       "WebSearch",
-      "WebFetch(domain:github.com)"
+      "WebFetch(domain:github.com)",
+      "Bash(defaults read:*)",
+      "Bash(defaults find NSUserKeyEquivalents)"
     ],
     "deny": [],
     "ask": []
