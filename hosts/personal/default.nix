@@ -21,4 +21,5 @@
   };
 
   system.primaryUser = "jeffutter";
+  nix.settings.trusted-users = [ "jeffutter" ];
 }

@@ -1,4 +1,10 @@
-{ config, modulesPath, pkgs, lib, ... }:
+{
+  config,
+  modulesPath,
+  pkgs,
+  lib,
+  ...
+}:
 {
   imports = [
     # home-manager is configured via flake.nix
@@ -6,7 +12,9 @@
     ./cachix.nix
   ];
   networking.hostName = "workstation";
-  nix.settings = { sandbox = false; };
+  nix.settings = {
+    sandbox = false;
+  };
   proxmoxLXC = {
     manageNetwork = false;
     privileged = true;
@@ -16,9 +24,9 @@
     enable = true;
     openFirewall = true;
     settings = {
-        PermitRootLogin = "yes";
-        PasswordAuthentication = true;
-        PermitEmptyPasswords = "yes";
+      PermitRootLogin = "yes";
+      PasswordAuthentication = true;
+      PermitEmptyPasswords = "yes";
     };
   };
   networking.firewall = {

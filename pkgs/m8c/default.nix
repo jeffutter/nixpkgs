@@ -1,10 +1,12 @@
-{stdenv
-  , lib
-  , gnumake
-  , gcc
-  , SDL2
-  , libserialport
-  , fetchFromGitHub }:
+{
+  stdenv,
+  lib,
+  gnumake,
+  gcc,
+  SDL2,
+  libserialport,
+  fetchFromGitHub,
+}:
 
 let
   pname = "m8c";
@@ -22,14 +24,20 @@ stdenv.mkDerivation {
   };
 
   installFlags = [ "PREFIX=$(out)" ];
-  nativeBuildInputs = [ gnumake gcc ];
-  buildInputs = [ SDL2 libserialport ];
+  nativeBuildInputs = [
+    gnumake
+    gcc
+  ];
+  buildInputs = [
+    SDL2
+    libserialport
+  ];
 
   meta = with lib; {
     description = "Cross-platform M8 tracker headless client";
     homepage = "https://github.com/laamaa/m8c";
     license = licenses.mit;
     platforms = platforms.darwin;
-    hydraPlatforms = [];
+    hydraPlatforms = [ ];
   };
 }

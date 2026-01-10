@@ -35,4 +35,5 @@
   };
 
   system.primaryUser = "jeffery.utter";
+  nix.settings.trusted-users = [ "jeffery.utter" ];
 }
