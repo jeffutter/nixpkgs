@@ -77,7 +77,6 @@ in
       "dash"
       "discord"
       "docker-desktop"
-      "fujifilm-x-webcam"
       "ghostty"
       "jordanbaird-ice"
       "localsend"
