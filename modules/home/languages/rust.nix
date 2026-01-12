@@ -26,7 +26,8 @@
   ];
 
   programs.nixvim = {
-    lsp.servers.rust_analyzer.enable = true;
+    # Managed by rustaceanvim
+    lsp.servers.rust_analyzer.enable = false;
 
     lsp.keymaps = [
       {
