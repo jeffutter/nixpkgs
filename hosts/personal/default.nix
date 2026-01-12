@@ -10,6 +10,7 @@
     "adobe-dng-converter"
     "calibre"
     "fastrawviewer"
+    "nvidia-geforce-now"
     "reaper"
     "rustdesk"
     "steam"
