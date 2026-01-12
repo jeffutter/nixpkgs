@@ -7,7 +7,6 @@
   programs.nix-index = {
     enable = true;
     enableFishIntegration = true;
-    enableZshIntegration = true;
   };
 
   programs.himalaya = {
@@ -41,19 +40,16 @@
 
   programs.keychain = {
     enable = true;
-    enableZshIntegration = true;
     enableFishIntegration = true;
   };
 
   programs.zoxide = {
     enable = true;
-    enableZshIntegration = true;
     enableFishIntegration = true;
   };
 
   programs.direnv = {
     enable = true;
-    enableZshIntegration = true;
     nix-direnv = {
       enable = true;
     };
@@ -67,7 +63,6 @@
   programs.atuin = {
     enable = true;
     enableBashIntegration = true;
-    enableZshIntegration = true;
     enableFishIntegration = true;
     settings = {
       sync_address = "https://atuin.home.jeffutter.com";
@@ -93,7 +88,6 @@
   programs.fzf = {
     enable = true;
     enableBashIntegration = false;
-    enableZshIntegration = false;
     enableFishIntegration = false;
     changeDirWidgetCommand = "fd --type d";
     defaultCommand = "fd --type f";

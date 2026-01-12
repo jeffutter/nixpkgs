@@ -44,12 +44,12 @@ This is a Nix home-manager configuration repository that manages user environmen
 ### System Types
 1. **Linux Systems**: Use Wayland (Hyprland/Sway), waybar, hyprlock, terminal-focused
 2. **macOS Systems**: Use AeroSpace window manager, Homebrew for GUI apps
-3. **Common Elements**: Fish/Zsh shells, Git, development tools, Neovim, terminal apps
+3. **Common Elements**: Fish, Git, development tools, Neovim, terminal apps
 
 ### Key Technologies
 - **Window Managers**: Hyprland (primary), Sway (fallback) on Linux; AeroSpace on macOS
-- **Shells**: Fish (primary), Zsh (with oh-my-zsh)
-- **Terminal**: Ghostty (primary), Kitty (secondary)
+- **Shell**: Fish
+- **Terminal**: Ghostty
 - **Editor**: Neovim with custom Lua configuration
 - **Theme**: Tokyo Night Moon (consistent across all applications)
 - **Package Management**: Nix packages + Homebrew on macOS

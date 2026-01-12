@@ -13,7 +13,6 @@ in
     src = tokyonight;
 
     # Pre-defined paths for each application
-    kitty = tokyonight + "/extras/kitty/tokyonight_moon.conf";
     ghostty = tokyonight + "/extras/ghostty/tokyonight_moon";
     tmux = tokyonight + "/extras/tmux/tokyonight_moon.tmux";
     fish = tokyonight + "/extras/fish/tokyonight_moon.fish";

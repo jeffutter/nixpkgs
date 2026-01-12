@@ -62,18 +62,6 @@ in
       };
     };
 
-  programs.zsh.oh-my-zsh.plugins = [
-    "git"
-    "docker"
-    "mosh"
-    "kubectl"
-    "macos"
-    "vi-mode"
-    "gcloud"
-    "tmux"
-    "1password"
-  ];
-
   programs.ssh = {
     matchBlocks = {
       "github.com-penn-interactive" = {

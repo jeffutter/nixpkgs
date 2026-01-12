@@ -7,7 +7,6 @@
 {
   programs.zellij = {
     enable = true;
-    enableZshIntegration = false;
     enableFishIntegration = false;
     settings = {
       theme = theme.zellij;
