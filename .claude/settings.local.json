@@ -8,7 +8,9 @@
       "WebSearch",
       "WebFetch(domain:github.com)",
       "Bash(defaults read:*)",
-      "Bash(defaults find NSUserKeyEquivalents)"
+      "Bash(defaults find NSUserKeyEquivalents)",
+      "Bash(nix flake update:*)",
+      "Bash(find:*)"
     ],
     "deny": [],
     "ask": []
