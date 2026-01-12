@@ -106,6 +106,7 @@
               home-manager.users.jeffutter = {
                 imports = [
                   ./modules/home/common.nix
+                  ./modules/home/linux.nix
                   ./hosts/zenbook/home.nix
                 ];
               };
@@ -129,6 +130,7 @@
               home-manager.users.jeffutter = {
                 imports = [
                   ./modules/home/common.nix
+                  ./modules/home/linux.nix
                   ./hosts/workstation/home.nix
                 ];
               };

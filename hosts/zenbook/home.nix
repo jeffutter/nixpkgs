@@ -45,7 +45,11 @@ let
   };
 in
 {
-  # imports handled by flake.nix
+  imports = [
+    ../../modules/home/languages/rust.nix
+    ../../modules/home/languages/javascript.nix
+    ../../modules/home/languages/ai.nix
+  ];
 
   home.packages = with pkgs; [
     _1password-cli

@@ -11,6 +11,16 @@ let
   ];
 in
 {
+  imports = [
+    ../../modules/home/languages/elixir.nix
+    ../../modules/home/languages/rust.nix
+    ../../modules/home/languages/go.nix
+    ../../modules/home/languages/python.nix
+    ../../modules/home/languages/javascript.nix
+    ../../modules/home/languages/java.nix
+    ../../modules/home/languages/ai.nix
+  ];
+
   home.packages = with pkgs; [
     argocd
 
@@ -18,17 +28,10 @@ in
 
     my_google-cloud-sdk
 
-    maven
-    google-java-format
     grpcurl
 
     colima
   ];
-
-  programs.java = {
-    enable = true;
-    package = pkgs.jdk;
-  };
 
   programs.git =
     let

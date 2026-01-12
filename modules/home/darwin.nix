@@ -1,15 +1,36 @@
-{ pkgs, ... }:
+{
+  config,
+  pkgs,
+  ...
+}:
 
-let
-in
 {
   home.packages = with pkgs; [
+    aerospace
+    fastmail-desktop
     jankyborders
     telegram-desktop
   ];
 
+  # Symlink nix-installed apps to ~/Applications for Spotlight
+  home.file."Applications" =
+    let
+      apps = pkgs.buildEnv {
+        name = "home-manager-applications";
+        paths = config.home.packages;
+        pathsToLink = [ "/Applications" ];
+      };
+    in
+    {
+      source = "${apps}/Applications";
+      recursive = true;
+    };
+
   programs.ghostty = {
     enable = true;
+    # On Darwin, Ghostty is installed via Homebrew, so use empty package
+    package = pkgs.runCommandLocal "empty" { } "mkdir $out";
+    installBatSyntax = false;
   };
 
   programs.aerospace = {
