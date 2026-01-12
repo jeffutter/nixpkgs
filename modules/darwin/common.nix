@@ -180,6 +180,7 @@ in
     NSGlobalDomain = {
       AppleInterfaceStyle = "Dark";
       ApplePressAndHoldEnabled = false;
+      AppleShowScrollBars = "WhenScrolling";
       "com.apple.swipescrolldirection" = false;
     };
 
@@ -285,6 +286,11 @@ in
             mods = mod.cmd;
           };
         };
+      };
+
+      "com.apple.desktopservices" = {
+        DSDontWriteNetworkStores = true; # No .DS_Store on network
+        DSDontWriteUSBStores = true;
       };
     };
   };
