@@ -51,6 +51,16 @@
       url = "github:danielmiessler/Fabric";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    nix-options-search = {
+      url = "github:madsbv/nix-options-search";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    tinted-theming-schemes = {
+      url = "github:tinted-theming/schemes";
+      flake = false;
+    };
   };
 
   outputs =

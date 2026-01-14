@@ -1,5 +1,6 @@
 {
   pkgs,
+  inputs,
   ...
 }:
 
@@ -28,6 +29,7 @@ in
 
 {
   home.packages = with pkgs; [
+    inputs.nix-options-search.packages.${pkgs.system}.default
     aspell
     aspellDicts.en
     aspellDicts.en-computers
