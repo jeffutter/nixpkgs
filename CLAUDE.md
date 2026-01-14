@@ -39,7 +39,6 @@ This is a Nix home-manager configuration repository that manages user environmen
 - **`pkgs/`** - Custom package definitions (ltex-lsp, m8c)
 - **`nvim/`** - Neovim configuration (Lua-based)
 - **`bin/`** - Custom scripts (upgrade, sunset, wrappers)
-- **`vivid/themes/`** - Color schemes for terminal
 
 ### System Types
 1. **Linux Systems**: Use Wayland (Hyprland/Sway), waybar, hyprlock, terminal-focused

@@ -1,7 +1,4 @@
-{
-  theme,
-  ...
-}:
+{ ... }:
 
 {
   programs.difftastic = {
@@ -44,7 +41,7 @@
         defaultBranch = "main";
       };
     };
-    includes = [ { path = theme.delta; } ];
+    # Stylix handles delta theming
     ignores = [
       ".DS_Store?"
       ".Spotlight-V100"

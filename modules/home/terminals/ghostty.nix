@@ -1,26 +1,27 @@
-{
-  theme,
-  fonts,
-  ...
-}:
+{ ... }:
 
 {
   programs.ghostty = {
     settings = {
       shell-integration-features = "no-cursor";
-      font-family = fonts.ghostty.regular;
-      font-family-bold = fonts.ghostty.bold;
-      font-family-italic = fonts.ghostty.italic;
-      font-family-bold-italic = fonts.ghostty.boldItalic;
+      # Stylix handles: font-family, font-size, theme/colors
       font-thicken = false;
-      font-size = fonts.size;
-      font-feature = fonts.features;
+      font-feature = [
+        "ss01"
+        "ss02"
+        "ss03"
+        "ss04"
+        "ss05"
+        "ss06"
+        "ss07"
+        "ss08"
+        "ss09"
+        "calt"
+        "liga"
+      ];
       window-decoration = false;
       macos-titlebar-style = "hidden";
-
       cursor-style-blink = false;
-
-      theme = theme.ghostty;
     };
   };
 }

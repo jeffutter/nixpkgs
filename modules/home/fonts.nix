@@ -1,9 +1,7 @@
-{
-  pkgs,
-  ...
-}:
+{ pkgs, ... }:
 
 {
+  # Font packages for availability - Stylix handles font configuration
   home.packages = with pkgs; [
     font-awesome
     input-fonts

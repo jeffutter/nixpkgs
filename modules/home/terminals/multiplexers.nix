@@ -1,16 +1,10 @@
-{
-  pkgs,
-  theme,
-  ...
-}:
+{ pkgs, ... }:
 
 {
   programs.zellij = {
     enable = true;
     enableFishIntegration = false;
-    settings = {
-      theme = theme.zellij;
-    };
+    # Stylix handles theming
   };
 
   programs.tmux = {
@@ -32,8 +26,8 @@
       set -g mode-keys   vi
       bind-key N swap-window -t +1 \; next-window
       bind-key P swap-window -t -1 \; previous-window
-    ''
-    + builtins.readFile theme.tmux;
+    '';
+    # Stylix handles theming
     plugins = with pkgs.tmuxPlugins; [
       yank
       prefix-highlight

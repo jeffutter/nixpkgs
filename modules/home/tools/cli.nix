@@ -1,7 +1,4 @@
-{
-  theme,
-  ...
-}:
+{ ... }:
 
 {
   programs.nix-index = {
@@ -75,14 +72,7 @@
 
   programs.bat = {
     enable = true;
-    themes = {
-      "${theme.name}" = {
-        src = theme.bat;
-      };
-    };
-    config = {
-      theme = theme.name;
-    };
+    # Stylix handles theming
   };
 
   programs.fzf = {

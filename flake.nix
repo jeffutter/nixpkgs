@@ -42,9 +42,9 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    tokyonight = {
-      url = "github:folke/tokyonight.nvim";
-      flake = false;
+    stylix = {
+      url = "github:nix-community/stylix";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
   };
 
@@ -76,6 +76,7 @@
           };
           extraSpecialArgs = { inherit inputs; };
           modules = [
+            inputs.stylix.homeModules.stylix
             ./modules/home/common.nix
             {
               home.username = username;
@@ -95,6 +96,7 @@
             nixos-hardware.nixosModules.common-pc-laptop
             nixos-hardware.nixosModules.common-cpu-intel
             nixos-hardware.nixosModules.common-gpu-intel
+            inputs.stylix.nixosModules.stylix
             home-manager.nixosModules.home-manager
             {
               nixpkgs.config.allowUnfree = true;
@@ -103,6 +105,7 @@
               home-manager.useGlobalPkgs = true;
               home-manager.useUserPackages = true;
               home-manager.extraSpecialArgs = { inherit inputs; };
+              home-manager.sharedModules = [ inputs.stylix.homeModules.stylix ];
               home-manager.users.jeffutter = {
                 imports = [
                   ./modules/home/common.nix
@@ -119,6 +122,7 @@
           specialArgs = { inherit inputs; };
           modules = [
             ./hosts/workstation/default.nix
+            inputs.stylix.nixosModules.stylix
             home-manager.nixosModules.home-manager
             {
               nixpkgs.config.allowUnfree = true;
@@ -127,6 +131,7 @@
               home-manager.useGlobalPkgs = true;
               home-manager.useUserPackages = true;
               home-manager.extraSpecialArgs = { inherit inputs; };
+              home-manager.sharedModules = [ inputs.stylix.homeModules.stylix ];
               home-manager.users.jeffutter = {
                 imports = [
                   ./modules/home/common.nix
@@ -145,6 +150,7 @@
           specialArgs = { inherit inputs; };
           modules = [
             ./hosts/work/default.nix
+            inputs.stylix.darwinModules.stylix
             home-manager.darwinModules.home-manager
             {
               nixpkgs.config.allowUnfree = true;
@@ -153,6 +159,7 @@
               home-manager.useGlobalPkgs = true;
               home-manager.useUserPackages = false; # Keep packages in ~/.nix-profile/bin/
               home-manager.extraSpecialArgs = { inherit inputs; };
+              home-manager.sharedModules = [ inputs.stylix.homeModules.stylix ];
               home-manager.users."jeffery.utter" = {
                 imports = [
                   ./modules/home/common.nix
@@ -169,6 +176,7 @@
           specialArgs = { inherit inputs; };
           modules = [
             ./hosts/personal/default.nix
+            inputs.stylix.darwinModules.stylix
             home-manager.darwinModules.home-manager
             {
               nixpkgs.config.allowUnfree = true;
@@ -177,6 +185,7 @@
               home-manager.useGlobalPkgs = true;
               home-manager.useUserPackages = false; # Keep packages in ~/.nix-profile/bin/
               home-manager.extraSpecialArgs = { inherit inputs; };
+              home-manager.sharedModules = [ inputs.stylix.homeModules.stylix ];
               home-manager.users.jeffutter = {
                 imports = [
                   ./modules/home/common.nix

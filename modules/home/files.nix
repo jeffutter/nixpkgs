@@ -8,10 +8,6 @@
     executable = true;
   };
 
-  home.file.".config/vivid" = {
-    source = ../../vivid;
-  };
-
   home.file.".config/warpd/config" = {
     text = ''
       up:f

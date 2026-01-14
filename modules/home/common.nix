@@ -4,7 +4,7 @@
 
 {
   imports = [
-    ./theme.nix
+    ./themes.nix
     ./fonts.nix
     ./packages.nix
     ./files.nix

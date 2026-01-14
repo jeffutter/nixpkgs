@@ -27,11 +27,6 @@
       spelllang = "en_us";
     };
 
-    colorschemes.tokyonight = {
-      enable = true;
-      style = "moon";
-    };
-
     lsp = {
       enable = true;
       inlayHints.enable = true;

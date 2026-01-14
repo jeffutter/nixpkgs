@@ -1,7 +1,6 @@
 {
   config,
   pkgs,
-  theme,
   ...
 }:
 
@@ -100,8 +99,7 @@
       set -x AWS_PAGER "";
       set -x EDITOR "nvim";
 
-      set -x LS_COLORS "$(vivid generate ${theme.vivid})"
-    ''
-    + builtins.readFile theme.fish;
+      # Stylix handles LS_COLORS and fish theme colors
+    '';
   };
 }

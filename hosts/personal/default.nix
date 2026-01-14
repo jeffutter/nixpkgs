@@ -1,4 +1,3 @@
-# This file was created in whole or in part by generative AI.
 { pkgs, ... }:
 
 {

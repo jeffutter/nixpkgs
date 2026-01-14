@@ -211,134 +211,7 @@ in
         no_fade_out = false;
       };
 
-      input-field = [
-        {
-          monitor = "";
-          size = "200, 50";
-          position = "0, -80";
-          outline_thickness = 5;
-          dots_center = true;
-          outer_color = "rgb(24, 25, 38)";
-          inner_color = "rgb(91, 96, 120)";
-          font_color = "rgb(202, 211, 245)";
-          fade_on_empty = false;
-          placeholder_text = ''<span foreground="##cad3f5">Password...</span>'';
-          shadow_passes = 2;
-          bothlock_color = -1;
-          capslock_color = "-1";
-          check_color = "rgb(204, 136, 34)";
-          dots_rounding = "-1";
-          dots_size = "0.330000";
-          dots_spacing = "0.150000";
-          fade_timeout = "2000";
-          fail_color = "rgb(204, 34, 34)";
-          fail_text = "<i>$FAIL</i>";
-          fail_transition = 300;
-          halign = "center";
-          hide_input = false;
-          invert_numlock = false;
-          numlock_color = -1;
-          rounding = -1;
-          shadow_boost = "1.200000";
-          shadow_color = "rgba(0, 0, 0, 1.0)";
-          shadow_size = 3;
-          swap_font_color = false;
-          valign = "center";
-        }
-      ];
-
-      label = [
-        {
-          monitor = "";
-          text = ''<span font_weight="ultrabold">$TIME</span>'';
-          color = "rgb(202, 211, 245)";
-          font_size = 100;
-          font_family = "MonaspiceNe Nerd Font";
-          valign = "center";
-          halign = "center";
-          position = "0, 330";
-          shadow_passes = 2;
-          rotate = "0.000000";
-          shadow_boost = "1.200000";
-          shadow_color = "rgba(0, 0, 0, 1.0)";
-          shadow_size = 3;
-        }
-        {
-          monitor = "";
-          text = ''<span font_weight="bold"> $USER</span>'';
-          color = "rgb(202, 211, 245)";
-          font_size = 25;
-          font_family = "MonaspiceNe Nerd Font";
-          valign = "top";
-          halign = "left";
-          position = "10, 0";
-          rotate = "0.000000";
-          shadow_boost = "1.200000";
-          shadow_color = "rgba(0, 0, 0, 1.0)";
-          shadow_size = 3;
-          shadow_passes = 1;
-        }
-        {
-          monitor = "";
-          text = ''<span font_weight="ultrabold"> </span>'';
-          color = "rgb(202, 211, 245)";
-          font_size = 50;
-          font_family = "MonaspiceNe Nerd Font";
-          valign = "center";
-          halign = "center";
-          position = "15, -350";
-          rotate = "0.000000";
-          shadow_boost = "1.200000";
-          shadow_color = "rgba(0, 0, 0, 1.0)";
-          shadow_size = 3;
-          shadow_passes = 1;
-        }
-        {
-          monitor = "";
-          text = ''<span font_weight="bold">Locked</span>'';
-          color = "rgb(202, 211, 245)";
-          font_size = 25;
-          font_family = "MonaspiceNe Nerd Font";
-          valign = "center";
-          halign = "center";
-          position = "0, -430";
-          rotate = "0.000000";
-          shadow_boost = "1.200000";
-          shadow_color = "rgba(0, 0, 0, 1.0)";
-          shadow_size = 3;
-          shadow_passes = 1;
-        }
-        {
-          monitor = "";
-          text = "cmd[update:120000] echo \"<span font_weight='bold'>$(${pkgs.coreutils}/bin/date +'%a %d %B')</span>\"";
-          color = "rgb(202, 211, 245)";
-          font_size = 30;
-          font_family = "MonaspiceNe Nerd Font";
-          valign = "center";
-          halign = "center";
-          position = "0, 210";
-          rotate = "0.000000";
-          shadow_boost = "1.200000";
-          shadow_color = "rgba(0, 0, 0, 1.0)";
-          shadow_size = 3;
-          shadow_passes = 1;
-        }
-        {
-          monitor = "";
-          text = ''<span font_weight="ultrabold"> </span>'';
-          color = "rgb(202, 211, 245)";
-          font_size = 25;
-          font_family = "MonaspiceNe Nerd Font";
-          valign = "bottom";
-          halign = "right";
-          position = "5, 8";
-          rotate = "0.000000";
-          shadow_boost = "1.200000";
-          shadow_color = "rgba(0, 0, 0, 1.0)";
-          shadow_size = 3;
-          shadow_passes = 1;
-        }
-      ];
+      # Stylix handles input-field and label colors
     };
   };
 
@@ -349,43 +222,14 @@ in
     # nix swaylock doesn't play well with ubuntu pam
     # package = pkgs.runCommandLocal "empty" { } "mkdir $out";
     settings = {
-      color = "000000";
       daemonize = true;
-      font = "MonaspiceNe Nerd Font";
-      # font-size = 50;
       ignore-empty-password = true;
       indicator-caps-lock = true;
       indicator-idle-visible = true;
       indicator-radius = 200;
       indicator-thickness = 20;
-      inside-color = "00000033";
-      inside-clear-color = "ffffff00";
-      inside-caps-lock-color = "ffffff00";
-      inside-ver-color = "ffffff00";
-      inside-wrong-color = "ffffff00";
-      key-hl-color = "00000066";
-      layout-text-color = "d8dee9ff";
-      ring-color = "ffffff";
-      ring-clear-color = "ffffffFF";
-      ring-caps-lock-color = "ffffffFF";
-      ring-ver-color = "ffffffFF";
-      ring-wrong-color = "ffffffFF";
-      line-color = "00000000";
-      line-clear-color = "ffffffFF";
-      line-caps-lock-color = "ffffffFF";
-      line-ver-color = "ffffffFF";
-      line-wrong-color = "ffffffFF";
-      separator-color = "00000000";
       show-failed-attempts = true;
-      text-color = "ffffff";
-      text-clear-color = "ffffff";
-      text-ver-color = "ffffff";
-      text-wrong-color = "ffffff";
-      bs-hl-color = "ffffff";
-      caps-lock-key-hl-color = "ffffffFF";
-      caps-lock-bs-hl-color = "ffffffFF";
-      # disable-caps-lock-text=true;
-      text-caps-lock-color = "ffffff";
+      # Stylix handles colors
     };
   };
 
@@ -657,29 +501,7 @@ in
           smartBorders = "on";
           smartGaps = true;
         };
-        colors = {
-          focused = {
-            border = "#9aa5ce";
-            background = "#364A82";
-            text = "#c0caf5";
-            indicator = "#9aa5ce";
-            childBorder = "#9aa5ce";
-          };
-          focusedInactive = {
-            border = "#16161d";
-            background = "#16161d";
-            text = "#c0caf5";
-            indicator = "#16161d";
-            childBorder = "#16161d";
-          };
-          unfocused = {
-            border = "#16161d";
-            background = "#16161d";
-            text = "#c0caf5";
-            indicator = "#16161d";
-            childBorder = "#16161d";
-          };
-        };
+        # Stylix handles window colors
         bars = [
           {
             mode = "dock";
@@ -692,37 +514,7 @@ in
               names = [ "monospace" ];
               size = 10.0;
             };
-            # trayOutput = "primary";
-            colors = {
-              background = "#000000";
-              statusline = "#ffffff";
-              separator = "#666666";
-              focusedWorkspace = {
-                border = "#9aa5ce";
-                background = "#364A82";
-                text = "#c0caf5";
-              };
-              activeWorkspace = {
-                border = "#9aa5ce";
-                background = "#364A82";
-                text = "#c0caf5";
-              };
-              inactiveWorkspace = {
-                border = "#16161d";
-                background = "#16161d";
-                text = "#c0caf5";
-              };
-              urgentWorkspace = {
-                border = "#2f343a";
-                background = "#900000";
-                text = "#ffffff";
-              };
-              bindingMode = {
-                border = "#2f343a";
-                background = "#900000";
-                text = "#ffffff";
-              };
-            };
+            # Stylix handles bar colors
           }
         ];
         modes = lib.mkOptionDefault {
@@ -893,18 +685,7 @@ in
 
   gtk = {
     enable = true;
-    theme = {
-      name = "Adwaita-dark";
-      package = pkgs.gnome-themes-extra;
-    };
-    font = {
-      name = "MonaspiceNe Nerd Font";
-      package =
-        if (builtins.compareVersions lib.trivial.release "24.11" == 0) then
-          pkgs.nerdfonts.override { fonts = [ "Monaspace" ]; }
-        else
-          pkgs.nerd-fonts.monaspace;
-    };
+    # Stylix handles theme and font
     gtk3.extraConfig = {
       gtk-application-prefer-dark-theme = true;
     };
@@ -913,13 +694,7 @@ in
     };
   };
 
-  home.pointerCursor = {
-    x11.enable = true;
-    gtk.enable = true;
-    package = pkgs.adwaita-icon-theme;
-    name = "Adwaita";
-  };
-  home.file.".icons/default".source = "${pkgs.adwaita-icon-theme}/share/icons/Adwaita";
+  # Stylix handles pointerCursor
 
   xdg.configFile."wluma/config.toml".text = ''
     [als.iio]
