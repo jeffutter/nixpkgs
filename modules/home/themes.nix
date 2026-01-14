@@ -4,7 +4,11 @@
   # Use native tokyonight for richer highlight groups (Stylix base16 is disabled)
   programs.nixvim.colorschemes.tokyonight = {
     enable = true;
-    settings.style = "moon";
+    settings = {
+      style = "moon";
+      styles.comments = { italic = true; };
+      on_colors = "function(colors) colors.comment = '#b4bcd0' end";
+    };
   };
 
   stylix = {

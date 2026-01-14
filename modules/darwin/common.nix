@@ -152,8 +152,11 @@ in
   # Match existing Nix installation's GID
   ids.gids.nixbld = 30000;
 
-  # Use Touch ID for sudo
-  security.pam.services.sudo_local.touchIdAuth = true;
+  # Use Touch ID for sudo (reattach enables tmux support)
+  security.pam.services.sudo_local = {
+    touchIdAuth = true;
+    reattach = true;
+  };
 
   # Remap Caps Lock to Escape
   system.keyboard = {

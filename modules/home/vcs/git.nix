@@ -51,6 +51,7 @@
       ".direnv"
       ".elixir_ls"
       ".envrc"
+      ".expert"
       ".vscode"
       "DS_Store"
       "Thumbs.db"
