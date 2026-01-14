@@ -46,6 +46,11 @@
       url = "github:nix-community/stylix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    fabric = {
+      url = "github:danielmiessler/Fabric";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
