@@ -4,64 +4,76 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-This is a Nix home-manager configuration repository that manages user environments across multiple systems (Linux workstations, macOS, and different machine profiles). The configuration uses home-manager to declaratively manage dotfiles, packages, and services.
+This is a Nix home-manager configuration repository that manages user environments across multiple systems (Linux workstations, macOS, and different machine profiles). The configuration uses Nix flakes with home-manager and nix-darwin to declaratively manage dotfiles, packages, and services.
 
 ## Common Commands
 
-### Installation and Setup
-- `nix-channel --add https://github.com/nix-community/home-manager/archive/master.tar.gz home-manager && nix-channel --update` - Add home-manager channel
-- `nix-shell '<home-manager>' -A install` - Install home-manager
-- `ln -s ~/.config/home-manager/systems/<name>/home.nix ~/.config/home-manager/home.nix` - Link system-specific config
-
 ### Building and Switching
-- `home-manager switch` - Apply configuration changes
-- `home-manager build` - Build configuration without switching
+- `~/bin/rebuild` - Rebuild NixOS or home-manager depending on system type
+- `nix flake update` - Update flake inputs
 - `nixfmt-rfc-style **/*.nix` - Format all Nix files
-- `home-manager expire-generations '-1 week'` - Clean old generations
 - `nix-collect-garbage --delete-older-than 7d` - Clean Nix store
 
-### macOS Homebrew Integration
-- `brew bundle install` - Install Homebrew applications (using Brewfile.common)
-
 ### Upgrading
-- `~/bin/upgrade` (which runs `topgrade`) - Update all packages and systems
+- `~/bin/upgrade` - Runs `nix flake update` then `topgrade` for system-wide updates
 - `topgrade` - Cross-platform system updater that handles Nix, Homebrew, etc.
 
 ## Architecture
 
 ### File Structure
-- **`home.nix`** - Main entry point (symlinked to system-specific config)
-- **`systems/`** - System-specific configurations
-  - `common.nix` - Shared configuration for all systems
-  - `darwin.nix` - macOS-specific settings (AeroSpace, dock settings)
-  - `zenbook/home.nix` - Linux laptop configuration (Wayland/Hyprland)
-  - `workstation/home.nix`, `personal/home.nix`, `work/home.nix` - Other machine profiles
+- **`flake.nix`** - Main entry point defining all inputs and outputs
+- **`hosts/`** - System-specific configurations
+  - `zenbook/` - Asus Zenbook Linux laptop (NixOS + Hyprland)
+  - `workstation/` - Linux workstation (NixOS)
+  - `work/` - macOS work machine (nix-darwin)
+  - `personal/` - macOS personal machine (nix-darwin)
+- **`modules/`** - Modular reusable configurations
+  - `darwin/common.nix` - Shared macOS configuration (Homebrew, keyboard, system preferences)
+  - `home/common.nix` - Main home-manager module that imports all submodules
+  - `home/packages.nix` - Common packages (100+ CLI tools)
+  - `home/themes.nix` - Tokyo Night Storm theme via Stylix
+  - `home/darwin.nix` - macOS-specific home settings (AeroSpace)
+  - `home/linux.nix` - Linux-specific home settings
+  - `home/shells/` - Fish shell configuration
+  - `home/terminals/` - Ghostty and tmux configuration
+  - `home/editors/` - Neovim via NixVim with LSP
+  - `home/languages/` - Language-specific tooling (rust, go, elixir, python, javascript, java, ai)
+  - `home/vcs/` - Git and jujutsu configuration
+  - `home/tools/` - CLI utilities (starship, ssh, direnv, zoxide)
 - **`pkgs/`** - Custom package definitions (ltex-lsp, m8c)
-- **`nvim/`** - Neovim configuration (Lua-based)
-- **`bin/`** - Custom scripts (upgrade, sunset, wrappers)
+- **`bin/`** - Custom scripts (upgrade, rebuild, sunset)
 
-### System Types
-1. **Linux Systems**: Use Wayland (Hyprland/Sway), waybar, hyprlock, terminal-focused
-2. **macOS Systems**: Use AeroSpace window manager, Homebrew for GUI apps
-3. **Common Elements**: Fish, Git, development tools, Neovim, terminal apps
+### Host Configurations
+Each host has a `default.nix` (system config) and `home.nix` (user config):
+
+1. **zenbook** (x86_64-linux) - NixOS with Hyprland/Sway, Intel GPU
+2. **workstation** (x86_64-linux) - NixOS workstation
+3. **work** (aarch64-darwin) - macOS with AeroSpace, work-specific tools
+4. **personal** (aarch64-darwin) - macOS with AeroSpace, personal setup
+
+### Flake Outputs
+- `nixosConfigurations` - zenbook, workstation
+- `darwinConfigurations` - work, personal
+- `homeConfigurations` - Standalone home-manager configs
 
 ### Key Technologies
 - **Window Managers**: Hyprland (primary), Sway (fallback) on Linux; AeroSpace on macOS
-- **Shell**: Fish
+- **Shell**: Fish with abbreviations, aliases, and plugins
 - **Terminal**: Ghostty
-- **Editor**: Neovim with custom Lua configuration
-- **Theme**: Tokyo Night Moon (consistent across all applications)
-- **Package Management**: Nix packages + Homebrew on macOS
+- **Editor**: Neovim via NixVim with LSP, Treesitter, and plugins
+- **Theme**: Tokyo Night Storm (system-wide via Stylix)
+- **Package Management**: Nix flakes + Homebrew on macOS
 
 ### Development Environment
-- **Languages**: Rust, Go, Elixir, Python, JavaScript/Node
+- **Languages**: Rust, Go, Elixir, Python, JavaScript/Node, Java (selectively imported per host)
 - **Tools**: Docker, kubectl, various CLI tools (ripgrep, fd, eza, etc.)
 - **Version Control**: Git with difftastic, jujutsu
 - **Fonts**: Monaspace Nerd Font family
 
 ### Configuration Patterns
-- System-specific configs import `common.nix` and override/extend as needed
-- Extensive use of Nix flakes for external packages
-- Custom package wrappers for Wayland compatibility
-- Consistent theming using Tokyo Night across all applications
-- MacOS uses Colemak keyboard layout, Linux uses standard QWERTY
+- Hosts selectively import language modules from `modules/home/languages/`
+- Platform-specific handling via separate `darwin.nix` and `linux.nix` modules
+- Stylix handles consistent theming across all applications
+- Custom Wayland wrappers for applications (zoom, obsidian, etc.) on Linux
+- macOS uses Colemak keyboard layout
+- Work machine uses per-directory git credentials
