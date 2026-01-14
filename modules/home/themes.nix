@@ -4,7 +4,7 @@
   # Use native tokyonight for richer highlight groups (Stylix base16 is disabled)
   programs.nixvim.colorschemes.tokyonight = {
     enable = true;
-    settings.style = "storm";
+    settings.style = "moon";
   };
 
   stylix = {
