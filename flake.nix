@@ -61,6 +61,20 @@
       url = "github:tinted-theming/schemes";
       flake = false;
     };
+
+    # Vale prose linting styles
+    vale-proselint = {
+      url = "github:errata-ai/proselint/v0.3.4";
+      flake = false;
+    };
+    vale-write-good = {
+      url = "github:errata-ai/write-good/v0.4.1";
+      flake = false;
+    };
+    vale-alex = {
+      url = "github:errata-ai/alex/v0.2.3";
+      flake = false;
+    };
   };
 
   outputs =

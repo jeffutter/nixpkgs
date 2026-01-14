@@ -610,6 +610,9 @@
         "nixvim": "nixvim",
         "stylix": "stylix",
         "tinted-theming-schemes": "tinted-theming-schemes",
+        "vale-alex": "vale-alex",
+        "vale-proselint": "vale-proselint",
+        "vale-write-good": "vale-write-good",
         "zen-browser": "zen-browser"
       }
     },
@@ -888,6 +891,57 @@
       "original": {
         "owner": "numtide",
         "repo": "treefmt-nix",
+        "type": "github"
+      }
+    },
+    "vale-alex": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1730374122,
+        "narHash": "sha256-p0CQg6ZLusSKr57SugwlnoDEoPNVY3UIM8rHHxOL2l0=",
+        "owner": "errata-ai",
+        "repo": "alex",
+        "rev": "907c9927473d1d66e7ddec9abd72d86e3d8103c5",
+        "type": "github"
+      },
+      "original": {
+        "owner": "errata-ai",
+        "ref": "v0.2.3",
+        "repo": "alex",
+        "type": "github"
+      }
+    },
+    "vale-proselint": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1717897170,
+        "narHash": "sha256-ryKJDX1JrvDWVKLC5qQGctweDf74yuwEXxl/IqumM4s=",
+        "owner": "errata-ai",
+        "repo": "proselint",
+        "rev": "f27b5e776bdeeb96adfc53eacfde425bb05e8c7e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "errata-ai",
+        "ref": "v0.3.4",
+        "repo": "proselint",
+        "type": "github"
+      }
+    },
+    "vale-write-good": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1717968676,
+        "narHash": "sha256-W/eHlXklAVlAnY8nLPi/SIKsg8UUnH8UkH99BDo5yKk=",
+        "owner": "errata-ai",
+        "repo": "write-good",
+        "rev": "90c06e68dc5b6dddbc06c5961d94ba56a96b60d4",
+        "type": "github"
+      },
+      "original": {
+        "owner": "errata-ai",
+        "ref": "v0.4.1",
+        "repo": "write-good",
         "type": "github"
       }
     },

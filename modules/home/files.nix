@@ -1,4 +1,5 @@
 {
+  inputs,
   ...
 }:
 
@@ -7,6 +8,21 @@
     source = ../../bin/upgrade;
     executable = true;
   };
+
+  home.file.".vale.ini" = {
+    text = ''
+      StylesPath = .config/vale/styles
+      MinAlertLevel = suggestion
+
+      [*]
+      BasedOnStyles = proselint, write-good, alex
+    '';
+  };
+
+  # Link Vale styles from flake inputs
+  home.file.".config/vale/styles/proselint".source = "${inputs.vale-proselint}/proselint";
+  home.file.".config/vale/styles/write-good".source = "${inputs.vale-write-good}/write-good";
+  home.file.".config/vale/styles/alex".source = "${inputs.vale-alex}/alex";
 
   home.file.".config/warpd/config" = {
     text = ''
