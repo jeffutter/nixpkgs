@@ -114,7 +114,7 @@
 
         settings = {
 
-          keymap.preset = "super-tab";
+          keymap.preset = "enter";
 
           completion = {
             documentation = {
@@ -137,42 +137,68 @@
               "ripgrep"
               "spell"
             ];
-            providers = {
-              lsp = {
-                fallbacks = [ ];
-                score_offset = 10;
-              };
-              emoji = {
-                module = "blink-emoji";
-                name = "Emoji";
-                score_offset = 15;
-                opts = {
-                  insert = true;
+            providers =
+              let
+                dedupeTransform = inputs.nixvim.lib.nixvim.mkRaw ''
+                  function(ctx, items)
+                    if not ctx.seen then ctx.seen = {} end
+                    return vim.iter(items):filter(function(item)
+                      if item.label and ctx.seen[item.label] then return false end
+                      ctx.seen[item.label] = true
+                      return true
+                    end):totable()
+                  end
+                '';
+              in
+              {
+                lsp = {
+                  fallbacks = [ ];
+                  score_offset = 10;
+                  transform_items = dedupeTransform;
                 };
-              };
-              spell = {
-                module = "blink-cmp-spell";
-                name = "Spell";
-                opts = {
-                  spell = false;
-                  spelllang = "en_us";
+                buffer = {
+                  transform_items = dedupeTransform;
                 };
-              };
-              ripgrep = {
-                async = true;
-                module = "blink-ripgrep";
-                name = "Ripgrep";
-                score_offset = -5;
-                opts = {
-                  prefix_min_len = 3;
-                  backend = {
-                    context_size = 5;
-                    max_filesize = "2M";
-                    search_casing = "--smart-case";
+                path = {
+                  transform_items = dedupeTransform;
+                };
+                snippets = {
+                  transform_items = dedupeTransform;
+                };
+                emoji = {
+                  module = "blink-emoji";
+                  name = "Emoji";
+                  score_offset = 15;
+                  transform_items = dedupeTransform;
+                  opts = {
+                    insert = true;
+                  };
+                };
+                spell = {
+                  module = "blink-cmp-spell";
+                  name = "Spell";
+                  transform_items = dedupeTransform;
+                  opts = {
+                    spell = false;
+                    spelllang = "en_us";
+                  };
+                };
+                ripgrep = {
+                  async = true;
+                  module = "blink-ripgrep";
+                  name = "Ripgrep";
+                  score_offset = -5;
+                  transform_items = dedupeTransform;
+                  opts = {
+                    prefix_min_len = 3;
+                    backend = {
+                      context_size = 5;
+                      max_filesize = "2M";
+                      search_casing = "--smart-case";
+                    };
                   };
                 };
               };
-            };
           };
 
           snippets = {
