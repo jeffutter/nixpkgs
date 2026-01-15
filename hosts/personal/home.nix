@@ -25,4 +25,6 @@ in
   programs.git.settings.user.email = "jeff@jeffutter.com";
 
   programs.ssh.extraOptionOverrides.identityFile = "~/.ssh/id_rsa";
+
+  programs.claude-code.settings.model = "sonnet";
 }

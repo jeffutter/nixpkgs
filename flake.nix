@@ -75,6 +75,11 @@
       url = "github:errata-ai/alex/v0.2.3";
       flake = false;
     };
+
+    stop-slop = {
+      url = "github:hardikpandya/stop-slop";
+      flake = false;
+    };
   };
 
   outputs =

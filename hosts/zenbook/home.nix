@@ -76,6 +76,8 @@ in
     # claude-desktop
   ];
 
+  programs.claude-code.settings.model = "sonnet";
+
   programs.ghostty = {
     enable = true;
   };

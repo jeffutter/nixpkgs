@@ -608,6 +608,7 @@
         "nixos-hardware": "nixos-hardware",
         "nixpkgs": "nixpkgs",
         "nixvim": "nixvim",
+        "stop-slop": "stop-slop",
         "stylix": "stylix",
         "tinted-theming-schemes": "tinted-theming-schemes",
         "vale-alex": "vale-alex",
@@ -634,6 +635,22 @@
       "original": {
         "owner": "oxalica",
         "repo": "rust-overlay",
+        "type": "github"
+      }
+    },
+    "stop-slop": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1768330244,
+        "narHash": "sha256-NcwN37kSKOO+4QIhIEVafFtg15KCufmxTJiX3AGQRh0=",
+        "owner": "hardikpandya",
+        "repo": "stop-slop",
+        "rev": "65d52b35d7243427ac646e83eae5a9b0709aa191",
+        "type": "github"
+      },
+      "original": {
+        "owner": "hardikpandya",
+        "repo": "stop-slop",
         "type": "github"
       }
     },
