@@ -24,6 +24,8 @@ in
   home.packages = with pkgs; [
     argocd
 
+    appfire-cli
+
     llvmPackages.bintools
 
     my_google-cloud-sdk
