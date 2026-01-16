@@ -57,6 +57,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    beads = {
+      url = "github:steveyegge/beads/v0.47.1";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     tinted-theming-schemes = {
       url = "github:tinted-theming/schemes";
       flake = false;

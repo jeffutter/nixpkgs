@@ -33,6 +33,8 @@ in
     grpcurl
 
     colima
+
+    inputs.beads.packages.${pkgs.system}.default
   ];
 
   programs.git =
