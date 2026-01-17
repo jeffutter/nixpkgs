@@ -136,6 +136,22 @@
         "type": "github"
       }
     },
+    "claude-plugins-official": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1768504790,
+        "narHash": "sha256-wUkJGdnU9T1ktJOQAK2iavdJm7aLU8b1H6B4kfiqKiM=",
+        "owner": "anthropics",
+        "repo": "claude-plugins-official",
+        "rev": "96276205880a60fd66bbae981f5ab568e70c4cbf",
+        "type": "github"
+      },
+      "original": {
+        "owner": "anthropics",
+        "repo": "claude-plugins-official",
+        "type": "github"
+      }
+    },
     "crane": {
       "locked": {
         "lastModified": 1762538466,
@@ -640,6 +656,7 @@
       "inputs": {
         "beads": "beads",
         "claude-desktop": "claude-desktop",
+        "claude-plugins-official": "claude-plugins-official",
         "expert": "expert",
         "fabric": "fabric",
         "home-manager": "home-manager",

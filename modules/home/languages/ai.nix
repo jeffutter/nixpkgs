@@ -1,16 +1,24 @@
 {
   pkgs,
   inputs,
+  config,
   ...
 }:
 
 let
   fabric = inputs.fabric.packages.${pkgs.stdenv.hostPlatform.system}.default;
+  beads = inputs.beads;
+  beads_bin = beads.packages.${pkgs.system}.default;
   stop-slop = inputs.stop-slop;
+  claude-plugins-official = inputs.claude-plugins-official;
 
   claude-skills = pkgs.runCommand "claude-skills" { } ''
     mkdir -p $out
     ln -s ${stop-slop} $out/stop-slop
+  '';
+
+  buildTime = pkgs.runCommand "build-time" { } ''
+    date -u +"%Y-%m-%dT%H:%M:%S.000Z" > $out
   '';
 
   commitMsgCommon = {
@@ -80,6 +88,7 @@ in
 
 {
   home.packages = with pkgs; [
+    beads_bin
     fabric
     (llm.withPlugins {
       llm-cmd = true;
@@ -88,6 +97,32 @@ in
     ollama
     shell-gpt
   ];
+
+  home.file.".claude/plugins/marketplaces/beads-marketplace".source = beads;
+  home.file.".claude/plugins/marketplaces/claude-plugins-official".source = claude-plugins-official;
+
+  home.file.".claude/plugins/known_marketplaces.json".text =
+    let
+      timestamp = builtins.replaceStrings [ "\n" ] [ "" ] (builtins.readFile buildTime);
+    in
+    builtins.toJSON {
+      claude-plugins-official = {
+        source = {
+          source = "github";
+          repo = "anthropics/claude-plugins-official";
+        };
+        installLocation = "${config.home.homeDirectory}/.claude/plugins/marketplaces/claude-plugins-official";
+        lastUpdated = timestamp;
+      };
+      beads = {
+        source = {
+          source = "github";
+          repo = "steveyegge/beads";
+        };
+        installLocation = "${config.home.homeDirectory}/.claude/plugins/marketplaces/beads-marketplace";
+        lastUpdated = timestamp;
+      };
+    };
 
   programs.claude-code = {
     enable = true;
@@ -102,6 +137,13 @@ in
         defaultMode = "acceptEdits";
       };
       theme = "dark";
+      enabledPlugins = {
+        "beads@beads" = true;
+        "context7@claude-plugins-official" = true;
+        "ralph-loop@claude-plugins-official" = true;
+        "rust-analyzer-lsp@claude-plugins-official" = true;
+      };
+      disabledMcpjsonServers = [ "context7:context7" ];
     };
 
     commands = {
