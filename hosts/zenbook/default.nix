@@ -10,6 +10,7 @@
     # Include the results of the hardware scan.
     ./hardware-configuration.nix
     ./cachix.nix
+    ../../modules/nixos/common.nix
   ];
 
   # Bootloader.
@@ -187,11 +188,6 @@
   # home-manager is configured via flake.nix
 
   programs.fish.enable = true;
-
-  # nixpkgs configuration
-  nixpkgs.config.allowUnfree = true;
-  nixpkgs.config.input-fonts.acceptLicense = true;
-  nixpkgs.config.permittedInsecurePackages = [ "p7zip-16.02" ];
 
   # Install firefox.
   # programs.firefox.enable = true;

@@ -122,11 +122,24 @@
     in
     {
       nixosConfigurations = {
-        zenbook = nixpkgs.lib.nixosSystem {
-          system = "x86_64-linux";
-          specialArgs = { inherit inputs; };
-          modules = [
-            ./hosts/zenbook/default.nix
+        zenbook =
+          let
+            system = "x86_64-linux";
+            pkgs = import nixpkgs {
+              inherit system;
+              config = {
+                allowUnfree = true;
+                input-fonts.acceptLicense = true;
+                permittedInsecurePackages = [ "p7zip-16.02" ];
+              };
+            };
+          in
+          nixpkgs.lib.nixosSystem {
+            inherit system;
+            specialArgs = { inherit inputs; };
+            modules = [
+              { nixpkgs.pkgs = pkgs; }
+              ./hosts/zenbook/default.nix
             nixos-hardware.nixosModules.common-pc-laptop
             nixos-hardware.nixosModules.common-cpu-intel
             nixos-hardware.nixosModules.common-gpu-intel
@@ -148,11 +161,24 @@
           ];
         };
 
-        workstation = nixpkgs.lib.nixosSystem {
-          system = "x86_64-linux";
-          specialArgs = { inherit inputs; };
-          modules = [
-            ./hosts/workstation/default.nix
+        workstation =
+          let
+            system = "x86_64-linux";
+            pkgs = import nixpkgs {
+              inherit system;
+              config = {
+                allowUnfree = true;
+                input-fonts.acceptLicense = true;
+                permittedInsecurePackages = [ "p7zip-16.02" ];
+              };
+            };
+          in
+          nixpkgs.lib.nixosSystem {
+            inherit system;
+            specialArgs = { inherit inputs; };
+            modules = [
+              { nixpkgs.pkgs = pkgs; }
+              ./hosts/workstation/default.nix
             inputs.stylix.nixosModules.stylix
             home-manager.nixosModules.home-manager
             {
@@ -173,11 +199,24 @@
       };
 
       darwinConfigurations = {
-        work = nix-darwin.lib.darwinSystem {
-          system = "aarch64-darwin";
-          specialArgs = { inherit inputs; };
-          modules = [
-            ./hosts/work/default.nix
+        work =
+          let
+            system = "aarch64-darwin";
+            pkgs = import nixpkgs {
+              inherit system;
+              config = {
+                allowUnfree = true;
+                input-fonts.acceptLicense = true;
+                permittedInsecurePackages = [ "p7zip-16.02" ];
+              };
+            };
+          in
+          nix-darwin.lib.darwinSystem {
+            inherit system;
+            specialArgs = { inherit inputs; };
+            modules = [
+              { nixpkgs.pkgs = pkgs; }
+              ./hosts/work/default.nix
             inputs.stylix.darwinModules.stylix
             home-manager.darwinModules.home-manager
             {
@@ -196,11 +235,24 @@
           ];
         };
 
-        personal = nix-darwin.lib.darwinSystem {
-          system = "aarch64-darwin";
-          specialArgs = { inherit inputs; };
-          modules = [
-            ./hosts/personal/default.nix
+        personal =
+          let
+            system = "aarch64-darwin";
+            pkgs = import nixpkgs {
+              inherit system;
+              config = {
+                allowUnfree = true;
+                input-fonts.acceptLicense = true;
+                permittedInsecurePackages = [ "p7zip-16.02" ];
+              };
+            };
+          in
+          nix-darwin.lib.darwinSystem {
+            inherit system;
+            specialArgs = { inherit inputs; };
+            modules = [
+              { nixpkgs.pkgs = pkgs; }
+              ./hosts/personal/default.nix
             inputs.stylix.darwinModules.stylix
             home-manager.darwinModules.home-manager
             {

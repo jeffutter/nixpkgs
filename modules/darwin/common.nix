@@ -137,10 +137,7 @@ in
     options = "--delete-older-than 8d";
   };
 
-  # Allow unfree packages
-  nixpkgs.config.allowUnfree = true;
-  nixpkgs.config.input-fonts.acceptLicense = true;
-  nixpkgs.config.permittedInsecurePackages = [ "p7zip-16.02" ];
+  # Note: nixpkgs.config is set in flake.nix when using home-manager.useGlobalPkgs
 
   # Set Git commit hash for darwin-version to work.
   system.configurationRevision = null;
