@@ -139,6 +139,8 @@ in
 
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
+  nixpkgs.config.input-fonts.acceptLicense = true;
+  nixpkgs.config.permittedInsecurePackages = [ "p7zip-16.02" ];
 
   # Set Git commit hash for darwin-version to work.
   system.configurationRevision = null;

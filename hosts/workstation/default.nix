@@ -75,7 +75,12 @@
   # home-manager.users.jeffutter is configured via flake.nix
 
   programs.fish.enable = true;
+
+  # nixpkgs configuration
   nixpkgs.config.allowUnfree = true;
+  nixpkgs.config.input-fonts.acceptLicense = true;
+  nixpkgs.config.permittedInsecurePackages = [ "p7zip-16.02" ];
+
   environment.systemPackages = with pkgs; [
     vim
     file

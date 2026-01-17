@@ -133,9 +133,6 @@
             inputs.stylix.nixosModules.stylix
             home-manager.nixosModules.home-manager
             {
-              nixpkgs.config.allowUnfree = true;
-              nixpkgs.config.input-fonts.acceptLicense = true;
-              nixpkgs.config.permittedInsecurePackages = [ "p7zip-16.02" ];
               home-manager.useGlobalPkgs = true;
               home-manager.useUserPackages = true;
               home-manager.extraSpecialArgs = { inherit inputs; };
@@ -159,9 +156,6 @@
             inputs.stylix.nixosModules.stylix
             home-manager.nixosModules.home-manager
             {
-              nixpkgs.config.allowUnfree = true;
-              nixpkgs.config.input-fonts.acceptLicense = true;
-              nixpkgs.config.permittedInsecurePackages = [ "p7zip-16.02" ];
               home-manager.useGlobalPkgs = true;
               home-manager.useUserPackages = true;
               home-manager.extraSpecialArgs = { inherit inputs; };
@@ -187,9 +181,6 @@
             inputs.stylix.darwinModules.stylix
             home-manager.darwinModules.home-manager
             {
-              nixpkgs.config.allowUnfree = true;
-              nixpkgs.config.input-fonts.acceptLicense = true;
-              nixpkgs.config.permittedInsecurePackages = [ "p7zip-16.02" ];
               home-manager.useGlobalPkgs = true;
               home-manager.useUserPackages = false; # Keep packages in ~/.nix-profile/bin/
               home-manager.extraSpecialArgs = { inherit inputs; };
@@ -213,9 +204,6 @@
             inputs.stylix.darwinModules.stylix
             home-manager.darwinModules.home-manager
             {
-              nixpkgs.config.allowUnfree = true;
-              nixpkgs.config.input-fonts.acceptLicense = true;
-              nixpkgs.config.permittedInsecurePackages = [ "p7zip-16.02" ];
               home-manager.useGlobalPkgs = true;
               home-manager.useUserPackages = false; # Keep packages in ~/.nix-profile/bin/
               home-manager.extraSpecialArgs = { inherit inputs; };

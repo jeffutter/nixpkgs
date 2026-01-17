@@ -188,11 +188,13 @@
 
   programs.fish.enable = true;
 
+  # nixpkgs configuration
+  nixpkgs.config.allowUnfree = true;
+  nixpkgs.config.input-fonts.acceptLicense = true;
+  nixpkgs.config.permittedInsecurePackages = [ "p7zip-16.02" ];
+
   # Install firefox.
   # programs.firefox.enable = true;
-
-  # Allow unfree packages
-  nixpkgs.config.allowUnfree = true;
 
   # List packages installed in system profile. To search, run:
   # $ nix search wget
