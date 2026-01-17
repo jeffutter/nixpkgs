@@ -30,4 +30,8 @@
   home.homeDirectory = "/home/jeffutter";
 
   programs.claude-code.settings.model = "sonnet";
+
+  # Disable GTK/dconf targets for headless LXC container
+  stylix.targets.gtk.enable = false;
+  dconf.enable = false;
 }
