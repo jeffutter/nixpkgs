@@ -29,7 +29,7 @@ in
 
 {
   home.packages = with pkgs; [
-    inputs.nix-options-search.packages.${pkgs.system}.default
+    inputs.nix-options-search.packages.${pkgs.stdenv.hostPlatform.system}.default
     aspell
     aspellDicts.en
     aspellDicts.en-computers

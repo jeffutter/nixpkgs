@@ -10,6 +10,7 @@
     # home-manager is configured via flake.nix
     (modulesPath + "/virtualisation/proxmox-lxc.nix")
     ./cachix.nix
+    ../../modules/nixos/common.nix
   ];
   networking.hostName = "workstation";
   nix.settings = {
@@ -75,7 +76,7 @@
   # home-manager.users.jeffutter is configured via flake.nix
 
   programs.fish.enable = true;
-  nixpkgs.config.allowUnfree = true;
+
   environment.systemPackages = with pkgs; [
     vim
     file

@@ -10,6 +10,7 @@
     # Include the results of the hardware scan.
     ./hardware-configuration.nix
     ./cachix.nix
+    ../../modules/nixos/common.nix
   ];
 
   # Bootloader.
@@ -191,9 +192,6 @@
   # Install firefox.
   # programs.firefox.enable = true;
 
-  # Allow unfree packages
-  nixpkgs.config.allowUnfree = true;
-
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
@@ -230,6 +228,9 @@
   };
 
   services.tailscale.enable = true;
+
+  # Enable systemd-resolved (required for initrd network)
+  services.resolved.enable = true;
 
   # Open ports in the firewall.
   networking.firewall = {
