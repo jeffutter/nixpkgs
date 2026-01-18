@@ -457,6 +457,7 @@ in
       wrapperFeatures.gtk = true;
       extraConfig = ''
         set $mode_power (l)ock, (e)xit, (p)oweroff, (r)eboot
+        default_border pixel 1
       '';
       config = {
         defaultWorkspace = "workspace number 1";
