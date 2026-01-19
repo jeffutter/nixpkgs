@@ -50,6 +50,10 @@
           sha256 = "sha256-s1o188TlwpUQEN3X5MxUlD/2CFCpEkWu83U9O+wg3VU=";
         };
       }
+      {
+        name = "wakatime-fish";
+        src = pkgs.fishPlugins.wakatime-fish;
+      }
     ];
     shellInit = ''
       set fish_greeting

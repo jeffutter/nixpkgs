@@ -90,6 +90,11 @@
       url = "github:anthropics/claude-plugins-official";
       flake = false;
     };
+
+    claude-code-wakatime = {
+      url = "github:wakatime/claude-code-wakatime";
+      flake = false;
+    };
   };
 
   outputs =

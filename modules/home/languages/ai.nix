@@ -11,6 +11,7 @@ let
   beads_bin = beads.packages.${pkgs.system}.default;
   stop-slop = inputs.stop-slop;
   claude-plugins-official = inputs.claude-plugins-official;
+  claude-code-wakatime = inputs.claude-code-wakatime;
 
   claude-skills = pkgs.runCommand "claude-skills" { } ''
     mkdir -p $out
@@ -100,6 +101,7 @@ in
 
   home.file.".claude/plugins/marketplaces/beads-marketplace".source = beads;
   home.file.".claude/plugins/marketplaces/claude-plugins-official".source = claude-plugins-official;
+  home.file.".claude/plugins/marketplaces/claude-code-wakatime".source = claude-code-wakatime;
 
   home.file.".claude/plugins/known_marketplaces.json".text =
     let
@@ -122,6 +124,14 @@ in
         installLocation = "${config.home.homeDirectory}/.claude/plugins/marketplaces/beads-marketplace";
         lastUpdated = timestamp;
       };
+      claude-code-wakatime = {
+        source = {
+          source = "github";
+          repo = "wakatime/claude-code-wakatime";
+        };
+        installLocation = "${config.home.homeDirectory}/.claude/plugins/marketplaces/claude-code-wakatime";
+        lastUpdated = timestamp;
+      };
     };
 
   programs.claude-code = {
@@ -142,6 +152,7 @@ in
         "context7@claude-plugins-official" = true;
         "ralph-loop@claude-plugins-official" = true;
         "rust-analyzer-lsp@claude-plugins-official" = true;
+        "claude-code-wakatime@claude-code-wakatime" = true;
       };
       disabledMcpjsonServers = [ "context7:context7" ];
       hooks = {
