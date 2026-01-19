@@ -40,10 +40,11 @@ in
   programs.git =
     let
       mkWorkConfig = dir: {
-        condition = "gitdir:${dir}";
+        condition = "gitdir:${dir}**";
         contents = {
-          user.email = "jeffery.utter@thescore.com";
-          signing.key = "~/.ssh/id_ed25519-penn-interactive";
+          user.email = "jeffery.utter@pennentertainment.com";
+          user.signingKey = "~/.ssh/id_ed25519-penn-interactive";
+          gpg.format = "ssh";
           commit.gpgSign = true;
           tag.gpgSign = true;
         };
