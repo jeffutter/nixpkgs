@@ -86,9 +86,9 @@
 
     plugins = {
       actions-preview.enable = true;
+      blink-cmp-spell.enable = true;
       blink-emoji.enable = true;
       blink-ripgrep.enable = true;
-      blink-cmp-spell.enable = true;
       comment.enable = true;
       cursorline.enable = true;
       fidget.enable = true;
@@ -98,14 +98,15 @@
       lualine.enable = true;
       luasnip.enable = true;
       nix.enable = true;
-      nvim-surround.enable = true;
       nvim-autopairse.enable = true;
+      nvim-surround.enable = true;
       sleuth.enable = true;
+      spectre.enable = true;
       todo-comments.enable = true;
       trouble.enable = true;
+      wakatime.enable = true;
       web-devicons.enable = true;
       which-key.enable = true;
-      spectre.enable = true;
 
       neotest.enable = true;
 

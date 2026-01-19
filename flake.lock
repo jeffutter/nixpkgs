@@ -115,6 +115,22 @@
         "type": "github"
       }
     },
+    "claude-code-wakatime": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1768363299,
+        "narHash": "sha256-zHNu33ZimBAIpUFNpQ3lZoprC7frCguFYayBKfUaOAI=",
+        "owner": "wakatime",
+        "repo": "claude-code-wakatime",
+        "rev": "90aa64b894519dd10cef41f7e84210dfb5a0cfe1",
+        "type": "github"
+      },
+      "original": {
+        "owner": "wakatime",
+        "repo": "claude-code-wakatime",
+        "type": "github"
+      }
+    },
     "claude-desktop": {
       "inputs": {
         "flake-utils": "flake-utils_2",
@@ -133,6 +149,22 @@
       "original": {
         "owner": "k3d3",
         "repo": "claude-desktop-linux-flake",
+        "type": "github"
+      }
+    },
+    "claude-plugins-official": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1768504790,
+        "narHash": "sha256-wUkJGdnU9T1ktJOQAK2iavdJm7aLU8b1H6B4kfiqKiM=",
+        "owner": "anthropics",
+        "repo": "claude-plugins-official",
+        "rev": "96276205880a60fd66bbae981f5ab568e70c4cbf",
+        "type": "github"
+      },
+      "original": {
+        "owner": "anthropics",
+        "repo": "claude-plugins-official",
         "type": "github"
       }
     },
@@ -639,7 +671,9 @@
     "root": {
       "inputs": {
         "beads": "beads",
+        "claude-code-wakatime": "claude-code-wakatime",
         "claude-desktop": "claude-desktop",
+        "claude-plugins-official": "claude-plugins-official",
         "expert": "expert",
         "fabric": "fabric",
         "home-manager": "home-manager",
