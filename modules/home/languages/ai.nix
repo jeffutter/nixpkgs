@@ -236,7 +236,7 @@ in
         description: Plan all unplanned beads (bd) tickets 
         ---
 
-        For every bd task that doesn't have the `planned` label: 
+        For every bd task that doesn't have the `planned` label (`bd list --json | jq -r '. | map(select(.status == "open" and (.labels.[] | contains("planned") | not ) )) | .[].id'`): 
         - Launch a foreground bd-planner subagent to add a plan to the ticket
       '';
 
@@ -245,9 +245,9 @@ in
         description: Execute one ready beads (bd) tickets 
         ---
 
-        1. Find an outstanding tasks that hasn't been assigned: `bd ready -l planned --no-assignee`
-        2. Choose a task without dependencies - if it looks like an epic with subtasks, choose a subtask
-        3. In the agent, view the issue and implement the plan
+        1. Find an outstanding tasks that hasn't been assigned (`bd ready -l planned -u`):
+        2. Choose a task
+        3. View the issue and implement the plan
         4. Once the implementation is complete:
            - Mark it complete in beads
            - Unassign yourself
@@ -261,7 +261,7 @@ in
 
         Complete all ready beads (bd) tickets:
 
-        1. Find all outstanding tasks that have been planned: `bd ready -l planned`
+        1. Find all outstanding tasks that have been planned (`bd ready -l planned -u`):
         2. Complete these tasks one at a time (serially)
         3. For each task: 
           - Launch a sub-agent to do the work (to limit context)
