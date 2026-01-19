@@ -118,15 +118,15 @@
     "claude-code-wakatime": {
       "flake": false,
       "locked": {
-        "lastModified": 1768363299,
-        "narHash": "sha256-zHNu33ZimBAIpUFNpQ3lZoprC7frCguFYayBKfUaOAI=",
-        "owner": "wakatime",
+        "lastModified": 1768839037,
+        "narHash": "sha256-S/2K6NEsc6yjEmwU7XOHuvByvBf/Zchl88pGKV5/OiI=",
+        "owner": "jeffutter",
         "repo": "claude-code-wakatime",
-        "rev": "90aa64b894519dd10cef41f7e84210dfb5a0cfe1",
+        "rev": "f99667afd183d86e8c2ed636b8501b6604d3b5e0",
         "type": "github"
       },
       "original": {
-        "owner": "wakatime",
+        "owner": "jeffutter",
         "repo": "claude-code-wakatime",
         "type": "github"
       }

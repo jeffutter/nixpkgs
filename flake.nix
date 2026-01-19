@@ -92,7 +92,9 @@
     };
 
     claude-code-wakatime = {
-      url = "github:wakatime/claude-code-wakatime";
+      # https://github.com/wakatime/claude-code-wakatime/issues/15
+      # url = "github:wakatime/claude-code-wakatime";
+      url = "github:jeffutter/claude-code-wakatime";
       flake = false;
     };
   };
