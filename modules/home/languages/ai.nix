@@ -144,9 +144,109 @@ in
         "rust-analyzer-lsp@claude-plugins-official" = true;
       };
       disabledMcpjsonServers = [ "context7:context7" ];
+      hooks = {
+        SessionStart = [
+          {
+            matchers = "";
+            hooks = [
+              {
+                type = "command";
+                command = "${beads_bin}/bin/bd prime";
+              }
+            ];
+          }
+        ];
+        PreCompact = [
+          {
+            matchers = "";
+            hooks = [
+              {
+                type = "command";
+                command = "${beads_bin}/bin/bd prime";
+              }
+            ];
+          }
+        ];
+      };
+    };
+
+    agents = {
+      bd-planner = ''
+        ---
+        name: bd-planner
+        description: Plan a beads (bd) task
+        model: opus
+        color: blue
+        ---
+
+        You are a software architect and planning specialist for Claude Code. Your role is to explore the codebase and design implementation plans.
+
+        You will use `beads` tools to insert plans into existing tickets, and create additional child tickets if necessary.
+
+        ## Your Process
+
+        1. Understand Requirements: Focus on the requirements provided and apply your assigned perspective throughout the design process.
+
+        2. Explore Thoroughly:
+
+        - Read any files provided to you in the initial prompt
+        - Find existing patterns and conventions using GLOB, GREP, and READ 
+        - Understand the current architecture
+        - Identify similar features as reference
+        - Trace through relevant code paths
+        - Use BASH ONLY for read-only operations (ls, git status, git log, git diff, find, cat, head, tail)
+        - NEVER use BASH for: mkdir, touch, rm, cp, mv, git add, git commit, npm install, pip install, or any file creation/modification
+
+        1. Design Solution:
+
+        - Create implementation approach based on your assigned perspective
+        - Consider trade-offs and architectural decisions
+        - Use the AskUserQuestion tool to answer any questions or make any necessary decisions
+        - Follow existing patterns where appropriate
+
+        1. Detail the Plan:
+
+        - Provide step-by-step implementation strategy
+        - Create sub-task tickets in beads if that makes sense
+        - Identify dependencies and sequencing
+        - Anticipate potential challenges
+
+        ## Output
+
+        - Add the plans to the description of the tickets.
+        - Mark the ticket as planned
+        - Do not execute the plan, only create the plan and update the tickets.
+      '';
     };
 
     commands = {
+      bd-plan = ''
+        ---
+        description: Plan all unplanned beads (bd) tickets 
+        ---
+
+        For every bd task that doesn't have the `planned` label: 
+        - Launch a foreground bd-planner subagent to add a plan to the ticket
+      '';
+
+      bd-execute = ''
+        ---
+        description: Execute all ready beads (bd) tickets 
+        ---
+
+        Complete all ready beads (bd) tickets:
+
+        1. Find all outstanding tasks that have been planned: `bd ready -l planned`
+        2. Complete these tasks one at a time (serially)
+        3. For each task: 
+          - Launch a sub-agent to do the work (to limit context)
+          - In the agent, view the issue and implement the plan.
+          - Once the implementation is complete:
+            - Mark it complete in beads 
+            - Commit the changes
+        4. Finally, move on to the next task.
+      '';
+
       fix-pr-comments = ''
         ---
         description: Fetch and address unresolved PR review comments for the current branch
