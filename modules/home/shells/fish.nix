@@ -1,9 +1,13 @@
 {
   config,
   pkgs,
+  inputs,
   ...
 }:
 
+let
+  beads = inputs.beads.packages.${pkgs.system}.default;
+in
 {
   programs.fish = {
     enable = true;
@@ -102,6 +106,8 @@
       set -x AWS_DEFAULT_REGION "us-east-1";
       set -x AWS_PAGER "";
       set -x EDITOR "nvim";
+
+      ${beads}/bin/bd completion fish | source
 
       # Stylix handles LS_COLORS and fish theme colors
     '';

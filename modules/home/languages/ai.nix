@@ -242,6 +242,20 @@ in
 
       bd-execute = ''
         ---
+        description: Execute one ready beads (bd) tickets 
+        ---
+
+        1. Find an outstanding tasks that hasn't been assigned: `bd ready -l planned --no-assignee`
+        2. Choose a task without dependencies - if it looks like an epic with subtasks, choose a subtask
+        3. In the agent, view the issue and implement the plan
+        4. Once the implementation is complete:
+           - Mark it complete in beads
+           - Unassign yourself
+           - Commit the changes
+      '';
+
+      bd-execute-all = ''
+        ---
         description: Execute all ready beads (bd) tickets 
         ---
 
