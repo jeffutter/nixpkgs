@@ -1,9 +1,13 @@
 {
   config,
   pkgs,
+  inputs,
   ...
 }:
 
+let
+  beads = inputs.beads.packages.${pkgs.system}.default;
+in
 {
   programs.fish = {
     enable = true;
@@ -49,6 +53,10 @@
           rev = "1.0.4";
           sha256 = "sha256-s1o188TlwpUQEN3X5MxUlD/2CFCpEkWu83U9O+wg3VU=";
         };
+      }
+      {
+        name = "wakatime-fish";
+        src = pkgs.fishPlugins.wakatime-fish;
       }
     ];
     shellInit = ''
@@ -98,6 +106,8 @@
       set -x AWS_DEFAULT_REGION "us-east-1";
       set -x AWS_PAGER "";
       set -x EDITOR "nvim";
+
+      ${beads}/bin/bd completion fish | source
 
       # Stylix handles LS_COLORS and fish theme colors
     '';
