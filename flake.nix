@@ -155,26 +155,26 @@
             modules = [
               { nixpkgs.pkgs = pkgs; }
               ./hosts/zenbook/default.nix
-            nixos-hardware.nixosModules.common-pc-laptop
-            nixos-hardware.nixosModules.common-cpu-intel
-            nixos-hardware.nixosModules.common-gpu-intel
-            inputs.stylix.nixosModules.stylix
-            home-manager.nixosModules.home-manager
-            {
-              home-manager.useGlobalPkgs = true;
-              home-manager.useUserPackages = true;
-              home-manager.extraSpecialArgs = { inherit inputs; };
-              home-manager.sharedModules = [ inputs.stylix.homeModules.stylix ];
-              home-manager.users.jeffutter = {
-                imports = [
-                  ./modules/home/common.nix
-                  ./modules/home/linux.nix
-                  ./hosts/zenbook/home.nix
-                ];
-              };
-            }
-          ];
-        };
+              nixos-hardware.nixosModules.common-pc-laptop
+              nixos-hardware.nixosModules.common-cpu-intel
+              nixos-hardware.nixosModules.common-gpu-intel
+              inputs.stylix.nixosModules.stylix
+              home-manager.nixosModules.home-manager
+              {
+                home-manager.useGlobalPkgs = true;
+                home-manager.useUserPackages = true;
+                home-manager.extraSpecialArgs = { inherit inputs; };
+                home-manager.sharedModules = [ inputs.stylix.homeModules.stylix ];
+                home-manager.users.jeffutter = {
+                  imports = [
+                    ./modules/home/common.nix
+                    ./modules/home/linux.nix
+                    ./hosts/zenbook/home.nix
+                  ];
+                };
+              }
+            ];
+          };
 
         workstation =
           let
@@ -194,23 +194,23 @@
             modules = [
               { nixpkgs.pkgs = pkgs; }
               ./hosts/workstation/default.nix
-            inputs.stylix.nixosModules.stylix
-            home-manager.nixosModules.home-manager
-            {
-              home-manager.useGlobalPkgs = true;
-              home-manager.useUserPackages = true;
-              home-manager.extraSpecialArgs = { inherit inputs; };
-              home-manager.sharedModules = [ inputs.stylix.homeModules.stylix ];
-              home-manager.users.jeffutter = {
-                imports = [
-                  ./modules/home/common.nix
-                  ./modules/home/linux.nix
-                  ./hosts/workstation/home.nix
-                ];
-              };
-            }
-          ];
-        };
+              inputs.stylix.nixosModules.stylix
+              home-manager.nixosModules.home-manager
+              {
+                home-manager.useGlobalPkgs = true;
+                home-manager.useUserPackages = true;
+                home-manager.extraSpecialArgs = { inherit inputs; };
+                home-manager.sharedModules = [ inputs.stylix.homeModules.stylix ];
+                home-manager.users.jeffutter = {
+                  imports = [
+                    ./modules/home/common.nix
+                    ./modules/home/linux.nix
+                    ./hosts/workstation/home.nix
+                  ];
+                };
+              }
+            ];
+          };
       };
 
       darwinConfigurations = {
@@ -232,23 +232,23 @@
             modules = [
               { nixpkgs.pkgs = pkgs; }
               ./hosts/work/default.nix
-            inputs.stylix.darwinModules.stylix
-            home-manager.darwinModules.home-manager
-            {
-              home-manager.useGlobalPkgs = true;
-              home-manager.useUserPackages = false; # Keep packages in ~/.nix-profile/bin/
-              home-manager.extraSpecialArgs = { inherit inputs; };
-              home-manager.sharedModules = [ inputs.stylix.homeModules.stylix ];
-              home-manager.users."jeffery.utter" = {
-                imports = [
-                  ./modules/home/common.nix
-                  ./modules/home/darwin.nix
-                  ./hosts/work/home.nix
-                ];
-              };
-            }
-          ];
-        };
+              inputs.stylix.darwinModules.stylix
+              home-manager.darwinModules.home-manager
+              {
+                home-manager.useGlobalPkgs = true;
+                home-manager.useUserPackages = false; # Keep packages in ~/.nix-profile/bin/
+                home-manager.extraSpecialArgs = { inherit inputs; };
+                home-manager.sharedModules = [ inputs.stylix.homeModules.stylix ];
+                home-manager.users."jeffery.utter" = {
+                  imports = [
+                    ./modules/home/common.nix
+                    ./modules/home/darwin.nix
+                    ./hosts/work/home.nix
+                  ];
+                };
+              }
+            ];
+          };
 
         personal =
           let
@@ -268,23 +268,23 @@
             modules = [
               { nixpkgs.pkgs = pkgs; }
               ./hosts/personal/default.nix
-            inputs.stylix.darwinModules.stylix
-            home-manager.darwinModules.home-manager
-            {
-              home-manager.useGlobalPkgs = true;
-              home-manager.useUserPackages = false; # Keep packages in ~/.nix-profile/bin/
-              home-manager.extraSpecialArgs = { inherit inputs; };
-              home-manager.sharedModules = [ inputs.stylix.homeModules.stylix ];
-              home-manager.users.jeffutter = {
-                imports = [
-                  ./modules/home/common.nix
-                  ./modules/home/darwin.nix
-                  ./hosts/personal/home.nix
-                ];
-              };
-            }
-          ];
-        };
+              inputs.stylix.darwinModules.stylix
+              home-manager.darwinModules.home-manager
+              {
+                home-manager.useGlobalPkgs = true;
+                home-manager.useUserPackages = false; # Keep packages in ~/.nix-profile/bin/
+                home-manager.extraSpecialArgs = { inherit inputs; };
+                home-manager.sharedModules = [ inputs.stylix.homeModules.stylix ];
+                home-manager.users.jeffutter = {
+                  imports = [
+                    ./modules/home/common.nix
+                    ./modules/home/darwin.nix
+                    ./hosts/personal/home.nix
+                  ];
+                };
+              }
+            ];
+          };
       };
 
       homeConfigurations = {
