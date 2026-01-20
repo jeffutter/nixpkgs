@@ -45,21 +45,11 @@ in
     plugins = [
       {
         name = "fenv";
-        src = pkgs.fetchFromGitHub {
-          owner = "oh-my-fish";
-          repo = "plugin-foreign-env";
-          rev = "b3dd471bcc885b597c3922e4de836e06415e52dd";
-          sha256 = "sha256-3h03WQrBZmTXZLkQh1oVyhv6zlyYsSDS7HTHr+7WjY8=";
-        };
+        src = inputs.fish-plugin-fenv;
       }
       {
         name = "autopair";
-        src = pkgs.fetchFromGitHub {
-          owner = "jorgebucaran";
-          repo = "autopair.fish";
-          rev = "1.0.4";
-          sha256 = "sha256-s1o188TlwpUQEN3X5MxUlD/2CFCpEkWu83U9O+wg3VU=";
-        };
+        src = inputs.fish-plugin-autopair;
       }
       {
         name = "wakatime-fish";

@@ -192,11 +192,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1768911552,
-        "narHash": "sha256-zNZwXmyadQ/86UcXXlEG0kOSIGlmpKWMpBTFUrwoNmc=",
+        "lastModified": 1768940031,
+        "narHash": "sha256-A955jUJecRyQP52AdaDypB2MxTkuIi75chqLw4PCBq4=",
         "owner": "elixir-lang",
         "repo": "expert",
-        "rev": "ffe360c88e8811e41fbd33d6404acb18f4b7a95e",
+        "rev": "3ec1810e397bea76d84daa6816a5061d39cc480f",
         "type": "github"
       },
       "original": {
@@ -215,11 +215,11 @@
         "treefmt-nix": "treefmt-nix"
       },
       "locked": {
-        "lastModified": 1768839735,
-        "narHash": "sha256-pU7vbp2Jz1t63DfUC8n2F31HIHm8GKwDkj3jsN12XwY=",
+        "lastModified": 1768939642,
+        "narHash": "sha256-OYvV7tpfcN/v94MjpIdRuz49A1fhQe7RpcajzLha0UY=",
         "owner": "danielmiessler",
         "repo": "Fabric",
-        "rev": "fb407ccfedb747f02bbb0118a8cbb19fd06f127e",
+        "rev": "b5e36d93b6ac86622ffc2fcb4eac2c38d0908388",
         "type": "github"
       },
       "original": {
@@ -241,6 +241,40 @@
       "original": {
         "owner": "rafaelmardojai",
         "repo": "firefox-gnome-theme",
+        "type": "github"
+      }
+    },
+    "fish-plugin-autopair": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1656949473,
+        "narHash": "sha256-s1o188TlwpUQEN3X5MxUlD/2CFCpEkWu83U9O+wg3VU=",
+        "owner": "jorgebucaran",
+        "repo": "autopair.fish",
+        "rev": "244bb1ebf74bf944a1ba1338fc1026075003c5e3",
+        "type": "github"
+      },
+      "original": {
+        "owner": "jorgebucaran",
+        "ref": "1.0.4",
+        "repo": "autopair.fish",
+        "type": "github"
+      }
+    },
+    "fish-plugin-fenv": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1649621402,
+        "narHash": "sha256-3h03WQrBZmTXZLkQh1oVyhv6zlyYsSDS7HTHr+7WjY8=",
+        "owner": "oh-my-fish",
+        "repo": "plugin-foreign-env",
+        "rev": "b3dd471bcc885b597c3922e4de836e06415e52dd",
+        "type": "github"
+      },
+      "original": {
+        "owner": "oh-my-fish",
+        "repo": "plugin-foreign-env",
+        "rev": "b3dd471bcc885b597c3922e4de836e06415e52dd",
         "type": "github"
       }
     },
@@ -474,11 +508,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1768912518,
-        "narHash": "sha256-FJlof1jnbLIT5RbKxef/NV6RzcOj1GoMzXE4FcBFg5Y=",
+        "lastModified": 1768942331,
+        "narHash": "sha256-vN2a55QnpPtrFYdeJSx3PbBkojRaGqnJEmQdwk15/PQ=",
         "owner": "nix-community",
         "repo": "home-manager",
-        "rev": "9c5f8aceb6ef620e881f50fe65cb4a2c6b1e8527",
+        "rev": "775294baf4118fa3430eca05efa41b051a7c3e89",
         "type": "github"
       },
       "original": {
@@ -676,6 +710,8 @@
         "claude-plugins-official": "claude-plugins-official",
         "expert": "expert",
         "fabric": "fabric",
+        "fish-plugin-autopair": "fish-plugin-autopair",
+        "fish-plugin-fenv": "fish-plugin-fenv",
         "home-manager": "home-manager",
         "iio-ambient-brightness": "iio-ambient-brightness",
         "nix-darwin": "nix-darwin",

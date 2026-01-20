@@ -97,6 +97,17 @@
       url = "github:jeffutter/claude-code-wakatime";
       flake = false;
     };
+
+    # Fish plugins
+    fish-plugin-fenv = {
+      url = "github:oh-my-fish/plugin-foreign-env/b3dd471bcc885b597c3922e4de836e06415e52dd";
+      flake = false;
+    };
+
+    fish-plugin-autopair = {
+      url = "github:jorgebucaran/autopair.fish/1.0.4";
+      flake = false;
+    };
   };
 
   outputs =
