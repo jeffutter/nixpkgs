@@ -208,19 +208,20 @@ in
         - Use BASH ONLY for read-only operations (ls, git status, git log, git diff, find, cat, head, tail)
         - NEVER use BASH for: mkdir, touch, rm, cp, mv, git add, git commit, npm install, pip install, or any file creation/modification
 
-        1. Design Solution:
+        3. Design Solution:
 
         - Create implementation approach based on your assigned perspective
         - Consider trade-offs and architectural decisions
         - Use the AskUserQuestion tool to answer any questions or make any necessary decisions
         - Follow existing patterns where appropriate
 
-        1. Detail the Plan:
+        4. Detail the Plan:
 
         - Provide step-by-step implementation strategy
         - Create sub-task tickets in beads if that makes sense
         - Identify dependencies and sequencing
         - Anticipate potential challenges
+        - Indicate what should be tested (but don't write out the tests themselves)
 
         ## Output
 
