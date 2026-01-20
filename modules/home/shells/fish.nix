@@ -7,10 +7,17 @@
 
 let
   beads = inputs.beads.packages.${pkgs.system}.default;
+  beadsCompletions = pkgs.runCommand "beads-fish-completions" { } ''
+    ${beads}/bin/bd completion fish > $out
+  '';
 in
 {
   programs.fish = {
     enable = true;
+    completions = {
+      bd = builtins.readFile beadsCompletions;
+      docker = builtins.readFile "${pkgs.docker}/share/fish/vendor_completions.d/docker.fish";
+    };
     shellAbbrs = {
       "gcan!" = "git commit -v -a --no-edit --amend";
       dc = "docker compose";
@@ -98,16 +105,12 @@ in
       bind \cr _atuin_search
       bind -M insert \cr _atuin_search
 
-      source ${pkgs.docker}/share/fish/vendor_completions.d/docker.fish
-
       set -x GPG_TTY (tty)
       set -x PINENTRY_USER_DATA "USE_CURSES=1"
       set -x COLORTERM truecolor
       set -x AWS_DEFAULT_REGION "us-east-1";
       set -x AWS_PAGER "";
       set -x EDITOR "nvim";
-
-      ${beads}/bin/bd completion fish | source
 
       # Stylix handles LS_COLORS and fish theme colors
     '';
