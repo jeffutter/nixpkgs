@@ -65,6 +65,7 @@ in
     brews = [
       "git"
       "mas"
+      "mole"
     ];
 
     casks = [

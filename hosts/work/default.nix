@@ -13,7 +13,6 @@
   homebrew.casks = [
     "balenaetcher"
     "deskpad"
-    "granola"
     "intellij-idea-ce"
     "jetbrains-toolbox"
     "pullbar"
