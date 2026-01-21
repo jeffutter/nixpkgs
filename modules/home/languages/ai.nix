@@ -145,12 +145,59 @@ in
       };
       permissions = {
         defaultMode = "acceptEdits";
+        allow = [
+          "Bash(bd --help:*)"
+          "Bash(bd blocked)"
+          "Bash(bd close:*)"
+          "Bash(bd comments:*)"
+          "Bash(bd create:*)"
+          "Bash(bd dep add:*)"
+          "Bash(bd dep tree:*)"
+          "Bash(bd help:*)"
+          "Bash(bd init:*)"
+          "Bash(bd label add:*)"
+          "Bash(bd list:*)"
+          "Bash(bd ready:*)"
+          "Bash(bd show:*)"
+          "Bash(bd sync:*)"
+          "Bash(bd update:*)"
+          "Bash(biome check:*)"
+          "Bash(biome format:*)"
+          "Bash(biome lint:*)"
+          "Bash(cargo build:*)"
+          "Bash(cargo check:*)"
+          "Bash(cargo clippy:*)"
+          "Bash(cargo doc:*)"
+          "Bash(cargo run:*)"
+          "Bash(cargo test:*)"
+          "Bash(cargo tree:*)"
+          "Bash(mix compile:*)"
+          "Bash(mix credo:*)"
+          "Bash(mix deps.clean:*)"
+          "Bash(mix deps.compile:*)"
+          "Bash(mix deps.get:*)"
+          "Bash(mix dump_schema:*)"
+          "Bash(mix ecto.migrate:*)"
+          "Bash(mix format:*)"
+          "Bash(mix lint:*)"
+          "Bash(mix phx.server:*)"
+          "Bash(mix seed:*)"
+          "Bash(mix test:*)"
+          "Skill(beads:create)"
+          "Skill(beads:init)"
+          "Skill(beads:list)"
+          "Skill(beads:show)"
+          "WebFetch(domain:docs.rs)"
+          "WebFetch(domain:github.com)"
+          "WebFetch(domain:hexdocs.pm)"
+          "WebFetch(domain:raw.githubusercontent.com)"
+          "WebSearch"
+        ];
       };
       theme = "dark";
       enabledPlugins = {
         "beads@beads" = true;
         "context7@claude-plugins-official" = true;
-        "ralph-loop@claude-plugins-official" = true;
         "rust-analyzer-lsp@claude-plugins-official" = true;
         "claude-code-wakatime@claude-code-wakatime" = true;
       };
