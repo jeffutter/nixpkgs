@@ -545,15 +545,15 @@ in
         4. Detail the Plan:
 
         - Provide step-by-step implementation strategy
-        - Create sub-task tickets in beads if that makes sense
+        - If there are discrete units of work that can be split off, create sub-task tickets in beads and setup dependencies 
         - Identify dependencies and sequencing
         - Anticipate potential challenges
         - Indicate what should be tested (but don't write out the tests themselves)
 
         ## Output
 
-        - Add the plans to the description of the tickets.
-        - Mark the ticket as planned
+        - Add the plans to the ticket in the 'design' notes field (`bd update <ticket_id> --design ...`).
+        - Label the ticket as planned
         - Do not execute the plan, only create the plan and update the tickets.
       '';
     };
