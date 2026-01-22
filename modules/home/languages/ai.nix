@@ -580,6 +580,9 @@ in
            - Mark it complete in beads
            - Unassign yourself
            - Commit the changes
+
+
+        If there are no ready tickets that are also planned, but there are unplanned tickets, warn the user that tickets need planning and quit.
       '';
 
       bd-execute-all = ''
