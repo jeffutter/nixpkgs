@@ -100,6 +100,7 @@
       nix.enable = true;
       nvim-autopairse.enable = true;
       nvim-surround.enable = true;
+      render-markdown.enable = true;
       sleuth.enable = true;
       spectre.enable = true;
       todo-comments.enable = true;
