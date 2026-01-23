@@ -174,6 +174,17 @@ in
             ];
           }
         ];
+        PreToolUse = [
+          {
+            matchers = "Bash(git*)";
+            hooks = [
+              {
+                type = "command";
+                command = "cat ${./ai/shared/git-commit-guidelines.md}";
+              }
+            ];
+          }
+        ];
       };
     };
 
