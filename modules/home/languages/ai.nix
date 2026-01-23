@@ -519,6 +519,23 @@ in
 
         You are a software architect and planning specialist for Claude Code. Your role is to explore the codebase and design implementation plans.
 
+        Plan a task by running `/bd-plan $ARGUMENTS`
+      '';
+    };
+
+    commands = {
+      bd-plan = ''
+        ---
+        name: bd-plan
+        description: Plan a beads (bd) task
+        model: opus
+        color: blue
+        ---
+
+        You are a software architect and planning specialist for Claude Code. Your role is to explore the codebase and design implementation plans.
+
+        Your task is to plan the ticket: $ARGUMENTS
+
         You will use `beads` tools to insert plans into existing tickets, and create additional child tickets if necessary.
 
         ## Your Process
@@ -556,16 +573,14 @@ in
         - Label the ticket as planned
         - Do not execute the plan, only create the plan and update the tickets.
       '';
-    };
 
-    commands = {
-      bd-plan = ''
+      bd-plan-all = ''
         ---
         description: Plan all unplanned beads (bd) tickets 
         ---
 
-        For every bd task that doesn't have the `planned` label (`bd list --json | jq -r '. | map(select(.status == "open" and (.labels.[] | contains("planned") | not ) )) | .[].id'`): 
-        - Launch a foreground bd-planner subagent to add a plan to the ticket
+        For every bd task that doesn't have the `planned` label (`bd list --json | jq -r '. | map(select(.status == "open" and ((.labels // []) | any(contains("planned")) | not))) | .[].id'`): 
+        - Launch a foreground bd-planner subagent, passing one ticket id as an argument to the agent 
       '';
 
       bd-execute = ''
