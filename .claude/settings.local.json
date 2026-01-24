@@ -10,7 +10,9 @@
       "Bash(defaults read:*)",
       "Bash(defaults find NSUserKeyEquivalents)",
       "Bash(nix flake update:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(nix flake lock:*)",
+      "Bash(nix-build:*)"
     ],
     "deny": [],
     "ask": []

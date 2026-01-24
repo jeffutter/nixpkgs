@@ -108,6 +108,11 @@
       url = "github:jorgebucaran/autopair.fish/1.0.4";
       flake = false;
     };
+
+    happy = {
+      url = "github:slopus/happy";
+      flake = false;
+    };
   };
 
   outputs =
