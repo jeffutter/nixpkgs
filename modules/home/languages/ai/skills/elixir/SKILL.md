@@ -12,7 +12,7 @@ Expert guidance for writing idiomatic, type-safe Elixir code.
 This skill covers multiple areas of Elixir expertise. Reference the appropriate guide based on the task:
 
 ### Best Practices
-See [best-practices.md](references/best-practices.md) for:
+See below for:
 - Data access patterns (Access behaviour vs Map.get)
 - Error handling and control flow (with, case, error tuples)
 - Higher-order functions and composition
@@ -47,6 +47,8 @@ Use this when building GraphQL APIs with Absinthe, optimizing resolver performan
 ## Quick Reference
 
 Common patterns to apply immediately:
+
+# Best Practices
 
 **Data Access:**
 ```elixir

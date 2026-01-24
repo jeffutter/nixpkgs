@@ -35,6 +35,10 @@ in
     colima
   ];
 
+  home.file.".ssh/allowed_signers".text = ''
+    jeffery.utter@pennentertainment.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPoH8Rk7wSl/PdXDU0s/8F/e0z0/Brl1OdDDuJB7iLYO
+  '';
+
   programs.git =
     let
       mkWorkConfig = dir: {
@@ -43,6 +47,7 @@ in
           user.email = "jeffery.utter@pennentertainment.com";
           user.signingKey = "~/.ssh/id_ed25519-penn-interactive";
           gpg.format = "ssh";
+          gpg.ssh.allowedSignersFile = "~/.ssh/allowed_signers";
           commit.gpgSign = true;
           tag.gpgSign = true;
         };
