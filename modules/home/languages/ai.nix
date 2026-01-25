@@ -16,6 +16,7 @@ let
   claude-skills = pkgs.runCommand "claude-skills" { } ''
     mkdir -p $out
     ln -s ${stop-slop} $out/stop-slop
+    ln -s ${./ai/skills/elixir} $out/elixir
   '';
 
   buildTime = pkgs.runCommand "build-time" { } ''
@@ -223,6 +224,18 @@ in
 
     agents = {
       bd-planner = readAiDoc "agents/bd-planner.md";
+    };
+
+    rules = {
+      elixir = ''
+        ---
+        paths:
+          - "**/*.ex"
+          - "**/*.exs"
+        ---
+
+        Invoke the elixir skill and follow it exactly as presented to you
+      '';
     };
 
     commands = {
