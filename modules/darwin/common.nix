@@ -45,7 +45,10 @@ let
   };
 in
 {
-  # Homebrew package management - common configuration
+  imports = [
+    ../../modules/common/i18n.nix
+  ];
+
   homebrew = {
     enable = true;
     onActivation = {
