@@ -1,4 +1,5 @@
-{ config, pkgs, ... }:
+# NixOS-only locale settings (not compatible with nix-darwin)
+{ ... }:
 
 {
   time.timeZone = "America/Chicago";

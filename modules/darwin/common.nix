@@ -45,9 +45,7 @@ let
   };
 in
 {
-  imports = [
-    ../../modules/common/i18n.nix
-  ];
+  time.timeZone = "America/Chicago";
 
   homebrew = {
     enable = true;

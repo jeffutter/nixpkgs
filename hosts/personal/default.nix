@@ -4,7 +4,6 @@
   imports = [
     ../../modules/darwin/common.nix
     ../../modules/common/cachix.nix
-    ../../modules/common/i18n.nix
   ];
 
   homebrew.casks = [
