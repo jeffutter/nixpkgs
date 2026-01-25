@@ -9,8 +9,8 @@
     # Hardware modules are imported via flake.nix
     # Include the results of the hardware scan.
     ./hardware-configuration.nix
-    ./cachix.nix
     ../../modules/nixos/common.nix
+    ../../modules/common/cachix.nix
   ];
 
   # Bootloader.

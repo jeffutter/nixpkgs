@@ -3,6 +3,7 @@
 {
   imports = [
     ../../modules/darwin/common.nix
+    ../../modules/common/cachix.nix
   ];
 
   homebrew.casks = [

@@ -9,8 +9,8 @@
   imports = [
     # home-manager is configured via flake.nix
     (modulesPath + "/virtualisation/proxmox-lxc.nix")
-    ./cachix.nix
     ../../modules/nixos/common.nix
+    ../../modules/common/cachix.nix
   ];
   networking.hostName = "workstation";
   nix.settings = {
