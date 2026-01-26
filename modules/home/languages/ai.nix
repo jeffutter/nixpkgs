@@ -15,9 +15,10 @@ let
 
   claude-skills = pkgs.runCommand "claude-skills" { } ''
     mkdir -p $out
-    ln -s ${stop-slop} $out/stop-slop
     ln -s ${./ai/skills/acli} $out/acli
+    ln -s ${./ai/skills/beads-planner} $out/beads-planner
     ln -s ${./ai/skills/elixir} $out/elixir
+    ln -s ${stop-slop} $out/stop-slop
   '';
 
   buildTime = pkgs.runCommand "build-time" { } ''
@@ -224,7 +225,6 @@ in
     memory.text = readAiDoc "memory.md";
 
     agents = {
-      bd-planner = readAiDoc "agents/bd-planner.md";
     };
 
     rules = {
@@ -240,8 +240,6 @@ in
     };
 
     commands = {
-      bd-plan = readAiDoc "commands/bd-plan.md";
-
       bd-plan-all = readAiDoc "commands/bd-plan-all.md";
 
       bd-execute = readAiDoc "commands/bd-execute.md";
