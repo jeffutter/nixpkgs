@@ -23,16 +23,10 @@ in
 
   home.packages = with pkgs; [
     argocd
-
-    appfire-cli
-
-    llvmPackages.bintools
-
-    my_google-cloud-sdk
-
-    grpcurl
-
     colima
+    grpcurl
+    llvmPackages.bintools
+    my_google-cloud-sdk
   ];
 
   home.file.".ssh/allowed_signers".text = ''

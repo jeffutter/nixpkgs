@@ -7,8 +7,13 @@
   ];
 
   homebrew.taps = [
+    "atlassian/homebrew-acli"
     "menubar-apps/menubar-apps"
     "fastrepl/hyprnote"
+  ];
+
+  homebrew.brews = [
+    "acli"
   ];
 
   homebrew.casks = [
