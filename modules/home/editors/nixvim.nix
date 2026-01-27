@@ -274,6 +274,14 @@
       };
     };
 
+    extraPlugins = [
+      pkgs.vimPlugins.csvview-nvim
+    ];
+
+    extraConfigLua = ''
+      require('csvview').setup()
+    '';
+
     keymaps = [
       {
         key = "<leader>sf";
