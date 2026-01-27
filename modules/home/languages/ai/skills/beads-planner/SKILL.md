@@ -182,7 +182,7 @@ For each discrete unit of work:
 
 1. Create the ticket:
    ```bash
-   bd create "<clear, action-oriented title>" -t task -p <priority> -d "<brief description>" --json
+   bd create "<clear, action-oriented title>" -t <task or feature> -p <priority> --parent <parent_ticket_id> -d "<brief description>" --json
    ```
 
 2. Set the dependency (parent ticket is blocked by this new ticket):
@@ -190,21 +190,7 @@ For each discrete unit of work:
    bd dep add <parent_ticket_id> --blocked-by <new_ticket_id>
    ```
 
-3. Write the implementation plan:
-   ```bash
-   bd update <new_ticket_id> --design "<detailed implementation plan>"
-   ```
-
-   The design should include:
-   - Specific files to modify
-   - Key implementation steps
-   - Edge cases to handle
-   - Testing approach
-
-4. Mark as planned:
-   ```bash
-   bd label add <new_ticket_id> planned
-   ```
+3. Leave the ticket as-is, do not add the 'planned' label. We will plan it in another, focused session 
 
 ### Step 3: Write Main Ticket Plan
 
@@ -213,6 +199,8 @@ After creating sub-tickets, write the orchestration plan for the main ticket:
 ```bash
 bd update <ticket_id> --design "<orchestration plan>"
 ```
+
+Note: Claude has problems passing the plan as a heredoc. Instead write it to a tempfile and pass it with shell substitution.
 
 The main ticket's design should include:
 - Overview of the approach
@@ -339,7 +327,7 @@ Main ticket bd-100 will track integration and final verification.
 bd show <id> --json
 
 # Create ticket
-bd create "<title>" -t <type> -p <priority> -d "<description>" --json
+bd create "<title>" -t <type> -p <priority> --parent <parent id> -d "<description>" --json
 
 # Update ticket design
 bd update <id> --design "<plan content>"

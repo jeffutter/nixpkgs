@@ -12,13 +12,16 @@ let
   stop-slop = inputs.stop-slop;
   claude-plugins-official = inputs.claude-plugins-official;
   claude-code-wakatime = inputs.claude-code-wakatime;
+  the-elements-of-style = inputs.the-elements-of-style;
 
   claude-skills = pkgs.runCommand "claude-skills" { } ''
     mkdir -p $out
     ln -s ${./ai/skills/acli} $out/acli
     ln -s ${./ai/skills/beads-planner} $out/beads-planner
+    ln -s ${./ai/skills/brainstorming} $out/brainstorming
     ln -s ${./ai/skills/elixir} $out/elixir
     ln -s ${stop-slop} $out/stop-slop
+    ln -s ${the-elements-of-style}/skills/writing-clearly-and-concisely $out/writing-clearly-and-concisely
   '';
 
   buildTime = pkgs.runCommand "build-time" { } ''
