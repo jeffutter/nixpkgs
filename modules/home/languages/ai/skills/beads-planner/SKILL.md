@@ -7,6 +7,42 @@ description: Autonomous planning skill for beads tickets. Use when planning impl
 
 Plan a beads ticket by researching the codebase, analyzing dependencies, and creating actionable implementation plans.
 
+## Task Hierarchy
+
+Beads uses a three-level hierarchy:
+
+```
+Epic → Feature → Task
+```
+
+- **Epic:** Large initiatives spanning multiple features. When planning an Epic, break it into Features.
+- **Feature:** Discrete, shippable capabilities. When planning a Feature, it may break into Tasks if granularity is discovered during research.
+- **Task:** Atomic units of work. Tasks should be small enough to complete in a focused session.
+
+When creating sub-tickets:
+- Epic children are typically Features (use `-t feature`)
+- Feature children are typically Tasks (use `-t task`)
+
+### Dependency Direction
+
+**Children block their parents.** Work flows bottom-up:
+
+```
+Task (do first) ──blocks──► Feature ──blocks──► Epic (complete last)
+```
+
+- An Epic cannot be started until its Features are planned
+- An Epic cannot be completed until all its Features are done
+- A Feature cannot be started until its Tasks are planned
+- A Feature cannot be completed until all its Tasks are done
+
+When you create a sub-ticket, the **parent becomes blocked by the child**:
+```bash
+bd dep add <parent_id> --blocked-by <child_id>
+```
+
+This ensures `bd ready` surfaces leaf tasks first—the actual work to execute.
+
 ## Invocation
 
 ```
@@ -180,17 +216,49 @@ Review the research findings and identify work that:
 
 For each discrete unit of work:
 
-1. Create the ticket:
+1. **Create the ticket:**
    ```bash
    bd create "<clear, action-oriented title>" -t <task or feature> -p <priority> --parent <parent_ticket_id> -d "<brief description>" --json
    ```
 
-2. Set the dependency (parent ticket is blocked by this new ticket):
+   Choose the type based on hierarchy:
+   - Planning an Epic → create Features (`-t feature`)
+   - Planning a Feature → create Tasks (`-t task`)
+
+2. **Set the dependency** (child blocks parent—parent cannot complete until child is done):
    ```bash
    bd dep add <parent_ticket_id> --blocked-by <new_ticket_id>
    ```
 
-3. Leave the ticket as-is, do not add the 'planned' label. We will plan it in another, focused session 
+   This makes the child a blocker. The parent Epic/Feature remains blocked until all children are complete.
+
+3. **Decide whether to add a design:**
+
+   **Add design and mark planned** if the sub-ticket is trivial:
+   - Under ~20 lines of changes
+   - Single file or tightly scoped
+   - Clear implementation path with no ambiguity
+   - No further research needed
+
+   For trivial sub-tickets (use `/tmp/claude/` for multi-line plans):
+   ```bash
+   cat > /tmp/claude/design.md << 'EOF'
+   <brief implementation plan>
+   EOF
+   bd update <new_ticket_id> --design "$(cat /tmp/claude/design.md)"
+   bd label add <new_ticket_id> planned
+   ```
+
+   **Leave unplanned** if the sub-ticket requires its own planning session:
+   - Multiple files or components involved
+   - Non-obvious implementation approach
+   - Would benefit from focused research
+   - Any uncertainty about the right approach
+
+   For non-trivial sub-tickets:
+   - Write only a clear description (already done in step 1)
+   - Do NOT add design or planned label
+   - It will be planned in a dedicated `/beads-planner` session later 
 
 ### Step 3: Write Main Ticket Plan
 
@@ -200,7 +268,16 @@ After creating sub-tickets, write the orchestration plan for the main ticket:
 bd update <ticket_id> --design "<orchestration plan>"
 ```
 
-Note: Claude has problems passing the plan as a heredoc. Instead write it to a tempfile and pass it with shell substitution.
+Note: Claude has problems passing the plan as a heredoc. Write it to `/tmp/claude/` (pre-allowed, no permission prompt) and pass it with shell substitution:
+```bash
+# Write plan to temp file
+cat > /tmp/claude/plan.md << 'EOF'
+<plan content here>
+EOF
+
+# Update ticket with plan
+bd update <ticket_id> --design "$(cat /tmp/claude/plan.md)"
+```
 
 The main ticket's design should include:
 - Overview of the approach
@@ -223,22 +300,31 @@ bd label add <ticket_id> planned
 
 ### Review Checklist
 
-For each ticket (main + sub-tickets), verify:
+**For the main ticket:**
 
-1. **Clarity:** Can someone unfamiliar with the context understand what to do?
-   - Are specific files and functions named?
-   - Are steps concrete and actionable?
-   - Is the "why" explained where non-obvious?
+1. **Clarity:** Is the orchestration plan clear?
+   - Does it explain how sub-tickets fit together?
+   - Are integration steps documented?
+   - Is the "why" behind the breakdown explained?
 
-2. **Completeness:** When all tickets are done, is the original goal achieved?
+2. **Completeness:** When all sub-tickets are done, is the original goal achieved?
    - Do the sub-tickets cover all identified work?
    - Are there gaps between tickets?
-   - Is the integration path clear?
+   - Is the final integration path clear?
 
-3. **Shippability:** Can each ticket ship independently?
-   - Does it produce a working state?
-   - Are there hidden dependencies?
-   - Is rollback possible?
+**For sub-tickets:**
+
+1. **Descriptions:** Can someone understand the scope from the description alone?
+   - Is the work clearly bounded?
+   - Are acceptance criteria implied or explicit?
+
+2. **Planning status:** Is each sub-ticket correctly categorized?
+   - Trivial tickets: Have design AND planned label
+   - Non-trivial tickets: Have description only, NO design, NO planned label
+
+3. **Dependencies:** Are blocking relationships correct?
+   - Does the execution order make sense?
+   - Are there missing dependencies?
 
 ### Make Corrections
 
@@ -251,9 +337,12 @@ bd update <ticket_id> --design "<corrected plan>"
 ### Final Summary
 
 Output a summary:
-- Main ticket ID and title
-- List of sub-tickets created (ID, title, brief description)
+- Main ticket ID, title, and type (Epic/Feature/Task)
+- List of sub-tickets created with their status:
+  - `[planned]` - trivial, ready for execution
+  - `[unplanned]` - requires `/beads-planner` before execution
 - Recommended execution order
+- Next steps (which tickets need planning, which are ready)
 - Any risks or considerations noted
 
 ---
@@ -285,37 +374,62 @@ Design written to ticket covering:
 - Test cases for retry scenarios
 ```
 
-### Example: Complex Feature
+### Example: Planning an Epic
 
-Input: `/beads-planner bd-100` where bd-100 is "Implement user notification preferences"
+Input: `/beads-planner bd-100` where bd-100 is Epic "Implement user notification system"
 
 Phase 1 spawns:
 - Dependency analyzer (required)
 - Architecture agent (new feature area)
 - Data agent (new schema needed)
-- Implementation agent (UI patterns)
+- Implementation agent (existing patterns)
 
-Phase 2 creates:
-- bd-101: Add notification_preferences schema and migrations
-- bd-102: Create preferences API endpoints
-- bd-103: Build preferences UI component
-- bd-104: Integrate preferences with notification dispatch
-
-Each sub-ticket has detailed implementation plans.
+Phase 2 creates Features:
+- bd-101: User notification preferences (Feature) - **unplanned** (needs own research)
+- bd-102: Email notification delivery (Feature) - **unplanned** (complex integration)
+- bd-103: In-app notification UI (Feature) - **unplanned** (UI patterns TBD)
 
 Output:
 ```
-Planned bd-100: Implement user notification preferences
+Planned bd-100: Implement user notification system (Epic)
 
-Created 4 sub-tickets:
-- bd-101: Add notification_preferences schema (blocked-by: none)
-- bd-102: Create preferences API endpoints (blocked-by: bd-101)
-- bd-103: Build preferences UI component (blocked-by: bd-102)
-- bd-104: Integrate with notification dispatch (blocked-by: bd-102, bd-103)
+Created 3 Features (all require separate planning):
+- bd-101: User notification preferences [unplanned]
+- bd-102: Email notification delivery [unplanned]
+- bd-103: In-app notification UI [unplanned]
 
-Execution order: bd-101 → bd-102 → [bd-103, bd-104 in parallel]
+Execution order: bd-101 → bd-102 → bd-103
 
-Main ticket bd-100 will track integration and final verification.
+Next steps: Run /beads-planner on each Feature before execution.
+```
+
+### Example: Planning a Feature
+
+Input: `/beads-planner bd-101` where bd-101 is Feature "User notification preferences"
+
+Phase 1 spawns:
+- Dependency analyzer (required)
+- Data agent (schema design)
+- Implementation agent (API patterns)
+
+Phase 2 creates Tasks:
+- bd-110: Add notification_preferences schema - **planned** (trivial migration)
+- bd-111: Create preferences API endpoints - **unplanned** (needs detailed research)
+- bd-112: Build preferences UI component - **unplanned** (UI patterns to determine)
+
+Output:
+```
+Planned bd-101: User notification preferences (Feature)
+
+Created 3 Tasks:
+- bd-110: Add notification_preferences schema [planned - trivial]
+- bd-111: Create preferences API endpoints [unplanned]
+- bd-112: Build preferences UI component [unplanned]
+
+Execution order: bd-110 → bd-111 → bd-112
+
+bd-110 is ready for immediate execution.
+bd-111, bd-112 need /beads-planner before execution.
 ```
 
 ---
@@ -332,7 +446,7 @@ bd create "<title>" -t <type> -p <priority> --parent <parent id> -d "<descriptio
 # Update ticket design
 bd update <id> --design "<plan content>"
 
-# Add dependency
+# Add dependency (child blocks parent)
 bd dep add <parent_id> --blocked-by <child_id>
 
 # View dependency tree
