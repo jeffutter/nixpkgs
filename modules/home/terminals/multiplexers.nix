@@ -1,6 +1,41 @@
 { pkgs, config, ... }:
 
+let
+  c = config.lib.stylix.colors.withHashtag;
+
+  gitmuxConfig = pkgs.writeText "gitmux.conf" ''
+    tmux:
+      symbols:
+        branch: " "
+        hashprefix: ":"
+        ahead: "↑"
+        behind: "↓"
+        staged: "●"
+        conflict: ""
+        modified: ""
+        untracked: ""
+        stashed: ""
+        clean: ""
+      styles:
+        clear: "#[fg=default]"
+        state: "#[fg=${c.base08},bold]"
+        branch: "#[fg=${c.base05}]"
+        remote: "#[fg=${c.base0C}]"
+        staged: "#[fg=${c.base0B}]"
+        conflict: "#[fg=${c.base08}]"
+        modified: "#[fg=${c.base09}]"
+        untracked: "#[fg=${c.base0E}]"
+        stashed: "#[fg=${c.base0C}]"
+        clean: "#[fg=${c.base0B}]"
+      layout: [branch, divergence, " ", flags]
+      options:
+        branch_max_len: 20
+        hide_clean: true
+  '';
+in
 {
+  home.packages = [ pkgs.gitmux ];
+
   programs.zellij = {
     enable = true;
     enableFishIntegration = false;
@@ -19,12 +54,6 @@
     terminal = "tmux-256color";
 
     extraConfig =
-      let
-        c = config.lib.stylix.colors.withHashtag;
-        # base00 = dark bg, base01 = lighter bg, base02 = selection
-        # base03 = comments, base04 = dark fg, base05 = fg
-        # base0A = yellow, base0D = blue accent
-      in
       ''
         set-option -g default-command "fish"
         bind-key N swap-window -t +1 \; next-window
@@ -53,8 +82,8 @@
         set -g status-left-style NONE
         set -g status-right-style NONE
 
-        set -g status-left "#[fg=${c.base00},bg=${c.base0D},bold] #S #[fg=${c.base0D},bg=${c.base02}]#[fg=${c.base05},bg=${c.base02}]  #{b:pane_current_path} #[fg=${c.base02},bg=${c.base00}]"
-        set -g status-right "#[fg=${c.base0D},bg=${c.base00}] #{prefix_highlight} #[fg=${c.base02},bg=${c.base00}]#[fg=${c.base0D},bg=${c.base02}] %Y-%m-%d  %I:%M %p #[fg=${c.base0D},bg=${c.base02}]#[fg=${c.base00},bg=${c.base0D},bold] #h "
+        set -g status-left "#[fg=${c.base00},bg=${c.base0D},bold] #S #[fg=${c.base0D},bg=${c.base02}]#[fg=${c.base05},bg=${c.base02}]  #{b:pane_current_path} #[fg=${c.base02},bg=${c.base00}]#(gitmux -cfg ${gitmuxConfig} \"#{pane_current_path}\")"
+        set -g status-right "#[fg=${c.base0D},bg=${c.base00}] #{prefix_highlight} #[fg=${c.base02},bg=${c.base00}]#[fg=${c.base0D},bg=${c.base02}] %Y-%m-%d  %I:%M %p #[fg=${c.base0D},bg=${c.base02}]#[fg=${c.base00},bg=${c.base0D},bold] #h "
 
         setw -g window-status-activity-style "underscore,fg=${c.base04},bg=${c.base00}"
         setw -g window-status-separator ""
