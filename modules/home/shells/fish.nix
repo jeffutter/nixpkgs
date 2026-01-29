@@ -51,10 +51,6 @@ in
         name = "autopair";
         src = inputs.fish-plugin-autopair;
       }
-      {
-        name = "wakatime-fish";
-        src = pkgs.fishPlugins.wakatime-fish;
-      }
     ];
     shellInit = ''
       set fish_greeting

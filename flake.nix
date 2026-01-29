@@ -91,13 +91,6 @@
       flake = false;
     };
 
-    claude-code-wakatime = {
-      # https://github.com/wakatime/claude-code-wakatime/issues/15
-      # url = "github:wakatime/claude-code-wakatime";
-      url = "github:jeffutter/claude-code-wakatime";
-      flake = false;
-    };
-
     # Fish plugins
     fish-plugin-fenv = {
       url = "github:oh-my-fish/plugin-foreign-env/b3dd471bcc885b597c3922e4de836e06415e52dd";

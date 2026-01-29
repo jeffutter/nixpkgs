@@ -105,7 +105,6 @@
       spectre.enable = true;
       todo-comments.enable = true;
       trouble.enable = true;
-      wakatime.enable = true;
       web-devicons.enable = true;
       which-key.enable = true;
 

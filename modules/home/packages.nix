@@ -108,7 +108,6 @@ in
     vips
     # (builtins.getFlake "github:jeffutter/wakeonlan-rust/v0.1.1")
     wavpack
-    wakatime-cli
     wget
     xz
     yq-go
