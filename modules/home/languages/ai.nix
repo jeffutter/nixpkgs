@@ -238,7 +238,7 @@ in
           - "**/*.exs"
         ---
 
-        Invoke the elixir skill and follow it exactly as presented to you
+        Invoke the /elixir skill and follow it exactly as presented to you
       '';
     };
 

@@ -1,6 +1,6 @@
 ---
 name: elixir
-description: Guidelines and best practices when writing Elixir. Use this skill any time you are modifying Elixir files (.ex or .exs) or Reviewing/evaluating Elixir code.
+description: Guidelines and best practices when writing Elixir code. ALWAYS use this skill any time you are modifying Elixir files (.ex or .exs), reviewing, or evaluating Elixir code.
 ---
 
 # Elixir Expert
@@ -288,7 +288,7 @@ end
 
 ### Raise on invalid data from external sources
 
-Use bang functions (`!`) when downstream services should always return expected formats:
+Use bang functions (!) when downstream services should always return expected formats:
 
 ```elixir
 # Avoid - unnecessary error handling for impossible cases
