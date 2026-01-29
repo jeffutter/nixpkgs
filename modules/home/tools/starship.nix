@@ -17,7 +17,7 @@
         ''${custom.hostname_info}
         $shlvl
         ''${custom.kube_info}
-        ''${custom.directory}
+        $directory
         ''${custom.git_info}
         $hg_branch
         $docker_context
@@ -58,13 +58,6 @@
       elixir.symbol = " ";
       elixir.format = "[$symbol($version \\(OTP $otp_version\\))]($style) ";
       elm.symbol = " ";
-      directory.disabled = true;
-      custom.directory = {
-        command = "echo $PWD | sed \"s|^$HOME|~|\"";
-        when = "test -z \"$TMUX\"";
-        format = "[$output]($style) ";
-        style = "bold cyan";
-      };
       custom.git_info = {
         command = ''
           branch=$(git symbolic-ref --short HEAD 2>/dev/null || git rev-parse --short HEAD 2>/dev/null)
