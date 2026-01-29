@@ -180,7 +180,7 @@ in
       hooks = {
         SessionStart = [
           {
-            matchers = "";
+            matcher = "";
             hooks = [
               {
                 type = "command";
@@ -191,7 +191,7 @@ in
         ];
         PreCompact = [
           {
-            matchers = "";
+            matcher = "";
             hooks = [
               {
                 type = "command";
@@ -202,7 +202,7 @@ in
         ];
         PreToolUse = [
           {
-            matchers = "Bash(git*)";
+            matcher = "Bash(git commit *)";
             hooks = [
               {
                 type = "command";
