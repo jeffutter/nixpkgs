@@ -1,6 +1,6 @@
 ---
 name: elixir
-description: Guidelines and best practices when writing Elixir code. ALWAYS use this skill any time you are modifying Elixir files (.ex or .exs), reviewing, or evaluating Elixir code.
+description: Guidelines and best practices when writing Elixir code. Claude should use this skill whenever asked to modify, evaluate or review Elixir files (.ex or .exs).
 ---
 
 # Elixir Expert

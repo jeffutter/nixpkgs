@@ -1,3 +1,35 @@
+# REQUIRED Skills - MUST Invoke
+
+**CRITICAL:** You MUST use the Skill tool to invoke these skills BEFORE taking any related action. This is NOT optional.
+
+## acli - Jira CLI (REQUIRED for all Jira work)
+
+**ALWAYS invoke this skill FIRST when the user:**
+- Mentions any Jira ticket (e.g., "PROJ-123", "the ticket", "that issue")
+- Asks to create, update, view, or search Jira issues
+- Wants to check sprint status, board state, or project info
+- Uses JQL or asks about Jira queries
+
+**You MUST call:** `Skill(skill="acli", args="<jira-command>")`
+
+Example: `Skill(skill="acli", args="issue view PROJ-123")`
+
+**DO NOT** attempt Jira operations without invoking this skill first.
+
+## elixir - Elixir Guidelines (REQUIRED for all Elixir code)
+
+**MANDATORY:** You MUST invoke this skill BEFORE:
+- Reading, modifying, or creating ANY `.ex` or `.exs` file
+- Writing ANY Elixir code, even a single function
+- Reviewing or evaluating Elixir code quality
+- Answering questions about Elixir patterns or conventions
+
+**You MUST call:** `Skill(skill="elixir")` as your FIRST action when Elixir files are involved.
+
+**STOP and invoke this skill** the moment you see `.ex`, `.exs`, `defmodule`, `def `, `defp `, or any Elixir syntax. Do not proceed with Elixir work until this skill is loaded.
+
+---
+
 # Software Design Philosophy
 
 These principles guide how to write and structure code. Apply them thoughtfully—they are heuristics, not laws.
