@@ -53,7 +53,7 @@
         set -g status-left-style NONE
         set -g status-right-style NONE
 
-        set -g status-left "#[fg=${c.base00},bg=${c.base0D},bold] #S #[fg=${c.base0D},bg=${c.base00}]"
+        set -g status-left "#[fg=${c.base00},bg=${c.base0D},bold] #S #[fg=${c.base0D},bg=${c.base02}]#[fg=${c.base05},bg=${c.base02}]  #{b:pane_current_path} #[fg=${c.base02},bg=${c.base00}]"
         set -g status-right "#[fg=${c.base0D},bg=${c.base00}] #{prefix_highlight} #[fg=${c.base02},bg=${c.base00}]#[fg=${c.base0D},bg=${c.base02}] %Y-%m-%d  %I:%M %p #[fg=${c.base0D},bg=${c.base02}]#[fg=${c.base00},bg=${c.base0D},bold] #h "
 
         setw -g window-status-activity-style "underscore,fg=${c.base04},bg=${c.base00}"
