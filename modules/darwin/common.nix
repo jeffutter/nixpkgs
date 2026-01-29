@@ -81,6 +81,7 @@ in
       "docker-desktop"
       "ghostty"
       "jordanbaird-ice"
+      "leader-key"
       "localsend"
       "loopback"
       "obsidian"
