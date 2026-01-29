@@ -48,16 +48,16 @@
         $status
         $character
       '';
-      aws.symbol = " ";
+      aws.symbol = " ";
       battery.full_symbol = "";
       battery.charging_symbol = "";
       battery.discharging_symbol = "";
-      conda.symbol = " ";
-      dart.symbol = " ";
-      docker_context.symbol = " ";
-      elixir.symbol = " ";
+      conda.symbol = " ";
+      dart.symbol = " ";
+      docker_context.symbol = " ";
+      elixir.symbol = " ";
       elixir.format = "[$symbol($version \\(OTP $otp_version\\))]($style) ";
-      elm.symbol = " ";
+      elm.symbol = " ";
       directory.disabled = true;
       custom.directory = {
         command = "echo $PWD | sed \"s|^$HOME|~|\"";
@@ -89,10 +89,10 @@
       git_commit.disabled = true;
       git_state.disabled = true;
       git_status.disabled = true;
-      golang.symbol = " ";
+      golang.symbol = " ";
       golang.format = "[$symbol($version )]($style) ";
       # haskell.symbol = " ";
-      hg_branch.symbol = " ";
+      hg_branch.symbol = " ";
       kubernetes.disabled = true;
       custom.kube_info = {
         command = ''
@@ -120,12 +120,12 @@
         format = "[$output]($style) ";
         style = "bold cyan";
       };
-      java.symbol = " ";
+      java.symbol = " ";
       java.format = "[$symbol($version )]($style) ";
-      julia.symbol = " ";
+      julia.symbol = " ";
       julia.format = "[$symbol($version )]($style) ";
-      memory_usage.symbol = " ";
-      nim.symbol = " ";
+      memory_usage.symbol = " ";
+      nim.symbol = " ";
       nix_shell.disabled = true;
       hostname.disabled = true;
       custom.hostname_info = {
@@ -134,36 +134,36 @@
         format = "[$output]($style) ";
         style = "bold yellow";
       };
-      nodejs.symbol = " ";
+      nodejs.symbol = " ";
       nodejs.format = "[$symbol($version )]($style) ";
-      package.symbol = " ";
-      perl.symbol = " ";
+      package.symbol = " ";
+      perl.symbol = " ";
       perl.format = "[$symbol($version )]($style) ";
-      php.symbol = " ";
+      php.symbol = " ";
       php.format = "[$symbol($version )]($style) ";
-      python.symbol = " ";
+      python.symbol = " ";
       python.format = "[$symbol($version )]($style) ";
-      ruby.symbol = " ";
+      ruby.symbol = " ";
       ruby.format = "[$symbol($version )]($style) ";
-      rust.symbol = " ";
+      rust.symbol = " ";
       rust.format = "[$symbol($version )]($style) ";
-      swift.symbol = "ﯣ ";
+      swift.symbol = " ";
       swift.format = "[$symbol($version )]($style) ";
-      erlang.symbol = " ";
+      erlang.symbol = " ";
       erlang.format = "[$symbol($version )]($style) ";
-      kotlin.symbol = " ";
+      kotlin.symbol = " ";
       kotlin.format = "[$symbol($version )]($style) ";
       nim.format = "[$symbol($version )]($style) ";
-      terraform.symbol = "󱁢 ";
+      terraform.symbol = " ";
       terraform.format = "[$symbol$workspace]($style) ";
       docker_context.format = "[$symbol$context]($style) ";
       helm.symbol = "⎈ ";
       helm.format = "[$symbol($version )]($style) ";
-      cmake.symbol = " ";
+      cmake.symbol = " ";
       cmake.format = "[$symbol($version )]($style) ";
-      buf.symbol = " ";
+      buf.symbol = " ";
       buf.format = "[$symbol($version )]($style) ";
-      c.symbol = " ";
+      c.symbol = " ";
       c.format = "[$symbol($version )]($style) ";
       username.disabled = true;
     };
