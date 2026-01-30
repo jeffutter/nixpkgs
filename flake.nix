@@ -120,6 +120,22 @@
       ...
     }@inputs:
     let
+      # Overlay to patch opencode version
+      opencodeOverlay = final: prev: {
+        opencode = prev.opencode.overrideAttrs (oldAttrs: {
+          version = "1.1.43";
+          src = prev.fetchFromGitHub {
+            owner = "anomalyco";
+            repo = "opencode";
+            rev = "v1.1.43";
+            hash = "sha256-+CBqfdK3mw5qnl4sViFEcTSslW0sOE53AtryD2MdhTI=";
+          };
+          node_modules = oldAttrs.node_modules.overrideAttrs (nodeAttrs: {
+            outputHash = "sha256-zkinMkPR1hCBbB5BIuqozQZDpjX4eiFXjM6lpwUx1fM=";
+          });
+        });
+      };
+
       mkHome =
         {
           system,
@@ -133,6 +149,7 @@
             config.allowUnfree = true;
             config.input-fonts.acceptLicense = true;
             config.permittedInsecurePackages = [ "p7zip-16.02" ];
+            overlays = [ opencodeOverlay ];
           };
           extraSpecialArgs = { inherit inputs; };
           modules = [
@@ -158,6 +175,7 @@
                 input-fonts.acceptLicense = true;
                 permittedInsecurePackages = [ "p7zip-16.02" ];
               };
+              overlays = [ opencodeOverlay ];
             };
           in
           nixpkgs.lib.nixosSystem {
@@ -197,6 +215,7 @@
                 input-fonts.acceptLicense = true;
                 permittedInsecurePackages = [ "p7zip-16.02" ];
               };
+              overlays = [ opencodeOverlay ];
             };
           in
           nixpkgs.lib.nixosSystem {
@@ -235,6 +254,7 @@
                 input-fonts.acceptLicense = true;
                 permittedInsecurePackages = [ "p7zip-16.02" ];
               };
+              overlays = [ opencodeOverlay ];
             };
           in
           nix-darwin.lib.darwinSystem {
@@ -271,6 +291,7 @@
                 input-fonts.acceptLicense = true;
                 permittedInsecurePackages = [ "p7zip-16.02" ];
               };
+              overlays = [ opencodeOverlay ];
             };
           in
           nix-darwin.lib.darwinSystem {
