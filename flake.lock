@@ -485,22 +485,6 @@
         "type": "github"
       }
     },
-    "happy": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1769655771,
-        "narHash": "sha256-nNInIP2PdL278cUs8gz6eHD+DoWlNA073h9KjKIRC7I=",
-        "owner": "slopus",
-        "repo": "happy",
-        "rev": "90e09566b1f9d4e418c21e39eb038225259413b5",
-        "type": "github"
-      },
-      "original": {
-        "owner": "slopus",
-        "repo": "happy",
-        "type": "github"
-      }
-    },
     "home-manager": {
       "inputs": {
         "nixpkgs": [
@@ -711,7 +695,6 @@
         "fabric": "fabric",
         "fish-plugin-autopair": "fish-plugin-autopair",
         "fish-plugin-fenv": "fish-plugin-fenv",
-        "happy": "happy",
         "home-manager": "home-manager",
         "iio-ambient-brightness": "iio-ambient-brightness",
         "nix-darwin": "nix-darwin",
