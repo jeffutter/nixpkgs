@@ -106,6 +106,11 @@
       url = "github:obra/the-elements-of-style";
       flake = false;
     };
+
+    ticket = {
+      url = "github:jeffutter/ticket";
+      flake = false;
+    };
   };
 
   outputs =

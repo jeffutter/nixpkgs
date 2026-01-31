@@ -705,6 +705,7 @@
         "stop-slop": "stop-slop",
         "stylix": "stylix",
         "the-elements-of-style": "the-elements-of-style",
+        "ticket": "ticket",
         "tinted-theming-schemes": "tinted-theming-schemes",
         "vale-alex": "vale-alex",
         "vale-proselint": "vale-proselint",
@@ -916,6 +917,22 @@
       "original": {
         "owner": "obra",
         "repo": "the-elements-of-style",
+        "type": "github"
+      }
+    },
+    "ticket": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1769869968,
+        "narHash": "sha256-PSPRrHuJEaPeMHBd4u/RVwO/1RQctWquuLby90A0wNg=",
+        "owner": "jeffutter",
+        "repo": "ticket",
+        "rev": "6dcf1b36ecda15d8493ea3118a0ccb217bd4e0a0",
+        "type": "github"
+      },
+      "original": {
+        "owner": "jeffutter",
+        "repo": "ticket",
         "type": "github"
       }
     },
