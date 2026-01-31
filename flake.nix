@@ -102,11 +102,6 @@
       flake = false;
     };
 
-    happy = {
-      url = "github:slopus/happy";
-      flake = false;
-    };
-
     the-elements-of-style = {
       url = "github:obra/the-elements-of-style";
       flake = false;
