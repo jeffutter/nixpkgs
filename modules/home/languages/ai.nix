@@ -178,28 +178,6 @@ in
       };
       disabledMcpjsonServers = [ "context7:context7" ];
       hooks = {
-        SessionStart = [
-          {
-            matcher = "";
-            hooks = [
-              {
-                type = "command";
-                command = "${beads_bin}/bin/bd prime";
-              }
-            ];
-          }
-        ];
-        PreCompact = [
-          {
-            matcher = "";
-            hooks = [
-              {
-                type = "command";
-                command = "${beads_bin}/bin/bd prime";
-              }
-            ];
-          }
-        ];
         PreToolUse = [
           {
             matcher = "Bash(git commit *)";
