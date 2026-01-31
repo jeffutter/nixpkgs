@@ -6,6 +6,7 @@
 
   environment.systemPackages = with pkgs; [
     bash
+    killall
   ];
 
   # Create /bin/bash symlink for scripts that expect it

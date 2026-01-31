@@ -5,6 +5,10 @@
   ...
 }:
 
+let
+  happy = pkgs.callPackage ../../pkgs/happy { happy-src = inputs.happy; };
+in
+
 {
   imports = [
     ../../modules/home/languages/elixir.nix
@@ -16,6 +20,7 @@
 
   home.packages = with pkgs; [
     _1password-cli
+    happy
   ];
 
   programs.ghostty = {
