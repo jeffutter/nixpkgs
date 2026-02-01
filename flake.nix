@@ -127,14 +127,13 @@
     }@inputs:
     let
       # Overlay to patch opencode version
-      openCodeGit = builtins.fetchGit {
-        url = "https://github.com/anomalyco/opencode";
-        rev = opencode-src.rev;
-      };
+      # Parse version from packages/opencode/package.json in the source
+      opencodePackageJson = builtins.fromJSON (builtins.readFile "${opencode-src}/packages/opencode/package.json");
+      opencodeVersion = opencodePackageJson.version;
 
       opencodeOverlay = final: prev: {
         opencode = prev.opencode.overrideAttrs (oldAttrs: {
-          version = toString openCodeGit.revCount;
+          version = opencodeVersion;
           src = opencode-src;
           node_modules = oldAttrs.node_modules.overrideAttrs (nodeAttrs: {
             outputHash = "sha256-aQScGeakRanvH1LxizXrWA17YOmJJfRuypX4Jau4zQw=";
