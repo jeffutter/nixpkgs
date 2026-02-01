@@ -90,6 +90,7 @@
       set -x AWS_DEFAULT_REGION "us-east-1";
       set -x AWS_PAGER "";
       set -x EDITOR "nvim";
+      set -x TICKET_PAGER "bat -l markdown";
 
       # Stylix handles LS_COLORS and fish theme colors
     '';
