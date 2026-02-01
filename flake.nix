@@ -106,6 +106,11 @@
       url = "github:jeffutter/ticket";
       flake = false;
     };
+
+    opencode-src = {
+      url = "github:anomalyco/opencode/v1.1.48";
+      flake = false;
+    };
   };
 
   outputs =
@@ -117,21 +122,22 @@
       nixos-hardware,
       nixvim,
       expert,
+      opencode-src,
       ...
     }@inputs:
     let
       # Overlay to patch opencode version
+      openCodeGit = builtins.fetchGit {
+        url = "https://github.com/anomalyco/opencode";
+        rev = opencode-src.rev;
+      };
+
       opencodeOverlay = final: prev: {
         opencode = prev.opencode.overrideAttrs (oldAttrs: {
-          version = "1.1.43";
-          src = prev.fetchFromGitHub {
-            owner = "anomalyco";
-            repo = "opencode";
-            rev = "v1.1.43";
-            hash = "sha256-+CBqfdK3mw5qnl4sViFEcTSslW0sOE53AtryD2MdhTI=";
-          };
+          version = toString openCodeGit.revCount;
+          src = opencode-src;
           node_modules = oldAttrs.node_modules.overrideAttrs (nodeAttrs: {
-            outputHash = "sha256-zkinMkPR1hCBbB5BIuqozQZDpjX4eiFXjM6lpwUx1fM=";
+            outputHash = "sha256-aQScGeakRanvH1LxizXrWA17YOmJJfRuypX4Jau4zQw=";
           });
         });
       };
