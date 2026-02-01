@@ -68,28 +68,6 @@
         "type": "github"
       }
     },
-    "beads": {
-      "inputs": {
-        "flake-utils": "flake-utils",
-        "nixpkgs": [
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1769069582,
-        "narHash": "sha256-m0gVLeWfFeaWZpARuXgP00npmZcO7XCm7mXWA52bqTc=",
-        "owner": "steveyegge",
-        "repo": "beads",
-        "rev": "b5178e1895e7db638725f9aeaad3cd5039eb7e73",
-        "type": "github"
-      },
-      "original": {
-        "owner": "steveyegge",
-        "ref": "v0.49.0",
-        "repo": "beads",
-        "type": "github"
-      }
-    },
     "beam-flakes": {
       "inputs": {
         "flake-parts": [
@@ -117,7 +95,7 @@
     },
     "claude-desktop": {
       "inputs": {
-        "flake-utils": "flake-utils_2",
+        "flake-utils": "flake-utils",
         "nixpkgs": [
           "nixpkgs"
         ]
@@ -195,7 +173,7 @@
         "nixpkgs": [
           "nixpkgs"
         ],
-        "systems": "systems_4",
+        "systems": "systems_3",
         "treefmt-nix": "treefmt-nix"
       },
       "locked": {
@@ -360,7 +338,7 @@
     },
     "flake-utils_3": {
       "inputs": {
-        "systems": "systems_3"
+        "systems": "systems_4"
       },
       "locked": {
         "lastModified": 1731533236,
@@ -379,24 +357,6 @@
     "flake-utils_4": {
       "inputs": {
         "systems": "systems_5"
-      },
-      "locked": {
-        "lastModified": 1731533236,
-        "narHash": "sha256-l0KFg5HjrsfsO/JpG+r7fRrqm12kzFHyUHqHCVpMMbI=",
-        "owner": "numtide",
-        "repo": "flake-utils",
-        "rev": "11707dc2f618dd54ca8739b309ec4fc024de578b",
-        "type": "github"
-      },
-      "original": {
-        "owner": "numtide",
-        "repo": "flake-utils",
-        "type": "github"
-      }
-    },
-    "flake-utils_5": {
-      "inputs": {
-        "systems": "systems_6"
       },
       "locked": {
         "lastModified": 1731533236,
@@ -465,7 +425,7 @@
     },
     "gomod2nix": {
       "inputs": {
-        "flake-utils": "flake-utils_3",
+        "flake-utils": "flake-utils_2",
         "nixpkgs": [
           "fabric",
           "nixpkgs"
@@ -529,7 +489,7 @@
     "iio-ambient-brightness": {
       "inputs": {
         "crane": "crane",
-        "flake-utils": "flake-utils_4",
+        "flake-utils": "flake-utils_3",
         "nixpkgs": [
           "nixpkgs"
         ],
@@ -572,7 +532,7 @@
     },
     "nix-options-search": {
       "inputs": {
-        "flake-utils": "flake-utils_5",
+        "flake-utils": "flake-utils_4",
         "gitignore": "gitignore",
         "nixpkgs": [
           "nixpkgs"
@@ -645,7 +605,7 @@
         "nixpkgs": [
           "nixpkgs"
         ],
-        "systems": "systems_7"
+        "systems": "systems_6"
       },
       "locked": {
         "lastModified": 1769644746,
@@ -688,7 +648,6 @@
     },
     "root": {
       "inputs": {
-        "beads": "beads",
         "claude-desktop": "claude-desktop",
         "claude-plugins-official": "claude-plugins-official",
         "expert": "expert",
@@ -763,7 +722,7 @@
           "nixpkgs"
         ],
         "nur": "nur",
-        "systems": "systems_8",
+        "systems": "systems_7",
         "tinted-foot": "tinted-foot",
         "tinted-kitty": "tinted-kitty",
         "tinted-schemes": "tinted-schemes",
@@ -889,21 +848,6 @@
         "type": "github"
       }
     },
-    "systems_8": {
-      "locked": {
-        "lastModified": 1681028828,
-        "narHash": "sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768=",
-        "owner": "nix-systems",
-        "repo": "default",
-        "rev": "da67096a3b9bf56a91d16901293e51ba5b49a27e",
-        "type": "github"
-      },
-      "original": {
-        "owner": "nix-systems",
-        "repo": "default",
-        "type": "github"
-      }
-    },
     "the-elements-of-style": {
       "flake": false,
       "locked": {
@@ -923,11 +867,11 @@
     "ticket": {
       "flake": false,
       "locked": {
-        "lastModified": 1769869968,
-        "narHash": "sha256-PSPRrHuJEaPeMHBd4u/RVwO/1RQctWquuLby90A0wNg=",
+        "lastModified": 1769904876,
+        "narHash": "sha256-icwviGb/cE4n9jD7KboyPLcvXMaJqFYk6zq3J0kWiBA=",
         "owner": "jeffutter",
         "repo": "ticket",
-        "rev": "6dcf1b36ecda15d8493ea3118a0ccb217bd4e0a0",
+        "rev": "248653a51b33f625f21fb2f1dbfb65fa1dc1ae82",
         "type": "github"
       },
       "original": {

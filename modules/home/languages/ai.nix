@@ -7,8 +7,6 @@
 
 let
   fabric = inputs.fabric.packages.${pkgs.stdenv.hostPlatform.system}.default;
-  beads = inputs.beads;
-  beads_bin = beads.packages.${pkgs.system}.default;
   stop-slop = inputs.stop-slop;
   claude-plugins-official = inputs.claude-plugins-official;
   the-elements-of-style = inputs.the-elements-of-style;
@@ -29,9 +27,9 @@ let
   claude-skills = pkgs.runCommand "claude-skills" { } ''
     mkdir -p $out
     ln -s ${./ai/skills/acli} $out/acli
-    ln -s ${./ai/skills/beads-planner} $out/beads-planner
     ln -s ${./ai/skills/brainstorming} $out/brainstorming
     ln -s ${./ai/skills/elixir} $out/elixir
+    ln -s ${./ai/skills/tk-planner} $out/tk-planner
     ln -s ${stop-slop} $out/stop-slop
     ln -s ${the-elements-of-style}/skills/writing-clearly-and-concisely $out/writing-clearly-and-concisely
   '';
@@ -56,7 +54,6 @@ in
 
 {
   home.packages = with pkgs; [
-    beads_bin
     fabric
     (llm.withPlugins {
       llm-cmd = true;
@@ -67,7 +64,6 @@ in
     ticket
   ];
 
-  home.file.".claude/plugins/marketplaces/beads-marketplace".source = beads;
   home.file.".claude/plugins/marketplaces/claude-plugins-official".source = claude-plugins-official;
 
   home.file.".claude/plugins/known_marketplaces.json".text =
@@ -81,14 +77,6 @@ in
           repo = "anthropics/claude-plugins-official";
         };
         installLocation = "${config.home.homeDirectory}/.claude/plugins/marketplaces/claude-plugins-official";
-        lastUpdated = timestamp;
-      };
-      beads = {
-        source = {
-          source = "github";
-          repo = "steveyegge/beads";
-        };
-        installLocation = "${config.home.homeDirectory}/.claude/plugins/marketplaces/beads-marketplace";
         lastUpdated = timestamp;
       };
     };
@@ -105,21 +93,6 @@ in
       permissions = {
         defaultMode = "acceptEdits";
         allow = [
-          "Bash(bd --help:*)"
-          "Bash(bd blocked)"
-          "Bash(bd close:*)"
-          "Bash(bd comments:*)"
-          "Bash(bd create:*)"
-          "Bash(bd dep add:*)"
-          "Bash(bd dep tree:*)"
-          "Bash(bd help:*)"
-          "Bash(bd init:*)"
-          "Bash(bd label add:*)"
-          "Bash(bd list:*)"
-          "Bash(bd ready:*)"
-          "Bash(bd show:*)"
-          "Bash(bd sync:*)"
-          "Bash(bd update:*)"
           "Bash(biome check:*)"
           "Bash(biome format:*)"
           "Bash(biome lint:*)"
@@ -142,10 +115,7 @@ in
           "Bash(mix phx.server:*)"
           "Bash(mix seed:*)"
           "Bash(mix test:*)"
-          "Skill(beads:create)"
-          "Skill(beads:init)"
-          "Skill(beads:list)"
-          "Skill(beads:show)"
+          "Bash(tk :*)"
           "WebFetch(domain:docs.rs)"
           "WebFetch(domain:github.com)"
           "WebFetch(domain:hexdocs.pm)"
@@ -155,12 +125,33 @@ in
       };
       theme = "dark";
       enabledPlugins = {
-        "beads@beads" = true;
         "context7@claude-plugins-official" = true;
         "rust-analyzer-lsp@claude-plugins-official" = true;
       };
       disabledMcpjsonServers = [ "context7:context7" ];
       hooks = {
+        SessionStart = [
+          {
+            matcher = "";
+            hooks = [
+              {
+                type = "command";
+                command = "${ticket}/bin/tk prime";
+              }
+            ];
+          }
+        ];
+        PreCompact = [
+          {
+            matcher = "";
+            hooks = [
+              {
+                type = "command";
+                command = "${ticket}/bin/tk prime";
+              }
+            ];
+          }
+        ];
         PreToolUse = [
           {
             matcher = "Bash(git commit *)";
@@ -193,11 +184,9 @@ in
     };
 
     commands = {
-      bd-plan-all = readAiDoc "commands/bd-plan-all.md";
+      tk-plan-all = readAiDoc "commands/tk-plan-all.md";
 
-      bd-execute = readAiDoc "commands/bd-execute.md";
-
-      bd-execute-all = readAiDoc "commands/bd-execute-all.md";
+      tk-execute = readAiDoc "commands/tk-execute.md";
 
       fix-pr-comments = readAiDoc "commands/fix-pr-comments.md";
 

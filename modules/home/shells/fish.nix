@@ -5,17 +5,10 @@
   ...
 }:
 
-let
-  beads = inputs.beads.packages.${pkgs.system}.default;
-  beadsCompletions = pkgs.runCommand "beads-fish-completions" { } ''
-    ${beads}/bin/bd completion fish > $out
-  '';
-in
 {
   programs.fish = {
     enable = true;
     completions = {
-      bd = builtins.readFile beadsCompletions;
       docker = builtins.readFile "${pkgs.docker}/share/fish/vendor_completions.d/docker.fish";
     };
     shellAbbrs = {

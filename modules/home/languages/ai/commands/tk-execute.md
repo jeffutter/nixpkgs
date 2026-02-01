@@ -1,13 +1,12 @@
 ---
-description: Execute one ready beads (bd) tickets
+description: Execute one ready ticket
 ---
 
-1. Find an outstanding tasks that hasn't been assigned (`bd ready -l planned -u`):
+1. Find an outstanding task that hasn't been assigned (`tk ready -T planned`):
 2. Choose a task
 3. View the issue and implement the plan
 4. Once the implementation is complete:
-   - Mark it complete in beads
-   - Unassign yourself
+   - Mark it complete (`tk close <id>`)
    - Commit the changes
 
 

@@ -1,15 +1,15 @@
 ---
-name: beads-planner
-description: Autonomous planning skill for beads tickets. Use when planning implementation for a beads ticket (bd-xxx). Spawns research subagents, analyzes dependencies, creates sub-tickets for discrete work, and writes detailed implementation plans.
+name: tk-planner
+description: Autonomous planning skill for tickets (tk). Use when planning implementation for a ticket (proj-xxx). Spawns research subagents, analyzes dependencies, creates sub-tickets for discrete work, and writes detailed implementation plans.
 ---
 
-# Beads Autonomous Planner
+# Ticket Autonomous Planner
 
-Plan a beads ticket by researching the codebase, analyzing dependencies, and creating actionable implementation plans.
+Plan a ticket by researching the codebase, analyzing dependencies, and creating actionable implementation plans.
 
 ## Task Hierarchy
 
-Beads uses a three-level hierarchy:
+Tickets use a three-level hierarchy:
 
 ```
 Epic → Feature → Task
@@ -36,20 +36,20 @@ Task (do first) ──blocks──► Feature ──blocks──► Epic (comple
 - A Feature cannot be started until its Tasks are planned
 - A Feature cannot be completed until all its Tasks are done
 
-When you create a sub-ticket, the **parent becomes blocked by the child**:
+When you create a sub-ticket, the **parent depends on the child**:
 ```bash
-bd dep add <parent_id> --blocked-by <child_id>
+tk dep <parent_id> <child_id>
 ```
 
-This ensures `bd ready` surfaces leaf tasks first—the actual work to execute.
+This ensures `tk ready` surfaces leaf tasks first—the actual work to execute.
 
 ## Invocation
 
 ```
-/beads-planner <ticket_id>
+/tk-planner <ticket_id>
 ```
 
-Example: `/beads-planner bd-42`
+Example: `/tk-planner proj-42`
 
 ## Process Overview
 
@@ -68,17 +68,17 @@ Phase 0: Prerequisites  →  Phase 1: Research  →  Phase 2: Plan  →  Phase 3
 
 1. Fetch ticket details:
    ```bash
-   bd show <ticket_id> --json
+   tk show <ticket_id>
    ```
 
 2. Check for unplanned child tickets:
    ```bash
-   bd list --status open --json
+   tk query 'map(select(.status == "open" or .status == "in_progress"))'
    ```
 
    Filter for tickets that:
    - Have this ticket as a parent (check dependencies)
-   - Do NOT have the `planned` label
+   - Do NOT have the `planned` tag
 
 3. **If unplanned children exist:**
    - List them clearly
@@ -102,11 +102,11 @@ Always spawn this agent:
 ```
 Analyze dependencies for ticket <ticket_id>:
 
-1. Run `bd dep tree <ticket_id>` to see the dependency structure
-2. Find tickets this ticket depends on (blocked-by relationships)
-3. Find tickets that depend on this ticket (blocking relationships)
+1. Run `tk dep tree <ticket_id>` to see the dependency structure
+2. Find tickets this ticket depends on (dependency relationships)
+3. Find tickets that depend on this ticket (dependent relationships)
 4. For each dependency:
-   - Run `bd show <dep_id> --json`
+   - Run `tk show <dep_id>`
    - Understand their plans (design field)
    - Note their status and priority
 
@@ -218,19 +218,19 @@ For each discrete unit of work:
 
 1. **Create the ticket:**
    ```bash
-   bd create "<clear, action-oriented title>" -t <task or feature> -p <priority> --parent <parent_ticket_id> -d "<brief description>" --json
+   tk create "<clear, action-oriented title>" -t <task or feature> -p <priority> --parent <parent_ticket_id> -d "<brief description>"
    ```
 
    Choose the type based on hierarchy:
    - Planning an Epic → create Features (`-t feature`)
    - Planning a Feature → create Tasks (`-t task`)
 
-2. **Set the dependency** (child blocks parent—parent cannot complete until child is done):
+2. **Set the dependency** (parent depends on child—parent cannot complete until child is done):
    ```bash
-   bd dep add <parent_ticket_id> --blocked-by <new_ticket_id>
+   tk dep <parent_ticket_id> <new_ticket_id>
    ```
 
-   This makes the child a blocker. The parent Epic/Feature remains blocked until all children are complete.
+   This makes the parent depend on the child. The parent Epic/Feature remains blocked until all children are complete.
 
 3. **Decide whether to add a design:**
 
@@ -240,13 +240,9 @@ For each discrete unit of work:
    - Clear implementation path with no ambiguity
    - No further research needed
 
-   For trivial sub-tickets (use `/tmp/claude/` for multi-line plans):
+   For trivial sub-tickets, add design notes when creating:
    ```bash
-   cat > /tmp/claude/design.md << 'EOF'
-   <brief implementation plan>
-   EOF
-   bd update <new_ticket_id> --design "$(cat /tmp/claude/design.md)"
-   bd label add <new_ticket_id> planned
+   tk create "<title>" -t <task or feature> -p <priority> --parent <parent_ticket_id> -d "<brief description>" --design "<implementation plan>" --tags planned
    ```
 
    **Leave unplanned** if the sub-ticket requires its own planning session:
@@ -257,27 +253,18 @@ For each discrete unit of work:
 
    For non-trivial sub-tickets:
    - Write only a clear description (already done in step 1)
-   - Do NOT add design or planned label
-   - It will be planned in a dedicated `/beads-planner` session later 
+   - Do NOT add design or planned tag
+   - It will be planned in a dedicated `/tk-planner` session later 
 
 ### Step 3: Write Main Ticket Plan
 
-After creating sub-tickets, write the orchestration plan for the main ticket:
+After creating sub-tickets, write the orchestration plan for the main ticket using `tk edit`:
 
 ```bash
-bd update <ticket_id> --design "<orchestration plan>"
+tk edit <ticket_id>
 ```
 
-Note: Claude has problems passing the plan as a heredoc. Write it to `/tmp/claude/` (pre-allowed, no permission prompt) and pass it with shell substitution:
-```bash
-# Write plan to temp file
-cat > /tmp/claude/plan.md << 'EOF'
-<plan content here>
-EOF
-
-# Update ticket with plan
-bd update <ticket_id> --design "$(cat /tmp/claude/plan.md)"
-```
+This opens the ticket markdown file in $EDITOR. Add the design notes in the `design:` field.
 
 The main ticket's design should include:
 - Overview of the approach
@@ -288,9 +275,7 @@ The main ticket's design should include:
 
 ### Step 4: Mark Main Ticket as Planned
 
-```bash
-bd label add <ticket_id> planned
-```
+Use `tk edit <ticket_id>` to add the `planned` tag to the ticket's `tags:` field.
 
 ---
 
@@ -319,8 +304,8 @@ bd label add <ticket_id> planned
    - Are acceptance criteria implied or explicit?
 
 2. **Planning status:** Is each sub-ticket correctly categorized?
-   - Trivial tickets: Have design AND planned label
-   - Non-trivial tickets: Have description only, NO design, NO planned label
+   - Trivial tickets: Have design AND planned tag
+   - Non-trivial tickets: Have description only, NO design, NO planned tag
 
 3. **Dependencies:** Are blocking relationships correct?
    - Does the execution order make sense?
@@ -328,11 +313,7 @@ bd label add <ticket_id> planned
 
 ### Make Corrections
 
-If issues are found:
-
-```bash
-bd update <ticket_id> --design "<corrected plan>"
-```
+If issues are found, use `tk edit <ticket_id>` to make corrections to the design field.
 
 ### Final Summary
 
@@ -340,7 +321,7 @@ Output a summary:
 - Main ticket ID, title, and type (Epic/Feature/Task)
 - List of sub-tickets created with their status:
   - `[planned]` - trivial, ready for execution
-  - `[unplanned]` - requires `/beads-planner` before execution
+  - `[unplanned]` - requires `/tk-planner` before execution
 - Recommended execution order
 - Next steps (which tickets need planning, which are ready)
 - Any risks or considerations noted
@@ -351,7 +332,7 @@ Output a summary:
 
 ### Example: Simple Enhancement
 
-Input: `/beads-planner bd-42` where bd-42 is "Add retry logic to API client"
+Input: `/tk-planner proj-42` where proj-42 is "Add retry logic to API client"
 
 Phase 1 spawns:
 - Dependency analyzer (required)
@@ -359,11 +340,11 @@ Phase 1 spawns:
 
 Phase 2:
 - No sub-tickets (single focused change)
-- Writes detailed plan to bd-42
+- Writes detailed plan to proj-42
 
 Output:
 ```
-Planned bd-42: Add retry logic to API client
+Planned proj-42: Add retry logic to API client
 
 No sub-tickets needed - this is a focused change.
 
@@ -376,7 +357,7 @@ Design written to ticket covering:
 
 ### Example: Planning an Epic
 
-Input: `/beads-planner bd-100` where bd-100 is Epic "Implement user notification system"
+Input: `/tk-planner proj-100` where proj-100 is Epic "Implement user notification system"
 
 Phase 1 spawns:
 - Dependency analyzer (required)
@@ -385,27 +366,27 @@ Phase 1 spawns:
 - Implementation agent (existing patterns)
 
 Phase 2 creates Features:
-- bd-101: User notification preferences (Feature) - **unplanned** (needs own research)
-- bd-102: Email notification delivery (Feature) - **unplanned** (complex integration)
-- bd-103: In-app notification UI (Feature) - **unplanned** (UI patterns TBD)
+- proj-101: User notification preferences (Feature) - **unplanned** (needs own research)
+- proj-102: Email notification delivery (Feature) - **unplanned** (complex integration)
+- proj-103: In-app notification UI (Feature) - **unplanned** (UI patterns TBD)
 
 Output:
 ```
-Planned bd-100: Implement user notification system (Epic)
+Planned proj-100: Implement user notification system (Epic)
 
 Created 3 Features (all require separate planning):
-- bd-101: User notification preferences [unplanned]
-- bd-102: Email notification delivery [unplanned]
-- bd-103: In-app notification UI [unplanned]
+- proj-101: User notification preferences [unplanned]
+- proj-102: Email notification delivery [unplanned]
+- proj-103: In-app notification UI [unplanned]
 
-Execution order: bd-101 → bd-102 → bd-103
+Execution order: proj-101 → proj-102 → proj-103
 
-Next steps: Run /beads-planner on each Feature before execution.
+Next steps: Run /tk-planner on each Feature before execution.
 ```
 
 ### Example: Planning a Feature
 
-Input: `/beads-planner bd-101` where bd-101 is Feature "User notification preferences"
+Input: `/tk-planner proj-101` where proj-101 is Feature "User notification preferences"
 
 Phase 1 spawns:
 - Dependency analyzer (required)
@@ -413,50 +394,56 @@ Phase 1 spawns:
 - Implementation agent (API patterns)
 
 Phase 2 creates Tasks:
-- bd-110: Add notification_preferences schema - **planned** (trivial migration)
-- bd-111: Create preferences API endpoints - **unplanned** (needs detailed research)
-- bd-112: Build preferences UI component - **unplanned** (UI patterns to determine)
+- proj-110: Add notification_preferences schema - **planned** (trivial migration)
+- proj-111: Create preferences API endpoints - **unplanned** (needs detailed research)
+- proj-112: Build preferences UI component - **unplanned** (UI patterns to determine)
 
 Output:
 ```
-Planned bd-101: User notification preferences (Feature)
+Planned proj-101: User notification preferences (Feature)
 
 Created 3 Tasks:
-- bd-110: Add notification_preferences schema [planned - trivial]
-- bd-111: Create preferences API endpoints [unplanned]
-- bd-112: Build preferences UI component [unplanned]
+- proj-110: Add notification_preferences schema [planned - trivial]
+- proj-111: Create preferences API endpoints [unplanned]
+- proj-112: Build preferences UI component [unplanned]
 
-Execution order: bd-110 → bd-111 → bd-112
+Execution order: proj-110 → proj-111 → proj-112
 
-bd-110 is ready for immediate execution.
-bd-111, bd-112 need /beads-planner before execution.
+proj-110 is ready for immediate execution.
+proj-111, proj-112 need /tk-planner before execution.
 ```
 
 ---
 
-## Beads Commands Reference
+## Ticket Commands Reference
 
 ```bash
 # View ticket
-bd show <id> --json
+tk show <id>
 
 # Create ticket
-bd create "<title>" -t <type> -p <priority> --parent <parent id> -d "<description>" --json
+tk create "<title>" -t <type> -p <priority> --parent <parent_id> -d "<description>" --design "<design>" --tags <tag1,tag2>
 
-# Update ticket design
-bd update <id> --design "<plan content>"
+# Edit ticket (opens in $EDITOR)
+tk edit <id>
 
-# Add dependency (child blocks parent)
-bd dep add <parent_id> --blocked-by <child_id>
+# Add dependency (parent depends on child)
+tk dep <parent_id> <child_id>
 
 # View dependency tree
-bd dep tree <id>
-
-# Add label
-bd label add <id> <label>
+tk dep tree <id>
 
 # List tickets
-bd list --status open --json
+tk list --status=<open|in_progress|closed>
+
+# Query tickets as JSON
+tk query '[jq filter]'
+
+# List ready tickets (dependencies resolved)
+tk ready
+
+# List blocked tickets
+tk blocked
 ```
 
 ---
@@ -465,5 +452,5 @@ bd list --status open --json
 
 - **No user prompts:** Execute autonomously. Do not use AskUserQuestion.
 - **No code changes:** Research and plan only. Never edit application files.
-- **Beads only:** All ticket operations through `bd` commands.
+- **Ticket system only:** All ticket operations through `tk` commands.
 - **Read operations:** Use Bash only for read-only operations (ls, git log, git diff, find).
