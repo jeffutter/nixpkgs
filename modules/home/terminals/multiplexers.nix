@@ -169,6 +169,7 @@ in
     plugins = with pkgs.tmuxPlugins; [
       yank
       prefix-highlight
+      session-wizard
     ];
   };
 }
