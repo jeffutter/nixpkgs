@@ -91,6 +91,9 @@ in
         commit = "";
         pr = "";
       };
+      env = {
+        DISABLE_AUTOUPDATER = 1;
+      };
       permissions = {
         defaultMode = "acceptEdits";
         allow = [

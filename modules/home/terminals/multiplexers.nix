@@ -112,6 +112,13 @@ in
     enableFishIntegration = false;
   };
 
+  programs.sesh = {
+    enable = true;
+    enableTmuxIntegration = true;
+  };
+
+  programs.fzf.tmux.enableShellIntegration = true;
+
   programs.tmux = {
     enable = true;
     escapeTime = 0;
@@ -169,7 +176,6 @@ in
     plugins = with pkgs.tmuxPlugins; [
       yank
       prefix-highlight
-      session-wizard
     ];
   };
 }
