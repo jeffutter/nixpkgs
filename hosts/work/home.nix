@@ -9,6 +9,7 @@ let
   my_google-cloud-sdk = pkgs.google-cloud-sdk.withExtraComponents [
     pkgs.google-cloud-sdk.components.gke-gcloud-auth-plugin
   ];
+  thaw = pkgs.callPackage ../../pkgs/thaw { };
 in
 {
   imports = [
@@ -27,6 +28,7 @@ in
     grpcurl
     llvmPackages.bintools
     my_google-cloud-sdk
+    thaw
   ];
 
   home.file.".ssh/allowed_signers".text = ''
