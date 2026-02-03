@@ -25,6 +25,10 @@
       window-decoration = false;
       macos-titlebar-style = "hidden";
       cursor-style-blink = false;
+
+      background-opacity = 0.93;
+      # only supported on macOS;
+      background-blur-radius = 10;
     };
   };
 }
