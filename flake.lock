@@ -885,11 +885,11 @@
     "ticket": {
       "flake": false,
       "locked": {
-        "lastModified": 1769904876,
-        "narHash": "sha256-icwviGb/cE4n9jD7KboyPLcvXMaJqFYk6zq3J0kWiBA=",
+        "lastModified": 1770093342,
+        "narHash": "sha256-ic2tPwlLyOjdywWr/8piVESUcQqtH2uVGqP09u/f2sg=",
         "owner": "jeffutter",
         "repo": "ticket",
-        "rev": "248653a51b33f625f21fb2f1dbfb65fa1dc1ae82",
+        "rev": "efc175f86c9effb4a37b85c6d6b86cdaf8a67623",
         "type": "github"
       },
       "original": {

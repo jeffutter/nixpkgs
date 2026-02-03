@@ -5,11 +5,27 @@
   ...
 }:
 
+let
+  ticket = pkgs.callPackage ../../../pkgs/ticket { inherit inputs; };
+
+  ticketCompletions = pkgs.runCommand "ticket-completions" { } ''
+    mkdir -p $out
+    ${ticket}/bin/ticket completion fish > $out/ticket.fish
+  '';
+
+  tkCompletions = pkgs.runCommand "tk-completions" { } ''
+    mkdir -p $out
+    ${ticket}/bin/tk completion fish > $out/tk.fish
+  '';
+in
+
 {
   programs.fish = {
     enable = true;
     completions = {
       docker = builtins.readFile "${pkgs.docker}/share/fish/vendor_completions.d/docker.fish";
+      ticket = builtins.readFile "${ticketCompletions}/ticket.fish";
+      tk = builtins.readFile "${tkCompletions}/tk.fish";
     };
     shellAbbrs = {
       "gcan!" = "git commit -v -a --no-edit --amend";

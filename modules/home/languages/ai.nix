@@ -11,18 +11,7 @@ let
   claude-plugins-official = inputs.claude-plugins-official;
   the-elements-of-style = inputs.the-elements-of-style;
 
-  ticket = pkgs.stdenvNoCC.mkDerivation {
-    pname = "ticket";
-    version = "unstable";
-    src = inputs.ticket;
-    dontBuild = true;
-    installPhase = ''
-      mkdir -p $out/bin
-      cp ticket $out/bin/ticket
-      chmod +x $out/bin/ticket
-      ln -s $out/bin/ticket $out/bin/tk
-    '';
-  };
+  ticket = pkgs.callPackage ../../../pkgs/ticket { inherit inputs; };
 
   claude-skills = pkgs.runCommand "claude-skills" { } ''
     mkdir -p $out
