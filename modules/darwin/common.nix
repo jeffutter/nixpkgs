@@ -80,7 +80,6 @@ in
       "discord"
       "docker-desktop"
       "ghostty"
-      "jordanbaird-ice"
       "leader-key"
       "localsend"
       "loopback"
