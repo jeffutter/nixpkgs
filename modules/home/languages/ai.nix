@@ -9,9 +9,12 @@ let
   fabric = inputs.fabric.packages.${pkgs.stdenv.hostPlatform.system}.default;
   stop-slop = inputs.stop-slop;
   claude-plugins-official = inputs.claude-plugins-official;
+  superpowers = inputs.superpowers;
   the-elements-of-style = inputs.the-elements-of-style;
 
   ticket = pkgs.callPackage ../../../pkgs/ticket { inherit inputs; };
+
+  claude-tail = inputs.claude-tail.packages.${pkgs.stdenv.hostPlatform.system}.default;
 
   claude-skills = pkgs.runCommand "claude-skills" { } ''
     mkdir -p $out
@@ -43,6 +46,7 @@ in
 
 {
   home.packages = with pkgs; [
+    claude-tail
     fabric
     (llm.withPlugins {
       llm-cmd = true;
@@ -54,6 +58,7 @@ in
   ];
 
   home.file.".claude/plugins/marketplaces/claude-plugins-official".source = claude-plugins-official;
+  home.file.".claude/plugins/marketplaces/superpowers".source = superpowers;
 
   home.file.".claude/plugins/known_marketplaces.json".text =
     let
@@ -66,6 +71,14 @@ in
           repo = "anthropics/claude-plugins-official";
         };
         installLocation = "${config.home.homeDirectory}/.claude/plugins/marketplaces/claude-plugins-official";
+        lastUpdated = timestamp;
+      };
+      superpowers = {
+        source = {
+          source = "github";
+          repo = "obra/superpowers";
+        };
+        installLocation = "${config.home.homeDirectory}/.claude/plugins/marketplaces/superpowers";
         lastUpdated = timestamp;
       };
     };
@@ -120,6 +133,7 @@ in
       enabledPlugins = {
         "context7@claude-plugins-official" = true;
         "rust-analyzer-lsp@claude-plugins-official" = true;
+        "superpowers@superpowers" = true;
       };
       disabledMcpjsonServers = [ "context7:context7" ];
       hooks = {

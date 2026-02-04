@@ -37,6 +37,10 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    claude-tail = {
+      url = "github:jeffutter/claude-tail/v0.1.0";
+    };
+
     zen-browser = {
       url = "github:0xc000022070/zen-browser-flake";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -86,6 +90,11 @@
       flake = false;
     };
 
+    superpowers = {
+      url = "github:obra/superpowers";
+      flake = false;
+    };
+
     # Fish plugins
     fish-plugin-fenv = {
       url = "github:oh-my-fish/plugin-foreign-env/b3dd471bcc885b597c3922e4de836e06415e52dd";
@@ -128,7 +137,9 @@
     let
       # Overlay to patch opencode version
       # Parse version from packages/opencode/package.json in the source
-      opencodePackageJson = builtins.fromJSON (builtins.readFile "${opencode-src}/packages/opencode/package.json");
+      opencodePackageJson = builtins.fromJSON (
+        builtins.readFile "${opencode-src}/packages/opencode/package.json"
+      );
       opencodeVersion = opencodePackageJson.version;
 
       opencodeOverlay = final: prev: {
