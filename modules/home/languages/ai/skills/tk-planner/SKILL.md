@@ -258,13 +258,9 @@ For each discrete unit of work:
 
 ### Step 3: Write Main Ticket Plan
 
-After creating sub-tickets, write the orchestration plan for the main ticket using `tk edit`:
+After creating sub-tickets, write the orchestration plan for the main ticket file directly:
 
-```bash
-tk edit <ticket_id>
-```
-
-This opens the ticket markdown file in $EDITOR. Add the design notes in the `design:` field.
+Add the design notes to a `## Design` heading in the note, after the main description but before any note/comment fields.
 
 The main ticket's design should include:
 - Overview of the approach
