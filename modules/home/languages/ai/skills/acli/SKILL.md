@@ -137,14 +137,35 @@ acli jira workitem view KEY-123 --web
 
 ### Creating Work Items
 
+**Available CLI flags** for `acli jira workitem create`:
+
+| Flag | Description |
+|------|-------------|
+| `--summary` / `-s` | Work item title |
+| `--project` / `-p` | Project key |
+| `--type` / `-t` | Issue type (Epic, Story, Task, Bug) |
+| `--assignee` / `-a` | Email or `@me` (NOT raw account IDs) |
+| `--description` / `-d` | Plain text or ADF JSON |
+| `--description-file` | Read description from file |
+| `--label` / `-l` | Comma-separated labels |
+| `--parent` | Parent issue key (e.g., epic key) |
+| `--from-json` | Create from JSON file |
+| `--from-file` / `-f` | Read summary/description from file |
+| `--editor` / `-e` | Open text editor |
+| `--json` | Return JSON output |
+
+**There is no `--component`, `--sprint`, or `--story-points` flag.** To set
+components, sprint, story points, or any other custom/non-standard field, you
+MUST use the `--from-json` approach.
+
 ```bash
-# Basic creation with required fields
+# Basic creation with CLI flags
 acli jira workitem create \
   --summary "New feature request" \
   --project "TEAM" \
   --type "Story"
 
-# Create with assignee
+# Create with assignee (use email, not account ID)
 acli jira workitem create \
   --summary "Fix login bug" \
   --project "TEAM" \
@@ -158,19 +179,12 @@ acli jira workitem create \
   --type "Task" \
   --assignee "@me"
 
-# Create with description
+# Create with parent (e.g., story under epic)
 acli jira workitem create \
-  --summary "New feature" \
+  --summary "Sub-task" \
   --project "TEAM" \
   --type "Story" \
-  --description "This is a detailed description of the feature"
-
-# Create with description from file
-acli jira workitem create \
-  --summary "Complex feature" \
-  --project "TEAM" \
-  --type "Story" \
-  --description-file "description.txt"
+  --parent "TEAM-100"
 
 # Create with labels
 acli jira workitem create \
@@ -178,39 +192,87 @@ acli jira workitem create \
   --project "TEAM" \
   --type "Bug" \
   --label "production,urgent,bug"
+```
 
-# Create with parent (sub-task or child issue)
-acli jira workitem create \
-  --summary "Sub-task" \
-  --project "TEAM" \
-  --type "Sub-task" \
-  --parent "TEAM-123"
+### Creating with Custom Fields (components, sprint, story points)
 
-# Create using text editor
-acli jira workitem create \
-  --project "TEAM" \
-  --type "Story" \
-  --editor
+Use `--from-json` when you need to set fields not available as CLI flags. The
+JSON format is **acli's own format**, NOT the raw Jira REST API format.
 
-# Create from file
-acli jira workitem create \
-  --from-file "workitem.txt" \
-  --project "TEAM" \
-  --type "Bug"
-
-# Generate JSON template
+Generate the template to see the schema:
+```bash
 acli jira workitem create --generate-json
+```
 
-# Create from JSON file
-acli jira workitem create --from-json "workitem.json"
+The JSON schema is:
+```json
+{
+  "summary": "Title",
+  "projectKey": "PROJ",
+  "type": "Story",
+  "parentIssueId": "PROJ-100",
+  "assignee": "@me",
+  "labels": ["label1", "label2"],
+  "description": {
+    "type": "doc",
+    "version": 1,
+    "content": [
+      {
+        "type": "paragraph",
+        "content": [{"type": "text", "text": "Description text"}]
+      }
+    ]
+  },
+  "additionalAttributes": {
+    "components": [{"id": "12345"}],
+    "customfield_10003": 5,
+    "customfield_10701": 16378
+  }
+}
+```
 
-# Get JSON output
+**Key fields in `additionalAttributes`:**
+- `components` — Array of `{"id": "..."}` objects (use component ID, not name)
+- Sprint custom field (e.g., `customfield_10701`) — Set to the sprint **ID** (integer)
+- Story points custom field (e.g., `customfield_10003`) — Set to a number
+
+**Important notes about `--from-json`:**
+- Use `projectKey` (not `project.key`)
+- Use `parentIssueId` (not `parent.key`) — this is the parent issue key string
+- `assignee` accepts `@me` or an email address — NOT raw Jira account IDs
+- `description` must be in Atlassian Document Format (ADF), not plain text
+- Custom field IDs vary per Jira instance — discover them by viewing an existing
+  issue with `--fields "*all" --json` and inspecting the `customfield_*` keys
+
+```bash
+# Create work item from JSON file
+acli jira workitem create --from-json /path/to/workitem.json --json
+```
+
+### Assignment Gotchas
+
+Some projects restrict who can be assigned issues during creation. If you get
+a "cannot be assigned issues" error:
+
+1. Create the issue **without** an assignee
+2. Assign separately using `acli jira workitem assign`:
+
+```bash
+# Create without assignee
 acli jira workitem create \
   --summary "New task" \
   --project "TEAM" \
-  --type "Task" \
+  --type "Story" \
   --json
+
+# Then assign (use email, not account ID)
+acli jira workitem assign --key "TEAM-456" --assignee "user@example.com"
+# Or self-assign
+acli jira workitem assign --key "TEAM-456" --assignee "@me"
 ```
+
+The `assign` subcommand often succeeds where `create --assignee` fails because
+they use different Jira API permission checks.
 
 ### Editing Work Items
 
@@ -509,12 +571,41 @@ acli jira project restore --key "TEAM"
 acli jira project delete --key "TEAM"
 ```
 
-## Boards
+## Sprints and Boards
 
-### Listing and Searching Boards
+### Finding the Active Sprint for a Project
+
+The fastest way to find the active sprint is via JQL, not the board API. Search for
+any issue in the project's open sprint and read the sprint custom field from the
+JSON response:
 
 ```bash
-# Search for boards
+# Step 1: Find one issue in the active sprint
+acli jira workitem search \
+  --jql "project = PROJ AND sprint in openSprints()" \
+  --fields "key" --limit 1 --json
+
+# Step 2: View that issue with all fields, extract active sprint object
+acli jira workitem view PROJ-123 --fields "*all" --json \
+  | jq '
+    .fields | to_entries[]
+    | select(.value | type == "array" and length > 0)
+    | select(.value[0] | type == "object" and has("state"))
+    | .value[] | select(.state == "active")
+  '
+```
+
+The sprint object contains `id`, `name`, `boardId`, `startDate`, `endDate`, and
+`state`. Use `id` when assigning a sprint to a new issue via `additionalAttributes`
+in the `--from-json` creation flow (see "Creating with Custom Fields" below).
+
+**Do NOT** try to find the sprint by paginating through `acli jira board search` —
+there can be hundreds of boards and the project's board may not appear on early pages.
+
+### Board Commands
+
+```bash
+# Search for boards (paginated — may return hundreds)
 acli jira board search
 
 # Get board details
@@ -523,8 +614,6 @@ acli jira board get --id 123
 # List sprints for a board
 acli jira board list-sprints --id 123
 ```
-
-## Sprints
 
 ### Sprint Work Items
 
@@ -835,6 +924,39 @@ acli jira workitem edit \
   --jql "project = TEAM AND priority is EMPTY" \
   --priority "Medium" \
   --yes
+```
+
+## Discovering Custom Field IDs
+
+Jira custom field IDs (`customfield_*`) vary per instance. To find the correct
+IDs for sprint, story points, components, etc., inspect an existing issue that
+already has those fields set:
+
+```bash
+# Find an issue in the active sprint that has story points set
+acli jira workitem search \
+  --jql "project = PROJ AND sprint in openSprints()" \
+  --fields "key" --limit 1 --json
+
+# View all fields and list non-empty ones with truncated values
+acli jira workitem view PROJ-123 --fields "*all" --json \
+  | jq -r '
+    .fields | to_entries[]
+    | select(.value != null and .value != "" and .value != {} and .value != [])
+    | "\(.key): \(.value | tostring | .[:200])"
+  '
+```
+
+**What to look for:**
+- **Sprint**: A `customfield_*` containing a list of objects with `boardId`,
+  `state`, `startDate`, `endDate` keys
+- **Story points**: A `customfield_*` containing a plain number (e.g., `5`)
+- **Components**: Standard field `components` (not a custom field) — array of
+  `{"id": "...", "name": "..."}` objects
+
+You can also list all available fields:
+```bash
+acli jira field --help
 ```
 
 ## Troubleshooting
