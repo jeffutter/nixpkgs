@@ -137,11 +137,11 @@
         "rust-overlay": "rust-overlay"
       },
       "locked": {
-        "lastModified": 1770413925,
-        "narHash": "sha256-cqbMUFvHaQBR/TtyI5Gacn/62+gx5GCoAmTFu51cLyo=",
+        "lastModified": 1770427370,
+        "narHash": "sha256-Zr5cVorxqiBu3W6bJEp12KVa+MJv+GXV6IqhhyGBZmE=",
         "owner": "jeffutter",
         "repo": "claude-tail",
-        "rev": "eb73e65641646516182ca3292eb741e03bf39796",
+        "rev": "7185bc85405eba53905a128266d73bf66de9b6d9",
         "type": "github"
       },
       "original": {
