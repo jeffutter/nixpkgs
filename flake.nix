@@ -152,6 +152,33 @@
         });
       };
 
+      claudeCodeOverlay = final: prev:
+        let
+          claudeCodeVersion = "2.1.36";
+          claudeCodeBaseUrl = "https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases";
+          # Run `nix-prefetch-url <url>` for your platform to get the correct hash
+          # URL format: ${claudeCodeBaseUrl}/${claudeCodeVersion}/<platform>/claude
+          # Platforms: darwin-arm64, darwin-x64, linux-arm64, linux-x64
+          claudeCodeChecksums = {
+            "darwin-arm64" = "sha256-E9qK91PsJG0Jkq2lCN4FmzrVBxJwgVXUo0UMGK1hFeQ=";
+            "darwin-x64" = "sha256-eRSOK6yvORf3Xoy/kM0/dBh6H18QpiFqLci8hPwVrWw=";
+            "linux-arm64" = "sha256-wB5oyzA/Dt7zYZ2mjljxWjuWOOTbk26u5kTsMm5gOqM=";
+            "linux-x64" = "sha256-NGbm+GvmKmDXYd4JYpDdkEXLKVxOQBGgc3RJwshACqU=";
+          };
+          platformKey = "${final.stdenv.hostPlatform.parsed.kernel.name}-${
+            if final.stdenv.hostPlatform.isAarch64 then "arm64" else "x64"
+          }";
+        in
+        {
+          claude-code-bin = prev.claude-code-bin.overrideAttrs (oldAttrs: {
+            version = claudeCodeVersion;
+            src = final.fetchurl {
+              url = "${claudeCodeBaseUrl}/${claudeCodeVersion}/${platformKey}/claude";
+              hash = claudeCodeChecksums.${platformKey};
+            };
+          });
+        };
+
       mkHome =
         {
           system,
@@ -165,7 +192,7 @@
             config.allowUnfree = true;
             config.input-fonts.acceptLicense = true;
             config.permittedInsecurePackages = [ "p7zip-16.02" ];
-            overlays = [ opencodeOverlay ];
+            overlays = [ opencodeOverlay claudeCodeOverlay ];
           };
           extraSpecialArgs = { inherit inputs; };
           modules = [
@@ -191,7 +218,7 @@
                 input-fonts.acceptLicense = true;
                 permittedInsecurePackages = [ "p7zip-16.02" ];
               };
-              overlays = [ opencodeOverlay ];
+              overlays = [ opencodeOverlay claudeCodeOverlay ];
             };
           in
           nixpkgs.lib.nixosSystem {
@@ -231,7 +258,7 @@
                 input-fonts.acceptLicense = true;
                 permittedInsecurePackages = [ "p7zip-16.02" ];
               };
-              overlays = [ opencodeOverlay ];
+              overlays = [ opencodeOverlay claudeCodeOverlay ];
             };
           in
           nixpkgs.lib.nixosSystem {
@@ -270,7 +297,7 @@
                 input-fonts.acceptLicense = true;
                 permittedInsecurePackages = [ "p7zip-16.02" ];
               };
-              overlays = [ opencodeOverlay ];
+              overlays = [ opencodeOverlay claudeCodeOverlay ];
             };
           in
           nix-darwin.lib.darwinSystem {
@@ -307,7 +334,7 @@
                 input-fonts.acceptLicense = true;
                 permittedInsecurePackages = [ "p7zip-16.02" ];
               };
-              overlays = [ opencodeOverlay ];
+              overlays = [ opencodeOverlay claudeCodeOverlay ];
             };
           in
           nix-darwin.lib.darwinSystem {

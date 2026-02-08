@@ -12,7 +12,8 @@
       "Bash(nix flake update:*)",
       "Bash(find:*)",
       "Bash(nix flake lock:*)",
-      "Bash(nix-build:*)"
+      "Bash(nix-build:*)",
+      "Bash(nix-prefetch-url:*)"
     ],
     "deny": [],
     "ask": []
