@@ -19,6 +19,7 @@ let
   claude-skills = pkgs.runCommand "claude-skills" { } ''
     mkdir -p $out
     ln -s ${./ai/skills/acli} $out/acli
+    ln -s ${./ai/skills/voice-dna} $out/voice-dna
     ln -s ${./ai/skills/brainstorming} $out/brainstorming
     ln -s ${./ai/skills/elixir} $out/elixir
     ln -s ${./ai/skills/tk-planner} $out/tk-planner
