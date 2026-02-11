@@ -20,6 +20,7 @@ let
     mkdir -p $out
     ln -s ${./ai/skills/acli} $out/acli
     ln -s ${./ai/skills/voice-dna} $out/voice-dna
+    ln -s ${./ai/skills/voice-dna-creator} $out/voice-dna-creator
     ln -s ${./ai/skills/brainstorming} $out/brainstorming
     ln -s ${./ai/skills/elixir} $out/elixir
     ln -s ${./ai/skills/tk-planner} $out/tk-planner
@@ -127,6 +128,7 @@ in
           "Bash(mix seed:*)"
           "Bash(mix test:*)"
           "Bash(tk:*)"
+          "Read(~/.claude/skills/**)"
           "WebFetch(domain:docs.rs)"
           "WebFetch(domain:github.com)"
           "WebFetch(domain:hexdocs.pm)"
