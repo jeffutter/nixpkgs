@@ -230,6 +230,102 @@
         };
       };
 
+      obsidian = {
+        enable = true;
+        settings = {
+          workspaces = [
+            {
+              name = "Jeffery Utter";
+              path = "~/obsidian/Jeffery Utter";
+            }
+          ];
+          daily_notes = {
+            folder = "0. PeriodicNotes";
+            date_format = "%Y/Daily/%m/%Y-%m-%d";
+            workdays_only = false;
+          };
+          picker.name = "snacks.pick";
+          completion.blink = true;
+          legacy_commands = false;
+        };
+
+        keymaps = [
+          {
+            action = "<cmd>Obsidian quick_switch<CR>";
+            key = "<leader>nf";
+            options = {
+              silent = true;
+              desc = "Find Notes";
+            };
+          }
+          {
+            action = "<cmd>Obsidian search<CR>";
+            key = "<leader>ns";
+            options = {
+              silent = true;
+              desc = "Search Note Contents";
+            };
+          }
+          {
+            action = "<cmd>Obsidian new<CR>";
+            key = "<leader>nn";
+            options = {
+              silent = true;
+              desc = "Create New Note";
+            };
+          }
+          {
+            action = "<cmd>Obsidian link_new<CR>";
+            key = "<leader>nn";
+            mode = [ "v" ];
+            options = {
+              silent = true;
+              desc = "Create New Note from selection";
+            };
+          }
+          {
+            action = "<cmd>Obsidian template<CR>";
+            key = "<leader>nc";
+            options = {
+              silent = true;
+              desc = "Insert Template";
+            };
+          }
+          {
+            action = "<cmd>Obsidian open<CR>";
+            key = "<leader>no";
+            options = {
+              silent = true;
+              desc = "Open in Obsidian";
+            };
+          }
+          {
+            action = "<cmd>Obsidian backlinks<CR>";
+            key = "<leader>nb";
+            options = {
+              silent = true;
+              desc = "Show Backlinks";
+            };
+          }
+          {
+            action = "<cmd>Obsidian today<CR>";
+            key = "<leader>nT";
+            options = {
+              silent = true;
+              desc = "Open Todays Note";
+            };
+          }
+          {
+            action = "<cmd>Obsidian tags<CR>";
+            key = "<leader>nt";
+            options = {
+              silent = true;
+              desc = "Show Tags";
+            };
+          }
+        ];
+      };
+
       snacks = {
         enable = true;
         settings = {

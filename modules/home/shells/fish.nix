@@ -86,6 +86,7 @@ in
       fish_add_path -p "$HOME/homebrew/bin"
       fish_add_path -a /usr/local/bin
       fish_add_path -a /Applications/Docker.app/Contents/Resources/bin
+      fish_add_path -a "$HOME/Applications/Obsidian.app/Contents/MacOS" 
 
       set -x HOMEBREW_CASK_OPTS "--appdir=$HOME/Applications"
       set -x ERL_AFLAGS "-kernel shell_history enabled"
