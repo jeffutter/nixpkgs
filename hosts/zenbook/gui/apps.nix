@@ -21,6 +21,25 @@ let
       wrapProgram $out/bin/todoist-electron --add-flags '--ozone-platform-hint=auto --enable-features=WaylandWindowDecorations --enable-wayland-ime=true'
     '';
   };
+
+  waylandWrapper =
+    {
+      pkg,
+      bin ? null,
+      extraFlags ? "",
+      extraEnv ? "",
+    }:
+    let
+      binName = if bin != null then bin else pkg.pname or pkg.name;
+    in
+    {
+      text = ''
+        #!${pkgs.bash}/bin/bash
+        ${extraEnv}
+        exec -a "$0" ~/bin/systemGL ${pkg}/bin/${binName} --ozone-platform=wayland --ozone-platform-hint=auto --enable-features=UseOzonePlatform,WaylandWindowDecorations ${extraFlags} "$@"
+      '';
+      executable = true;
+    };
 in
 {
   home.packages = with pkgs; [
@@ -137,21 +156,11 @@ in
     executable = true;
   };
 
-  home.file."bin/discord" = {
-    text = ''
-      #!${pkgs.bash}/bin/bash
-      exec -a "$0" ~/bin/systemGL ${pkgs.discord}/bin/discord --enable-features=UseOzonePlatform --ozone-platform=wayland "$@"
-    '';
-    executable = true;
-  };
+  home.file."bin/discord" = waylandWrapper { pkg = pkgs.discord; };
 
-  home.file."bin/obsidian" = {
-    text = ''
-      #!${pkgs.bash}/bin/bash
-      export OBSIDIAN_USE_WAYLAND=1
-      exec -a "$0" ~/bin/systemGL ${pkgs.obsidian}/bin/obsidian --ozone-platform=wayland --ozone-platform-hint=auto --enable-features=UseOzonePlatform,WaylandWindowDecorations "$@"
-    '';
-    executable = true;
+  home.file."bin/obsidian" = waylandWrapper {
+    pkg = pkgs.obsidian;
+    extraEnv = "export OBSIDIAN_USE_WAYLAND=1";
   };
 
   home.sessionVariables = {
