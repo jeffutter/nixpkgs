@@ -13,8 +13,15 @@ in
     timeouts = [
       {
         timeout = 60;
+        # Inhibit ambient brightness daemon so it does not fight the dim at 110s
         command = "${iab}/bin/iio_ambient_brightness -i";
         resumeCommand = "${iab}/bin/iio_ambient_brightness -a";
+      }
+      {
+        timeout = 110;
+        # Save current brightness with -s so -r on resume restores the exact level
+        command = "${pkgs.brightnessctl}/bin/brightnessctl -s set 10%";
+        resumeCommand = "${pkgs.brightnessctl}/bin/brightnessctl -r";
       }
       {
         timeout = 120;
