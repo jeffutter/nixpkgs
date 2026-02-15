@@ -14,7 +14,6 @@
         height = 25;
         modules-left = [
           "hyprland/workspaces"
-          "sway/mode"
         ];
         modules-center = [
         ];
@@ -41,11 +40,7 @@
             "*" = 5;
           };
         };
-        "sway/mode" = {
-          "format" = "<span style=\"italic\">{}</span>";
-        };
         tray = {
-          # icon-size= 21;
           spacing = 10;
         };
         clock = {
@@ -60,13 +55,10 @@
         battery = {
           bat = "BAT0";
           states = {
-            # // good = 95;
             warning = 30;
             critical = 15;
           };
           format = "{icon} {capacity}%";
-          # format-good= "";
-          # format-full= "";
           format-icons = [
             ""
             ""
@@ -76,7 +68,6 @@
           ];
         };
         network = {
-          # interface = "wlp2s0";
           format-wifi = "{icon} {essid} ({signalStrength}%)";
           format-ethernet = "{icon} {ifname}= {ipaddr}/{cidr} ";
           format-disconnected = "{icon} Disconnected";

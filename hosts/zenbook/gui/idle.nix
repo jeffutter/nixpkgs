@@ -33,8 +33,8 @@ in
       }
       {
         timeout = 180;
-        command = "if ${pkgs.procps}/bin/pgrep -x hyprlock; then ${pkgs.sway}/bin/swaymsg \"output * power off\"; fi";
-        resumeCommand = "${pkgs.sway}/bin/swaymsg \"output * power on\"";
+        command = "if ${pkgs.procps}/bin/pgrep -x hyprlock; then ${pkgs.hyprland}/bin/hyprctl dispatch dpms off; fi";
+        resumeCommand = "${pkgs.hyprland}/bin/hyprctl dispatch dpms on";
       }
     ];
   };
