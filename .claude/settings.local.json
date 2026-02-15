@@ -1,21 +1,24 @@
 {
   "permissions": {
     "allow": [
-      "Bash(nix-env:*)",
-      "WebFetch(domain:raw.githubusercontent.com)",
-      "Bash(tree:*)",
-      "Bash(nix flake check:*)",
-      "WebSearch",
-      "WebFetch(domain:github.com)",
-      "Bash(defaults read:*)",
       "Bash(defaults find NSUserKeyEquivalents)",
-      "Bash(nix flake update:*)",
+      "Bash(defaults read:*)",
       "Bash(find:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(nix flake check:*)",
       "Bash(nix flake lock:*)",
+      "Bash(nix flake update:*)",
+      "Bash(nix hash to-sri:*)",
       "Bash(nix-build:*)",
+      "Bash(nix-env:*)",
       "Bash(nix-prefetch-url:*)",
+      "Bash(tk:*)",
+      "Bash(tree:*)",
       "Bash(wait)",
-      "Bash(nix hash to-sri:*)"
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebSearch"
     ],
     "deny": [],
     "ask": []
