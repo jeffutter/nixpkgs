@@ -1,6 +1,11 @@
 { pkgs, lib, inputs, ... }:
 let
   iab = inputs.iio-ambient-brightness.packages.${pkgs.stdenv.hostPlatform.system}.default;
+  singleWindowWorkspaces = [
+    "w[t1]"
+    "w[tg1]"
+    "f[1]"
+  ];
 in
 {
   wayland.windowManager.hyprland = {
@@ -112,24 +117,14 @@ in
         preserve_split = "yes";
       };
 
-      workspace = map (x: "${x}, gapsout:0, gapsin:0") [
-        "w[t1]"
-        "w[tg1]"
-        "f[1]"
-      ];
+      workspace = map (x: "${x}, gapsout:0, gapsin:0") singleWindowWorkspaces;
 
-      windowrulev2 = lib.lists.flatten (
-        map
-          (x: [
-            "bordersize 0, floating:0, onworkspace:${x}"
-            "rounding 0, floating:0, onworkspace:${x}"
-          ])
-          [
-            "w[t1]"
-            "w[tg1]"
-            "f[1]"
-          ]
-      );
+      windowrulev2 = lib.concatMap
+        (x: [
+          "bordersize 0, floating:0, onworkspace:${x}"
+          "rounding 0, floating:0, onworkspace:${x}"
+        ])
+        singleWindowWorkspaces;
 
       master = {
         new_status = "master";
