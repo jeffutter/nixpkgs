@@ -52,6 +52,13 @@ in
     ../../modules/home/opencode.nix
   ];
 
+  # OLED energy savings: override background colors to pure black
+  stylix.override = {
+    base00 = "000000"; # Default background
+    base01 = "000000"; # Lighter background
+    base02 = "111111"; # Selection background (slightly lighter for visibility)
+  };
+
   home.packages = with pkgs; [
     _1password-cli
     _1password-gui
