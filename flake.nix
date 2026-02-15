@@ -117,7 +117,7 @@
     };
 
     opencode-src = {
-      url = "github:anomalyco/opencode/v1.1.48";
+      url = "github:anomalyco/opencode/v1.2.2";
       flake = false;
     };
   };
@@ -147,23 +147,24 @@
           version = opencodeVersion;
           src = opencode-src;
           node_modules = oldAttrs.node_modules.overrideAttrs (nodeAttrs: {
-            outputHash = "sha256-aQScGeakRanvH1LxizXrWA17YOmJJfRuypX4Jau4zQw=";
+            outputHash = "sha256-V+a9EkD/wrVLnd3LpPlgT6HSLkzavPpF+RjMrDib1Nc=";
           });
         });
       };
 
-      claudeCodeOverlay = final: prev:
+      claudeCodeOverlay =
+        final: prev:
         let
-          claudeCodeVersion = "2.1.38";
+          claudeCodeVersion = "2.1.42";
           claudeCodeBaseUrl = "https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases";
           # Run `nix-prefetch-url <url>` for your platform to get the correct hash
           # URL format: ${claudeCodeBaseUrl}/${claudeCodeVersion}/<platform>/claude
           # Platforms: darwin-arm64, darwin-x64, linux-arm64, linux-x64
           claudeCodeChecksums = {
-            "darwin-arm64" = "sha256-cyaw0y+a2GN6Krl/206FN3fP+sTWOqWRCEQXdHlb6NA=";
-            "darwin-x64" = "sha256-ypRE3264kaeZ0ixmbWBT+q8h/PTLogtI9oF5HwhOYlA=";
-            "linux-arm64" = "sha256-6dUUEC+EuIWNUMmLqyE5Oi2WrEiVQ7cr7/Dlj9YJGSo=";
-            "linux-x64" = "sha256-eFj5CSK/Y9M4V7Y+BU4IpvyhlAc5U9iNUNYh+cuuAGk=";
+            "darwin-arm64" = "sha256-aQgVK/GkursT3oZkDzeVNJAFBptUHUuKOZaAK4Y6Av0=";
+            "darwin-x64" = "sha256-Gk4dL5m22bKUYHveQCtnRhNP+pE7InZ+5F+/gg38wbQ=";
+            "linux-arm64" = "sha256-WnXQcTKHtjZjagbOkQP/VPV4gXDy6TEvx1WRIfZJ028=";
+            "linux-x64" = "sha256-UXhb0m0oljloGYMrwjoYpsDKObe3YRk/p7bpkKF/J9g=";
           };
           platformKey = "${final.stdenv.hostPlatform.parsed.kernel.name}-${
             if final.stdenv.hostPlatform.isAarch64 then "arm64" else "x64"
@@ -192,7 +193,10 @@
             config.allowUnfree = true;
             config.input-fonts.acceptLicense = true;
             config.permittedInsecurePackages = [ "p7zip-16.02" ];
-            overlays = [ opencodeOverlay claudeCodeOverlay ];
+            overlays = [
+              opencodeOverlay
+              claudeCodeOverlay
+            ];
           };
           extraSpecialArgs = { inherit inputs; };
           modules = [
@@ -218,7 +222,10 @@
                 input-fonts.acceptLicense = true;
                 permittedInsecurePackages = [ "p7zip-16.02" ];
               };
-              overlays = [ opencodeOverlay claudeCodeOverlay ];
+              overlays = [
+                opencodeOverlay
+                claudeCodeOverlay
+              ];
             };
           in
           nixpkgs.lib.nixosSystem {
@@ -258,7 +265,10 @@
                 input-fonts.acceptLicense = true;
                 permittedInsecurePackages = [ "p7zip-16.02" ];
               };
-              overlays = [ opencodeOverlay claudeCodeOverlay ];
+              overlays = [
+                opencodeOverlay
+                claudeCodeOverlay
+              ];
             };
           in
           nixpkgs.lib.nixosSystem {
@@ -297,7 +307,10 @@
                 input-fonts.acceptLicense = true;
                 permittedInsecurePackages = [ "p7zip-16.02" ];
               };
-              overlays = [ opencodeOverlay claudeCodeOverlay ];
+              overlays = [
+                opencodeOverlay
+                claudeCodeOverlay
+              ];
             };
           in
           nix-darwin.lib.darwinSystem {
@@ -334,7 +347,10 @@
                 input-fonts.acceptLicense = true;
                 permittedInsecurePackages = [ "p7zip-16.02" ];
               };
-              overlays = [ opencodeOverlay claudeCodeOverlay ];
+              overlays = [
+                opencodeOverlay
+                claudeCodeOverlay
+              ];
             };
           in
           nix-darwin.lib.darwinSystem {

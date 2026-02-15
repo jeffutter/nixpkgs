@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+FLAKE="${HOME}/.config/home-manager/flake.nix"
+BASE_URL="https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases"
+PLATFORMS=("darwin-arm64" "darwin-x64" "linux-arm64" "linux-x64")
+
+to_sri() {
+  nix hash convert --hash-algo sha256 --to sri "$1" 2>/dev/null \
+    || nix hash to-sri --type sha256 "$1" 2>/dev/null
+}
+
+# Get latest version from npm registry
+echo "Fetching latest claude-code version..."
+LATEST=$(curl -sf "https://registry.npmjs.org/@anthropic-ai/claude-code/latest" | jq -r '.version')
+
+if [[ -z "$LATEST" || "$LATEST" == "null" ]]; then
+  echo "error: failed to fetch latest version from npm" >&2
+  exit 1
+fi
+
+CURRENT=$(grep 'claudeCodeVersion = ' "$FLAKE" | sed 's/.*"\(.*\)".*/\1/')
+
+echo "Current: $CURRENT  Latest: $LATEST"
+
+if [[ "$LATEST" == "$CURRENT" ]]; then
+  echo "Already at latest version, nothing to do."
+  exit 0
+fi
+
+# Fetch hashes for all platforms
+declare -A HASHES
+
+for PLATFORM in "${PLATFORMS[@]}"; do
+  echo "Fetching hash for $PLATFORM..."
+  RAW=$(nix-prefetch-url "${BASE_URL}/${LATEST}/${PLATFORM}/claude" 2>/dev/null)
+  HASHES["$PLATFORM"]=$(to_sri "$RAW")
+  echo "  ${HASHES[$PLATFORM]}"
+done
+
+# Update flake.nix
+echo "Updating flake.nix..."
+
+perl -pi -e "s|claudeCodeVersion = \"[^\"]+\"|claudeCodeVersion = \"${LATEST}\"|" "$FLAKE"
+
+for PLATFORM in "${PLATFORMS[@]}"; do
+  perl -pi -e "s|\"${PLATFORM}\" = \"sha256-[A-Za-z0-9+/=]+\"|\"${PLATFORM}\" = \"${HASHES[$PLATFORM]}\"|" "$FLAKE"
+done
+
+echo "Updated claude-code: $CURRENT -> $LATEST"

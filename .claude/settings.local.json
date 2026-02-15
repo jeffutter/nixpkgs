@@ -13,7 +13,9 @@
       "Bash(find:*)",
       "Bash(nix flake lock:*)",
       "Bash(nix-build:*)",
-      "Bash(nix-prefetch-url:*)"
+      "Bash(nix-prefetch-url:*)",
+      "Bash(wait)",
+      "Bash(nix hash to-sri:*)"
     ],
     "deny": [],
     "ask": []
