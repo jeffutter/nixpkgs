@@ -185,11 +185,23 @@
 
   environment.sessionVariables.NIXOS_OZONE_WL = "1";
 
+  # DPI scaling variables tuned for the Zenbook OLED display (2880x1800, ~255 DPI).
+  # The 2.2x scale factor is chosen to make UI elements a comfortable size at native
+  # resolution. Note: within a Hyprland session, GDK_SCALE is overridden to 1 in
+  # hosts/zenbook/gui/hyprland.nix — these system-level values apply to Sway and
+  # TTY-launched GTK applications instead.
   environment.variables = {
-    GDK_SCALE = "2.2"; # default 1 I think
-    GDK_DPI_SCALE = "0.4"; # default 1 I think
-    _JAVA_OPTIONS = "-Dsun.java2d.uiScale=2.2"; # default 1 I think
+    # Scales GTK3/4 application UI by 2.2x for the high-DPI OLED panel. Default is 1.
+    GDK_SCALE = "2.2";
+    # Compensates for GDK_SCALE on font rendering (GDK_SCALE * GDK_DPI_SCALE ≈ 0.88),
+    # preventing double-scaling of text. Default is 1.
+    GDK_DPI_SCALE = "0.4";
+    # Java/AWT/Swing UI scaling to match the GTK scale factor. Default is 1.
+    _JAVA_OPTIONS = "-Dsun.java2d.uiScale=2.2";
+    # Enables Qt's automatic DPI detection; Qt calculates its own scale from system DPI.
+    # Default is 0 (disabled).
     QT_AUTO_SCREEN_SCALE_FACTOR = "1";
+    # Cursor size in pixels; 2x the standard 24px default to remain visible at high DPI.
     XCURSOR_SIZE = "48";
   };
 
