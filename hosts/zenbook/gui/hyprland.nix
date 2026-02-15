@@ -70,31 +70,6 @@ in
         ", XF86MonBrightnessUp, exec, ${iab}/bin/iio_ambient_brightness --increase 10"
         ", XF86MonBrightnessDown, exec, ${iab}/bin/iio_ambient_brightness --decrease 10"
         ", XF86Search, exec, launchpad"
-        # MacOS-like keybindings
-        "ALT, X, exec, ${pkgs.ydotool}/bin/ydotool key 29:1 45:1 45:0 29:0"
-        "ALT, C, exec, ${pkgs.ydotool}/bin/ydotool key 29:1 46:1 46:0 29:0"
-        "ALT SHIFT, C, exec, ${pkgs.ydotool}/bin/ydotool key 29:1 42:1 46:1 46:0 42:0 29:0"
-        "ALT, V, exec, ${pkgs.ydotool}/bin/ydotool key 29:1 47:1 47:0 29:0"
-        "ALT SHIFT, V, exec, ${pkgs.ydotool}/bin/ydotool key 29:1 42:1 47:1 47:0 42:0 29:0"
-        "ALT, Z, exec, ${pkgs.ydotool}/bin/ydotool key 29:1 44:1 44:0 29:0"
-        "ALT, A, exec, ${pkgs.ydotool}/bin/ydotool key 29:1 30:1 30:0 29:0"
-        # Search
-        "ALT, F, exec, ${pkgs.ydotool}/bin/ydotool key 29:1 33:1 33:0 29:0"
-        # Print
-        "ALT, P, exec, ${pkgs.ydotool}/bin/ydotool key 29:1 25:1 25:0 29:0"
-        # Save
-        "ALT, S, exec, ${pkgs.ydotool}/bin/ydotool key 29:1 31:1 31:0 29:0"
-        # Chrome new tab
-        "ALT, T, exec, ${pkgs.ydotool}/bin/ydotool key 29:1 20:1 20:0 29:0"
-        "ALT SHIFT, T, exec, ${pkgs.ydotool}/bin/ydotool key 29:1 42:1 20:1 20:0 42:0 29:0"
-        # Chrome close tab
-        "ALT, W, exec, ${pkgs.ydotool}/bin/ydotool key 29:1 17:1 17:0 29:0"
-        # Chrome page reload
-        "ALT, R, exec, ${pkgs.ydotool}/bin/ydotool key 29:1 19:1 19:0 29:0"
-        # Chrome select url
-        "ALT, L, exec, ${pkgs.ydotool}/bin/ydotool key 29:1 38:1 38:0 29:0"
-        # Chrome history
-        "ALT, Y, exec, ${pkgs.ydotool}/bin/ydotool key 29:1 21:1 21:0 29:0"
       ];
       bindl = [
         ", XF86AudioMute, exec, ${pkgs.pulseaudio}/bin/pactl set-sink-mute @DEFAULT_SINK@ toggle"

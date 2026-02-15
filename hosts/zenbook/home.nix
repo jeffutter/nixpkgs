@@ -10,6 +10,7 @@
     ./gui/sway.nix
     ./gui/idle.nix
     ./gui/apps.nix
+    ./gui/keybindings.nix
   ];
 
   # OLED energy savings: override background colors to pure black

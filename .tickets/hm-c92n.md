@@ -1,6 +1,6 @@
 ---
 id: hm-c92n
-status: open
+status: closed
 deps: [hm-i416]
 links: []
 created: 2026-02-15T01:37:36Z
@@ -135,3 +135,9 @@ The current Sway History binding sends `wtype -M ctrl -P h` but should send `wty
 - Generate Sway bindings from shared config
 - Document the binding mapping
 
+
+## Notes
+
+**2026-02-15T21:28:45Z**
+
+Preserved original bindle (repeating) binding type from Hyprland config — code reviewer suggested bind instead, but original intentionally used bindle. Also fixed Sway History binding bug (was -P h, now -P y) and used plain attrset (not mkOptionDefault) for Sway keybindings to match style in sway.nix.

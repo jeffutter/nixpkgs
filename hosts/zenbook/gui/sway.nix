@@ -216,32 +216,6 @@ in
         "${modifier}+n" = "exec ${pkgs.mako}/bin/makoctl dismiss";
         "${modifier}+Shift+n" = "exec ${pkgs.mako}/bin/makoctl dismiss -a";
 
-        # MacOS-like keybindings
-        "${modifier}+x" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P x";
-        "${modifier}+c" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P c";
-        "${modifier}+Shift+c" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -M shift -P c";
-        "${modifier}+v" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P v";
-        "${modifier}+Shift+v" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -M shift -P v";
-        "${modifier}+z" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P z";
-        "${modifier}+a" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P a";
-        # Search
-        "${modifier}+f" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P f";
-        # Print
-        "${modifier}+p" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P p";
-        # Save
-        "${modifier}+s" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P s";
-        # Chrome new tab
-        "${modifier}+t" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P t";
-        "${modifier}+Shift+t" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -M shift -P t";
-        # Chrome close tab
-        "${modifier}+w" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P w";
-        # Chrome page reload
-        "${modifier}+r" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P r";
-        # Chrome select url
-        "${modifier}+l" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P l";
-        # Chrome history
-        "${modifier}+y" = "exec ${pkgs.wtype}/bin/wtype -M ctrl -P h";
-
         "XF86MonBrightnessDown" = "exec ${iab}/bin/iio_ambient_brightness --decrease 10";
         "XF86MonBrightnessUp" = "exec ${iab}/bin/iio_ambient_brightness --increase 10";
 
