@@ -11,6 +11,12 @@ in
   wayland.windowManager.hyprland = {
     enable = true;
     settings = {
+      general = {
+        layout = "dwindle"; # make default explicit for clarity
+      };
+      cursor = {
+        no_hardware_cursors = true; # Intel Meteor Lake (Xe LPG): precautionary, Xe LPG hardware cursors are known to glitch under Wayland
+      };
       animation = [
         "workspaces,1,4,default,fade"
         "windows,1,4,default,popin"
@@ -100,7 +106,9 @@ in
         kb_variant = "";
         follow_mouse = 1;
         touchpad = {
+          # natural_scroll intentionally false — compositor overrides system libinput default
           natural_scroll = false;
+          disable_while_typing = true;
           middle_button_emulation = true;
           scroll_factor = ".2";
           clickfinger_behavior = true;
