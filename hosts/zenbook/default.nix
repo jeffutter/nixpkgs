@@ -108,9 +108,51 @@
   services.displayManager.gdm.enable = true;
   # services.xserver.desktopManager.gnome.enable = true;
 
-  programs.sway.enable = true;
-  # programs.hyprland.enable = true;
-  programs.ydotool.enable = true;
+  programs.hyprland.enable = true;
+
+  # Kernel-level key remapping: ALT+letter → Ctrl+letter (macOS-style shortcuts).
+  # keyd operates before Wayland sees the input, so there is no modifier bleed.
+  # Key names are physical positions; Colemak shifts the alpha keys so each
+  # Colemak letter maps to a different physical key than its QWERTY counterpart.
+  services.keyd = {
+    enable = true;
+    keyboards.default = {
+      ids = [ "*" ];
+      settings = {
+        # Colemak physical-key → keysym mapping used below:
+        #   physical e → f    physical r → p    physical d → s
+        #   physical f → t    physical s → r    physical u → l
+        #   physical o → y
+        #   a,c,v,w,x,z are the same in Colemak and QWERTY
+        # Each physical key maps to Ctrl+itself. Hyprland applies the Colemak
+        # XKB layer downstream, so the browser sees the correct Colemak keysym.
+        # e.g. physical f -> C-f -> Colemak(f) = T -> browser sees Ctrl+T
+        main = {
+          capslock = "esc";
+        };
+        alt = {
+          a = "C-a";
+          c = "C-c";
+          d = "C-d";
+          e = "C-e";
+          f = "C-f";
+          o = "C-o";
+          r = "C-r";
+          s = "C-s";
+          u = "C-u";
+          v = "C-v";
+          w = "C-w";
+          x = "C-x";
+          z = "C-z";
+        };
+        "alt+shift" = {
+          c = "S-C-c";
+          f = "S-C-f";
+          v = "S-C-v";
+        };
+      };
+    };
+  };
 
   # Configure keymap in X11
   services.xserver = {
@@ -156,7 +198,6 @@
     extraGroups = [
       "networkmanager"
       "wheel"
-      "ydotool"
     ];
     shell = pkgs.fish;
     packages = with pkgs; [
@@ -188,14 +229,14 @@
   # DPI scaling variables tuned for the Zenbook OLED display (2880x1800, ~255 DPI).
   # The 2.2x scale factor is chosen to make UI elements a comfortable size at native
   # resolution. Note: within a Hyprland session, GDK_SCALE is overridden to 1 in
-  # hosts/zenbook/gui/hyprland.nix — these system-level values apply to Sway and
+  # hosts/zenbook/gui/hyprland.nix — these system-level values apply to
   # TTY-launched GTK applications instead.
   environment.variables = {
     # Scales GTK3/4 application UI by 2.2x for the high-DPI OLED panel. Default is 1.
     GDK_SCALE = "2.2";
     # Compensates for GDK_SCALE on font rendering (GDK_SCALE * GDK_DPI_SCALE ≈ 0.88),
     # preventing double-scaling of text. Default is 1.
-    GDK_DPI_SCALE = "0.4";
+    # GDK_DPI_SCALE = "0.4";
     # Java/AWT/Swing UI scaling to match the GTK scale factor. Default is 1.
     _JAVA_OPTIONS = "-Dsun.java2d.uiScale=2.2";
     # Enables Qt's automatic DPI detection; Qt calculates its own scale from system DPI.

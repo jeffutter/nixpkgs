@@ -62,7 +62,6 @@ in
     wl-clipboard
     wlsunset
     wluma
-    wofi
     zenbrowser
     # claude-desktop
   ];
@@ -94,23 +93,9 @@ in
     };
   };
 
-  programs.ghostty.settings.font-size = 10;
+  programs.fuzzel.enable = true;
 
-  programs.swaylock = {
-    enable = true;
-    # nix swaylock doesn't play well with ubuntu pam
-    # package = pkgs.runCommandLocal "empty" { } "mkdir $out";
-    settings = {
-      daemonize = true;
-      ignore-empty-password = true;
-      indicator-caps-lock = true;
-      indicator-idle-visible = true;
-      indicator-radius = 200;
-      indicator-thickness = 20;
-      show-failed-attempts = true;
-      # Stylix handles colors
-    };
-  };
+  programs.ghostty.settings.font-size = 10;
 
   fonts.fontconfig.enable = true;
 

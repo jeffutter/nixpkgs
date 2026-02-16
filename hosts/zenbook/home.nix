@@ -1,4 +1,4 @@
-{ ... }:
+{ lib, ... }:
 {
   imports = [
     ../../modules/home/languages/rust.nix
@@ -7,10 +7,8 @@
     ../../modules/home/opencode.nix
     ./gui/waybar.nix
     ./gui/hyprland.nix
-    ./gui/sway.nix
     ./gui/idle.nix
     ./gui/apps.nix
-    ./gui/keybindings.nix
   ];
 
   # OLED energy savings: override background colors to pure black
@@ -19,6 +17,10 @@
     base01 = "000000"; # Lighter background
     base02 = "111111"; # Selection background (slightly lighter for visibility)
   };
+
+  # Apply same OLED background overrides to Neovim (Stylix is disabled for it)
+  programs.nixvim.colorschemes.tokyonight.settings.on_colors = lib.mkForce
+    "function(colors) colors.bg = '#000000' colors.bg_dark = '#000000' colors.bg_highlight = '#111111' colors.comment = '#b4bcd0' end";
 
   programs.claude-code.settings.model = "sonnet";
 

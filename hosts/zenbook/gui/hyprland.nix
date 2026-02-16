@@ -39,7 +39,6 @@ in
         "QT_AUTO_SCREEN_SCALE_FACTOR,1"
         "MOZ_ENABLE_WAYLAND,1"
         "GDK_SCALE,1"
-        "YDOTOOL_SOCKET,/run/ydotoold/socket"
       ];
       bind = [
         "ALT SHIFT, 1, movetoworkspacesilent, 1"
@@ -71,7 +70,7 @@ in
         "ALT SHIFT, right, movewindow, r"
         "ALT SHIFT, down, movewindow, d"
         "ALT, Return, exec, ${pkgs.ghostty}/bin/ghostty"
-        "ALT, D, exec, ${pkgs.wofi}/bin/wofi -D show_all=false --show run"
+        "ALT, D, exec, ${pkgs.fuzzel}/bin/fuzzel"
         ", XF86SelectiveScreenshot, exec, ${pkgs.wayshot}/bin/wayshot -s \"$(${pkgs.slurp}/bin/slurp)\" --stdout | ${pkgs.wl-clipboard}/bin/wl-copy"
         ", Print, exec, ${pkgs.wayshot}/bin/wayshot --stdout | ${pkgs.wl-clipboard}/bin/wl-copy"
       ];
@@ -94,16 +93,11 @@ in
           kb_variant = "colemak";
           kb_options = "caps:escape";
         }
-        {
-          name = "ydotoold-virtual-device";
-          kb_layout = "us";
-          kb_variant = "";
-          kb_options = "";
-        }
       ];
       input = {
         kb_layout = "us";
-        kb_variant = "";
+        kb_variant = "colemak";
+        resolve_binds_by_sym = true;
         follow_mouse = 1;
         touchpad = {
           # natural_scroll intentionally false — compositor overrides system libinput default
@@ -116,23 +110,13 @@ in
         scroll_method = "2fg";
         accel_profile = "adaptive";
       };
-      gestures = {
-        workspace_swipe = true;
-        workspace_swipe_fingers = 3;
-      };
+
       dwindle = {
         pseudotile = "yes";
         preserve_split = "yes";
       };
 
       workspace = map (x: "${x}, gapsout:0, gapsin:0") singleWindowWorkspaces;
-
-      windowrulev2 = lib.concatMap
-        (x: [
-          "bordersize 0, floating:0, onworkspace:${x}"
-          "rounding 0, floating:0, onworkspace:${x}"
-        ])
-        singleWindowWorkspaces;
 
       master = {
         new_status = "master";
@@ -146,5 +130,14 @@ in
         key_press_enables_dpms = true;
       };
     };
+    extraConfig = lib.concatMapStrings (workspace: ''
+      windowrule {
+        name = no-gaps-${builtins.replaceStrings ["[" "]"] ["-" "-"] workspace}
+        match:float = false
+        match:workspace = ${workspace}
+        border_size = 0
+        rounding = 0
+      }
+    '') singleWindowWorkspaces;
   };
 }
