@@ -5,7 +5,7 @@
     ../../modules/home/languages/javascript.nix
     ../../modules/home/languages/ai.nix
     ../../modules/home/opencode.nix
-    ./gui/waybar.nix
+    ./gui/eww.nix
     ./gui/hyprland.nix
     ./gui/idle.nix
     ./gui/apps.nix

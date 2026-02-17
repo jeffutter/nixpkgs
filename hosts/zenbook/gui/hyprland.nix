@@ -23,7 +23,7 @@ in
       ];
       monitor = ",preferred,auto,auto";
       exec-once = [
-        "${pkgs.waybar}/bin/waybar"
+        "${pkgs.eww}/bin/eww open bar"
         "${pkgs.systemd}/bin/systemd-inhibit --what=handle-power-key sleep infinity"
       ];
       exec = [
