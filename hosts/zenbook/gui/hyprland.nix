@@ -1,4 +1,9 @@
-{ pkgs, lib, inputs, ... }:
+{
+  pkgs,
+  lib,
+  inputs,
+  ...
+}:
 let
   iab = inputs.iio-ambient-brightness.packages.${pkgs.stdenv.hostPlatform.system}.default;
   singleWindowWorkspaces = [
@@ -70,7 +75,7 @@ in
         "ALT SHIFT, right, movewindow, r"
         "ALT SHIFT, down, movewindow, d"
         "ALT, Return, exec, ${pkgs.ghostty}/bin/ghostty"
-        "ALT, D, exec, ${pkgs.fuzzel}/bin/fuzzel"
+        "ALT, D, exec, ${pkgs.walker}/bin/walker"
         ", XF86SelectiveScreenshot, exec, ${pkgs.wayshot}/bin/wayshot -s \"$(${pkgs.slurp}/bin/slurp)\" --stdout | ${pkgs.wl-clipboard}/bin/wl-copy"
         ", Print, exec, ${pkgs.wayshot}/bin/wayshot --stdout | ${pkgs.wl-clipboard}/bin/wl-copy"
       ];
@@ -132,7 +137,7 @@ in
     };
     extraConfig = lib.concatMapStrings (workspace: ''
       windowrule {
-        name = no-gaps-${builtins.replaceStrings ["[" "]"] ["-" "-"] workspace}
+        name = no-gaps-${builtins.replaceStrings [ "[" "]" ] [ "-" "-" ] workspace}
         match:float = false
         match:workspace = ${workspace}
         border_size = 0

@@ -19,8 +19,8 @@
   };
 
   # Apply same OLED background overrides to Neovim (Stylix is disabled for it)
-  programs.nixvim.colorschemes.tokyonight.settings.on_colors = lib.mkForce
-    "function(colors) colors.bg = '#000000' colors.bg_dark = '#000000' colors.bg_highlight = '#111111' colors.comment = '#b4bcd0' end";
+  programs.nixvim.colorschemes.tokyonight.settings.on_colors =
+    lib.mkForce "function(colors) colors.bg = '#000000' colors.bg_dark = '#000000' colors.bg_highlight = '#111111' colors.comment = '#b4bcd0' end";
 
   programs.claude-code.settings.model = "sonnet";
 

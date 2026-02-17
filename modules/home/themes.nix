@@ -6,7 +6,9 @@
     enable = true;
     settings = {
       style = "moon";
-      styles.comments = { italic = true; };
+      styles.comments = {
+        italic = true;
+      };
       on_colors = "function(colors) colors.comment = '#b4bcd0' end";
     };
   };

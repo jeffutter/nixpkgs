@@ -2,7 +2,19 @@
 let
   iab = inputs.iio-ambient-brightness.packages.${pkgs.stdenv.hostPlatform.system}.default;
 
-  zenbrowser = inputs.zen-browser.packages.${pkgs.stdenv.hostPlatform.system}.default;
+  zenbrowser = pkgs.symlinkJoin {
+    name = "zen-browser";
+    paths = [ inputs.zen-browser.packages.${pkgs.stdenv.hostPlatform.system}.default ];
+    postBuild = ''
+      # Enable WebRender shader disk cache. Disabled by default on Linux but
+      # safe on Mesa 26+; without it shaders recompile on every startup causing
+      # stutter. Intel MTL (iris) is blocklisted for DMABUF_SURFACE_EXPORT so
+      # the compositor already uses a CPU-copy path — caching shaders recovers
+      # some of that overhead.
+      prefsDir=$(echo $out/lib/zen-bin-*/defaults/pref)
+      echo 'pref("gfx.webrender.program-binary-disk", true);' > "$prefsDir/nix-prefs.js"
+    '';
+  };
 
   my_zoom = pkgs.symlinkJoin {
     name = "zoom-us";
@@ -59,8 +71,10 @@ in
     slurp
     telegram-desktop
     wayshot
+    wiremix
     wl-clipboard
     wlsunset
+    elephant
     wluma
     zenbrowser
     # claude-desktop
@@ -92,8 +106,6 @@ in
       # Stylix handles input-field and label colors
     };
   };
-
-  programs.fuzzel.enable = true;
 
   programs.ghostty.settings.font-size = 10;
 
@@ -152,5 +164,23 @@ in
     LIBVA_DRIVER_NAME = "iHD";
     LIBVA_DRIVERS_PATH = "${pkgs.intel-media-driver}/lib/dri";
     VDPAU_DRIVER = "va_gl";
+  };
+
+  services.walker = {
+    enable = true;
+    systemd.enable = true;
+  };
+
+  systemd.user.services.elephant = {
+    Unit = {
+      Description = "Elephant provider daemon for Walker launcher";
+      After = [ "graphical-session.target" ];
+      PartOf = [ "graphical-session.target" ];
+    };
+    Service = {
+      ExecStart = "${pkgs.elephant}/bin/elephant";
+      Restart = "on-failure";
+    };
+    Install.WantedBy = [ "graphical-session.target" ];
   };
 }

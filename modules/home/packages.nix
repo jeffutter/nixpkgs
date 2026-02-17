@@ -66,6 +66,7 @@ in
     ispell
     jq
     jujutsu
+    lefthook
     k6
     kubectl
     kubectx

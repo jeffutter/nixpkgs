@@ -1,0 +1,6 @@
+pre-commit:
+  commands:
+    nixfmt:
+      glob: "*.nix"
+      run: nixfmt {staged_files}
+      stage_fixed: true
