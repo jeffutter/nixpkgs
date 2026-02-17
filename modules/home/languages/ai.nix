@@ -95,8 +95,13 @@ in
         commit = "";
         pr = "";
       };
+      installMethod = "manual";
+      skipInstallOnStartup = true;
+      disableSymlinks = true;
+      disableShellIntegration = true;
       env = {
         DISABLE_AUTOUPDATER = 1;
+        DISABLE_INSTALLATION_CHECKS = 1;
       };
       permissions = {
         defaultMode = "acceptEdits";
