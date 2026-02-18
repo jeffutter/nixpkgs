@@ -104,6 +104,29 @@
     };
   };
 
+  # keyd grabs the physical keyboard exclusively and re-emits remapped events via a
+  # virtual device. libinput's disable-while-typing (DWT) pairs the touchpad with
+  # *internal* keyboards. Without intervention:
+  #   - Physical keyboard (AT Translated Set 2) is internal → paired for DWT
+  #   - keyd has an EVIOCGRAB on it → libinput never sees its events → DWT never fires
+  #   - keyd virtual keyboard is external (USB bus) → not paired for DWT
+  #
+  # Fix: mark the physical keyboard as external (excluded from DWT) and the keyd
+  # virtual keyboard as internal (paired for DWT). Events flow through the virtual
+  # device, so DWT now fires correctly.
+  environment.etc."libinput/local-overrides.quirks".text = ''
+    [keyd virtual keyboard - mark as internal for DWT]
+    MatchVendor=0x0FAC
+    MatchProduct=0x0ADE
+    MatchUdevType=keyboard
+    AttrKeyboardIntegration=internal
+
+    [AT Translated Set 2 keyboard - exclude from DWT, grabbed by keyd]
+    MatchName=AT Translated Set 2 keyboard
+    MatchUdevType=keyboard
+    AttrKeyboardIntegration=external
+  '';
+
   # Enable the GNOME Desktop Environment.
   services.displayManager.gdm.enable = true;
   # services.xserver.desktopManager.gnome.enable = true;
