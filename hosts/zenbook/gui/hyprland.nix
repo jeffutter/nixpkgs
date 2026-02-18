@@ -76,6 +76,8 @@ in
         "ALT SHIFT, down, movewindow, d"
         "ALT, Return, exec, ${pkgs.ghostty}/bin/ghostty"
         "ALT, D, exec, ${pkgs.walker}/bin/walker"
+        "ALT, N, exec, ${pkgs.mako}/bin/makoctl dismiss"
+        "ALT SHIFT, N, exec, ${pkgs.mako}/bin/makoctl dismiss -a"
         ", XF86SelectiveScreenshot, exec, ${pkgs.wayshot}/bin/wayshot -s \"$(${pkgs.slurp}/bin/slurp)\" --stdout | ${pkgs.wl-clipboard}/bin/wl-copy"
         ", Print, exec, ${pkgs.wayshot}/bin/wayshot --stdout | ${pkgs.wl-clipboard}/bin/wl-copy"
       ];
