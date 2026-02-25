@@ -54,7 +54,6 @@ in
       llm-cmd = true;
       llm-jq = true;
     })
-    ollama
     shell-gpt
     ticket
   ];
