@@ -1,5 +1,6 @@
 {
   pkgs,
+  lib,
   inputs,
   config,
   ...
@@ -13,6 +14,13 @@ let
   the-elements-of-style = inputs.the-elements-of-style;
 
   ticket = pkgs.callPackage ../../../pkgs/ticket { inherit inputs; };
+
+  isDarwin = pkgs.stdenv.isDarwin;
+
+  islandHook = {
+    command = "python3 ~/.claude/hooks/claude-island-state.py";
+    type = "command";
+  };
 
   claude-tail = inputs.claude-tail.packages.${pkgs.stdenv.hostPlatform.system}.default;
 
@@ -179,6 +187,90 @@ in
                 command = "cat ${./ai/shared/git-commit-guidelines.md}";
               }
             ];
+          }
+        ];
+      }
+      // lib.optionalAttrs isDarwin {
+        Notification = [
+          {
+            hooks = [ islandHook ];
+            matcher = "*";
+          }
+        ];
+        PermissionRequest = [
+          {
+            hooks = [
+              (islandHook // { timeout = 86400; })
+            ];
+            matcher = "*";
+          }
+        ];
+        SessionStart = [
+          {
+            matcher = "";
+            hooks = [
+              {
+                type = "command";
+                command = "${ticket}/bin/tk prime";
+              }
+            ];
+          }
+          {
+            hooks = [ islandHook ];
+          }
+        ];
+        SessionEnd = [
+          {
+            hooks = [ islandHook ];
+          }
+        ];
+        PreCompact = [
+          {
+            matcher = "";
+            hooks = [
+              {
+                type = "command";
+                command = "${ticket}/bin/tk prime";
+              }
+            ];
+          }
+          {
+            hooks = [ islandHook ];
+            matcher = "auto";
+          }
+          {
+            hooks = [ islandHook ];
+            matcher = "manual";
+          }
+        ];
+        PreToolUse = [
+          {
+            matcher = "Bash(git commit *)";
+            hooks = [
+              {
+                type = "command";
+                command = "cat ${./ai/shared/git-commit-guidelines.md}";
+              }
+            ];
+          }
+          {
+            hooks = [ islandHook ];
+            matcher = "*";
+          }
+        ];
+        Stop = [
+          {
+            hooks = [ islandHook ];
+          }
+        ];
+        SubagentStop = [
+          {
+            hooks = [ islandHook ];
+          }
+        ];
+        UserPromptSubmit = [
+          {
+            hooks = [ islandHook ];
           }
         ];
       };
