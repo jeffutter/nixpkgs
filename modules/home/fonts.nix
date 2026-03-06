@@ -3,6 +3,7 @@
 {
   # Font packages for availability - Stylix handles font configuration
   home.packages = with pkgs; [
+    barlow
     font-awesome
     input-fonts
     nerd-fonts.commit-mono
