@@ -155,16 +155,16 @@
       claudeCodeOverlay =
         final: prev:
         let
-          claudeCodeVersion = "2.1.70";
+          claudeCodeVersion = "2.1.71";
           claudeCodeBaseUrl = "https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases";
           # Run `nix-prefetch-url <url>` for your platform to get the correct hash
           # URL format: ${claudeCodeBaseUrl}/${claudeCodeVersion}/<platform>/claude
           # Platforms: darwin-arm64, darwin-x64, linux-arm64, linux-x64
           claudeCodeChecksums = {
-            "darwin-arm64" = "sha256-YYHlC8mkGF825UN0TSVrdA4N+jw/3PHQS3g4eytGZ4E=";
-            "darwin-x64" = "sha256-M4dV3OWlyZQZ83vo3UJEEMNfxHb32Mys2e1+8zuEc64=";
-            "linux-arm64" = "sha256-JkxmnOR0C7SJawesARAZC89hjt3U+wBos/4s6YlzRoI=";
-            "linux-x64" = "sha256-HlwQEeyJnvDKnwgRwTw+1EQ3Qirtha9gDV/lB0b6rx0=";
+            "darwin-arm64" = "sha256-89gSnsfdrxWMEOGT31RkIUmdabf0TsLwtnw/5U9gHLk=";
+            "darwin-x64" = "sha256-qP8hACKGCxVn01+6WCLZvkp0xCKWLi4yw59BFnltV8g=";
+            "linux-arm64" = "sha256-ribkpWVCOPCmhNX9mmv1kjIbBuuI6oNDQ7J18xDjm+o=";
+            "linux-x64" = "sha256-YQAuX1xBkOmndb2c+Q5X//PwN5+yyO3GU6wJQqNHur0=";
           };
           platformKey = "${final.stdenv.hostPlatform.parsed.kernel.name}-${
             if final.stdenv.hostPlatform.isAarch64 then "arm64" else "x64"
