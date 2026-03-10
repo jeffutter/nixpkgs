@@ -23,7 +23,7 @@
     "jetbrains-toolbox"
     "rode-central"
     "shottr"
-    "hyprnote@nightly"
+    "char@nightly"
     "beekeeper-studio"
   ];
 
