@@ -57,7 +57,7 @@ in
   home.packages = with pkgs; [
     _1password-cli
     _1password-gui
-    blueberry
+    blueman
     brightnessctl
     clang
     discord
@@ -126,8 +126,11 @@ in
     gtk3.extraConfig = {
       gtk-application-prefer-dark-theme = true;
     };
-    gtk4.extraConfig = {
-      gtk-application-prefer-dark-theme = true;
+    gtk4 = {
+      theme = null;
+      extraConfig = {
+        gtk-application-prefer-dark-theme = true;
+      };
     };
   };
 

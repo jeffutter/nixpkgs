@@ -33,12 +33,12 @@
     };
 
     iio-ambient-brightness = {
-      url = "github:jeffutter/iio_ambient_brightness/v0.2.16";
+      url = "github:jeffutter/iio_ambient_brightness/v0.2.17";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
     claude-tail = {
-      url = "github:jeffutter/claude-tail/v0.2.0";
+      url = "github:jeffutter/claude-tail/v0.2.1";
     };
 
     zen-browser = {
