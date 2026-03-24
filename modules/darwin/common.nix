@@ -79,7 +79,6 @@ in
       "cyberduck"
       "dash"
       "discord"
-      "docker-desktop"
       "ghostty"
       "leader-key"
       "localsend"
