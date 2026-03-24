@@ -74,7 +74,6 @@ in
       "1password-cli"
       "charles"
       "claude"
-      "claude-island"
       "contexts"
       "cyberduck"
       "dash"
