@@ -38,7 +38,7 @@
     };
 
     claude-tail = {
-      url = "github:jeffutter/claude-tail/v0.2.1";
+      url = "github:jeffutter/claude-tail/v0.2.2";
     };
 
     zen-browser = {
