@@ -7,8 +7,7 @@
 }:
 {
   imports = [
-    # home-manager is configured via flake.nix
-    (modulesPath + "/virtualisation/proxmox-lxc.nix")
+    (modulesPath + "/virtualisation/lxc-container.nix")
     ../../modules/nixos/common.nix
     ../../modules/common/cachix.nix
     ../../modules/common/i18n.nix
@@ -16,10 +15,6 @@
   networking.hostName = "workstation";
   nix.settings = {
     sandbox = false;
-  };
-  proxmoxLXC = {
-    manageNetwork = false;
-    privileged = true;
   };
   security.pam.services.sshd.allowNullPassword = true;
   services.openssh = {
@@ -45,6 +40,24 @@
     allowedUDPPortRanges = [
     ];
   };
+  networking = {
+    dhcpcd.enable = false;
+    useDHCP = true;
+    useHostResolvConf = false;
+  };
+
+  systemd.network = {
+    enable = true;
+    networks."50-eth0" = {
+      matchConfig.Name = "eth0";
+      networkConfig = {
+        DHCP = "ipv4";
+        IPv6AcceptRA = true;
+      };
+      linkConfig.RequiredForOnline = "routable";
+    };
+  };
+
   users.users.jeffutter = {
     isNormalUser = true;
     description = "Jeffery Utter";
@@ -65,6 +78,7 @@
   programs.fish.enable = true;
 
   environment.systemPackages = with pkgs; [
+    git
     vim
     file
     ripgrep
