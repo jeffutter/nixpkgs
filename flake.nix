@@ -115,11 +115,6 @@
       url = "github:jeffutter/ticket";
       flake = false;
     };
-
-    opencode-src = {
-      url = "github:anomalyco/opencode/v1.2.2";
-      flake = false;
-    };
   };
 
   outputs =
@@ -131,40 +126,22 @@
       nixos-hardware,
       nixvim,
       expert,
-      opencode-src,
       ...
     }@inputs:
     let
-      # Overlay to patch opencode version
-      # Parse version from packages/opencode/package.json in the source
-      opencodePackageJson = builtins.fromJSON (
-        builtins.readFile "${opencode-src}/packages/opencode/package.json"
-      );
-      opencodeVersion = opencodePackageJson.version;
-
-      opencodeOverlay = final: prev: {
-        opencode = prev.opencode.overrideAttrs (oldAttrs: {
-          version = opencodeVersion;
-          src = opencode-src;
-          node_modules = oldAttrs.node_modules.overrideAttrs (nodeAttrs: {
-            outputHash = "sha256-V+a9EkD/wrVLnd3LpPlgT6HSLkzavPpF+RjMrDib1Nc=";
-          });
-        });
-      };
-
       claudeCodeOverlay =
         final: prev:
         let
-          claudeCodeVersion = "2.1.90";
+          claudeCodeVersion = "2.1.96";
           claudeCodeBaseUrl = "https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases";
           # Run `nix-prefetch-url <url>` for your platform to get the correct hash
           # URL format: ${claudeCodeBaseUrl}/${claudeCodeVersion}/<platform>/claude
           # Platforms: darwin-arm64, darwin-x64, linux-arm64, linux-x64
           claudeCodeChecksums = {
-            "darwin-arm64" = "sha256-c8GnVwUBynQ80tdGfLRpkQNTSiE4BSpObKtTwOCdecg=";
-            "darwin-x64" = "sha256-mTRnUGPqQ2BmW3pD9knJLmulz5MlcySvevGmtJB0Y5U=";
-            "linux-arm64" = "sha256-FdUInufZmB+qz1Rj6r1CegEoFNn8AhE4g7sjpPOHrUo=";
-            "linux-x64" = "sha256-YHTjlZmJspWKmr7GCt97RBoPbxx+ZkAav/D+VNrQT9Y=";
+            "darwin-arm64" = "sha256-MbrYwjfdVhVmYgWVInpzTZc2yXmn3bUsbGXZ75OzAOM=";
+            "darwin-x64" = "sha256-ZmqtXaaOhiOzGDTmWuahQUTEWvU4xzKd8iipXOmaM0k=";
+            "linux-arm64" = "sha256-yIdmcyBZRd8byzNBWCfRaXhbIqwQFQz686f14tWL8I4=";
+            "linux-x64" = "sha256-m8rWJJtOnBpNtSQw4oNPFLWTSch94OywuSeM8fSiBTQ=";
           };
           platformKey = "${final.stdenv.hostPlatform.parsed.kernel.name}-${
             if final.stdenv.hostPlatform.isAarch64 then "arm64" else "x64"
@@ -194,7 +171,6 @@
             config.input-fonts.acceptLicense = true;
             config.permittedInsecurePackages = [ "p7zip-16.02" ];
             overlays = [
-              opencodeOverlay
               claudeCodeOverlay
             ];
           };
@@ -223,7 +199,6 @@
                 permittedInsecurePackages = [ "p7zip-16.02" ];
               };
               overlays = [
-                opencodeOverlay
                 claudeCodeOverlay
               ];
             };
@@ -266,7 +241,6 @@
                 permittedInsecurePackages = [ "p7zip-16.02" ];
               };
               overlays = [
-                opencodeOverlay
                 claudeCodeOverlay
               ];
             };
@@ -308,7 +282,6 @@
                 permittedInsecurePackages = [ "p7zip-16.02" ];
               };
               overlays = [
-                opencodeOverlay
                 claudeCodeOverlay
               ];
             };
@@ -348,7 +321,6 @@
                 permittedInsecurePackages = [ "p7zip-16.02" ];
               };
               overlays = [
-                opencodeOverlay
                 claudeCodeOverlay
               ];
             };
