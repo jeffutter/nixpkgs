@@ -23,7 +23,7 @@ in
   ];
 
   home.packages = with pkgs; [
-    argocd
+    # argocd
     colima
     grpcurl
     llvmPackages.bintools

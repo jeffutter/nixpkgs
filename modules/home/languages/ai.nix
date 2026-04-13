@@ -6,27 +6,17 @@
 }:
 
 let
+  backlog-md = inputs.backlog-md.packages.${pkgs.stdenv.hostPlatform.system}.default;
   fabric = inputs.fabric.packages.${pkgs.stdenv.hostPlatform.system}.default;
   stop-slop = inputs.stop-slop;
   claude-plugins-official = inputs.claude-plugins-official;
   superpowers = inputs.superpowers;
+  apollo_skills = inputs.apollo_skills;
   the-elements-of-style = inputs.the-elements-of-style;
 
   ticket = pkgs.callPackage ../../../pkgs/ticket { inherit inputs; };
 
   claude-tail = inputs.claude-tail.packages.${pkgs.stdenv.hostPlatform.system}.default;
-
-  claude-skills = pkgs.runCommand "claude-skills" { } ''
-    mkdir -p $out
-    ln -s ${./ai/skills/acli} $out/acli
-    ln -s ${./ai/skills/voice-dna} $out/voice-dna
-    ln -s ${./ai/skills/voice-dna-creator} $out/voice-dna-creator
-    ln -s ${./ai/skills/brainstorming} $out/brainstorming
-    ln -s ${./ai/skills/elixir} $out/elixir
-    ln -s ${./ai/skills/tk-planner} $out/tk-planner
-    ln -s ${stop-slop} $out/stop-slop
-    ln -s ${the-elements-of-style}/skills/writing-clearly-and-concisely $out/writing-clearly-and-concisely
-  '';
 
   buildTime = pkgs.runCommand "build-time" { } ''
     date -u +"%Y-%m-%dT%H:%M:%S.000Z" > $out
@@ -48,13 +38,14 @@ in
 
 {
   home.packages = with pkgs; [
+    backlog-md
     claude-tail
-    fabric
+    #fabric
     (llm.withPlugins {
       llm-cmd = true;
       llm-jq = true;
     })
-    shell-gpt
+    # shell-gpt
     ticket
   ];
 
@@ -184,7 +175,7 @@ in
       };
     };
 
-    memory.text = readAiDoc "memory.md";
+    context = readAiDoc "context.md";
 
     agents = {
     };
@@ -243,6 +234,28 @@ in
       '';
     };
 
-    skillsDir = claude-skills;
+    # skillsDir = claude-skills;
+    skills = {
+      acli = ./ai/skills/acli;
+      voice-dna = ./ai/skills/voice-dna;
+      voice-dna-creator = ./ai/skills/voice-dna-creator;
+      brainstorming = ./ai/skills/brainstorming;
+      elixir = ./ai/skills/elixir;
+      tk-planner = ./ai/skills/tk-planner;
+      stop-slop = "${stop-slop}";
+      writing-clearly-and-concisely = "${the-elements-of-style}/skills/writing-clearly-and-concisely";
+    }
+    // builtins.listToAttrs (
+      map
+        (name: {
+          inherit name;
+          value = apollo_skills + "/skills/${name}";
+        })
+        (
+          builtins.filter (name: (builtins.readDir (apollo_skills + "/skills")).${name} == "directory") (
+            builtins.attrNames (builtins.readDir (apollo_skills + "/skills"))
+          )
+        )
+    );
   };
 }
