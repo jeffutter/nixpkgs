@@ -125,6 +125,11 @@
       url = "github:jeffutter/ticket";
       flake = false;
     };
+
+    llm-agents = {
+      url = "github:numtide/llm-agents.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -142,16 +147,16 @@
       claudeCodeOverlay =
         final: prev:
         let
-          claudeCodeVersion = "2.1.104";
+          claudeCodeVersion = "2.1.111";
           claudeCodeBaseUrl = "https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases";
           # Run `nix-prefetch-url <url>` for your platform to get the correct hash
           # URL format: ${claudeCodeBaseUrl}/${claudeCodeVersion}/<platform>/claude
           # Platforms: darwin-arm64, darwin-x64, linux-arm64, linux-x64
           claudeCodeChecksums = {
-            "darwin-arm64" = "sha256-GFqr1tFtrLAabdQfyNiuXqeKyKajaDyqBbdZxHsk3mA=";
-            "darwin-x64" = "sha256-8a0O5v80Aazrkiz4XMr2ZyqLiUztI9Y8oUnZGMAaRx0=";
-            "linux-arm64" = "sha256-8KeewwQzRQOlY8bUYYsOofy75HegR905VeIHijxVWcE=";
-            "linux-x64" = "sha256-9f6E1LiloyK4OormOsEXrbFD0qmgv9c6IBpSAdZCOGk=";
+            "darwin-arm64" = "sha256-JiDMg9vucsJIWLNRnOXeBQ/vkfDT0XswkXbWHmefle4=";
+            "darwin-x64" = "sha256-FtiX1XDJO4PRAKFqejPKOtvUOxsPgYq2a+8aNkskYKY=";
+            "linux-arm64" = "sha256-mTdoZr9+w2cULTvlSMFxhKefMKlzGEQe6aAPeOUSRuc=";
+            "linux-x64" = "sha256-XU35cAQLD4OqxDSuVAtAkSakd4o3noybTHk1YOO/oGA=";
           };
           platformKey = "${final.stdenv.hostPlatform.parsed.kernel.name}-${
             if final.stdenv.hostPlatform.isAarch64 then "arm64" else "x64"

@@ -17,6 +17,7 @@ let
   ticket = pkgs.callPackage ../../../pkgs/ticket { inherit inputs; };
 
   claude-tail = inputs.claude-tail.packages.${pkgs.stdenv.hostPlatform.system}.default;
+  rtk = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.rtk;
 
   buildTime = pkgs.runCommand "build-time" { } ''
     date -u +"%Y-%m-%dT%H:%M:%S.000Z" > $out
@@ -40,6 +41,7 @@ in
   home.packages = with pkgs; [
     backlog-md
     claude-tail
+    rtk
     #fabric
     (llm.withPlugins {
       llm-cmd = true;
@@ -162,6 +164,15 @@ in
           }
         ];
         PreToolUse = [
+          {
+            matcher = "Bash";
+            hooks = [
+              {
+                type = "command";
+                command = "${rtk}/libexec/rtk/hooks/claude/rtk-rewrite.sh";
+              }
+            ];
+          }
           {
             matcher = "Bash(git commit *)";
             hooks = [
