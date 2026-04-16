@@ -56,7 +56,6 @@ in
     git-lfs
     gnused
     gnupg
-    grex
     htop
     hyperfine
     hunspell
@@ -65,8 +64,6 @@ in
     imagemagick
     ispell
     jq
-    jujutsu
-    lefthook
     k6
     kubectl
     kubectx
@@ -102,13 +99,11 @@ in
     ssh-copy-id
     gnutar
     #tlaplus
-    tmate
     unzip
     unixtools.watch
     viddy
     vips
     # (builtins.getFlake "github:jeffutter/wakeonlan-rust/v0.1.1")
-    wavpack
     wget
     xz
     yq-go
