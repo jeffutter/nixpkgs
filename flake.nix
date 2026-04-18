@@ -85,11 +85,6 @@
       flake = false;
     };
 
-    claude-plugins-official = {
-      url = "github:anthropics/claude-plugins-official";
-      flake = false;
-    };
-
     superpowers = {
       url = "github:obra/superpowers";
       flake = false;
