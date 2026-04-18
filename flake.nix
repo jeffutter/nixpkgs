@@ -46,6 +46,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    llm-agents = {
+      url = "github:numtide/llm-agents.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     stylix = {
       url = "github:nix-community/stylix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -85,11 +90,6 @@
       flake = false;
     };
 
-    claude-plugins-official = {
-      url = "github:anthropics/claude-plugins-official";
-      flake = false;
-    };
-
     superpowers = {
       url = "github:obra/superpowers";
       flake = false;
@@ -124,11 +124,6 @@
     ticket = {
       url = "github:jeffutter/ticket";
       flake = false;
-    };
-
-    llm-agents = {
-      url = "github:numtide/llm-agents.nix";
-      inputs.nixpkgs.follows = "nixpkgs";
     };
   };
 

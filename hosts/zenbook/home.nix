@@ -7,6 +7,7 @@
     ../../modules/home/opencode.nix
     ./gui/eww.nix
     ./gui/hyprland.nix
+    ./gui/niri.nix
     ./gui/idle.nix
     ./gui/apps.nix
   ];

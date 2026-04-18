@@ -231,7 +231,8 @@ in
         (volume-widget)
         (backlight-widget)
         (battery-widget)
-        (systray :class "module tray" :icon-size 16 :spacing 4 :prepend-new false)))
+        (systray :class "module tray" :icon-size 16 :spacing 4 :prepend-new false)
+        (power-widget)))
 
     ;; ─── Workspaces ───────────────────────────────────────────────────────────
 
@@ -306,6 +307,14 @@ in
            :class {"module battery " + battery.class} :spacing 4
         (label :text {battery.icon})
         (label :text {battery.capacity + "%"})))
+
+    ;; ─── Power ────────────────────────────────────────────────────────────────
+
+    (defwidget power-widget []
+      (button
+        :class "power-btn"
+        :onclick "${pkgs.wlogout}/bin/wlogout"
+        "⏻"))
   '';
 
   # ── eww.scss ──────────────────────────────────────────────────────────────
@@ -390,5 +399,15 @@ in
     }
 
     .tray { min-width: 10px; }
+
+    .power-btn {
+      background-color: transparent;
+      color: $red;
+      padding: 2px 8px;
+      border-radius: $r;
+      margin: 2px 3px;
+      min-height: 22px;
+      &:hover { background-color: $red; color: $bg; }
+    }
   '';
 }

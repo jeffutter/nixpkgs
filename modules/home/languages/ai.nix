@@ -6,10 +6,10 @@
 }:
 
 let
+  agent-browser = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.agent-browser;
   backlog-md = inputs.backlog-md.packages.${pkgs.stdenv.hostPlatform.system}.default;
   fabric = inputs.fabric.packages.${pkgs.stdenv.hostPlatform.system}.default;
   stop-slop = inputs.stop-slop;
-  claude-plugins-official = inputs.claude-plugins-official;
   superpowers = inputs.superpowers;
   apollo_skills = inputs.apollo_skills;
   the-elements-of-style = inputs.the-elements-of-style;
@@ -39,6 +39,7 @@ in
 
 {
   home.packages = with pkgs; [
+    agent-browser
     backlog-md
     claude-tail
     rtk
@@ -51,7 +52,6 @@ in
     ticket
   ];
 
-  home.file.".claude/plugins/marketplaces/claude-plugins-official".source = claude-plugins-official;
   home.file.".claude/plugins/marketplaces/superpowers".source = superpowers;
 
   home.file.".claude/plugins/known_marketplaces.json".text =
@@ -124,10 +124,17 @@ in
           "Bash(mix phx.server:*)"
           "Bash(mix seed:*)"
           "Bash(mix test:*)"
+          "Bash(rtk find:*)"
+          "Bash(rtk grep:*)"
+          "Bash(rtk git:*)"
+          "Bash(rtk ls:*)"
+          "Bash(rtk read:*)"
           "Read(~/.claude/skills/**)"
           "WebFetch(domain:docs.rs)"
           "WebFetch(domain:github.com)"
           "WebFetch(domain:hexdocs.pm)"
+          "WebFetch(domain:home-manager-options.extananteous.xyz)"
+          "WebFetch(domain:home-manager-options.extranix.com)"
           "WebFetch(domain:raw.githubusercontent.com)"
           "WebSearch"
         ];
