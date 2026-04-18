@@ -10,7 +10,6 @@ let
   backlog-md = inputs.backlog-md.packages.${pkgs.stdenv.hostPlatform.system}.default;
   fabric = inputs.fabric.packages.${pkgs.stdenv.hostPlatform.system}.default;
   stop-slop = inputs.stop-slop;
-  claude-plugins-official = inputs.claude-plugins-official;
   superpowers = inputs.superpowers;
   apollo_skills = inputs.apollo_skills;
   the-elements-of-style = inputs.the-elements-of-style;
@@ -18,6 +17,7 @@ let
   ticket = pkgs.callPackage ../../../pkgs/ticket { inherit inputs; };
 
   claude-tail = inputs.claude-tail.packages.${pkgs.stdenv.hostPlatform.system}.default;
+  rtk = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.rtk;
 
   buildTime = pkgs.runCommand "build-time" { } ''
     date -u +"%Y-%m-%dT%H:%M:%S.000Z" > $out
@@ -42,6 +42,7 @@ in
     agent-browser
     backlog-md
     claude-tail
+    rtk
     #fabric
     (llm.withPlugins {
       llm-cmd = true;
@@ -51,7 +52,6 @@ in
     ticket
   ];
 
-  home.file.".claude/plugins/marketplaces/claude-plugins-official".source = claude-plugins-official;
   home.file.".claude/plugins/marketplaces/superpowers".source = superpowers;
 
   home.file.".claude/plugins/known_marketplaces.json".text =
@@ -124,11 +124,17 @@ in
           "Bash(mix phx.server:*)"
           "Bash(mix seed:*)"
           "Bash(mix test:*)"
-          "Bash(tk:*)"
+          "Bash(rtk find:*)"
+          "Bash(rtk grep:*)"
+          "Bash(rtk git:*)"
+          "Bash(rtk ls:*)"
+          "Bash(rtk read:*)"
           "Read(~/.claude/skills/**)"
           "WebFetch(domain:docs.rs)"
           "WebFetch(domain:github.com)"
           "WebFetch(domain:hexdocs.pm)"
+          "WebFetch(domain:home-manager-options.extananteous.xyz)"
+          "WebFetch(domain:home-manager-options.extranix.com)"
           "WebFetch(domain:raw.githubusercontent.com)"
           "WebSearch"
         ];
@@ -164,6 +170,15 @@ in
           }
         ];
         PreToolUse = [
+          {
+            matcher = "Bash";
+            hooks = [
+              {
+                type = "command";
+                command = "${rtk}/libexec/rtk/hooks/claude/rtk-rewrite.sh";
+              }
+            ];
+          }
           {
             matcher = "Bash(git commit *)";
             hooks = [

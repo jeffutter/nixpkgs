@@ -132,6 +132,17 @@
   # services.xserver.desktopManager.gnome.enable = true;
 
   programs.hyprland.enable = true;
+  programs.niri.enable = true;
+
+  # keyd grabs the physical keyboard exclusively (EVIOCGRAB), so the kernel's
+  # built-in Ctrl+Alt+Fn VT-switch handler never fires. A SUID chvt lets the
+  # compositor call chvt directly without needing a root shell.
+  security.wrappers.chvt = {
+    source = "${pkgs.kbd}/bin/chvt";
+    owner = "root";
+    group = "root";
+    setuid = true;
+  };
 
   # Kernel-level key remapping: ALT+letter → Ctrl+letter (macOS-style shortcuts).
   # keyd operates before Wayland sees the input, so there is no modifier bleed.

@@ -63,6 +63,9 @@ in
         url."git@github.com-penn-interactive:penn-interactive/" = {
           insteadOf = "git@github.com:penn-interactive/";
         };
+        url."git@github.com-penn-interactive:Jeffery-Utter_pennent/" = {
+          insteadOf = "git@github.com:Jeffery-Utter_pennent/";
+        };
       };
     };
 

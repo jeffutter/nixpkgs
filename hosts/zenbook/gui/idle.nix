@@ -1,6 +1,25 @@
 { pkgs, inputs, ... }:
 let
   iab = inputs.iio-ambient-brightness.packages.${pkgs.stdenv.hostPlatform.system}.default;
+
+  # Turn displays off/on regardless of which compositor is active
+  dpmsOff = pkgs.writeShellScript "dpms-off" ''
+    if ${pkgs.procps}/bin/pgrep -x niri > /dev/null 2>&1; then
+      ${pkgs.niri}/bin/niri msg action power-off-monitors
+    elif ${pkgs.procps}/bin/pgrep -x Hyprland > /dev/null 2>&1; then
+      if ${pkgs.procps}/bin/pgrep -x hyprlock; then
+        ${pkgs.hyprland}/bin/hyprctl dispatch dpms off
+      fi
+    fi
+  '';
+
+  dpmsOn = pkgs.writeShellScript "dpms-on" ''
+    if ${pkgs.procps}/bin/pgrep -x niri > /dev/null 2>&1; then
+      ${pkgs.niri}/bin/niri msg action power-on-monitors
+    elif ${pkgs.procps}/bin/pgrep -x Hyprland > /dev/null 2>&1; then
+      ${pkgs.hyprland}/bin/hyprctl dispatch dpms on
+    fi
+  '';
 in
 {
   services.swayidle = {
@@ -33,8 +52,8 @@ in
       }
       {
         timeout = 180;
-        command = "if ${pkgs.procps}/bin/pgrep -x hyprlock; then ${pkgs.hyprland}/bin/hyprctl dispatch dpms off; fi";
-        resumeCommand = "${pkgs.hyprland}/bin/hyprctl dispatch dpms on";
+        command = "${dpmsOff}";
+        resumeCommand = "${dpmsOn}";
       }
     ];
   };
