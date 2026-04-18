@@ -6,6 +6,7 @@
 }:
 
 let
+  agent-browser = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.agent-browser;
   backlog-md = inputs.backlog-md.packages.${pkgs.stdenv.hostPlatform.system}.default;
   fabric = inputs.fabric.packages.${pkgs.stdenv.hostPlatform.system}.default;
   stop-slop = inputs.stop-slop;
@@ -38,6 +39,7 @@ in
 
 {
   home.packages = with pkgs; [
+    agent-browser
     backlog-md
     claude-tail
     #fabric
