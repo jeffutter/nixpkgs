@@ -7,6 +7,7 @@
 
 let
   ticket = pkgs.callPackage ../../../pkgs/ticket { inherit inputs; };
+  backlog-md = inputs.backlog-md.packages.${pkgs.stdenv.hostPlatform.system}.default;
 
   ticketCompletions = pkgs.runCommand "ticket-completions" { } ''
     mkdir -p $out
@@ -17,6 +18,12 @@ let
     mkdir -p $out
     ${ticket}/bin/tk completion fish > $out/tk.fish
   '';
+
+  backlogCompletions = pkgs.runCommand "backlog-completions" { } ''
+    mkdir -p $out fake-home/.config/fish/completions
+    HOME=$PWD/fake-home ${backlog-md}/bin/backlog completion install --shell fish > /dev/null
+    cp fake-home/.config/fish/completions/backlog.fish $out/backlog.fish
+  '';
 in
 
 {
@@ -26,6 +33,7 @@ in
       docker = builtins.readFile "${pkgs.docker}/share/fish/vendor_completions.d/docker.fish";
       ticket = builtins.readFile "${ticketCompletions}/ticket.fish";
       tk = builtins.readFile "${tkCompletions}/tk.fish";
+      backlog = builtins.readFile "${backlogCompletions}/backlog.fish";
     };
     shellAbbrs = {
       "gcan!" = "git commit -v -a --no-edit --amend";

@@ -31,7 +31,8 @@
       "WebFetch(domain:benz.gitbook.io)",
       "WebFetch(domain:home-manager-options.extananteous.xyz)",
       "WebFetch(domain:walkerlauncher.com)",
-      "WebFetch(domain:home-manager-options.extranix.com)"
+      "WebFetch(domain:home-manager-options.extranix.com)",
+      "Bash(nix build *)"
     ],
     "deny": [],
     "ask": []

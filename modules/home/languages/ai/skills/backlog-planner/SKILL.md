@@ -1,6 +1,6 @@
 ---
-name: tk-planner
-description: Autonomous planning skill for tickets (tk). Use when planning implementation for a ticket (proj-xxx). Spawns research subagents, analyzes dependencies, creates sub-tickets for discrete work, and writes detailed implementation plans.
+name: backlog-planner
+description: Autonomous planning skill for tickets (backlog). Use when planning implementation for a ticket (TASK-xxx). Spawns research subagents, analyzes dependencies, creates sub-tickets for discrete work, and writes detailed implementation plans.
 ---
 
 # Ticket Autonomous Planner
@@ -20,8 +20,8 @@ Epic → Feature → Task
 - **Task:** Atomic units of work. Tasks should be small enough to complete in a focused session.
 
 When creating sub-tickets:
-- Epic children are typically Features (use `-t feature`)
-- Feature children are typically Tasks (use `-t task`)
+- Epic children are typically Features (use `-l feature`)
+- Feature children are typically Tasks (use `-l task`)
 
 ### Dependency Direction
 
@@ -38,18 +38,18 @@ Task (do first) ──blocks──► Feature ──blocks──► Epic (comple
 
 When you create a sub-ticket, the **parent depends on the child**:
 ```bash
-tk dep <parent_id> <child_id>
+backlog task edit <parent_id> --dep <child_id>
 ```
 
-This ensures `tk ready` surfaces leaf tasks first—the actual work to execute.
+This ensures leaf tasks surface first as ready work—the actual work to execute.
 
 ## Invocation
 
 ```
-/tk-planner <ticket_id>
+/backlog-planner <ticket_id>
 ```
 
-Example: `/tk-planner proj-42`
+Example: `/backlog-planner TASK-42`
 
 ## Process Overview
 
@@ -68,17 +68,17 @@ Phase 0: Prerequisites  →  Phase 1: Research  →  Phase 2: Plan  →  Phase 3
 
 1. Fetch ticket details:
    ```bash
-   tk show <ticket_id>
+   backlog task <ticket_id> --plain
    ```
 
 2. Check for unplanned child tickets:
    ```bash
-   tk query 'map(select(.status == "open" or .status == "in_progress"))'
+   backlog task list -s "To Do" --plain
    ```
 
-   Filter for tickets that:
+   Review the output and cross-reference with the ticket's dependencies. Filter for tickets that:
    - Have this ticket as a parent (check dependencies)
-   - Do NOT have the `planned` tag
+   - Do NOT have the `planned` label
 
 3. **If unplanned children exist:**
    - List them clearly
@@ -102,12 +102,12 @@ Always spawn this agent:
 ```
 Analyze dependencies for ticket <ticket_id>:
 
-1. Run `tk dep tree <ticket_id>` to see the dependency structure
+1. Run `backlog task <ticket_id> --plain` and note the Dependencies field
 2. Find tickets this ticket depends on (dependency relationships)
-3. Find tickets that depend on this ticket (dependent relationships)
+3. Find tickets that depend on this ticket (check other tickets' Dependencies fields)
 4. For each dependency:
-   - Run `tk show <dep_id>`
-   - Understand their plans (design field)
+   - Run `backlog task <dep_id> --plain`
+   - Understand their plans (Implementation Plan field)
    - Note their status and priority
 
 Return:
@@ -218,31 +218,31 @@ For each discrete unit of work:
 
 1. **Create the ticket:**
    ```bash
-   tk create "<clear, action-oriented title>" -t <task or feature> -p <priority> --parent <parent_ticket_id> -d "<brief description>"
+   backlog task create "<clear, action-oriented title>" --priority <high|medium|low> -p <parent_ticket_id> -d "<brief description>"
    ```
 
-   Choose the type based on hierarchy:
-   - Planning an Epic → create Features (`-t feature`)
-   - Planning a Feature → create Tasks (`-t task`)
+   Optionally label with the hierarchy level:
+   - Planning an Epic → label children as features (`-l feature`)
+   - Planning a Feature → label children as tasks (`-l task`)
 
 2. **Set the dependency** (parent depends on child—parent cannot complete until child is done):
    ```bash
-   tk dep <parent_ticket_id> <new_ticket_id>
+   backlog task edit <parent_ticket_id> --dep <new_ticket_id>
    ```
 
    This makes the parent depend on the child. The parent Epic/Feature remains blocked until all children are complete.
 
-3. **Decide whether to add a design:**
+3. **Decide whether to add a plan:**
 
-   **Add design and mark planned** if the sub-ticket is trivial:
+   **Add plan and mark planned** if the sub-ticket is trivial:
    - Under ~20 lines of changes
    - Single file or tightly scoped
    - Clear implementation path with no ambiguity
    - No further research needed
 
-   For trivial sub-tickets, add design notes when creating:
+   For trivial sub-tickets, add plan and label when creating:
    ```bash
-   tk create "<title>" -t <task or feature> -p <priority> --parent <parent_ticket_id> -d "<brief description>" --design "<implementation plan>" --tags planned
+   backlog task create "<title>" --priority <high|medium|low> -p <parent_ticket_id> -d "<brief description>" --plan "<implementation plan>" -l planned
    ```
 
    **Leave unplanned** if the sub-ticket requires its own planning session:
@@ -253,16 +253,18 @@ For each discrete unit of work:
 
    For non-trivial sub-tickets:
    - Write only a clear description (already done in step 1)
-   - Do NOT add design or planned tag
-   - It will be planned in a dedicated `/tk-planner` session later 
+   - Do NOT add plan or planned label
+   - It will be planned in a dedicated `/backlog-planner` session later
 
 ### Step 3: Write Main Ticket Plan
 
-After creating sub-tickets, write the orchestration plan for the main ticket file directly:
+After creating sub-tickets, write the implementation plan for the main ticket:
 
-Add the design notes to a `## Design` heading in the note, after the main description but before any note/comment fields.
+```bash
+backlog task edit <ticket_id> --plan "<orchestration plan>"
+```
 
-The main ticket's design should include:
+The main ticket's plan should include:
 - Overview of the approach
 - How sub-tickets fit together
 - Integration and verification steps
@@ -271,7 +273,9 @@ The main ticket's design should include:
 
 ### Step 4: Mark Main Ticket as Planned
 
-Use `tk edit <ticket_id>` to add the `planned` tag to the ticket's `tags:` field.
+```bash
+backlog task edit <ticket_id> --remove-label needs-plan --add-label planned
+```
 
 ---
 
@@ -300,8 +304,8 @@ Use `tk edit <ticket_id>` to add the `planned` tag to the ticket's `tags:` field
    - Are acceptance criteria implied or explicit?
 
 2. **Planning status:** Is each sub-ticket correctly categorized?
-   - Trivial tickets: Have design AND planned tag
-   - Non-trivial tickets: Have description only, NO design, NO planned tag
+   - Trivial tickets: Have plan AND planned label
+   - Non-trivial tickets: Have description only, NO plan, NO planned label
 
 3. **Dependencies:** Are blocking relationships correct?
    - Does the execution order make sense?
@@ -309,7 +313,7 @@ Use `tk edit <ticket_id>` to add the `planned` tag to the ticket's `tags:` field
 
 ### Make Corrections
 
-If issues are found, use `tk edit <ticket_id>` to make corrections to the design field.
+If issues are found, use `backlog task edit <ticket_id>` with the appropriate flags to make corrections.
 
 ### Final Summary
 
@@ -317,7 +321,7 @@ Output a summary:
 - Main ticket ID, title, and type (Epic/Feature/Task)
 - List of sub-tickets created with their status:
   - `[planned]` - trivial, ready for execution
-  - `[unplanned]` - requires `/tk-planner` before execution
+  - `[unplanned]` - requires `/backlog-planner` before execution
 - Recommended execution order
 - Next steps (which tickets need planning, which are ready)
 - Any risks or considerations noted
@@ -328,7 +332,7 @@ Output a summary:
 
 ### Example: Simple Enhancement
 
-Input: `/tk-planner proj-42` where proj-42 is "Add retry logic to API client"
+Input: `/backlog-planner TASK-42` where TASK-42 is "Add retry logic to API client"
 
 Phase 1 spawns:
 - Dependency analyzer (required)
@@ -336,117 +340,5 @@ Phase 1 spawns:
 
 Phase 2:
 - No sub-tickets (single focused change)
-- Writes detailed plan to proj-42
+- Writes detailed plan to TASK-42
 
-Output:
-```
-Planned proj-42: Add retry logic to API client
-
-No sub-tickets needed - this is a focused change.
-
-Design written to ticket covering:
-- Existing retry patterns in lib/http/client.ex
-- Exponential backoff implementation
-- Configuration options
-- Test cases for retry scenarios
-```
-
-### Example: Planning an Epic
-
-Input: `/tk-planner proj-100` where proj-100 is Epic "Implement user notification system"
-
-Phase 1 spawns:
-- Dependency analyzer (required)
-- Architecture agent (new feature area)
-- Data agent (new schema needed)
-- Implementation agent (existing patterns)
-
-Phase 2 creates Features:
-- proj-101: User notification preferences (Feature) - **unplanned** (needs own research)
-- proj-102: Email notification delivery (Feature) - **unplanned** (complex integration)
-- proj-103: In-app notification UI (Feature) - **unplanned** (UI patterns TBD)
-
-Output:
-```
-Planned proj-100: Implement user notification system (Epic)
-
-Created 3 Features (all require separate planning):
-- proj-101: User notification preferences [unplanned]
-- proj-102: Email notification delivery [unplanned]
-- proj-103: In-app notification UI [unplanned]
-
-Execution order: proj-101 → proj-102 → proj-103
-
-Next steps: Run /tk-planner on each Feature before execution.
-```
-
-### Example: Planning a Feature
-
-Input: `/tk-planner proj-101` where proj-101 is Feature "User notification preferences"
-
-Phase 1 spawns:
-- Dependency analyzer (required)
-- Data agent (schema design)
-- Implementation agent (API patterns)
-
-Phase 2 creates Tasks:
-- proj-110: Add notification_preferences schema - **planned** (trivial migration)
-- proj-111: Create preferences API endpoints - **unplanned** (needs detailed research)
-- proj-112: Build preferences UI component - **unplanned** (UI patterns to determine)
-
-Output:
-```
-Planned proj-101: User notification preferences (Feature)
-
-Created 3 Tasks:
-- proj-110: Add notification_preferences schema [planned - trivial]
-- proj-111: Create preferences API endpoints [unplanned]
-- proj-112: Build preferences UI component [unplanned]
-
-Execution order: proj-110 → proj-111 → proj-112
-
-proj-110 is ready for immediate execution.
-proj-111, proj-112 need /tk-planner before execution.
-```
-
----
-
-## Ticket Commands Reference
-
-```bash
-# View ticket
-tk show <id>
-
-# Create ticket
-tk create "<title>" -t <type> -p <priority> --parent <parent_id> -d "<description>" --design "<design>" --tags <tag1,tag2>
-
-# Edit ticket (opens in $EDITOR)
-tk edit <id>
-
-# Add dependency (parent depends on child)
-tk dep <parent_id> <child_id>
-
-# View dependency tree
-tk dep tree <id>
-
-# List tickets
-tk list --status=<open|in_progress|closed>
-
-# Query tickets as JSON
-tk query '[jq filter]'
-
-# List ready tickets (dependencies resolved)
-tk ready
-
-# List blocked tickets
-tk blocked
-```
-
----
-
-## Constraints
-
-- **No user prompts:** Execute autonomously. Do not use AskUserQuestion.
-- **No code changes:** Research and plan only. Never edit application files.
-- **Ticket system only:** All ticket operations through `tk` commands.
-- **Read operations:** Use Bash only for read-only operations (ls, git log, git diff, find).

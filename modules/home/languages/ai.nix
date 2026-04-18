@@ -124,7 +124,6 @@ in
           "Bash(mix phx.server:*)"
           "Bash(mix seed:*)"
           "Bash(mix test:*)"
-          "Bash(tk:*)"
           "Read(~/.claude/skills/**)"
           "WebFetch(domain:docs.rs)"
           "WebFetch(domain:github.com)"
@@ -141,28 +140,6 @@ in
       };
       disabledMcpjsonServers = [ "context7:context7" ];
       hooks = {
-        SessionStart = [
-          {
-            matcher = "";
-            hooks = [
-              {
-                type = "command";
-                command = "${ticket}/bin/tk prime";
-              }
-            ];
-          }
-        ];
-        PreCompact = [
-          {
-            matcher = "";
-            hooks = [
-              {
-                type = "command";
-                command = "${ticket}/bin/tk prime";
-              }
-            ];
-          }
-        ];
         PreToolUse = [
           {
             matcher = "Bash";
@@ -204,10 +181,6 @@ in
     };
 
     commands = {
-      tk-plan-all = readAiDoc "commands/tk-plan-all.md";
-
-      tk-execute = readAiDoc "commands/tk-execute.md";
-
       fix-pr-comments = readAiDoc "commands/fix-pr-comments.md";
 
       commit-msg-short = ''
@@ -252,7 +225,7 @@ in
       voice-dna-creator = ./ai/skills/voice-dna-creator;
       brainstorming = ./ai/skills/brainstorming;
       elixir = ./ai/skills/elixir;
-      tk-planner = ./ai/skills/tk-planner;
+      backlog-planner = ./ai/skills/backlog-planner;
       stop-slop = "${stop-slop}";
       writing-clearly-and-concisely = "${the-elements-of-style}/skills/writing-clearly-and-concisely";
     }
