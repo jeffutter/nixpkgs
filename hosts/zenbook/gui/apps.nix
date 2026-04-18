@@ -48,7 +48,7 @@ let
       text = ''
         #!${pkgs.bash}/bin/bash
         ${extraEnv}
-        exec -a "$0" ~/bin/systemGL ${pkg}/bin/${binName} --ozone-platform=wayland --ozone-platform-hint=auto --enable-features=UseOzonePlatform,WaylandWindowDecorations ${extraFlags} "$@"
+        exec -a "$0" ${pkg}/bin/${binName} --ozone-platform=wayland --ozone-platform-hint=auto --enable-features=UseOzonePlatform,WaylandWindowDecorations ${extraFlags} "$@"
       '';
       executable = true;
     };
@@ -73,6 +73,7 @@ in
     wayshot
     wiremix
     wl-clipboard
+    wlogout
     wlsunset
     elephant
     wluma
