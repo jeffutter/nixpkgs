@@ -233,6 +233,7 @@ in
       brainstorming = ./ai/skills/brainstorming;
       elixir = ./ai/skills/elixir;
       backlog-planner = ./ai/skills/backlog-planner;
+      backlog-execute = ./ai/skills/backlog-execute;
       stop-slop = "${stop-slop}";
       writing-clearly-and-concisely = "${the-elements-of-style}/skills/writing-clearly-and-concisely";
     }
