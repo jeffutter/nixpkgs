@@ -91,102 +91,59 @@ Phase 0: Prerequisites  →  Phase 1: Research  →  Phase 2: Plan  →  Phase 3
 
 ## Phase 1: Research
 
-**Goal:** Gather comprehensive context through parallel investigation.
+**Goal:** Gather the context needed to plan — no more, no less.
 
-Spawn 2-5 subagents based on ticket complexity. Use the Task tool with `subagent_type: "Explore"`.
+### Step 1: Analyze Dependencies Inline
 
-### Required Agent: Dependency Analyzer
-
-Always spawn this agent:
-
-```
-Analyze dependencies for ticket <ticket_id>:
+Dependency analysis is metadata lookup, not codebase research — run the CLI directly instead of spawning a subagent:
 
 1. Run `backlog task <ticket_id> --plain` and note the Dependencies field
-2. Find tickets this ticket depends on (dependency relationships)
-3. Find tickets that depend on this ticket (check other tickets' Dependencies fields)
-4. For each dependency:
-   - Run `backlog task <dep_id> --plain`
-   - Understand their plans (Implementation Plan field)
-   - Note their status and priority
+2. For each upstream dependency, run `backlog task <dep_id> --plain` and read its Implementation Plan and status
+3. Scan ticket listings for downstream dependents — tickets whose Dependencies reference this one
+4. Record sequencing constraints
 
-Return:
-- Summary of upstream dependencies and their plans
-- Summary of downstream dependents and implications
-- Any sequencing constraints discovered
-```
+### Step 2: Spawn Research Subagents
 
-### Additional Research Agents
+Delegate codebase research to parallel subagents via the Task tool with `subagent_type: "Explore"`. **Choose the count based on the ticket — no prescribed number.** Spawn exactly as many as the work demands, and no more.
 
-Spawn 1-4 more agents based on ticket scope. Choose from:
+**Default to spawning subagents.** The plan produced here has to hold up during execution, so prefer thorough parallel research over inline shortcuts. Even moderate-sized tickets benefit from dedicated agents per dimension. Skip subagents entirely only when the ticket is truly trivial — planning effort matches implementation effort (e.g. a one-line fix, a rename, a config tweak). For sprawling Epics, several focused agents in parallel return better results than one catch-all.
 
-**Architecture Agent** - For tickets affecting system structure:
-```
-Research the architectural context for: <ticket description>
+Base the count and scope on:
+- **Ticket scope** — a focused change may warrant a single agent; a cross-cutting Epic may need several
+- **Which dimensions actually apply** — not every ticket involves data, APIs, architecture, and risk
+- **Topic coupling** — two dimensions that share files or patterns are cheaper investigated by one agent than two
+- **Unique areas** — if the ticket hinges on a concern outside the catalogue below, spawn an agent for it anyway
 
-1. Identify the primary modules/components involved
-2. Find existing patterns for similar features
-3. Document the data flow and interfaces
-4. Note any architectural constraints or conventions
+### Research Dimensions
 
-Return:
-- Key files and their responsibilities
-- Existing patterns to follow
-- Integration points
-- Recommended architectural approach
-```
+Non-exhaustive catalogue — mix, combine, or omit based on the ticket, and **add your own dimensions when the ticket demands it**. If the work hinges on an area not listed below (e.g. migration safety, observability, auth, i18n, accessibility, a specific library's behavior), spawn a focused agent for it. When two dimensions share files or patterns, fold them into a single agent rather than spawning two.
 
-**Implementation Agent** - For tickets with clear technical work:
-```
-Research implementation details for: <ticket description>
+**Architecture** — for tickets affecting system structure.
+- Investigate: primary modules and components involved, existing patterns for similar features, data flow and interfaces between them, architectural constraints or conventions in the project
+- Return: key files and their responsibilities, patterns to follow, integration points, recommended architectural approach
 
-1. Find existing code that does similar work
-2. Identify utility functions, helpers, or patterns to reuse
-3. Check for relevant tests as specification
-4. Note any edge cases in similar code
+**Implementation** — for tickets with clear technical work.
+- Investigate: existing code that does similar work, utility functions/helpers/patterns already available to reuse, relevant tests that specify behavior, edge cases handled in similar code
+- Return: reference implementations, reusable components, test patterns to follow, potential edge cases
 
-Return:
-- Reference implementations
-- Reusable components
-- Test patterns to follow
-- Potential edge cases
-```
+**Data / API surface** — for tickets involving data models or external interfaces.
+- Investigate: relevant data models and schemas, existing API patterns (endpoints, payload shapes, error conventions), validation rules and constraints, external service integrations
+- Return: data models involved, API conventions to follow, validation requirements, external dependencies
 
-**Data/API Agent** - For tickets involving data or external interfaces:
-```
-Research data and API context for: <ticket description>
+**Risk & constraints** — for tickets with uncertainty or potential issues.
+- Investigate: potential breaking changes to callers or consumers, performance implications, security considerations, technical debt that may complicate the work
+- Return: breaking change risks, performance concerns, security checklist items, tech debt interactions
 
-1. Identify relevant data models or schemas
-2. Find existing API patterns (endpoints, payloads)
-3. Check for validation rules and constraints
-4. Document any external service integrations
+### Prompt Construction
 
-Return:
-- Data models involved
-- API conventions to follow
-- Validation requirements
-- External dependencies
-```
+Each agent prompt should:
+- State what to investigate and how it informs the ticket
+- Request concrete artifacts (file paths, patterns, constraints) — not prose summaries
+- Stay scoped — broad prompts return shallow answers
 
-**Risk Agent** - For tickets with uncertainty or potential issues:
-```
-Analyze risks and constraints for: <ticket description>
+### Step 3: Synthesize
 
-1. Identify potential breaking changes
-2. Check for performance implications
-3. Note security considerations
-4. Find areas of technical debt that may complicate work
-
-Return:
-- Breaking change risks
-- Performance concerns
-- Security checklist items
-- Technical debt interactions
-```
-
-### Collecting Results
-
-Wait for all agents to complete. Synthesize their findings into a coherent understanding before proceeding.
+Wait for all agents to return. Reconcile their findings into a coherent picture before planning. If a gap blocks planning, spawn a targeted follow-up agent — don't guess.
 
 ---
 
@@ -334,9 +291,9 @@ Output a summary:
 
 Input: `/backlog-planner TASK-42` where TASK-42 is "Add retry logic to API client"
 
-Phase 1 spawns:
-- Dependency analyzer (required)
-- Implementation agent (find existing retry patterns)
+Phase 1:
+- Inline dependency check via `backlog task` commands
+- One Explore agent covering existing retry patterns (Architecture and Implementation collapse into a single scope)
 
 Phase 2:
 - No sub-tickets (single focused change)
