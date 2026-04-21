@@ -95,6 +95,12 @@ in
         DISABLE_AUTOUPDATER = 1;
         DISABLE_INSTALLATION_CHECKS = 1;
       };
+      sandbox = {
+        excludedCommands = [
+          "acli jira *"
+          "acli confluence *"
+        ];
+      };
       permissions = {
         defaultMode = "acceptEdits";
         allow = [

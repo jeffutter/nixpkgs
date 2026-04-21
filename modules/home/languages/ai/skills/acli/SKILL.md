@@ -1,10 +1,29 @@
 ---
 name: acli
-description: Use acli jira CLI for Jira work item management, project operations, sprint tracking, and board management with JQL search capabilities.
+description: Use acli CLI for Atlassian operations — primarily Jira work item management, project operations, sprint tracking, and board management with JQL search. Also covers Confluence page/space/blog operations and a CQL search fallback (acli has no native Confluence search).
 ---
 # Atlassian CLI (acli) - Jira Workflow Skill
 
 You are an Atlassian CLI specialist. This skill provides comprehensive guidance for managing Jira work items, projects, sprints, and boards using the `acli jira` command-line tool.
+
+## Sandbox (MANDATORY)
+
+**Every `acli` invocation via the Bash tool MUST set `dangerouslyDisableSandbox: true` on the FIRST attempt.** Do not try sandboxed first.
+
+`acli` reads and writes OAuth credentials via the macOS Keychain / credential helpers. The default Claude Code sandbox blocks those reads, and the failure mode is deceptive:
+
+- `acli jira auth status` → `failed to retrieve authenticated status`
+- `acli jira workitem search ...` → `failed to parse JQL` (even for valid JQL)
+- `acli jira project list` → `failed to list projects`
+
+These look like syntax or auth problems, but they are sandbox problems. The fix is always the same: rerun the exact command with `dangerouslyDisableSandbox: true`.
+
+This applies to every `acli` subcommand: `auth`, `workitem`, `project`, `board`, `sprint`, `filter`, `field`, `dashboard`. No exceptions.
+
+```
+Bash(command="acli jira workitem view FOO-123", dangerouslyDisableSandbox=true)
+Bash(command="acli jira workitem search --jql 'project = FOO'", dangerouslyDisableSandbox=true)
+```
 
 ## Core Principles
 
@@ -1118,6 +1137,66 @@ acli jira project view --key "TEAM"
 acli jira workitem search --jql "JQL_QUERY" --csv > export.csv
 acli jira workitem search --jql "JQL_QUERY" --json > export.json
 ```
+
+## Confluence
+
+`acli confluence` is thinner than `acli jira`. It supports:
+
+- `acli confluence page view --id <ID>` — fetch a page (supports `--json`, `--body-format`, `--include-labels`, etc.)
+- `acli confluence space list|view|create|update|archive|restore`
+- `acli confluence blog list|view|create`
+- `acli confluence auth login|status|switch|logout`
+
+**There is no search subcommand.** To search Confluence (CQL), use the companion script `confluence-search.sh` bundled with this skill, then hand the IDs to `acli confluence page view --id <ID>`.
+
+### Search with confluence-search.sh
+
+The script sits alongside this `SKILL.md`. It reads an Atlassian API token from `~/.netrc` and runs CQL against the Confluence REST API. Output is TSV (`id\ttitle\turl`) by default.
+
+```bash
+# Text search (wraps into: text ~ "<query>" AND type = "page")
+confluence-search.sh "BFF client"
+
+# Scope to a space
+confluence-search.sh --space SBP "pagination"
+
+# Raw CQL
+confluence-search.sh --cql 'label = "bff" AND type = page ORDER BY lastmodified DESC'
+
+# JSON output (pipe into jq)
+confluence-search.sh --json "BFF" | jq '.results'
+
+# Typical flow: search → pick ID → fetch structured
+id=$(confluence-search.sh "BFF Client Integration Guide" | head -1 | cut -f1)
+acli confluence page view --id "$id" --json
+```
+
+### Setup (one-time)
+
+1. Create an Atlassian API token at https://id.atlassian.com/manage-profile/security/api-tokens
+2. Add to `~/.netrc`:
+   ```
+   machine thescore.atlassian.net
+     login your@email.com
+     password <API-TOKEN>
+   ```
+3. `chmod 600 ~/.netrc`
+
+Override the host with `CONFLUENCE_HOST=othersite.atlassian.net confluence-search.sh ...`.
+
+### Sandbox note for Claude Code
+
+`~/.netrc` is in Claude Code's default sandbox deny list, so the script can't read it from a sandboxed Bash call. Set `dangerouslyDisableSandbox: true` when invoking:
+
+```
+Bash(command="confluence-search.sh 'BFF client'", dangerouslyDisableSandbox=true)
+```
+
+This is the same rule already in force for all `acli` invocations — different reason (acli hits Keychain; the script hits `~/.netrc`), same fix.
+
+### Why not reuse acli's stored token?
+
+`~/.config/acli/confluence_config.yaml` stores the token as `!!binary` ciphertext, decrypted at runtime via a key stored in the macOS Keychain. Reversing that encryption is fragile and version-dependent. A dedicated API token in `~/.netrc` is the clean path.
 
 ## Summary
 
