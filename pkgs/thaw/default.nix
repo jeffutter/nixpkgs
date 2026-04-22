@@ -7,11 +7,11 @@
 
 stdenvNoCC.mkDerivation rec {
   pname = "thaw";
-  version = "1.0.0-beta.4";
+  version = "1.2.0";
 
   src = fetchurl {
     url = "https://github.com/stonerl/Thaw/releases/download/${version}/Thaw_${version}.zip";
-    sha256 = "sha256-v5XlyIrNdp3pnDqhIBbdAbZkF265fNLStS+t+EshL68=";
+    sha256 = "sha256-1n9NMe+foFeEmphUC4EM+kLgvGYBnTYFq9CORcaaoG8=";
   };
 
   nativeBuildInputs = [ unzip ];

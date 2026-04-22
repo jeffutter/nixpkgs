@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+PKG="${HOME}/.config/home-manager/pkgs/thaw/default.nix"
+REPO="stonerl/Thaw"
+
+to_sri() {
+  nix hash convert --hash-algo sha256 --to sri "$1" 2>/dev/null \
+    || nix hash to-sri --type sha256 "$1" 2>/dev/null
+}
+
+echo "Fetching latest Thaw release..."
+LATEST=$(gh release view --repo "$REPO" --json tagName --jq '.tagName')
+
+if [[ -z "$LATEST" || "$LATEST" == "null" ]]; then
+  echo "error: failed to fetch latest release from GitHub" >&2
+  exit 1
+fi
+
+CURRENT=$(grep 'version = ' "$PKG" | sed 's/.*"\(.*\)".*/\1/')
+
+echo "Current: $CURRENT  Latest: $LATEST"
+
+if [[ "$LATEST" == "$CURRENT" ]]; then
+  echo "Already at latest version, nothing to do."
+  exit 0
+fi
+
+echo "Fetching hash for ${LATEST}..."
+RAW=$(nix-prefetch-url "https://github.com/${REPO}/releases/download/${LATEST}/Thaw_${LATEST}.zip")
+SRI=$(to_sri "$RAW")
+echo "  $SRI"
+
+echo "Updating pkgs/thaw/default.nix..."
+perl -pi -e "s|version = \"[^\"]+\"|version = \"${LATEST}\"|" "$PKG"
+perl -pi -e "s|sha256 = \"sha256-[A-Za-z0-9+/=]+\"|sha256 = \"${SRI}\"|" "$PKG"
+
+echo "Updated thaw: $CURRENT -> $LATEST"
