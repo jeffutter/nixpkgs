@@ -18,6 +18,7 @@
   home.packages = with pkgs; [
     _1password-cli
     perl
+    (callPackage ../../pkgs/actual-cli { })
   ];
 
   programs.ghostty = {

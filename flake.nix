@@ -139,6 +139,16 @@
       ...
     }@inputs:
     let
+      systems = [
+        "x86_64-linux"
+        "aarch64-linux"
+        "x86_64-darwin"
+        "aarch64-darwin"
+      ];
+      forAllSystems = nixpkgs.lib.genAttrs systems;
+      pkgsFor = system: import nixpkgs { inherit system; };
+    in
+    let
       claudeCodeOverlay =
         final: prev:
         let
@@ -359,6 +369,10 @@
             ];
           };
       };
+
+      packages = forAllSystems (system: {
+        actual-cli = (pkgsFor system).callPackage ./pkgs/actual-cli { };
+      });
 
       homeConfigurations = {
         "jeffutter@personal" = mkHome {
