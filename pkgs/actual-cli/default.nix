@@ -21,10 +21,10 @@ buildNpmPackage rec {
 
   installPhase = ''
     runHook preInstall
-    mkdir -p $out/bin $out/lib
-    cp -rL node_modules $out/lib/
+    mkdir -p $out/bin $out/lib/actual-cli
+    cp -rL node_modules $out/lib/actual-cli/
     makeWrapper ${nodejs_22}/bin/node $out/bin/actual \
-      --add-flags "$out/lib/node_modules/@actual-app/cli/dist/cli.js"
+      --add-flags "$out/lib/actual-cli/node_modules/@actual-app/cli/dist/cli.js"
     ln -s $out/bin/actual $out/bin/actual-cli
     runHook postInstall
   '';

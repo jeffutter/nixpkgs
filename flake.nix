@@ -125,6 +125,11 @@
       url = "github:jeffutter/ticket";
       flake = false;
     };
+
+    todoist-cli-src = {
+      url = "github:Doist/todoist-cli/v1.57.0";
+      flake = false;
+    };
   };
 
   outputs =
@@ -372,6 +377,7 @@
 
       packages = forAllSystems (system: {
         actual-cli = (pkgsFor system).callPackage ./pkgs/actual-cli { };
+        todoist-cli = (pkgsFor system).callPackage ./pkgs/todoist-cli { src = inputs.todoist-cli-src; };
       });
 
       homeConfigurations = {

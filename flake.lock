@@ -935,6 +935,7 @@
         "the-elements-of-style": "the-elements-of-style",
         "ticket": "ticket",
         "tinted-theming-schemes": "tinted-theming-schemes",
+        "todoist-cli-src": "todoist-cli-src",
         "vale-alex": "vale-alex",
         "vale-proselint": "vale-proselint",
         "vale-write-good": "vale-write-good",
@@ -1322,6 +1323,23 @@
       "original": {
         "owner": "tinted-theming",
         "repo": "base16-zed",
+        "type": "github"
+      }
+    },
+    "todoist-cli-src": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1776979253,
+        "narHash": "sha256-DFCW2ab97JY6iLi0WRCcCaJ6OdEK9eV5UT7yU71NT9A=",
+        "owner": "Doist",
+        "repo": "todoist-cli",
+        "rev": "cafc3d3a761f8ee0ab1b5433069b2639714b5da7",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Doist",
+        "ref": "v1.57.0",
+        "repo": "todoist-cli",
         "type": "github"
       }
     },

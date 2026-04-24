@@ -13,6 +13,7 @@ let
   superpowers = inputs.superpowers;
   apollo_skills = inputs.apollo_skills;
   the-elements-of-style = inputs.the-elements-of-style;
+  todoist-cli-pkg = pkgs.callPackage ../../../pkgs/todoist-cli { src = inputs.todoist-cli-src; };
 
   ticket = pkgs.callPackage ../../../pkgs/ticket { inherit inputs; };
 
@@ -234,6 +235,7 @@ in
     # skillsDir = claude-skills;
     skills = {
       acli = ./ai/skills/acli;
+      actual-cli = ./ai/skills/actual-cli;
       voice-dna = ./ai/skills/voice-dna;
       voice-dna-creator = ./ai/skills/voice-dna-creator;
       brainstorming = ./ai/skills/brainstorming;
@@ -242,6 +244,7 @@ in
       backlog-execute = ./ai/skills/backlog-execute;
       stop-slop = "${stop-slop}";
       writing-clearly-and-concisely = "${the-elements-of-style}/skills/writing-clearly-and-concisely";
+      todoist-cli = "${todoist-cli-pkg}/share/todoist-cli/skill";
     }
     // builtins.listToAttrs (
       map
