@@ -55,29 +55,6 @@ in
 
   home.file.".claude/plugins/marketplaces/superpowers".source = superpowers;
 
-  home.file.".claude/plugins/known_marketplaces.json".text =
-    let
-      timestamp = builtins.replaceStrings [ "\n" ] [ "" ] (builtins.readFile buildTime);
-    in
-    builtins.toJSON {
-      claude-plugins-official = {
-        source = {
-          source = "github";
-          repo = "anthropics/claude-plugins-official";
-        };
-        installLocation = "${config.home.homeDirectory}/.claude/plugins/marketplaces/claude-plugins-official";
-        lastUpdated = timestamp;
-      };
-      superpowers = {
-        source = {
-          source = "github";
-          repo = "obra/superpowers";
-        };
-        installLocation = "${config.home.homeDirectory}/.claude/plugins/marketplaces/superpowers";
-        lastUpdated = timestamp;
-      };
-    };
-
   programs.claude-code = {
     enable = true;
     package = pkgs.claude-code-bin;
