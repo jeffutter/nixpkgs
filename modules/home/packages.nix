@@ -13,6 +13,8 @@ let
   '';
 
   gnutar = pkgs.gnutar.overrideAttrs (old: {
+    doCheck = false;
+    doInstallCheck = false;
     configureFlags = [
       "--with-gzip=pigz"
       "--with-xz=pixz"

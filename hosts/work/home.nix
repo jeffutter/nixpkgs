@@ -84,4 +84,6 @@ in
   programs.keychain.keys = [ "id_ed25519" ];
 
   programs.claude-code.settings.model = "opus";
+
+  jeff.kamiSkillBrand = ./kami/brand.md;
 }

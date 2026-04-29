@@ -2,6 +2,7 @@
   pkgs,
   inputs,
   config,
+  lib,
   ...
 }:
 
@@ -11,6 +12,12 @@ let
   fabric = inputs.fabric.packages.${pkgs.stdenv.hostPlatform.system}.default;
   stop-slop = inputs.stop-slop;
   superpowers = inputs.superpowers;
+  kami = inputs.kami;
+  mkKamiSkill = brandFile: pkgs.runCommand "kami-skill" { } ''
+    cp -r ${kami} $out
+    chmod -R u+w $out
+    cp ${brandFile} $out/references/brand.md
+  '';
   apollo_skills = inputs.apollo_skills;
   the-elements-of-style = inputs.the-elements-of-style;
   todoist-cli-pkg = pkgs.callPackage ../../../pkgs/todoist-cli { src = inputs.todoist-cli-src; };
@@ -39,6 +46,12 @@ let
 in
 
 {
+  options.jeff.kamiSkillBrand = lib.mkOption {
+    type = lib.types.path;
+    default = ./ai/kami/brand.md;
+  };
+
+  config = {
   home.packages = with pkgs; [
     agent-browser
     backlog-md
@@ -222,6 +235,7 @@ in
       stop-slop = "${stop-slop}";
       writing-clearly-and-concisely = "${the-elements-of-style}/skills/writing-clearly-and-concisely";
       todoist-cli = "${todoist-cli-pkg}/share/todoist-cli/skill";
+      kami = "${mkKamiSkill config.jeff.kamiSkillBrand}";
     }
     // builtins.listToAttrs (
       map
@@ -236,4 +250,5 @@ in
         )
     );
   };
+  }; # end config
 }
