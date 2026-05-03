@@ -6,7 +6,7 @@ FLAKE_DIR="${HOME}/.config/home-manager"
 # Update flake inputs
 echo "Updating flake inputs..."
 cd "${FLAKE_DIR}"
+git pull
 nix flake update
-
-# Run topgrade for other updates
-topgrade
+bin/update-thaw
+bin/update-claude-code

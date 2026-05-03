@@ -4,8 +4,8 @@
 }:
 
 {
-  home.file."bin/upgrade" = {
-    source = ../../bin/upgrade;
+  home.file."bin/update" = {
+    source = ../../bin/update;
     executable = true;
   };
 
