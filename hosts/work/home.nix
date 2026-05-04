@@ -38,7 +38,7 @@ in
   programs.git =
     let
       mkWorkConfig = dir: {
-        condition = "gitdir:${dir}**";
+        condition = "gitdir:${dir}";
         contents = {
           user.email = "jeffery.utter@pennentertainment.com";
           user.signingKey = "~/.ssh/id_ed25519-penn-interactive";
@@ -51,7 +51,8 @@ in
     in
     {
       includes = [
-        (mkWorkConfig "~/theScore/")
+        (mkWorkConfig "~/theScore/**")
+        (mkWorkConfig "~/.claude/plugins/marketplaces/penn-interactive-claude-code")
       ];
       ignores = [
         ".classpath"
@@ -63,8 +64,14 @@ in
         url."git@github.com-penn-interactive:penn-interactive/" = {
           insteadOf = "git@github.com:penn-interactive/";
         };
+        url."ssh://git@github.com-penn-interactive/penn-interactive/" = {
+          insteadOf = "ssh://git@github.com/penn-interactive/";
+        };
         url."git@github.com-penn-interactive:Jeffery-Utter_pennent/" = {
           insteadOf = "git@github.com:Jeffery-Utter_pennent/";
+        };
+        url."ssh://git@github.com-penn-interactive/Jeffery-Utter_pennent/" = {
+          insteadOf = "ssh://git@github.com/Jeffery-Utter_pennent/";
         };
       };
     };
