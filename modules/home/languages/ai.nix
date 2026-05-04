@@ -13,11 +13,13 @@ let
   stop-slop = inputs.stop-slop;
   superpowers = inputs.superpowers;
   kami = inputs.kami;
-  mkKamiSkill = brandFile: pkgs.runCommand "kami-skill" { } ''
-    cp -r ${kami} $out
-    chmod -R u+w $out
-    cp ${brandFile} $out/references/brand.md
-  '';
+  mkKamiSkill =
+    brandFile:
+    pkgs.runCommand "kami-skill" { } ''
+      cp -r ${kami} $out
+      chmod -R u+w $out
+      cp ${brandFile} $out/references/brand.md
+    '';
   apollo_skills = inputs.apollo_skills;
   the-elements-of-style = inputs.the-elements-of-style;
   todoist-cli-pkg = pkgs.callPackage ../../../pkgs/todoist-cli { src = inputs.todoist-cli-src; };
@@ -52,203 +54,204 @@ in
   };
 
   config = {
-  home.packages = with pkgs; [
-    agent-browser
-    backlog-md
-    claude-tail
-    rtk
-    #fabric
-    (llm.withPlugins {
-      llm-cmd = true;
-      llm-jq = true;
-    })
-    # shell-gpt
-    ticket
-  ];
+    home.packages = with pkgs; [
+      agent-browser
+      backlog-md
+      claude-tail
+      rtk
+      #fabric
+      (llm.withPlugins {
+        llm-cmd = true;
+        llm-jq = true;
+      })
+      # shell-gpt
+      ticket
+    ];
 
-  home.file.".claude/plugins/marketplaces/superpowers".source = superpowers;
+    home.file.".claude/plugins/marketplaces/superpowers".source = superpowers;
 
-  programs.claude-code = {
-    enable = true;
-    package = pkgs.claude-code-bin;
-    settings = {
-      alwaysThinkingEnabled = true;
-      includeCoAuthoredBy = false;
-      attribution = {
-        commit = "";
-        pr = "";
+    programs.claude-code = {
+      enable = true;
+      package = pkgs.claude-code-bin;
+      settings = {
+        alwaysThinkingEnabled = true;
+        includeCoAuthoredBy = false;
+        attribution = {
+          commit = "";
+          pr = "";
+        };
+        installMethod = "manual";
+        skipInstallOnStartup = true;
+        disableSymlinks = true;
+        disableShellIntegration = true;
+        env = {
+          DISABLE_AUTOUPDATER = 1;
+          DISABLE_INSTALLATION_CHECKS = 1;
+        };
+        sandbox = {
+          excludedCommands = [
+            "acli jira *"
+            "acli confluence *"
+          ];
+        };
+        permissions = {
+          defaultMode = "acceptEdits";
+          allow = [
+            "Bash(biome check:*)"
+            "Bash(biome format:*)"
+            "Bash(biome lint:*)"
+            "Bash(cargo bench:*)"
+            "Bash(cargo build:*)"
+            "Bash(cargo check:*)"
+            "Bash(cargo clippy:*)"
+            "Bash(cargo doc:*)"
+            "Bash(cargo fmt:*)"
+            "Bash(cargo nextest:*)"
+            "Bash(cargo run:*)"
+            "Bash(cargo test:*)"
+            "Bash(cargo tree *)"
+            "Bash(lefthook:*)"
+            "Bash(mix compile:*)"
+            "Bash(mix credo:*)"
+            "Bash(mix deps.clean:*)"
+            "Bash(mix deps.compile:*)"
+            "Bash(mix deps.get:*)"
+            "Bash(mix dump_schema:*)"
+            "Bash(mix ecto.migrate:*)"
+            "Bash(mix format:*)"
+            "Bash(mix lint:*)"
+            "Bash(mix phx.server:*)"
+            "Bash(mix seed:*)"
+            "Bash(mix test:*)"
+            "Bash(rover supergraph compose *)"
+            "Bash(rtk find:*)"
+            "Bash(rtk git:*)"
+            "Bash(rtk grep:*)"
+            "Bash(rtk ls:*)"
+            "Bash(rtk read:*)"
+            "Read(~/.claude/skills/**)"
+            "WebFetch(domain:docs.rs)"
+            "WebFetch(domain:github.com)"
+            "WebFetch(domain:hexdocs.pm)"
+            "WebFetch(domain:home-manager-options.extananteous.xyz)"
+            "WebFetch(domain:home-manager-options.extranix.com)"
+            "WebFetch(domain:raw.githubusercontent.com)"
+            "WebSearch"
+          ];
+        };
+        theme = "dark";
+        enabledPlugins = {
+          "context7@claude-plugins-official" = true;
+          "rust-analyzer-lsp@claude-plugins-official" = true;
+          "superpowers@superpowers" = true;
+        };
+        disabledMcpjsonServers = [ "context7:context7" ];
+        hooks = {
+          PreToolUse = [
+            {
+              matcher = "Bash";
+              hooks = [
+                {
+                  type = "command";
+                  command = "${rtk}/libexec/rtk/hooks/claude/rtk-rewrite.sh";
+                }
+              ];
+            }
+            {
+              matcher = "Bash(git commit *)";
+              hooks = [
+                {
+                  type = "command";
+                  command = "cat ${./ai/shared/git-commit-guidelines.md}";
+                }
+              ];
+            }
+          ];
+        };
       };
-      installMethod = "manual";
-      skipInstallOnStartup = true;
-      disableSymlinks = true;
-      disableShellIntegration = true;
-      env = {
-        DISABLE_AUTOUPDATER = 1;
-        DISABLE_INSTALLATION_CHECKS = 1;
+
+      context = readAiDoc "context.md";
+
+      agents = {
       };
-      sandbox = {
-        excludedCommands = [
-          "acli jira *"
-          "acli confluence *"
-        ];
+
+      rules = {
+        elixir = ''
+          ---
+          paths:
+            - "**/*.ex"
+            - "**/*.exs"
+          ---
+
+          Invoke the /elixir skill and follow it exactly as presented to you
+        '';
       };
-      permissions = {
-        defaultMode = "acceptEdits";
-        allow = [
-          "Bash(biome check:*)"
-          "Bash(biome format:*)"
-          "Bash(biome lint:*)"
-          "Bash(cargo bench:*)"
-          "Bash(cargo build:*)"
-          "Bash(cargo check:*)"
-          "Bash(cargo clippy:*)"
-          "Bash(cargo doc:*)"
-          "Bash(cargo fmt:*)"
-          "Bash(cargo nextest:*)"
-          "Bash(cargo run:*)"
-          "Bash(cargo test:*)"
-          "Bash(cargo tree:*)"
-          "Bash(lefthook:*)"
-          "Bash(mix compile:*)"
-          "Bash(mix credo:*)"
-          "Bash(mix deps.clean:*)"
-          "Bash(mix deps.compile:*)"
-          "Bash(mix deps.get:*)"
-          "Bash(mix dump_schema:*)"
-          "Bash(mix ecto.migrate:*)"
-          "Bash(mix format:*)"
-          "Bash(mix lint:*)"
-          "Bash(mix phx.server:*)"
-          "Bash(mix seed:*)"
-          "Bash(mix test:*)"
-          "Bash(rtk find:*)"
-          "Bash(rtk grep:*)"
-          "Bash(rtk git:*)"
-          "Bash(rtk ls:*)"
-          "Bash(rtk read:*)"
-          "Read(~/.claude/skills/**)"
-          "WebFetch(domain:docs.rs)"
-          "WebFetch(domain:github.com)"
-          "WebFetch(domain:hexdocs.pm)"
-          "WebFetch(domain:home-manager-options.extananteous.xyz)"
-          "WebFetch(domain:home-manager-options.extranix.com)"
-          "WebFetch(domain:raw.githubusercontent.com)"
-          "WebSearch"
-        ];
+
+      commands = {
+        fix-pr-comments = readAiDoc "commands/fix-pr-comments.md";
+
+        commit-msg-short = ''
+          ---
+          description: Write a short commit message based on context and changes to the project
+          ---
+
+          ${commitMsgCommon.intro}
+
+          ${commitMsgCommon.writingStyle}
+          ${readAiDoc "shared/commit-msg/commit-msg-short-structure.md"}
+
+          ${commitMsgCommon.technicalDepth}
+          ${commitMsgCommon.toneExamples}
+          ${commitMsgCommon.antiPatterns}
+          ${commitMsgCommon.specifics}
+          ${commitMsgCommon.closing}
+        '';
+
+        commit-msg-detailed = ''
+          ---
+          description: Write a detailed commit message based on context and changes to the project
+          ---
+
+          ${commitMsgCommon.intro}
+
+          ${commitMsgCommon.writingStyle}
+          ${readAiDoc "shared/commit-msg/commit-msg-detailed-structure.md"}
+
+          ${commitMsgCommon.technicalDepth}
+          ${commitMsgCommon.toneExamples}
+          ${commitMsgCommon.antiPatterns}
+          ${commitMsgCommon.specifics}
+          ${commitMsgCommon.closing}
+        '';
       };
-      theme = "dark";
-      enabledPlugins = {
-        "context7@claude-plugins-official" = true;
-        "rust-analyzer-lsp@claude-plugins-official" = true;
-        "superpowers@superpowers" = true;
-      };
-      disabledMcpjsonServers = [ "context7:context7" ];
-      hooks = {
-        PreToolUse = [
-          {
-            matcher = "Bash";
-            hooks = [
-              {
-                type = "command";
-                command = "${rtk}/libexec/rtk/hooks/claude/rtk-rewrite.sh";
-              }
-            ];
-          }
-          {
-            matcher = "Bash(git commit *)";
-            hooks = [
-              {
-                type = "command";
-                command = "cat ${./ai/shared/git-commit-guidelines.md}";
-              }
-            ];
-          }
-        ];
-      };
-    };
 
-    context = readAiDoc "context.md";
-
-    agents = {
-    };
-
-    rules = {
-      elixir = ''
-        ---
-        paths:
-          - "**/*.ex"
-          - "**/*.exs"
-        ---
-
-        Invoke the /elixir skill and follow it exactly as presented to you
-      '';
-    };
-
-    commands = {
-      fix-pr-comments = readAiDoc "commands/fix-pr-comments.md";
-
-      commit-msg-short = ''
-        ---
-        description: Write a short commit message based on context and changes to the project
-        ---
-
-        ${commitMsgCommon.intro}
-
-        ${commitMsgCommon.writingStyle}
-        ${readAiDoc "shared/commit-msg/commit-msg-short-structure.md"}
-
-        ${commitMsgCommon.technicalDepth}
-        ${commitMsgCommon.toneExamples}
-        ${commitMsgCommon.antiPatterns}
-        ${commitMsgCommon.specifics}
-        ${commitMsgCommon.closing}
-      '';
-
-      commit-msg-detailed = ''
-        ---
-        description: Write a detailed commit message based on context and changes to the project
-        ---
-
-        ${commitMsgCommon.intro}
-
-        ${commitMsgCommon.writingStyle}
-        ${readAiDoc "shared/commit-msg/commit-msg-detailed-structure.md"}
-
-        ${commitMsgCommon.technicalDepth}
-        ${commitMsgCommon.toneExamples}
-        ${commitMsgCommon.antiPatterns}
-        ${commitMsgCommon.specifics}
-        ${commitMsgCommon.closing}
-      '';
-    };
-
-    # skillsDir = claude-skills;
-    skills = {
-      acli = ./ai/skills/acli;
-      actual-cli = ./ai/skills/actual-cli;
-      voice-dna = ./ai/skills/voice-dna;
-      voice-dna-creator = ./ai/skills/voice-dna-creator;
-      brainstorming = ./ai/skills/brainstorming;
-      elixir = ./ai/skills/elixir;
-      backlog-planner = ./ai/skills/backlog-planner;
-      backlog-execute = ./ai/skills/backlog-execute;
-      stop-slop = "${stop-slop}";
-      writing-clearly-and-concisely = "${the-elements-of-style}/skills/writing-clearly-and-concisely";
-      todoist-cli = "${todoist-cli-pkg}/share/todoist-cli/skill";
-      kami = "${mkKamiSkill config.jeff.kamiSkillBrand}";
-    }
-    // builtins.listToAttrs (
-      map
-        (name: {
-          inherit name;
-          value = apollo_skills + "/skills/${name}";
-        })
-        (
-          builtins.filter (name: (builtins.readDir (apollo_skills + "/skills")).${name} == "directory") (
-            builtins.attrNames (builtins.readDir (apollo_skills + "/skills"))
+      # skillsDir = claude-skills;
+      skills = {
+        acli = ./ai/skills/acli;
+        actual-cli = ./ai/skills/actual-cli;
+        voice-dna = ./ai/skills/voice-dna;
+        voice-dna-creator = ./ai/skills/voice-dna-creator;
+        brainstorming = ./ai/skills/brainstorming;
+        elixir = ./ai/skills/elixir;
+        backlog-planner = ./ai/skills/backlog-planner;
+        backlog-execute = ./ai/skills/backlog-execute;
+        stop-slop = "${stop-slop}";
+        writing-clearly-and-concisely = "${the-elements-of-style}/skills/writing-clearly-and-concisely";
+        todoist-cli = "${todoist-cli-pkg}/share/todoist-cli/skill";
+        kami = "${mkKamiSkill config.jeff.kamiSkillBrand}";
+      }
+      // builtins.listToAttrs (
+        map
+          (name: {
+            inherit name;
+            value = apollo_skills + "/skills/${name}";
+          })
+          (
+            builtins.filter (name: (builtins.readDir (apollo_skills + "/skills")).${name} == "directory") (
+              builtins.attrNames (builtins.readDir (apollo_skills + "/skills"))
+            )
           )
-        )
-    );
-  };
+      );
+    };
   }; # end config
 }

@@ -3,6 +3,7 @@
   stdenv,
   stdenvNoCC,
   fetchurl,
+  runCommand,
   makeBinaryWrapper,
   autoPatchelfHook,
   bun,
@@ -15,6 +16,7 @@
   dbus,
   xz,
   libpulseaudio,
+  src,
 }:
 
 let
@@ -38,6 +40,12 @@ let
   source =
     sources.${stdenv.hostPlatform.system}
       or (throw "screenpipe: unsupported system ${stdenv.hostPlatform.system}");
+
+  skills = runCommand "screenpipe-skills-${version}" { } ''
+    mkdir -p $out
+    cp -r ${src}/.claude/skills/screenpipe-api $out/screenpipe-api
+    cp -r ${src}/.claude/skills/screenpipe-cli $out/screenpipe-cli
+  '';
 in
 stdenvNoCC.mkDerivation {
   pname = "screenpipe";
@@ -88,6 +96,8 @@ stdenvNoCC.mkDerivation {
 
     runHook postInstall
   '';
+
+  passthru = { inherit skills; };
 
   meta = {
     description = "screenpipe CLI — AI that knows everything you've seen, said, or heard";

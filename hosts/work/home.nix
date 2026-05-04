@@ -10,7 +10,7 @@ let
     pkgs.google-cloud-sdk.components.gke-gcloud-auth-plugin
   ];
   thaw = pkgs.callPackage ../../pkgs/thaw { };
-  screenpipe = pkgs.callPackage ../../pkgs/screenpipe { };
+  screenpipe = pkgs.callPackage ../../pkgs/screenpipe { src = inputs.screenpipe-src; };
 in
 {
   imports = [
@@ -93,6 +93,11 @@ in
   programs.keychain.keys = [ "id_ed25519" ];
 
   programs.claude-code.settings.model = "opus";
+
+  programs.claude-code.skills = {
+    screenpipe-api = "${screenpipe.skills}/screenpipe-api";
+    screenpipe-cli = "${screenpipe.skills}/screenpipe-cli";
+  };
 
   jeff.kamiSkillBrand = ./kami/brand.md;
 }

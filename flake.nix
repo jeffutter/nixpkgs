@@ -135,6 +135,11 @@
       url = "github:tw93/kami";
       flake = false;
     };
+
+    screenpipe-src = {
+      url = "github:screenpipe/screenpipe";
+      flake = false;
+    };
   };
 
   outputs =
@@ -371,7 +376,7 @@
       packages = forAllSystems (system: {
         actual-cli = (pkgsFor system).callPackage ./pkgs/actual-cli { };
         todoist-cli = (pkgsFor system).callPackage ./pkgs/todoist-cli { src = inputs.todoist-cli-src; };
-        screenpipe = (pkgsFor system).callPackage ./pkgs/screenpipe { };
+        screenpipe = (pkgsFor system).callPackage ./pkgs/screenpipe { src = inputs.screenpipe-src; };
       });
 
       homeConfigurations = {
