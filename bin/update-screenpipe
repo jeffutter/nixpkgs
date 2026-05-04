@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+PKG="${HOME}/.config/home-manager/pkgs/screenpipe/default.nix"
+
+# Map nix system → npm platform suffix (must match keys in sources = { ... }
+# in pkgs/screenpipe/default.nix). Add new entries here when supporting more
+# platforms.
+declare -A PLATFORMS=(
+  ["aarch64-darwin"]="darwin-arm64"
+  ["x86_64-linux"]="linux-x64"
+)
+
+echo "Fetching latest screenpipe version..."
+LATEST=$(curl -sf "https://registry.npmjs.org/screenpipe/latest" | jq -r '.version')
+
+if [[ -z "$LATEST" || "$LATEST" == "null" ]]; then
+  echo "error: failed to fetch latest version from npm" >&2
+  exit 1
+fi
+
+CURRENT=$(grep 'version = ' "$PKG" | head -1 | sed 's/.*"\(.*\)".*/\1/')
+
+echo "Current: $CURRENT  Latest: $LATEST"
+
+if [[ "$LATEST" == "$CURRENT" ]]; then
+  echo "Already at latest version, nothing to do."
+  exit 0
+fi
+
+# npm publishes integrity as an SRI sha512 string already, so we can copy it
+# straight into hash = "..."; without re-downloading + rehashing.
+declare -A HASHES
+for SYSTEM in "${!PLATFORMS[@]}"; do
+  NPM_PLATFORM="${PLATFORMS[$SYSTEM]}"
+  echo "Fetching integrity for ${NPM_PLATFORM}..."
+  INTEGRITY=$(curl -sf "https://registry.npmjs.org/@screenpipe/cli-${NPM_PLATFORM}/${LATEST}" \
+    | jq -r '.dist.integrity')
+  if [[ -z "$INTEGRITY" || "$INTEGRITY" == "null" ]]; then
+    echo "error: failed to fetch integrity for @screenpipe/cli-${NPM_PLATFORM}@${LATEST}" >&2
+    exit 1
+  fi
+  HASHES["$SYSTEM"]="$INTEGRITY"
+  echo "  $INTEGRITY"
+done
+
+echo "Updating pkgs/screenpipe/default.nix..."
+perl -pi -e "s|version = \"[^\"]+\"|version = \"${LATEST}\"|" "$PKG"
+
+# Replace each hash by anchoring on the platform-specific URL substring that
+# precedes it within the same `{ url = ...; hash = ...; }` block.
+for SYSTEM in "${!PLATFORMS[@]}"; do
+  NPM_PLATFORM="${PLATFORMS[$SYSTEM]}"
+  NEW_HASH="${HASHES[$SYSTEM]}"
+  perl -0777 -pi -e \
+    "s|(cli-${NPM_PLATFORM}/-/cli-${NPM_PLATFORM}-[^\"]+\";\s*\n\s*hash = \")sha512-[^\"]+|\${1}${NEW_HASH}|s" \
+    "$PKG"
+done
+
+echo "Updated screenpipe: $CURRENT -> $LATEST"

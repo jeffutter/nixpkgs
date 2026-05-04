@@ -371,6 +371,7 @@
       packages = forAllSystems (system: {
         actual-cli = (pkgsFor system).callPackage ./pkgs/actual-cli { };
         todoist-cli = (pkgsFor system).callPackage ./pkgs/todoist-cli { src = inputs.todoist-cli-src; };
+        screenpipe = (pkgsFor system).callPackage ./pkgs/screenpipe { };
       });
 
       homeConfigurations = {

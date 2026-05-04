@@ -10,6 +10,7 @@ let
     pkgs.google-cloud-sdk.components.gke-gcloud-auth-plugin
   ];
   thaw = pkgs.callPackage ../../pkgs/thaw { };
+  screenpipe = pkgs.callPackage ../../pkgs/screenpipe { };
 in
 {
   imports = [
@@ -28,6 +29,7 @@ in
     grpcurl
     llvmPackages.bintools
     my_google-cloud-sdk
+    screenpipe
     thaw
   ];
 

@@ -10,3 +10,4 @@ git pull
 nix flake update
 bin/update-thaw
 bin/update-claude-code
+bin/update-screenpipe
