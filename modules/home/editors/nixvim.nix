@@ -8,6 +8,8 @@
   programs.nixvim = {
     enable = true;
 
+    nixpkgs.useGlobalPackages = true;
+
     globals.mapleader = " ";
 
     globalOpts = {

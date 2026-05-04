@@ -159,6 +159,12 @@
       pkgsFor = system: import nixpkgs { inherit system; };
     in
     let
+      nixpkgsConfig = {
+        allowUnfree = true;
+        input-fonts.acceptLicense = true;
+        permittedInsecurePackages = [ "p7zip-16.02" ];
+      };
+
       claudeCodeOverlay =
         final: prev:
         let
@@ -197,9 +203,7 @@
         home-manager.lib.homeManagerConfiguration {
           pkgs = import nixpkgs {
             inherit system;
-            config.allowUnfree = true;
-            config.input-fonts.acceptLicense = true;
-            config.permittedInsecurePackages = [ "p7zip-16.02" ];
+            config = nixpkgsConfig;
             overlays = [
               claudeCodeOverlay
             ];
@@ -223,11 +227,7 @@
             system = "x86_64-linux";
             pkgs = import nixpkgs {
               inherit system;
-              config = {
-                allowUnfree = true;
-                input-fonts.acceptLicense = true;
-                permittedInsecurePackages = [ "p7zip-16.02" ];
-              };
+              config = nixpkgsConfig;
               overlays = [
                 claudeCodeOverlay
               ];
@@ -265,11 +265,7 @@
             system = "x86_64-linux";
             pkgs = import nixpkgs {
               inherit system;
-              config = {
-                allowUnfree = true;
-                input-fonts.acceptLicense = true;
-                permittedInsecurePackages = [ "p7zip-16.02" ];
-              };
+              config = nixpkgsConfig;
               overlays = [
                 claudeCodeOverlay
               ];
@@ -306,11 +302,7 @@
             system = "aarch64-darwin";
             pkgs = import nixpkgs {
               inherit system;
-              config = {
-                allowUnfree = true;
-                input-fonts.acceptLicense = true;
-                permittedInsecurePackages = [ "p7zip-16.02" ];
-              };
+              config = nixpkgsConfig;
               overlays = [
                 claudeCodeOverlay
               ];
@@ -345,11 +337,7 @@
             system = "aarch64-darwin";
             pkgs = import nixpkgs {
               inherit system;
-              config = {
-                allowUnfree = true;
-                input-fonts.acceptLicense = true;
-                permittedInsecurePackages = [ "p7zip-16.02" ];
-              };
+              config = nixpkgsConfig;
               overlays = [
                 claudeCodeOverlay
               ];
