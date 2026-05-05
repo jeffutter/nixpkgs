@@ -29,10 +29,6 @@ let
   claude-tail = inputs.claude-tail.packages.${pkgs.stdenv.hostPlatform.system}.default;
   rtk = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.rtk;
 
-  buildTime = pkgs.runCommand "build-time" { } ''
-    date -u +"%Y-%m-%dT%H:%M:%S.000Z" > $out
-  '';
-
   # Helper function to read markdown files from the ai directory
   readAiDoc = file: builtins.readFile (./ai + "/${file}");
 
@@ -93,6 +89,14 @@ in
             "acli jira *"
             "acli confluence *"
           ];
+          network = {
+            allowedDomains = [
+              "localhost"
+              "127.0.0.1"
+              "[::1]"
+            ];
+            allowLocalBinding = true;
+          };
         };
         permissions = {
           defaultMode = "acceptEdits";
@@ -110,6 +114,7 @@ in
             "Bash(cargo run:*)"
             "Bash(cargo test:*)"
             "Bash(cargo tree *)"
+            "Bash(echo \"exit=$?\")"
             "Bash(lefthook:*)"
             "Bash(mix compile:*)"
             "Bash(mix credo:*)"
@@ -123,13 +128,22 @@ in
             "Bash(mix phx.server:*)"
             "Bash(mix seed:*)"
             "Bash(mix test:*)"
+            "Bash(nix eval *)"
+            "Bash(nix flake check *)"
+            "Bash(nix flake metadata *)"
             "Bash(rover supergraph compose *)"
+            "Bash(rtk curl *)"
             "Bash(rtk find:*)"
             "Bash(rtk git:*)"
             "Bash(rtk grep:*)"
             "Bash(rtk ls:*)"
+            "Bash(rtk ps *)"
             "Bash(rtk read:*)"
+            "Bash(rtk wc *)"
+            "Read(/private/tmp/claude-*/**)"
+            "Read(/tmp/claude-*/**)"
             "Read(~/.claude/skills/**)"
+            "Skill(update-config)"
             "WebFetch(domain:docs.rs)"
             "WebFetch(domain:github.com)"
             "WebFetch(domain:hexdocs.pm)"
