@@ -1,4 +1,4 @@
-{ lib, ... }:
+{ pkgs, lib, ... }:
 {
   imports = [
     ../../modules/home/languages/rust.nix
@@ -10,6 +10,10 @@
     ./gui/niri.nix
     ./gui/idle.nix
     ./gui/apps.nix
+  ];
+
+  home.packages = with pkgs; [
+    localsend
   ];
 
   # OLED energy savings: override background colors to pure black
