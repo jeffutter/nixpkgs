@@ -88,6 +88,8 @@ in
           excludedCommands = [
             "acli jira *"
             "acli confluence *"
+            "rtk gh *"
+            "rtk git *"
           ];
           network = {
             allowedDomains = [
@@ -104,6 +106,7 @@ in
             "Bash(biome check:*)"
             "Bash(biome format:*)"
             "Bash(biome lint:*)"
+            "Bash(confluence-search.sh *)"
             "Bash(cargo bench:*)"
             "Bash(cargo build:*)"
             "Bash(cargo check:*)"
