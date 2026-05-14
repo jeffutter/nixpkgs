@@ -189,7 +189,7 @@
           }";
         in
         {
-          claude-code-bin = prev.claude-code-bin.overrideAttrs (oldAttrs: {
+          claude-code = prev.claude-code.overrideAttrs (oldAttrs: {
             version = claudeCodeVersion;
             src = final.fetchurl {
               url = "${claudeCodeBaseUrl}/${claudeCodeVersion}/${platformKey}/claude";

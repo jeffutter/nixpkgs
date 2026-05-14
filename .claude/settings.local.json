@@ -59,7 +59,9 @@
       "Bash(darwin-rebuild build *)",
       "WebFetch(domain:nix-community.github.io)",
       "Bash(nix path-info *)",
-      "Bash(xargs -I {} sh -c 'if [ -f \"{}/flake.nix\" ] && grep -l \"nixvim\" \"{}/flake.nix\" >/dev/null 2>&1; then echo \"{}\"; fi')"
+      "Bash(xargs -I {} sh -c 'if [ -f \"{}/flake.nix\" ] && grep -l \"nixvim\" \"{}/flake.nix\" >/dev/null 2>&1; then echo \"{}\"; fi')",
+      "Bash(gh api *)",
+      "WebFetch(domain:discourse.nixos.org)"
     ],
     "deny": [],
     "ask": []
