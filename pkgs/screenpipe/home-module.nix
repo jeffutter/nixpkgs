@@ -12,12 +12,25 @@ let
 
   watchdogScript = pkgs.writeShellScript "screenpipe-watchdog" ''
     set -u
-    if ${pkgs.curl}/bin/curl -fsS --max-time ${toString cfg.watchdog.timeoutSeconds} \
-        http://127.0.0.1:3030/health >/dev/null 2>&1; then
+    body=$(${pkgs.curl}/bin/curl -fsS --max-time ${toString cfg.watchdog.timeoutSeconds} \
+        http://127.0.0.1:3030/health 2>/dev/null) || body=""
+
+    ts=$(/bin/date -u +%Y-%m-%dT%H:%M:%SZ)
+
+    if [ -z "$body" ]; then
+      echo "$ts /health unreachable; kickstarting ${screenpipeLabel}"
+      /bin/launchctl kickstart -k "gui/$(/usr/bin/id -u)/${screenpipeLabel}"
       exit 0
     fi
-    ts=$(/bin/date -u +%Y-%m-%dT%H:%M:%SZ)
-    echo "$ts /health timed out; kickstarting ${screenpipeLabel}"
+
+    status=$(printf '%s' "$body" | ${pkgs.jq}/bin/jq -r '.status // "unknown"')
+    audio=$(printf '%s' "$body"  | ${pkgs.jq}/bin/jq -r '.audio_status // "unknown"')
+
+    if [ "$status" = "healthy" ] && [ "$audio" = "ok" ]; then
+      exit 0
+    fi
+
+    echo "$ts unhealthy (status=$status audio=$audio); kickstarting ${screenpipeLabel}"
     /bin/launchctl kickstart -k "gui/$(/usr/bin/id -u)/${screenpipeLabel}"
   '';
 in
@@ -53,9 +66,11 @@ in
         default = true;
         description = ''
           Run a separate launchd agent that probes the screenpipe HTTP API
-          and kickstarts the main service when /health stops responding.
-          launchd's KeepAlive only reacts to process exit, so a wedged HTTP
-          server with a live process would otherwise go undetected.
+          and kickstarts the main service when it stops being healthy. The
+          probe parses /health's JSON body and kicks when either the overall
+          status or audio_status is not ok — launchd's KeepAlive only reacts
+          to process exit, so a wedged HTTP server or stalled audio thread
+          with a live process would otherwise go undetected.
         '';
       };
 
