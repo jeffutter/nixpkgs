@@ -140,6 +140,11 @@
       url = "github:screenpipe/screenpipe";
       flake = false;
     };
+
+    micasa = {
+      url = "github:micasa-dev/micasa";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =

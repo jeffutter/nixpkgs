@@ -79,7 +79,7 @@ in
 
     home.file.".pi/agent/settings.json".text = builtins.toJSON {
       defaultProvider = "llama-home";
-      defaultModel = "chat";
+      defaultModel = "chat:thinking-coding";
       quietStartup = true;
       enabledModels = [
         "chat"
