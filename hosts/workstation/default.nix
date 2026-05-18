@@ -26,6 +26,8 @@
       PermitEmptyPasswords = "yes";
     };
   };
+  programs.mosh.enable = true;
+
   networking.firewall = {
     enable = true;
     allowedTCPPorts = [
