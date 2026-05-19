@@ -100,6 +100,11 @@
       flake = false;
     };
 
+    ast-grep-skill = {
+      url = "github:ast-grep/agent-skill";
+      flake = false;
+    };
+
     # Fish plugins
     fish-plugin-fenv = {
       url = "github:oh-my-fish/plugin-foreign-env/b3dd471bcc885b597c3922e4de836e06415e52dd";

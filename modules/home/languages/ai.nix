@@ -21,6 +21,7 @@ let
       cp ${brandFile} $out/references/brand.md
     '';
   apollo_skills = inputs.apollo_skills;
+  ast-grep-skill = inputs.ast-grep-skill;
   the-elements-of-style = inputs.the-elements-of-style;
   todoist-cli-pkg = pkgs.callPackage ../../../pkgs/todoist-cli { src = inputs.todoist-cli-src; };
 
@@ -259,6 +260,7 @@ in
         writing-clearly-and-concisely = "${the-elements-of-style}/skills/writing-clearly-and-concisely";
         todoist-cli = "${todoist-cli-pkg}/share/todoist-cli/skill";
         kami = "${mkKamiSkill config.jeff.kamiSkillBrand}";
+        ast-grep = "${ast-grep-skill}/ast-grep/skills/ast-grep";
       }
       // builtins.listToAttrs (
         map

@@ -16,6 +16,22 @@
         "type": "github"
       }
     },
+    "ast-grep-skill": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1769044697,
+        "narHash": "sha256-LgGFtPieyKtoru22AhHW8hvkJ8kCHO2Cr8rBOWGuxvY=",
+        "owner": "ast-grep",
+        "repo": "agent-skill",
+        "rev": "577f4d4507678f2c8cee150fae25e6ce309f70b1",
+        "type": "github"
+      },
+      "original": {
+        "owner": "ast-grep",
+        "repo": "agent-skill",
+        "type": "github"
+      }
+    },
     "backlog-md": {
       "inputs": {
         "bun2nix": "bun2nix",
@@ -914,6 +930,7 @@
     "root": {
       "inputs": {
         "apollo_skills": "apollo_skills",
+        "ast-grep-skill": "ast-grep-skill",
         "backlog-md": "backlog-md",
         "claude-desktop": "claude-desktop",
         "claude-tail": "claude-tail",
