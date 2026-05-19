@@ -35,6 +35,7 @@ in
     aspell
     aspellDicts.en
     aspellDicts.en-computers
+    ast-grep
     autoconf
     bandwhich
     bash-completion
