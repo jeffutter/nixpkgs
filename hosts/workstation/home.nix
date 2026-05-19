@@ -20,6 +20,7 @@
     perl
     (callPackage ../../pkgs/actual-cli { })
     (callPackage ../../pkgs/todoist-cli { src = inputs.todoist-cli-src; })
+    inputs.micasa.packages.${pkgs.stdenv.hostPlatform.system}.default
   ];
 
   programs.ghostty = {

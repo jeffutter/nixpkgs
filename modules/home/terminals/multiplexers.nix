@@ -132,6 +132,9 @@ in
     terminal = "tmux-256color";
 
     extraConfig = ''
+      set -g extended-keys on
+      set -g extended-keys-format csi-u
+
       set-option -g default-command "fish"
       bind-key N swap-window -t +1 \; next-window
       bind-key P swap-window -t -1 \; previous-window

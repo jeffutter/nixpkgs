@@ -29,6 +29,16 @@ let
 
   claude-tail = inputs.claude-tail.packages.${pkgs.stdenv.hostPlatform.system}.default;
   rtk = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.rtk;
+  pi = pkgs.symlinkJoin {
+    name = "pi";
+    buildInputs = [ pkgs.makeWrapper ];
+    paths = [ inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.pi ];
+    postBuild = ''
+      wrapProgram $out/bin/pi \
+        --set NPM_CONFIG_PREFIX ${config.home.homeDirectory}/.pi/npm/ \
+        --prefix PATH : ${pkgs.lib.makeBinPath [ pkgs.nodejs_latest ]}
+    '';
+  };
 
   # Helper function to read markdown files from the ai directory
   readAiDoc = file: builtins.readFile (./ai + "/${file}");
@@ -55,6 +65,7 @@ in
       agent-browser
       backlog-md
       claude-tail
+      pi
       rtk
       #fabric
       (llm.withPlugins {
@@ -67,9 +78,44 @@ in
 
     home.file.".claude/plugins/marketplaces/superpowers".source = superpowers;
 
+    home.file.".pi/agent/settings.json".text = builtins.toJSON {
+      defaultProvider = "llama-home";
+      defaultModel = "chat:thinking-coding";
+      quietStartup = true;
+      enabledModels = [
+        "chat"
+        "chat:thinking-coding"
+      ];
+    };
+
+    home.file.".pi/agent/models.json".text = builtins.toJSON {
+      providers = {
+        "llama-home" = {
+          baseUrl = "https://llama.home.jeffutter.com/v1";
+          api = "openai-completions";
+          apiKey = "local";
+          compat = {
+            supportsDeveloperRole = false;
+            supportsReasoningEffort = false;
+          };
+          models = [
+            {
+              id = "chat";
+              contextWindow = 131072;
+            }
+            {
+              id = "chat:thinking-coding";
+              reasoning = true;
+              contextWindow = 131072;
+            }
+          ];
+        };
+      };
+    };
+
     programs.claude-code = {
       enable = true;
-      package = pkgs.claude-code-bin;
+      package = pkgs.claude-code;
       settings = {
         alwaysThinkingEnabled = true;
         includeCoAuthoredBy = false;
