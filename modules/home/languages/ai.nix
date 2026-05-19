@@ -29,10 +29,19 @@ let
 
   claude-tail = inputs.claude-tail.packages.${pkgs.stdenv.hostPlatform.system}.default;
   rtk = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.rtk;
+  basePi = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.pi;
+  # Patch the hardcoded 30s RPC send timeout in pi-coding-agent to 5 minutes,
+  # since local LLM prompt processing can take 1-2 minutes on this hardware.
+  patchedPi = pkgs.runCommand "pi-patched" { } ''
+    cp -r ${basePi} $out
+    chmod -R u+w $out
+    sed -i 's/}, 30000);$/}, 300000);/' \
+      $out/lib/node_modules/@earendil-works/pi-coding-agent/dist/modes/rpc/rpc-client.js
+  '';
   pi = pkgs.symlinkJoin {
     name = "pi";
     buildInputs = [ pkgs.makeWrapper ];
-    paths = [ inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.pi ];
+    paths = [ patchedPi ];
     postBuild = ''
       wrapProgram $out/bin/pi \
         --set NPM_CONFIG_PREFIX ${config.home.homeDirectory}/.pi/npm/ \
@@ -80,11 +89,14 @@ in
 
     home.file.".pi/agent/settings.json".text = builtins.toJSON {
       defaultProvider = "llama-home";
-      defaultModel = "chat:thinking-coding";
+      defaultModel = "chat-mtp:thinking-coding";
       quietStartup = true;
       enabledModels = [
-        "chat"
-        "chat:thinking-coding"
+        "chat-mtp"
+        "chat-mtp:instruct"
+        "chat-mtp:thinking-coding"
+        "qwen3.6-mtp:instruct-reasoning"
+        "chat-27b:thinking-coding"
       ];
     };
 
@@ -101,12 +113,32 @@ in
           models = [
             {
               id = "chat";
-              contextWindow = 131072;
+              contextWindow = 65536;
+            }
+            {
+              id = "chat-mtp:instruct";
+              reasoning = false;
+              contextWindow = 65536;
             }
             {
               id = "chat:thinking-coding";
               reasoning = true;
-              contextWindow = 131072;
+              contextWindow = 65536;
+            }
+            {
+              id = "chat-mtp:thinking-coding";
+              reasoning = true;
+              contextWindow = 65536;
+            }
+            {
+              id = "qwen3.6-mtp:instruct-reasoning";
+              reasoning = false;
+              contextWindow = 65536;
+            }
+            {
+              id = "chat-27b:thinking-coding";
+              reasoning = true;
+              contextWindow = 65536;
             }
           ];
         };
