@@ -89,13 +89,13 @@ in
 
     home.file.".pi/agent/settings.json".text = builtins.toJSON {
       defaultProvider = "llama-home";
-      defaultModel = "chat-mtp:thinking-coding";
+      defaultModel = "chat:thinking-coding";
       quietStartup = true;
       enabledModels = [
-        "chat-mtp"
-        "chat-mtp:instruct"
-        "chat-mtp:thinking-coding"
-        "qwen3.6-mtp:instruct-reasoning"
+        "chat"
+        "chat:instruct"
+        "chat:thinking-coding"
+        "qwen3.6:instruct-reasoning"
         "chat-27b:thinking-coding"
       ];
     };
@@ -113,32 +113,26 @@ in
           models = [
             {
               id = "chat";
-              contextWindow = 65536;
-            }
-            {
-              id = "chat-mtp:instruct";
-              reasoning = false;
-              contextWindow = 65536;
+              # contextWindow = 65536;
+              contextWindow = 131072;
             }
             {
               id = "chat:thinking-coding";
               reasoning = true;
-              contextWindow = 65536;
+              # contextWindow = 65536;
+              contextWindow = 131072;
             }
             {
-              id = "chat-mtp:thinking-coding";
-              reasoning = true;
-              contextWindow = 65536;
-            }
-            {
-              id = "qwen3.6-mtp:instruct-reasoning";
+              id = "qwen3.6:instruct-reasoning";
               reasoning = false;
-              contextWindow = 65536;
+              # contextWindow = 65536;
+              contextWindow = 131072;
             }
             {
               id = "chat-27b:thinking-coding";
               reasoning = true;
-              contextWindow = 65536;
+              # contextWindow = 65536;
+              contextWindow = 131072;
             }
           ];
         };
