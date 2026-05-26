@@ -80,13 +80,13 @@ in
     };
 
   programs.ssh = {
-    matchBlocks = {
+    settings = {
       "github.com-penn-interactive" = {
-        hostname = "github.com";
-        user = "git";
-        addKeysToAgent = "yes";
-        identitiesOnly = true;
-        identityFile = "~/.ssh/id_ed25519-penn-interactive";
+        HostName = "github.com";
+        User = "git";
+        AddKeysToAgent = "yes";
+        IdentitiesOnly = true;
+        IdentityFile = "~/.ssh/id_ed25519-penn-interactive";
       };
     };
   };
