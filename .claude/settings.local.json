@@ -61,7 +61,8 @@
       "Bash(nix path-info *)",
       "Bash(xargs -I {} sh -c 'if [ -f \"{}/flake.nix\" ] && grep -l \"nixvim\" \"{}/flake.nix\" >/dev/null 2>&1; then echo \"{}\"; fi')",
       "Bash(gh api *)",
-      "WebFetch(domain:discourse.nixos.org)"
+      "WebFetch(domain:discourse.nixos.org)",
+      "WebFetch(domain:docs.screenpi.pe)"
     ],
     "deny": [],
     "ask": []
