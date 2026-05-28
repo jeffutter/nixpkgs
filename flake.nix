@@ -73,15 +73,15 @@
 
     # Vale prose linting styles
     vale-proselint = {
-      url = "github:errata-ai/proselint/v0.3.4";
+      url = "github:vale-cli/proselint/v0.3.4";
       flake = false;
     };
     vale-write-good = {
-      url = "github:errata-ai/write-good/v0.4.1";
+      url = "github:vale-cli/write-good/v0.4.1";
       flake = false;
     };
     vale-alex = {
-      url = "github:errata-ai/alex/v0.2.3";
+      url = "github:vale-cli/alex/v0.2.3";
       flake = false;
     };
 
@@ -107,7 +107,7 @@
 
     # Fish plugins
     fish-plugin-fenv = {
-      url = "github:oh-my-fish/plugin-foreign-env/b3dd471bcc885b597c3922e4de836e06415e52dd";
+      url = "github:oh-my-fish/plugin-foreign-env/7f0cf099ae1e1e4ab38f46350ed6757d54471de7";
       flake = false;
     };
 
@@ -126,13 +126,8 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    ticket = {
-      url = "github:jeffutter/ticket";
-      flake = false;
-    };
-
     todoist-cli-src = {
-      url = "github:Doist/todoist-cli/v1.57.0";
+      url = "github:Doist/todoist-cli/v1.69.3";
       flake = false;
     };
 
@@ -145,11 +140,6 @@
       url = "github:screenpipe/screenpipe";
       flake = false;
     };
-
-    micasa = {
-      url = "github:micasa-dev/micasa";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
   };
 
   outputs =
@@ -159,8 +149,6 @@
       home-manager,
       nix-darwin,
       nixos-hardware,
-      nixvim,
-      expert,
       ...
     }@inputs:
     let
@@ -183,16 +171,16 @@
       claudeCodeOverlay =
         final: prev:
         let
-          claudeCodeVersion = "2.1.150";
+          claudeCodeVersion = "2.1.153";
           claudeCodeBaseUrl = "https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases";
           # Run `nix-prefetch-url <url>` for your platform to get the correct hash
           # URL format: ${claudeCodeBaseUrl}/${claudeCodeVersion}/<platform>/claude
           # Platforms: darwin-arm64, darwin-x64, linux-arm64, linux-x64
           claudeCodeChecksums = {
-            "darwin-arm64" = "sha256-L4QT6hCD8QhYeUBJahcFd1E0QQnSYftCOastRbIoXJk=";
-            "darwin-x64" = "sha256-xm1XId84zOgs3gPSRPj6knaBJf4G6NHTjUv7ra9KjRc=";
-            "linux-arm64" = "sha256-IFKUlUPqB24rXNpEwDGys0/DA9uY3FatZYO34KQX6+s=";
-            "linux-x64" = "sha256-bAhqD1+/aE1BSLtpYpJotPUQlJjBp751es8YxR/QT0s=";
+            "darwin-arm64" = "sha256-RJ2cidemOx1CfZEqe9bm8j+aezY4Zml8n6mgASVGslQ=";
+            "darwin-x64" = "sha256-S5BSHGS3KMqr4iFzfOioPTYu8IUu7n14nwFPf/c86Xs=";
+            "linux-arm64" = "sha256-Ynf7vqciKKBp5HGfw+X6NvFnSSR6IyHFINrpPoPpLZw=";
+            "linux-x64" = "sha256-IU9gPzGUIWLayaZfGNQ7OsZGriFSQPrUgcSq1sYPLjg=";
           };
           platformKey = "${final.stdenv.hostPlatform.parsed.kernel.name}-${
             if final.stdenv.hostPlatform.isAarch64 then "arm64" else "x64"
