@@ -25,12 +25,17 @@ let
 
     status=$(printf '%s' "$body" | ${pkgs.jq}/bin/jq -r '.status // "unknown"')
     audio=$(printf '%s' "$body"  | ${pkgs.jq}/bin/jq -r '.audio_status // "unknown"')
+    frame=$(printf '%s' "$body"  | ${pkgs.jq}/bin/jq -r '.frame_status // "unknown"')
 
-    if [ "$status" = "healthy" ] && [ "$audio" = "ok" ]; then
+    # Overall .status flips to "degraded" for non-fatal reasons like a
+    # transcription backlog — restarting in that case wipes the in-memory
+    # queue and makes catch-up impossible. Kick only when a specific
+    # subsystem reports unhealthy.
+    if [ "$audio" = "ok" ] && [ "$frame" = "ok" ]; then
       exit 0
     fi
 
-    echo "$ts unhealthy (status=$status audio=$audio); kickstarting ${screenpipeLabel}"
+    echo "$ts unhealthy (status=$status audio=$audio frame=$frame); kickstarting ${screenpipeLabel}"
     /bin/launchctl kickstart -k "gui/$(/usr/bin/id -u)/${screenpipeLabel}"
   '';
 in

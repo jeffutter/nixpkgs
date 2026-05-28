@@ -11,6 +11,8 @@
     telegram-desktop
   ];
 
+  programs.man.package = pkgs.man;
+
   # Symlink nix-installed apps to ~/Applications for Spotlight
   home.file."Applications" =
     let
