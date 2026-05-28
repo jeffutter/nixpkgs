@@ -25,8 +25,6 @@ let
   the-elements-of-style = inputs.the-elements-of-style;
   todoist-cli-pkg = pkgs.callPackage ../../../pkgs/todoist-cli { src = inputs.todoist-cli-src; };
 
-  ticket = pkgs.callPackage ../../../pkgs/ticket { inherit inputs; };
-
   claude-tail = inputs.claude-tail.packages.${pkgs.stdenv.hostPlatform.system}.default;
   rtk = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.rtk;
   basePi = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.pi;
@@ -82,7 +80,6 @@ in
         llm-jq = true;
       })
       # shell-gpt
-      ticket
     ];
 
     home.file.".claude/plugins/marketplaces/superpowers".source = superpowers;
