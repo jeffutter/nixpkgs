@@ -20,7 +20,7 @@ buildNpmPackage {
 
   nodejs = nodejs_22;
 
-  npmDepsHash = "sha256-9TtjDsdEYNuzfnh+NEktFVgLqkpzyK/r0kfnPm/f3ZM=";
+  npmDepsHash = "sha256-IfbROO1xpLGqWLGxIVwgG26FmarTOvxkc3hAdAvIC48=";
 
   # Use --ignore-scripts to block lifecycle hooks (postinstall syncs skills to
   # ~/.claude, which won't work in the Nix sandbox). Run tsc directly instead
