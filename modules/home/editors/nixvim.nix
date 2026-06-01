@@ -37,6 +37,7 @@
         bashls.enable = true;
         graphql.enable = true;
         lua_ls.enable = true;
+        marksman.enable = true;
         sqls.enable = true;
         vale_ls.enable = true;
         nixd = {
@@ -447,6 +448,12 @@
         mode = [ "n" ];
         action = "<cmd>Trouble diagnostics toggle filter.buf=0<CR>";
         options.desc = "Buffer Diagnostics";
+      }
+      {
+        key = "<leader>xs";
+        mode = [ "n" ];
+        action = "<cmd>Trouble symbols toggle<CR>";
+        options.desc = "Symbols (ToC)";
       }
 
       {
