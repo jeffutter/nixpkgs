@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+PKG="${HOME}/.config/home-manager/pkgs/colgrep/default.nix"
+
+# Map nix system → release target triple (must match the colgrep-<triple>.tar.xz
+# asset names and the URL substrings in sources = { ... } in default.nix). Add
+# new entries here when upstream ships more prebuilt platforms.
+declare -A TRIPLES=(
+  ["aarch64-darwin"]="aarch64-apple-darwin"
+  ["x86_64-linux"]="x86_64-unknown-linux-gnu"
+)
+
+to_sri() {
+  nix hash convert --hash-algo sha256 --to sri "$1" 2>/dev/null \
+    || nix hash to-sri --type sha256 "$1" 2>/dev/null
+}
+
+echo "Fetching latest colgrep release..."
+TAG=$(curl -sf "https://api.github.com/repos/lightonai/next-plaid/releases/latest" | jq -r '.tag_name')
+
+if [[ -z "$TAG" || "$TAG" == "null" ]]; then
+  echo "error: failed to fetch latest release tag from GitHub" >&2
+  exit 1
+fi
+LATEST="${TAG#v}"
+
+CURRENT=$(grep 'version = ' "$PKG" | head -1 | sed 's/.*"\(.*\)".*/\1/')
+
+echo "Current: $CURRENT  Latest: $LATEST"
+
+if [[ "$LATEST" == "$CURRENT" ]]; then
+  echo "Already at latest version, nothing to do."
+  exit 0
+fi
+
+BASE_URL="https://github.com/lightonai/next-plaid/releases/download/${TAG}"
+
+# Prefetch each platform tarball and convert the hash to SRI.
+declare -A HASHES
+for SYSTEM in "${!TRIPLES[@]}"; do
+  TRIPLE="${TRIPLES[$SYSTEM]}"
+  echo "Fetching hash for ${TRIPLE}..."
+  RAW=$(nix-prefetch-url "${BASE_URL}/colgrep-${TRIPLE}.tar.xz" 2>/dev/null)
+  HASHES["$SYSTEM"]=$(to_sri "$RAW")
+  echo "  ${HASHES[$SYSTEM]}"
+done
+
+echo "Updating pkgs/colgrep/default.nix..."
+perl -pi -e "s|version = \"[^\"]+\"|version = \"${LATEST}\"|" "$PKG"
+
+# Replace each hash by anchoring on the platform-specific tarball name that
+# precedes it within the same `{ url = ...; hash = ...; }` block.
+for SYSTEM in "${!TRIPLES[@]}"; do
+  TRIPLE="${TRIPLES[$SYSTEM]}"
+  NEW_HASH="${HASHES[$SYSTEM]}"
+  perl -0777 -pi -e \
+    "s|(colgrep-${TRIPLE}\.tar\.xz\";\s*\n\s*hash = \")sha256-[^\"]+|\${1}${NEW_HASH}|s" \
+    "$PKG"
+done
+
+echo "Updated colgrep: $CURRENT -> $LATEST"

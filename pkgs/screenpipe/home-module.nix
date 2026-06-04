@@ -55,6 +55,7 @@ in
         "-l"
         "english"
         "--use-system-default-audio"
+        "--filter-music"
       ];
       description = "Extra flags passed to `screenpipe record`.";
     };
