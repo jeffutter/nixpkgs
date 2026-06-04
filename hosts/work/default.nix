@@ -9,7 +9,6 @@
   homebrew.taps = [
     "atlassian/homebrew-acli"
     "menubar-apps/menubar-apps"
-    "fastrepl/hyprnote"
   ];
 
   homebrew.brews = [
@@ -23,7 +22,6 @@
     "jetbrains-toolbox"
     "rode-central"
     "shottr"
-    "char@nightly"
     "beekeeper-studio"
   ];
 
