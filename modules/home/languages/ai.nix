@@ -123,6 +123,13 @@ in
     default = ./ai/kami/brand.md;
   };
 
+  # rtk rewrites Bash commands via a PreToolUse hook. Disabled on hosts where
+  # rtk's command rewriting is unwanted (e.g. the work machine).
+  options.jeff.enableRtkHooks = lib.mkOption {
+    type = lib.types.bool;
+    default = true;
+  };
+
   config = {
     home.packages = with pkgs; [
       agent-browser
@@ -207,9 +214,18 @@ in
       installPacks = [
         "peon"
         "clean_chimes"
+        {
+          name = "cute_ui";
+          src = pkgs.fetchFromGitHub {
+            owner = "TechPdM";
+            repo = "openpeon-cute-minimal";
+            rev = "v1.0.1";
+            sha256 = "sha256-+ieyEOyPcPshOYxVJLhLm/L71Rjarqld7Gpx73MTG7M=";
+          };
+        }
       ];
       settings = {
-        default_pack = "clean_chimes";
+        default_pack = "cute_ui";
         volume = 0.3;
         enabled = true;
         desktop_notifications = true;
@@ -237,11 +253,12 @@ in
         };
         sandbox = {
           excludedCommands = [
-            "acli jira *"
             "acli confluence *"
+            "acli jira *"
+            "nix eval *"
+            "rtk cargo *"
             "rtk gh *"
             "rtk git *"
-            "rtk cargo *"
           ];
           network = {
             allowedDomains = [
@@ -255,48 +272,49 @@ in
         permissions = {
           defaultMode = "acceptEdits";
           allow = [
-            "Bash(biome check:*)"
-            "Bash(biome format:*)"
-            "Bash(biome lint:*)"
+            "Bash(biome check *)"
+            "Bash(biome format *)"
+            "Bash(biome lint *)"
             "Bash(acli confluence *)"
             "Bash(acli jira *)"
             "Bash(confluence-search.sh *)"
-            "Bash(cargo bench:*)"
-            "Bash(cargo build:*)"
-            "Bash(cargo check:*)"
-            "Bash(cargo clippy:*)"
-            "Bash(cargo doc:*)"
-            "Bash(cargo fmt:*)"
-            "Bash(cargo nextest:*)"
-            "Bash(cargo run:*)"
-            "Bash(cargo test:*)"
+            "Bash(cargo bench *)"
+            "Bash(cargo build *)"
+            "Bash(cargo check *)"
+            "Bash(cargo clippy *)"
+            "Bash(cargo doc *)"
+            "Bash(cargo fmt *)"
+            "Bash(cargo nextest *)"
+            "Bash(cargo run *)"
+            "Bash(cargo test *)"
             "Bash(cargo tree *)"
             "Bash(echo \"exit=$?\")"
-            "Bash(lefthook:*)"
-            "Bash(mix compile:*)"
-            "Bash(mix credo:*)"
-            "Bash(mix deps.clean:*)"
-            "Bash(mix deps.compile:*)"
-            "Bash(mix deps.get:*)"
-            "Bash(mix dump_schema:*)"
-            "Bash(mix ecto.migrate:*)"
-            "Bash(mix format:*)"
-            "Bash(mix lint:*)"
-            "Bash(mix phx.server:*)"
-            "Bash(mix seed:*)"
-            "Bash(mix test:*)"
+            "Bash(lefthook *)"
+            "Bash(mix compile *)"
+            "Bash(mix credo *)"
+            "Bash(mix deps.clean *)"
+            "Bash(mix deps.compile *)"
+            "Bash(mix deps.get *)"
+            "Bash(mix dump_schema *)"
+            "Bash(mix ecto.migrate *)"
+            "Bash(mix format *)"
+            "Bash(mix lint *)"
+            "Bash(mix phx.server *)"
+            "Bash(mix seed *)"
+            "Bash(mix test *)"
             "Bash(nix eval *)"
             "Bash(nix flake check *)"
             "Bash(nix flake metadata *)"
+            "Bash(nix fmt *)"
             "Bash(rover supergraph compose *)"
             "Bash(rtk curl *)"
-            "Bash(rtk find:*)"
-            "Bash(rtk git:*)"
-            "Bash(rtk gh:*)"
-            "Bash(rtk grep:*)"
-            "Bash(rtk ls:*)"
+            "Bash(rtk find *)"
+            "Bash(rtk git *)"
+            "Bash(rtk gh *)"
+            "Bash(rtk grep *)"
+            "Bash(rtk ls *)"
             "Bash(rtk ps *)"
-            "Bash(rtk read:*)"
+            "Bash(rtk read *)"
             "Bash(rtk wc *)"
             "Read(/private/tmp/claude-*/**)"
             "Read(/tmp/claude-*/**)"
@@ -319,8 +337,8 @@ in
         };
         disabledMcpjsonServers = [ "context7:context7" ];
         hooks = {
-          PreToolUse = [
-            {
+          PreToolUse =
+            (lib.optional config.jeff.enableRtkHooks {
               matcher = "Bash";
               hooks = [
                 {
@@ -328,17 +346,18 @@ in
                   command = "${rtk}/libexec/rtk/hooks/claude/rtk-rewrite.sh";
                 }
               ];
-            }
-            {
-              matcher = "Bash(git commit *)";
-              hooks = [
-                {
-                  type = "command";
-                  command = "cat ${./ai/shared/git-commit-guidelines.md}";
-                }
-              ];
-            }
-          ];
+            })
+            ++ [
+              {
+                matcher = "Bash(git commit *)";
+                hooks = [
+                  {
+                    type = "command";
+                    command = "cat ${./ai/shared/git-commit-guidelines.md}";
+                  }
+                ];
+              }
+            ];
           PermissionRequest = [
             { hooks = [ permissionStatsCapture ]; }
             (mkPeonEntry { })

@@ -115,4 +115,6 @@ in
   };
 
   jeff.kamiSkillBrand = ./kami/brand.md;
+
+  jeff.enableRtkHooks = false;
 }
