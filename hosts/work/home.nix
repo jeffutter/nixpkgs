@@ -21,7 +21,7 @@ in
     ../../modules/home/languages/javascript.nix
     ../../modules/home/languages/java.nix
     ../../modules/home/languages/ai.nix
-    ../../pkgs/screenpipe/home-module.nix
+    # ../../pkgs/screenpipe/home-module.nix
   ];
 
   home.packages = with pkgs; [
@@ -30,7 +30,7 @@ in
     grpcurl
     llvmPackages.bintools
     my_google-cloud-sdk
-    screenpipe
+    # screenpipe
     thaw
   ];
 
@@ -93,19 +93,19 @@ in
 
   programs.keychain.keys = [ "id_ed25519" ];
 
-  services.screenpipe = {
-    enable = true;
-    package = screenpipe;
-    extraArgs = [
-      "-l"
-      "english"
-      "--use-system-default-audio"
-      "-i"
-      "System Audio (output)"
-      "--experimental-coreaudio-system-audio"
-      "--filter-music"
-    ];
-  };
+  # services.screenpipe = {
+  #   enable = true;
+  #   package = screenpipe;
+  #   extraArgs = [
+  #     "-l"
+  #     "english"
+  #     "--use-system-default-audio"
+  #     "-i"
+  #     "System Audio (output)"
+  #     "--experimental-coreaudio-system-audio"
+  #     "--filter-music"
+  #   ];
+  # };
 
   programs.claude-code.settings.model = "opus";
 
