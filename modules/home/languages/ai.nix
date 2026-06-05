@@ -22,6 +22,7 @@ let
     '';
   apollo_skills = inputs.apollo_skills;
   ast-grep-skill = inputs.ast-grep-skill;
+  grill-me-skill = inputs.grill-me-skill;
   the-elements-of-style = inputs.the-elements-of-style;
   todoist-cli-pkg = pkgs.callPackage ../../../pkgs/todoist-cli { src = inputs.todoist-cli-src; };
 
@@ -463,6 +464,7 @@ in
         todoist-cli = "${todoist-cli-pkg}/share/todoist-cli/skill";
         kami = "${mkKamiSkill config.jeff.kamiSkillBrand}";
         ast-grep = "${ast-grep-skill}/ast-grep/skills/ast-grep";
+        grill-me = "${grill-me-skill}/skills/productivity/grill-me";
       }
       // builtins.listToAttrs (
         map

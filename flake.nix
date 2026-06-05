@@ -110,6 +110,11 @@
       flake = false;
     };
 
+    grill-me-skill = {
+      url = "github:mattpocock/skills";
+      flake = false;
+    };
+
     # Fish plugins
     fish-plugin-fenv = {
       url = "github:oh-my-fish/plugin-foreign-env/7f0cf099ae1e1e4ab38f46350ed6757d54471de7";
