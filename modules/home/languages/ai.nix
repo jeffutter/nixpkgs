@@ -89,11 +89,18 @@ in
       defaultModel = "chat:thinking-coding";
       quietStartup = true;
       enabledModels = [
+        "anthropic/claude-opus-4.8"
+        "anthropic/claude-sonnet-4.6"
         "chat"
+        "chat-27b:thinking"
+        "chat-27b:thinking-coding"
         "chat:instruct"
         "chat:thinking-coding"
+        "deepseek/deepseek-v4-flash"
+        "deepseek/deepseek-v4-pro"
+        "moonshotai/kimi-k2.6"
+        "qwen/qwen3.7-max"
         "qwen3.6:instruct-reasoning"
-        "chat-27b:thinking-coding"
       ];
     };
 
@@ -110,26 +117,57 @@ in
           models = [
             {
               id = "chat";
-              # contextWindow = 65536;
               contextWindow = 131072;
             }
             {
               id = "chat:thinking-coding";
               reasoning = true;
-              # contextWindow = 65536;
               contextWindow = 131072;
             }
             {
               id = "qwen3.6:instruct-reasoning";
               reasoning = false;
-              # contextWindow = 65536;
               contextWindow = 131072;
             }
             {
               id = "chat-27b:thinking-coding";
               reasoning = true;
-              # contextWindow = 65536;
               contextWindow = 131072;
+            }
+            {
+              id = "chat-27b:thinking";
+              reasoning = true;
+              contextWindow = 131072;
+            }
+            {
+              id = "deepseek/deepseek-v4-flash";
+              reasoning = true;
+              contextWindow = 524288;
+            }
+            {
+              id = "deepseek/deepseek-v4-pro";
+              reasoning = true;
+              contextWindow = 524288;
+            }
+            {
+              id = "moonshotai/kimi-k2.6";
+              reasoning = true;
+              contextWindow = 262144;
+            }
+            {
+              id = "qwen/qwen3.7-max";
+              reasoning = true;
+              contextWindow = 524288;
+            }
+            {
+              id = "anthropic/claude-sonnet-4.6";
+              reasoning = true;
+              contextWindow = 524288;
+            }
+            {
+              id = "anthropic/claude-opus-4.8";
+              reasoning = true;
+              contextWindow = 524288;
             }
           ];
         };
