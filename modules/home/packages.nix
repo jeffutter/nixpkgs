@@ -43,6 +43,7 @@ in
     btop
     bzip2
     cachix
+    (pkgs.callPackage ../../pkgs/colgrep { })
     colmena
     comma
     curl

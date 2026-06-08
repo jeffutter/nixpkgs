@@ -53,6 +53,10 @@ in
       autoUpdate = true;
       cleanup = "zap";
       upgrade = true;
+      # Homebrew 5.x refuses `brew bundle install --cleanup` unless given
+      # --force/--force-cleanup/$HOMEBREW_ASK. nix-darwin doesn't pass this
+      # yet, so force non-interactive cleanup ourselves.
+      extraFlags = [ "--force" ];
     };
     caskArgs = {
       appdir = "~/Applications";

@@ -1,2 +1,4 @@
 result
 /home.nix
+__pycache__/
+*.pyc

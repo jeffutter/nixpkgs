@@ -22,10 +22,12 @@ let
     '';
   apollo_skills = inputs.apollo_skills;
   ast-grep-skill = inputs.ast-grep-skill;
+  grill-me-skill = inputs.grill-me-skill;
   the-elements-of-style = inputs.the-elements-of-style;
   todoist-cli-pkg = pkgs.callPackage ../../../pkgs/todoist-cli { src = inputs.todoist-cli-src; };
 
   claude-tail = inputs.claude-tail.packages.${pkgs.stdenv.hostPlatform.system}.default;
+  peon-ping = inputs.peon-ping.packages.${pkgs.stdenv.hostPlatform.system}.default;
   rtk = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.rtk;
   basePi = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.pi;
   # Patch the hardcoded 30s RPC send timeout in pi-coding-agent to 5 minutes,
@@ -50,6 +52,59 @@ let
   # Helper function to read markdown files from the ai directory
   readAiDoc = file: builtins.readFile (./ai + "/${file}");
 
+  # Permission-prompt stats hook. capture.py and report.py are deployed together
+  # to a single store path so capture.py can import report.py alongside it; the
+  # scripts write their event/report data to ~/.claude/permission-stats at runtime.
+  permissionStats = ./ai/permission-stats;
+  permissionStatsCapture = {
+    type = "command";
+    command = "python3 ${permissionStats}/capture.py";
+  };
+
+  # peon-ping Claude Code hooks. We wire these declaratively instead of using the
+  # module's `claudeCodeIntegration`, which mutates ~/.claude/settings.json via an
+  # activation script -- incompatible here, since programs.claude-code owns that
+  # file as a read-only Nix store symlink. Hooks reference the package's scripts
+  # by store path, mirroring the module's own registrations.
+  peonHook = "${peon-ping}/bin/peon";
+  # One peon.sh hook entry. async=true matches the module for every event except
+  # SessionStart; matcher is "" everywhere except PostToolUseFailure ("Bash").
+  mkPeonEntry =
+    {
+      matcher ? "",
+      async ? true,
+    }:
+    {
+      inherit matcher;
+      hooks = [
+        (
+          {
+            type = "command";
+            command = peonHook;
+            timeout = 10;
+          }
+          // lib.optionalAttrs async { async = true; }
+        )
+      ];
+    };
+  # UserPromptSubmit also runs the /peon-ping-use and /peon-ping-rename helpers.
+  peonUserPromptHelpers = {
+    matcher = "";
+    hooks = [
+      {
+        type = "command";
+        command = "${peon-ping}/share/peon-ping/scripts/hook-handle-use.sh";
+        timeout = 5;
+      }
+      {
+        type = "command";
+        command = "${peon-ping}/share/peon-ping/scripts/hook-handle-rename.sh";
+        timeout = 5;
+      }
+    ];
+  };
+  peonSkill = name: "${peon-ping}/share/peon-ping/skills/${name}";
+
   commitMsgCommon = {
     intro = readAiDoc "shared/commit-msg/commit-msg-intro.md";
     writingStyle = readAiDoc "shared/commit-msg/commit-msg-writing-style.md";
@@ -62,9 +117,18 @@ let
 in
 
 {
+  imports = [ inputs.peon-ping.homeManagerModules.default ];
+
   options.jeff.kamiSkillBrand = lib.mkOption {
     type = lib.types.path;
     default = ./ai/kami/brand.md;
+  };
+
+  # rtk rewrites Bash commands via a PreToolUse hook. Disabled on hosts where
+  # rtk's command rewriting is unwanted (e.g. the work machine).
+  options.jeff.enableRtkHooks = lib.mkOption {
+    type = lib.types.bool;
+    default = true;
   };
 
   config = {
@@ -74,6 +138,7 @@ in
       claude-tail
       pi
       rtk
+      peon-ping
       #fabric
       (llm.withPlugins {
         llm-cmd = true;
@@ -174,6 +239,39 @@ in
       };
     };
 
+    # peon-ping: game-character voice lines / overlays on Claude Code events.
+    # claudeCodeIntegration is left off so this module only manages ~/.openpeon
+    # (config + packs); the Claude hooks themselves are declared in
+    # programs.claude-code.settings.hooks below. Shell integration is off because
+    # this repo uses fish (the package's fish completions load via home.packages).
+    programs.peon-ping = {
+      enable = true;
+      package = peon-ping;
+      claudeCodeIntegration = false;
+      enableZshIntegration = false;
+      enableBashIntegration = false;
+      installPacks = [
+        "peon"
+        "clean_chimes"
+        {
+          name = "cute_ui";
+          src = pkgs.fetchFromGitHub {
+            owner = "TechPdM";
+            repo = "openpeon-cute-minimal";
+            rev = "v1.0.1";
+            sha256 = "sha256-+ieyEOyPcPshOYxVJLhLm/L71Rjarqld7Gpx73MTG7M=";
+          };
+        }
+      ];
+      settings = {
+        default_pack = "cute_ui";
+        volume = 0.3;
+        enabled = true;
+        desktop_notifications = true;
+        notification_style = "standard";
+      };
+    };
+
     programs.claude-code = {
       enable = true;
       package = pkgs.claude-code;
@@ -194,8 +292,10 @@ in
         };
         sandbox = {
           excludedCommands = [
-            "acli jira *"
             "acli confluence *"
+            "acli jira *"
+            "nix eval *"
+            "rtk cargo *"
             "rtk gh *"
             "rtk git *"
           ];
@@ -211,48 +311,49 @@ in
         permissions = {
           defaultMode = "acceptEdits";
           allow = [
-            "Bash(biome check:*)"
-            "Bash(biome format:*)"
-            "Bash(biome lint:*)"
+            "Bash(biome check *)"
+            "Bash(biome format *)"
+            "Bash(biome lint *)"
             "Bash(acli confluence *)"
             "Bash(acli jira *)"
             "Bash(confluence-search.sh *)"
-            "Bash(cargo bench:*)"
-            "Bash(cargo build:*)"
-            "Bash(cargo check:*)"
-            "Bash(cargo clippy:*)"
-            "Bash(cargo doc:*)"
-            "Bash(cargo fmt:*)"
-            "Bash(cargo nextest:*)"
-            "Bash(cargo run:*)"
-            "Bash(cargo test:*)"
+            "Bash(cargo bench *)"
+            "Bash(cargo build *)"
+            "Bash(cargo check *)"
+            "Bash(cargo clippy *)"
+            "Bash(cargo doc *)"
+            "Bash(cargo fmt *)"
+            "Bash(cargo nextest *)"
+            "Bash(cargo run *)"
+            "Bash(cargo test *)"
             "Bash(cargo tree *)"
             "Bash(echo \"exit=$?\")"
-            "Bash(lefthook:*)"
-            "Bash(mix compile:*)"
-            "Bash(mix credo:*)"
-            "Bash(mix deps.clean:*)"
-            "Bash(mix deps.compile:*)"
-            "Bash(mix deps.get:*)"
-            "Bash(mix dump_schema:*)"
-            "Bash(mix ecto.migrate:*)"
-            "Bash(mix format:*)"
-            "Bash(mix lint:*)"
-            "Bash(mix phx.server:*)"
-            "Bash(mix seed:*)"
-            "Bash(mix test:*)"
+            "Bash(lefthook *)"
+            "Bash(mix compile *)"
+            "Bash(mix credo *)"
+            "Bash(mix deps.clean *)"
+            "Bash(mix deps.compile *)"
+            "Bash(mix deps.get *)"
+            "Bash(mix dump_schema *)"
+            "Bash(mix ecto.migrate *)"
+            "Bash(mix format *)"
+            "Bash(mix lint *)"
+            "Bash(mix phx.server *)"
+            "Bash(mix seed *)"
+            "Bash(mix test *)"
             "Bash(nix eval *)"
             "Bash(nix flake check *)"
             "Bash(nix flake metadata *)"
+            "Bash(nix fmt *)"
             "Bash(rover supergraph compose *)"
             "Bash(rtk curl *)"
-            "Bash(rtk find:*)"
-            "Bash(rtk git:*)"
-            "Bash(rtk gh:*)"
-            "Bash(rtk grep:*)"
-            "Bash(rtk ls:*)"
+            "Bash(rtk find *)"
+            "Bash(rtk git *)"
+            "Bash(rtk gh *)"
+            "Bash(rtk grep *)"
+            "Bash(rtk ls *)"
             "Bash(rtk ps *)"
-            "Bash(rtk read:*)"
+            "Bash(rtk read *)"
             "Bash(rtk wc *)"
             "Read(/private/tmp/claude-*/**)"
             "Read(/tmp/claude-*/**)"
@@ -275,8 +376,8 @@ in
         };
         disabledMcpjsonServers = [ "context7:context7" ];
         hooks = {
-          PreToolUse = [
-            {
+          PreToolUse =
+            (lib.optional config.jeff.enableRtkHooks {
               matcher = "Bash";
               hooks = [
                 {
@@ -284,17 +385,45 @@ in
                   command = "${rtk}/libexec/rtk/hooks/claude/rtk-rewrite.sh";
                 }
               ];
-            }
-            {
-              matcher = "Bash(git commit *)";
-              hooks = [
-                {
-                  type = "command";
-                  command = "cat ${./ai/shared/git-commit-guidelines.md}";
-                }
-              ];
-            }
+            })
+            ++ [
+              {
+                matcher = "Bash(git commit *)";
+                hooks = [
+                  {
+                    type = "command";
+                    command = "cat ${./ai/shared/git-commit-guidelines.md}";
+                  }
+                ];
+              }
+            ];
+          PermissionRequest = [
+            { hooks = [ permissionStatsCapture ]; }
+            (mkPeonEntry { })
           ];
+          PermissionDenied = [ { hooks = [ permissionStatsCapture ]; } ];
+          PostToolUse = [ { hooks = [ permissionStatsCapture ]; } ];
+          PostToolUseFailure = [ (mkPeonEntry { matcher = "Bash"; }) ];
+          UserPromptSubmit = [
+            { hooks = [ permissionStatsCapture ]; }
+            (mkPeonEntry { })
+            peonUserPromptHelpers
+          ];
+          Stop = [
+            { hooks = [ permissionStatsCapture ]; }
+            (mkPeonEntry { })
+          ];
+          SessionStart = [
+            { hooks = [ permissionStatsCapture ]; }
+            (mkPeonEntry { async = false; })
+          ];
+          SessionEnd = [
+            { hooks = [ permissionStatsCapture ]; }
+            (mkPeonEntry { })
+          ];
+          SubagentStart = [ (mkPeonEntry { }) ];
+          Notification = [ (mkPeonEntry { }) ];
+          PreCompact = [ (mkPeonEntry { }) ];
         };
       };
 
@@ -363,11 +492,17 @@ in
         elixir = ./ai/skills/elixir;
         backlog-planner = ./ai/skills/backlog-planner;
         backlog-execute = ./ai/skills/backlog-execute;
+        peon-ping-config = peonSkill "peon-ping-config";
+        peon-ping-log = peonSkill "peon-ping-log";
+        peon-ping-rename = peonSkill "peon-ping-rename";
+        peon-ping-toggle = peonSkill "peon-ping-toggle";
+        peon-ping-use = peonSkill "peon-ping-use";
         stop-slop = "${stop-slop}";
         writing-clearly-and-concisely = "${the-elements-of-style}/skills/writing-clearly-and-concisely";
         todoist-cli = "${todoist-cli-pkg}/share/todoist-cli/skill";
         kami = "${mkKamiSkill config.jeff.kamiSkillBrand}";
         ast-grep = "${ast-grep-skill}/ast-grep/skills/ast-grep";
+        grill-me = "${grill-me-skill}/skills/productivity/grill-me";
       }
       // builtins.listToAttrs (
         map
