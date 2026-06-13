@@ -139,6 +139,8 @@ in
       bind-key N swap-window -t +1 \; next-window
       bind-key P swap-window -t -1 \; previous-window
 
+      set -g focus-events on
+
       # Enable italic and true color passthrough
       set -as terminal-overrides ',*:Smulx=\E[4::%p1%dm'  # undercurl support
       set -as terminal-overrides ',*:Setulc=\E[58::2::%p1%{65536}%/%d::%p1%{256}%/%{255}%&%d::%p1%{255}%&%d%;m'  # underscore colors
