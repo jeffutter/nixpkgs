@@ -10,6 +10,9 @@
 
     nixpkgs.useGlobalPackages = true;
 
+    # nixvim master reports 26.11 against nixpkgs-unstable's 26.05; expected skew.
+    version.enableNixpkgsReleaseCheck = false;
+
     globals.mapleader = " ";
 
     globalOpts = {

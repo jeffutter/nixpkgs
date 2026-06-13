@@ -29,8 +29,10 @@
 
   programs.ghostty = {
     enable = true;
-    # On Darwin, Ghostty is installed via Homebrew, so use empty package
-    package = pkgs.runCommandLocal "empty" { } "mkdir $out";
+    # On Darwin, Ghostty is installed via Homebrew, so use an empty stub package.
+    # The module calls `lib.getExe` on it, so declare mainProgram to avoid the
+    # "Package empty does not have the meta.mainProgram attribute" warning.
+    package = pkgs.runCommandLocal "empty" { meta.mainProgram = "ghostty"; } "mkdir $out";
     installBatSyntax = false;
   };
 

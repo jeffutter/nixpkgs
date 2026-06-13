@@ -17,6 +17,10 @@
     enable = true;
     autoEnable = true;
 
+    # We track stylix master against nixpkgs-unstable; the versions report
+    # 26.11 vs 26.05 respectively, which is expected. Skip the release check.
+    enableReleaseChecks = false;
+
     # Use Tokyo Night Storm base24 scheme for better syntax highlighting (24 colors vs 16)
     base16Scheme = "${inputs.tinted-theming-schemes}/base24/tokyo-night-storm.yaml";
 
