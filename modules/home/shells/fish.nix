@@ -86,15 +86,11 @@ in
       set -x HOMEBREW_CASK_OPTS "--appdir=$HOME/Applications"
       set -x ERL_AFLAGS "-kernel shell_history enabled"
 
-      set -gx ATUIN_NOBIND "true"
       set -x RUST_SRC_PATH "${pkgs.rust.packages.stable.rustPlatform.rustLibSrc}";
     '';
     interactiveShellInit = ''
       fish_vi_key_bindings
       bind -M default vv edit_command_buffer
-
-      bind \cr _atuin_search
-      bind -M insert \cr _atuin_search
 
       set -x GPG_TTY (tty)
       set -x PINENTRY_USER_DATA "USE_CURSES=1"

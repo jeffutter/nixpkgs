@@ -62,11 +62,15 @@
     enableBashIntegration = true;
     enableFishIntegration = true;
     settings = {
-      sync_address = "https://atuin.home.jeffutter.com";
+      daemon = {
+        enabled = true;
+        autostart = true;
+      };
+      filter_mode_shell_up_key_binding = "session";
       search_mode = "fuzzy";
+      sync_address = "https://atuin.home.jeffutter.com";
       update_check = false;
-      # https://github.com/atuinsh/atuin/issues/1749
-      timezone = "-6";
+      inline_height_shell_up_key_binding = 10;
     };
   };
 
