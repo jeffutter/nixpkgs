@@ -277,19 +277,20 @@ in
       package = pkgs.claude-code;
       settings = {
         alwaysThinkingEnabled = true;
-        includeCoAuthoredBy = false;
         attribution = {
           commit = "";
           pr = "";
         };
-        installMethod = "manual";
-        skipInstallOnStartup = true;
-        disableSymlinks = true;
         disableShellIntegration = true;
+        disableSymlinks = true;
+        disableWorkflows = false;
         env = {
           DISABLE_AUTOUPDATER = 1;
           DISABLE_INSTALLATION_CHECKS = 1;
         };
+        includeCoAuthoredBy = false;
+        installMethod = "manual";
+        skipInstallOnStartup = true;
         sandbox = {
           excludedCommands = [
             "acli confluence *"
