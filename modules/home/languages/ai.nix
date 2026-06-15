@@ -501,6 +501,7 @@ in
         stop-slop = "${stop-slop}";
         writing-clearly-and-concisely = "${the-elements-of-style}/skills/writing-clearly-and-concisely";
         todoist-cli = "${todoist-cli-pkg}/share/todoist-cli/skill";
+        agent-browser = "${agent-browser}/share/agent-browser/skills/agent-browser";
         kami = "${mkKamiSkill config.jeff.kamiSkillBrand}";
         ast-grep = "${ast-grep-skill}/ast-grep/skills/ast-grep";
         grill-me = "${grill-me-skill}/skills/productivity/grill-me";
