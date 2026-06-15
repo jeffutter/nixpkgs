@@ -284,6 +284,7 @@ in
         disableShellIntegration = true;
         disableSymlinks = true;
         disableWorkflows = false;
+        enableWorkflows = true;
         env = {
           DISABLE_AUTOUPDATER = 1;
           DISABLE_INSTALLATION_CHECKS = 1;
