@@ -38,7 +38,20 @@
 
       servers = {
         bashls.enable = true;
-        graphql.enable = true;
+        graphql = {
+          enable = true;
+          # Attach to the TS modules where Blueprint co-locates its
+          # `/* GraphQL */` @requires fragments. lspconfig's default graphql
+          # filetypes omit plain `typescript`, so without this the server only
+          # lights up in `.graphql` files and never the `.ts` fragment units.
+          config.filetypes = [
+            "graphql"
+            "typescript"
+            "typescriptreact"
+            "javascript"
+            "javascriptreact"
+          ];
+        };
         lua_ls.enable = true;
         marksman.enable = true;
         sqls.enable = true;
@@ -378,6 +391,39 @@
         ];
       };
     };
+
+    # Highlight embedded `/* GraphQL */ `…`` template strings (Blueprint's
+    # co-located @requires fragments) as GraphQL inside TS/TSX buffers. The
+    # `; extends` modeline adds to nvim-treesitter's stock injections rather
+    # than replacing them; the anchor matches a GraphQL magic comment
+    # immediately followed by a template string.
+    #
+    # `injection.combined` is load-bearing: an escaped backtick inside a GraphQL
+    # `#` comment (e.g. `\`name\``) is an `escape_sequence` node that splits the
+    # template literal into several `string_fragment`s. Without `combined`, each
+    # fragment parses as its own (broken) GraphQL document and keyword
+    # highlights scatter onto the wrong characters. `combined` reassembles the
+    # fragments of one template into a single document. This assumes one
+    # `/* GraphQL */` block per file (the one-fragment-per-module convention);
+    # two blocks in one file would be merged and mis-parsed.
+    extraFiles =
+      let
+        gqlInjection = ''
+          ; extends
+          (
+            ((comment) @_gql
+              (#match? @_gql "[Gg]raph[Qq][Ll]"))
+            .
+            (template_string (string_fragment) @injection.content)
+            (#set! injection.combined)
+            (#set! injection.language "graphql")
+          )
+        '';
+      in
+      {
+        "after/queries/typescript/injections.scm".text = gqlInjection;
+        "after/queries/tsx/injections.scm".text = gqlInjection;
+      };
 
     extraPlugins = [
       pkgs.vimPlugins.csvview-nvim
