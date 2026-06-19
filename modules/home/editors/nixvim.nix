@@ -33,7 +33,6 @@
     };
 
     lsp = {
-      enable = true;
       inlayHints.enable = true;
 
       servers = {
@@ -118,7 +117,7 @@
       lualine.enable = true;
       luasnip.enable = true;
       nix.enable = true;
-      nvim-autopairse.enable = true;
+      nvim-autopairs.enable = true;
       nvim-surround.enable = true;
       render-markdown.enable = true;
       sleuth.enable = true;
@@ -271,82 +270,6 @@
           completion.blink = true;
           legacy_commands = false;
         };
-
-        keymaps = [
-          {
-            action = "<cmd>Obsidian quick_switch<CR>";
-            key = "<leader>nf";
-            options = {
-              silent = true;
-              desc = "Find Notes";
-            };
-          }
-          {
-            action = "<cmd>Obsidian search<CR>";
-            key = "<leader>ns";
-            options = {
-              silent = true;
-              desc = "Search Note Contents";
-            };
-          }
-          {
-            action = "<cmd>Obsidian new<CR>";
-            key = "<leader>nn";
-            options = {
-              silent = true;
-              desc = "Create New Note";
-            };
-          }
-          {
-            action = "<cmd>Obsidian link_new<CR>";
-            key = "<leader>nn";
-            mode = [ "v" ];
-            options = {
-              silent = true;
-              desc = "Create New Note from selection";
-            };
-          }
-          {
-            action = "<cmd>Obsidian template<CR>";
-            key = "<leader>nc";
-            options = {
-              silent = true;
-              desc = "Insert Template";
-            };
-          }
-          {
-            action = "<cmd>Obsidian open<CR>";
-            key = "<leader>no";
-            options = {
-              silent = true;
-              desc = "Open in Obsidian";
-            };
-          }
-          {
-            action = "<cmd>Obsidian backlinks<CR>";
-            key = "<leader>nb";
-            options = {
-              silent = true;
-              desc = "Show Backlinks";
-            };
-          }
-          {
-            action = "<cmd>Obsidian today<CR>";
-            key = "<leader>nT";
-            options = {
-              silent = true;
-              desc = "Open Todays Note";
-            };
-          }
-          {
-            action = "<cmd>Obsidian tags<CR>";
-            key = "<leader>nt";
-            options = {
-              silent = true;
-              desc = "Show Tags";
-            };
-          }
-        ];
       };
 
       snacks = {
@@ -553,6 +476,80 @@
         mode = [ "n" ];
         action = inputs.nixvim.lib.nixvim.mkRaw "function() require(\"neotest\").summary.toggle() end";
         options.desc = "[T]est [S]ummary";
+      }
+
+      {
+        action = "<cmd>Obsidian quick_switch<CR>";
+        key = "<leader>nf";
+        options = {
+          silent = true;
+          desc = "Find Notes";
+        };
+      }
+      {
+        action = "<cmd>Obsidian search<CR>";
+        key = "<leader>ns";
+        options = {
+          silent = true;
+          desc = "Search Note Contents";
+        };
+      }
+      {
+        action = "<cmd>Obsidian new<CR>";
+        key = "<leader>nn";
+        options = {
+          silent = true;
+          desc = "Create New Note";
+        };
+      }
+      {
+        action = "<cmd>Obsidian link_new<CR>";
+        key = "<leader>nn";
+        mode = [ "v" ];
+        options = {
+          silent = true;
+          desc = "Create New Note from selection";
+        };
+      }
+      {
+        action = "<cmd>Obsidian template<CR>";
+        key = "<leader>nc";
+        options = {
+          silent = true;
+          desc = "Insert Template";
+        };
+      }
+      {
+        action = "<cmd>Obsidian open<CR>";
+        key = "<leader>no";
+        options = {
+          silent = true;
+          desc = "Open in Obsidian";
+        };
+      }
+      {
+        action = "<cmd>Obsidian backlinks<CR>";
+        key = "<leader>nb";
+        options = {
+          silent = true;
+          desc = "Show Backlinks";
+        };
+      }
+      {
+        action = "<cmd>Obsidian today<CR>";
+        key = "<leader>nT";
+        options = {
+          silent = true;
+          desc = "Open Todays Note";
+        };
+      }
+      {
+        action = "<cmd>Obsidian tags<CR>";
+        key = "<leader>nt";
+        options = {
+          silent = true;
+          desc = "Show Tags";
+        };
       }
     ];
   };
