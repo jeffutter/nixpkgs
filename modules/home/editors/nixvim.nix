@@ -267,7 +267,6 @@
             workdays_only = false;
           };
           picker.name = "snacks.pick";
-          completion.blink = true;
           legacy_commands = false;
         };
       };
