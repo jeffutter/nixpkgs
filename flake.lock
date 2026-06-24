@@ -743,6 +743,22 @@
         "type": "github"
       }
     },
+    "humanizer": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1780874875,
+        "narHash": "sha256-ub6w8mgYHnN7IXPJHgPiuH3mi3r6O0DNccCqAzP0Xi8=",
+        "owner": "blader",
+        "repo": "humanizer",
+        "rev": "9600f2b7241cb4eed6ad803abee5ea01d67fe8e4",
+        "type": "github"
+      },
+      "original": {
+        "owner": "blader",
+        "repo": "humanizer",
+        "type": "github"
+      }
+    },
     "iio-ambient-brightness": {
       "inputs": {
         "crane": "crane",
@@ -1024,6 +1040,7 @@
         "fish-plugin-fenv": "fish-plugin-fenv",
         "grill-me-skill": "grill-me-skill",
         "home-manager": "home-manager",
+        "humanizer": "humanizer",
         "iio-ambient-brightness": "iio-ambient-brightness",
         "kami": "kami",
         "llm-agents": "llm-agents",

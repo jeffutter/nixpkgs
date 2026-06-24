@@ -11,6 +11,7 @@ let
   backlog-md = inputs.backlog-md.packages.${pkgs.stdenv.hostPlatform.system}.default;
   fabric = inputs.fabric.packages.${pkgs.stdenv.hostPlatform.system}.default;
   stop-slop = inputs.stop-slop;
+  humanizer = inputs.humanizer;
   superpowers = inputs.superpowers;
   kami = inputs.kami;
   mkKamiSkill =
@@ -500,6 +501,7 @@ in
         peon-ping-toggle = peonSkill "peon-ping-toggle";
         peon-ping-use = peonSkill "peon-ping-use";
         stop-slop = "${stop-slop}";
+        humanizer = "${humanizer}";
         writing-clearly-and-concisely = "${the-elements-of-style}/skills/writing-clearly-and-concisely";
         todoist-cli = "${todoist-cli-pkg}/share/todoist-cli/skill";
         agent-browser = "${agent-browser}/share/agent-browser/skills/agent-browser";

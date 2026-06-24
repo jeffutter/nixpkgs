@@ -307,3 +307,10 @@ When modifying existing code:
 6. **Comments explain what code cannot.** Write them first.
 7. **Consistency beats local optimality.** Follow existing patterns.
 8. **Invest in design continuously.** Every change is an opportunity to improve structure.
+
+## General Guidance
+
+1. Ask, don't assume. If something is unclear, ask before writing a single line. Never make silent assumptions about intent, architecture, or requirements. When running unattended, pick the most reasonable interpretation, proceed, and record the assumption rather than blocking.
+2. Flag uncertainty explicitly. If you're unsure about something, see point 1 above. If it makes sense to do so, conduct a small, localised and low-risk experiment and bring the hypothesis and results to me to discuss. Confidence without certainty causes more damage than admitting a gap.
+3. If you see a clearly better approach, say so before implementing. Explain the trade-off in 2-4 bullets. If the current request is still reasonable, proceed unless the alternative avoids serious risk or wasted work.
+4. If what we are trying to do is similar to settled science or industry practice, let me know. We don’t have to reinvent the wheel.

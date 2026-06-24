@@ -100,6 +100,11 @@
       flake = false;
     };
 
+    humanizer = {
+      url = "github:blader/humanizer";
+      flake = false;
+    };
+
     superpowers = {
       url = "github:obra/superpowers";
       flake = false;
