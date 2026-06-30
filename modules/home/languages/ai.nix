@@ -159,31 +159,50 @@ in
     home.file.".claude/plugins/marketplaces/superpowers".source = superpowers;
 
     home.file.".pi/agent/settings.json".text = builtins.toJSON {
-      defaultProvider = "llama-home";
-      defaultModel = "chat:thinking-coding";
+      defaultProvider = "litellm-home";
+      defaultModel = "coding";
       quietStartup = true;
       enabledModels = [
-        "anthropic/claude-opus-4.8"
-        "anthropic/claude-sonnet-4.6"
         "chat"
-        "chat-27b:thinking"
-        "chat-27b:thinking-coding"
-        "chat:instruct"
-        "chat:thinking-coding"
-        "deepseek/deepseek-v4-flash"
-        "deepseek/deepseek-v4-pro"
-        "moonshotai/kimi-k2.6"
-        "qwen/qwen3.7-max"
-        "qwen3.6:instruct-reasoning"
+        "coding"
+        "instruct"
+        "instruct-reasoning"
+        "planning"
+        "research"
       ];
+      packages = [
+        "npm:@gotgenes/pi-permission-system"
+        "npm:@gotgenes/pi-subagents"
+        "npm:@juicesharp/rpiv-ask-user-question"
+        "npm:@juicesharp/rpiv-todo"
+        "npm:@samfp/pi-memory"
+        "npm:pi-bar"
+        "npm:pi-continue"
+        "npm:pi-intercom"
+        "npm:pi-lens"
+        "npm:pi-mcp-adapter"
+        "npm:pi-rtk-optimizer"
+        "npm:pi-simplify"
+        "npm:pi-tool-display"
+        "npm:pi-web-access"
+      ];
+      skills = [
+        "~/.claude/skills"
+      ];
+      compaction = {
+        enabled = true;
+        reserveTokens = 16384;
+        keepRecentTokens = 15000;
+      };
+      theme = "dark";
     };
 
     home.file.".pi/agent/models.json".text = builtins.toJSON {
       providers = {
-        "llama-home" = {
-          baseUrl = "https://llama.home.jeffutter.com/v1";
+        "litellm-home" = {
+          baseUrl = "https://litellm.home.jeffutter.com/v1";
           api = "openai-completions";
-          apiKey = "local";
+          apiKey = "!op read 'op://Private/litellm-pi/notesPlain'";
           compat = {
             supportsDeveloperRole = false;
             supportsReasoningEffort = false;
@@ -191,57 +210,33 @@ in
           models = [
             {
               id = "chat";
-              contextWindow = 131072;
-            }
-            {
-              id = "chat:thinking-coding";
               reasoning = true;
               contextWindow = 131072;
             }
             {
-              id = "qwen3.6:instruct-reasoning";
+              id = "coding";
+              reasoning = true;
+              contextWindow = 131072;
+            }
+            {
+              id = "instruct";
               reasoning = false;
               contextWindow = 131072;
             }
             {
-              id = "chat-27b:thinking-coding";
+              id = "instruct-reasoning";
               reasoning = true;
               contextWindow = 131072;
             }
             {
-              id = "chat-27b:thinking";
+              id = "planning";
               reasoning = true;
               contextWindow = 131072;
             }
             {
-              id = "deepseek/deepseek-v4-flash";
+              id = "research";
               reasoning = true;
-              contextWindow = 524288;
-            }
-            {
-              id = "deepseek/deepseek-v4-pro";
-              reasoning = true;
-              contextWindow = 524288;
-            }
-            {
-              id = "moonshotai/kimi-k2.6";
-              reasoning = true;
-              contextWindow = 262144;
-            }
-            {
-              id = "qwen/qwen3.7-max";
-              reasoning = true;
-              contextWindow = 524288;
-            }
-            {
-              id = "anthropic/claude-sonnet-4.6";
-              reasoning = true;
-              contextWindow = 524288;
-            }
-            {
-              id = "anthropic/claude-opus-4.8";
-              reasoning = true;
-              contextWindow = 524288;
+              contextWindow = 131072;
             }
           ];
         };
