@@ -108,6 +108,7 @@
       blink-cmp-spell.enable = true;
       blink-emoji.enable = true;
       blink-ripgrep.enable = true;
+      claudecode.enable = true;
       comment.enable = true;
       cursorline.enable = true;
       fidget.enable = true;
@@ -125,7 +126,15 @@
       todo-comments.enable = true;
       trouble.enable = true;
       web-devicons.enable = true;
-      which-key.enable = true;
+      which-key = {
+        enable = true;
+        settings.spec = [
+          {
+            __unkeyed-1 = "<leader>a";
+            group = "AI/Claude Code";
+          }
+        ];
+      };
 
       neotest.enable = true;
 
@@ -355,6 +364,25 @@
       require('csvview').setup()
     '';
 
+    autoCmd = [
+      {
+        event = "FileType";
+        pattern = [
+          "NvimTree"
+          "neo-tree"
+          "oil"
+          "minifiles"
+          "netrw"
+          "snacks_picker_list"
+        ];
+        callback = inputs.nixvim.lib.nixvim.mkRaw ''
+          function(args)
+            vim.keymap.set("n", "<leader>as", "<cmd>ClaudeCodeTreeAdd<cr>", { buffer = args.buf, desc = "Add file" })
+          end
+        '';
+      }
+    ];
+
     keymaps = [
       {
         key = "<leader>sf";
@@ -549,6 +577,69 @@
           silent = true;
           desc = "Show Tags";
         };
+      }
+
+      {
+        key = "<Esc><Esc>";
+        mode = [ "t" ];
+        action = "<C-\\><C-n>";
+        options.desc = "Exit terminal mode";
+      }
+
+      # Claude Code
+      {
+        key = "<leader>ac";
+        mode = [ "n" ];
+        action = "<cmd>ClaudeCode<cr>";
+        options.desc = "Toggle Claude";
+      }
+      {
+        key = "<leader>af";
+        mode = [ "n" ];
+        action = "<cmd>ClaudeCodeFocus<cr>";
+        options.desc = "Focus Claude";
+      }
+      {
+        key = "<leader>ar";
+        mode = [ "n" ];
+        action = "<cmd>ClaudeCode --resume<cr>";
+        options.desc = "Resume Claude";
+      }
+      {
+        key = "<leader>aC";
+        mode = [ "n" ];
+        action = "<cmd>ClaudeCode --continue<cr>";
+        options.desc = "Continue Claude";
+      }
+      {
+        key = "<leader>am";
+        mode = [ "n" ];
+        action = "<cmd>ClaudeCodeSelectModel<cr>";
+        options.desc = "Select Claude model";
+      }
+      {
+        key = "<leader>ab";
+        mode = [ "n" ];
+        action = "<cmd>ClaudeCodeAdd %<cr>";
+        options.desc = "Add current buffer";
+      }
+      {
+        key = "<leader>as";
+        mode = [ "v" ];
+        action = "<cmd>ClaudeCodeSend<cr>";
+        options.desc = "Send to Claude";
+      }
+      {
+        key = "<leader>aa";
+        mode = [ "n" ];
+        action = "<cmd>ClaudeCodeDiffAccept<cr>";
+        options.desc = "Accept diff";
+      }
+      {
+        key = "<leader>ad";
+        mode = [ "n" ];
+        action = "<cmd>ClaudeCodeDiffDeny<cr>";
+        options.desc = "Deny diff";
       }
     ];
   };
