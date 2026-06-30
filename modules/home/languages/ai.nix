@@ -46,7 +46,8 @@ let
     postBuild = ''
       wrapProgram $out/bin/pi \
         --set NPM_CONFIG_PREFIX ${config.home.homeDirectory}/.pi/npm/ \
-        --prefix PATH : ${pkgs.lib.makeBinPath [ pkgs.nodejs_latest ]}
+        --prefix PATH : ${pkgs.lib.makeBinPath [ pkgs.nodejs_latest ]} \
+        --run 'op whoami > /dev/null 2>&1 || eval $(op signin); export LITELLM_KEY="$(op read '"'"'op://Private/litellm-pi/notesPlain'"'"')"'
     '';
   };
 
@@ -194,7 +195,7 @@ in
         "litellm-home" = {
           baseUrl = "https://litellm.home.jeffutter.com/v1";
           api = "openai-completions";
-          apiKey = "!op read 'op://Private/litellm-pi/notesPlain'";
+          apiKey = "$LITELLM_KEY";
           compat = {
             supportsDeveloperRole = false;
             supportsReasoningEffort = false;
