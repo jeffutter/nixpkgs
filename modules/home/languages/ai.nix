@@ -132,6 +132,14 @@ in
     default = true;
   };
 
+  # Claude Code voice mode. Enabled only on hosts with physical access (local
+  # laptops/desktops); left off on remote/headless machines where audio is
+  # unwanted.
+  options.jeff.enableClaudeVoice = lib.mkOption {
+    type = lib.types.bool;
+    default = false;
+  };
+
   config = {
     home.packages = with pkgs; [
       agent-browser
@@ -427,6 +435,12 @@ in
           SubagentStart = [ (mkPeonEntry { }) ];
           Notification = [ (mkPeonEntry { }) ];
           PreCompact = [ (mkPeonEntry { }) ];
+        };
+      }
+      // lib.optionalAttrs config.jeff.enableClaudeVoice {
+        voice = {
+          enabled = true;
+          mode = "hold";
         };
       };
 

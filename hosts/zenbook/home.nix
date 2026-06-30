@@ -46,4 +46,6 @@
 
   home.username = "jeffutter";
   home.homeDirectory = "/home/jeffutter";
+
+  jeff.enableClaudeVoice = true;
 }

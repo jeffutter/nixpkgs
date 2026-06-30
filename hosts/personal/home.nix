@@ -34,4 +34,6 @@ in
   programs.ssh.extraOptionOverrides.identityFile = "~/.ssh/id_rsa";
 
   programs.claude-code.settings.model = "sonnet";
+
+  jeff.enableClaudeVoice = true;
 }
