@@ -87,6 +87,7 @@ in
     mosh
     ncdu
     nixfmt
+    nix-sweep
     p7zip
     pigz
     pixz
