@@ -25,7 +25,18 @@ let
   ast-grep-skill = inputs.ast-grep-skill;
   grill-me-skill = inputs.grill-me-skill;
   the-elements-of-style = inputs.the-elements-of-style;
-  todoist-cli-pkg = pkgs.callPackage ../../../pkgs/todoist-cli { src = inputs.todoist-cli-src; };
+  # nixpkgs' todoist-cli ships only the `td` binary, not a static skill file;
+  # v1.75.2+ generates SKILL.md on demand from bundled content. Call the
+  # generator directly rather than `td skill install`: the full CLI entrypoint
+  # makes a startup network call that hangs under the Nix build sandbox.
+  todoist-cli-skill = pkgs.runCommand "todoist-cli-skill" { } ''
+    mkdir -p $out
+    ${pkgs.nodejs}/bin/node --input-type=module -e '
+      import { generateSkillFile } from "${pkgs.todoist-cli}/lib/node_modules/@doist/todoist-cli/dist/lib/skills/create-installer.js";
+      import { writeFileSync } from "node:fs";
+      writeFileSync(process.env.out + "/SKILL.md", generateSkillFile());
+    '
+  '';
 
   claude-tail = inputs.claude-tail.packages.${pkgs.stdenv.hostPlatform.system}.default;
   peon-ping = inputs.peon-ping.packages.${pkgs.stdenv.hostPlatform.system}.default;
@@ -301,6 +312,7 @@ in
           excludedCommands = [
             "acli confluence *"
             "acli jira *"
+            "nix build *"
             "nix eval *"
             "rtk cargo *"
             "rtk gh *"
@@ -315,6 +327,7 @@ in
             allowLocalBinding = true;
           };
         };
+        tui = "fullscreen";
         permissions = {
           defaultMode = "acceptEdits";
           allow = [
@@ -513,7 +526,7 @@ in
         stop-slop = "${stop-slop}";
         humanizer = "${humanizer}";
         writing-clearly-and-concisely = "${the-elements-of-style}/skills/writing-clearly-and-concisely";
-        todoist-cli = "${todoist-cli-pkg}/share/todoist-cli/skill";
+        todoist-cli = "${todoist-cli-skill}";
         agent-browser = "${agent-browser}/share/agent-browser/skills/agent-browser";
         kami = "${mkKamiSkill config.jeff.kamiSkillBrand}";
         ast-grep = "${ast-grep-skill}/ast-grep/skills/ast-grep";

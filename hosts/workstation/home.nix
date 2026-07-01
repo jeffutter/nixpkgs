@@ -1,7 +1,6 @@
 {
   pkgs,
   config,
-  inputs,
   ...
 }:
 
@@ -19,7 +18,7 @@
     _1password-cli
     perl
     (callPackage ../../pkgs/actual-cli { })
-    (callPackage ../../pkgs/todoist-cli { src = inputs.todoist-cli-src; })
+    todoist-cli
   ];
 
   programs.ghostty = {

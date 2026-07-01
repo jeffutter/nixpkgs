@@ -689,11 +689,11 @@
     "grill-me-skill": {
       "flake": false,
       "locked": {
-        "lastModified": 1782841531,
-        "narHash": "sha256-2+2WR5Soqx4g7/T2YiOFj4XMGT5jGjnzOJlQ5ybCRS8=",
+        "lastModified": 1782919841,
+        "narHash": "sha256-yLLmxBeBI6A4JKueJV13l1FVCzFy3L5qmzUymuihUQ8=",
         "owner": "mattpocock",
         "repo": "skills",
-        "rev": "0877403d1e867fd9d574117e9b34ade404f36d2a",
+        "rev": "b38badf7091afc614dedffc03ea8c8ad2b643cb4",
         "type": "github"
       },
       "original": {
@@ -709,11 +709,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1782839684,
-        "narHash": "sha256-vzs4SBgPsK4aNzlJR2PpFwtARazXMOxZonQnDz0YHxk=",
+        "lastModified": 1782881387,
+        "narHash": "sha256-HvlS1KDGXDjd1bNzzPvH1mkDJATlDAfVYfTh//wJBEA=",
         "owner": "nix-community",
         "repo": "home-manager",
-        "rev": "2a37d71bbe69e1522ddabf03a4cea0374958bdbe",
+        "rev": "d32537981c036473cf6990ae03176a5d84c43b29",
         "type": "github"
       },
       "original": {
@@ -809,11 +809,11 @@
         "treefmt-nix": "treefmt-nix_3"
       },
       "locked": {
-        "lastModified": 1782847546,
-        "narHash": "sha256-ypte/rPeP3jmwj5zPYMG/A8IEvwvYEg2ijB7Ll6l2Rc=",
+        "lastModified": 1782913490,
+        "narHash": "sha256-GGqfwevUQduaLpqfJqc2yAvs36BYy5R9rCpkqHn9ZVE=",
         "owner": "numtide",
         "repo": "llm-agents.nix",
-        "rev": "204317b704760611efe08c06eca299234af4cc22",
+        "rev": "54a6e303164407d73bef861367f4e653db3bef45",
         "type": "github"
       },
       "original": {
@@ -968,11 +968,11 @@
         "systems": "systems_10"
       },
       "locked": {
-        "lastModified": 1782706849,
-        "narHash": "sha256-b2ODGxKD3hgrwuesLtDomp2DKF3UiOn3+EBTDXpcqGo=",
+        "lastModified": 1782919563,
+        "narHash": "sha256-vVYo8fbgTgXBU47dLmnUcfetOI/MLui+wXU44x3ZeqM=",
         "owner": "nix-community",
         "repo": "nixvim",
-        "rev": "c6a99bb41fb0f37e03ca38b1d81b006e98e3bf1a",
+        "rev": "702008d2b3dd1d032a953e3bdd2532531aac0639",
         "type": "github"
       },
       "original": {
@@ -1056,7 +1056,6 @@
         "superpowers": "superpowers",
         "the-elements-of-style": "the-elements-of-style",
         "tinted-theming-schemes": "tinted-theming-schemes",
-        "todoist-cli-src": "todoist-cli-src",
         "vale-alex": "vale-alex",
         "vale-proselint": "vale-proselint",
         "vale-write-good": "vale-write-good",
@@ -1108,11 +1107,11 @@
     "screenpipe-src": {
       "flake": false,
       "locked": {
-        "lastModified": 1782845391,
-        "narHash": "sha256-WJjZ3ZumXcQGlFHXQ55EAdixy39KduCi10+8ulsiFEw=",
+        "lastModified": 1782920114,
+        "narHash": "sha256-7Rz0y5wrNUF47vRC4XU6HQQhNJhkdhTo49cFbCcW0tU=",
         "owner": "screenpipe",
         "repo": "screenpipe",
-        "rev": "61c7b0ff2a5b4193cc06e310322f0cdca24d4e4b",
+        "rev": "a2966f2283d3069488c9f5275f7be95d26ba6906",
         "type": "github"
       },
       "original": {
@@ -1157,11 +1156,11 @@
         "tinted-zed": "tinted-zed"
       },
       "locked": {
-        "lastModified": 1782771270,
-        "narHash": "sha256-1W5Oga37XF1fzjpUut98j32NS9XcLQ5HmZDuOqSSrrY=",
+        "lastModified": 1782879555,
+        "narHash": "sha256-5fEWsMLRP/rO3uYZOrX8woSQrPjXALkhLfsq1pyitww=",
         "owner": "nix-community",
         "repo": "stylix",
-        "rev": "47571deb317bb1e53fbbe9c3cbf2a941cd94f794",
+        "rev": "f76230a1ac191b01646dad5ab1720e2f1044662d",
         "type": "github"
       },
       "original": {
@@ -1460,23 +1459,6 @@
       "original": {
         "owner": "tinted-theming",
         "repo": "base16-zed",
-        "type": "github"
-      }
-    },
-    "todoist-cli-src": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1779955657,
-        "narHash": "sha256-Am+3LMDxBudjp32JGJKYZ4Mw70Zx63LTpGVzAbUcCpM=",
-        "owner": "Doist",
-        "repo": "todoist-cli",
-        "rev": "0a251c6700c521668c7b740d004e0b99a03dcf75",
-        "type": "github"
-      },
-      "original": {
-        "owner": "Doist",
-        "ref": "v1.69.3",
-        "repo": "todoist-cli",
         "type": "github"
       }
     },

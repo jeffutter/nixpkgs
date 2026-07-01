@@ -107,9 +107,8 @@ in
       "Foodnoms" = 1479461686;
       "GIPHY CAPTURE" = 668208984;
       "Home Assistant" = 1099568401;
-      "Keynote" = 409183694;
-      "Numbers" = 409203825;
-      "Pages" = 409201541;
+      "Keynote" = 361285480;
+      "Numbers" = 361304891;
       "Parcel" = 375589283;
       "Serial" = 877615577;
       "Tailscale" = 1475387142;

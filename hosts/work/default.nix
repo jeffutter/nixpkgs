@@ -26,7 +26,7 @@
   ];
 
   homebrew.masApps = {
-    "Jira" = 1475897096;
+    # "Jira" = 6572290663;
     "Slack" = 803453959;
     "Xcode" = 497799835;
     "pull-bar-pro" = 6462591649;

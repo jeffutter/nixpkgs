@@ -146,11 +146,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    todoist-cli-src = {
-      url = "github:Doist/todoist-cli/v1.69.3";
-      flake = false;
-    };
-
     kami = {
       url = "github:tw93/kami";
       flake = false;
@@ -393,7 +388,6 @@
 
       packages = forAllSystems (system: {
         actual-cli = (pkgsFor system).callPackage ./pkgs/actual-cli { };
-        todoist-cli = (pkgsFor system).callPackage ./pkgs/todoist-cli { src = inputs.todoist-cli-src; };
         screenpipe = (pkgsFor system).callPackage ./pkgs/screenpipe { src = inputs.screenpipe-src; };
         colgrep = (pkgsFor system).callPackage ./pkgs/colgrep { };
       });
