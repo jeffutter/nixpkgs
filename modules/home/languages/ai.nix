@@ -170,6 +170,11 @@ in
 
     home.file.".claude/plugins/marketplaces/superpowers".source = superpowers;
 
+    home.file.".pi/agent/extensions/pi-continue.json".text = builtins.toJSON {
+      reasoning = false;
+      summarizerModel = "instruct";
+    };
+
     home.file.".pi/agent/settings.json".text = builtins.toJSON {
       defaultProvider = "litellm-home";
       defaultModel = "coding";
