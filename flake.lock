@@ -313,6 +313,22 @@
         "type": "github"
       }
     },
+    "excalidraw-diagram-skill": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1772372175,
+        "narHash": "sha256-X0GEwn/1n6jxmnaF0YMMBWpEOaQ8XOy3yigLXkBDi/w=",
+        "owner": "coleam00",
+        "repo": "excalidraw-diagram-skill",
+        "rev": "8646fcc9f74f38539c6cdb4c969723336a96ddcd",
+        "type": "github"
+      },
+      "original": {
+        "owner": "coleam00",
+        "repo": "excalidraw-diagram-skill",
+        "type": "github"
+      }
+    },
     "expert": {
       "inputs": {
         "beam-flakes": "beam-flakes",
@@ -1034,6 +1050,7 @@
         "backlog-md": "backlog-md",
         "claude-desktop": "claude-desktop",
         "claude-tail": "claude-tail",
+        "excalidraw-diagram-skill": "excalidraw-diagram-skill",
         "expert": "expert",
         "fabric": "fabric",
         "fish-plugin-autopair": "fish-plugin-autopair",
