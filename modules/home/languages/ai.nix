@@ -24,6 +24,46 @@ let
   apollo_skills = inputs.apollo_skills;
   ast-grep-skill = inputs.ast-grep-skill;
   grill-me-skill = inputs.grill-me-skill;
+  excalidraw-diagram-skill = inputs.excalidraw-diagram-skill;
+  # The upstream skill renders diagrams to PNG (for visual self-validation) via a
+  # `uv sync` + `playwright install chromium` flow that needs network access and a
+  # first-time setup step. Replace it with a Nix-provided renderer: Python with the
+  # Playwright package plus a version-matched Chromium, wrapped so the agent just
+  # calls `references/render <file.excalidraw>` with no setup.
+  excalidraw-python = pkgs.python3.withPackages (ps: [ ps.playwright ]);
+  excalidraw-diagram-skill-wrapped =
+    pkgs.runCommand "excalidraw-diagram-skill" { nativeBuildInputs = [ pkgs.makeWrapper ]; }
+      ''
+              cp -r ${excalidraw-diagram-skill} $out
+              chmod -R u+w $out
+
+              makeWrapper ${excalidraw-python}/bin/python3 $out/references/render \
+                --set PLAYWRIGHT_BROWSERS_PATH ${pkgs.playwright-driver.browsers} \
+                --set PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS 1 \
+                --add-flags $out/references/render_excalidraw.py
+
+              # Pin the Excalidraw library the render template loads from esm.sh. The
+              # unpinned "latest" resolves to a build that externalizes a transitive dep
+              # (@braintree/sanitize-url) to a URL that 404s, breaking every render; a
+              # pinned version bundles it inline.
+              substituteInPlace $out/references/render_template.html \
+                --replace-fail \
+                  '@excalidraw/excalidraw?bundle' \
+                  '@excalidraw/excalidraw@0.18.0?bundle'
+
+              substituteInPlace $out/SKILL.md \
+                --replace-fail \
+                  'cd .claude/skills/excalidraw-diagram/references && uv run python render_excalidraw.py <path-to-file.excalidraw>' \
+                  '~/.claude/skills/excalidraw-diagram/references/render <path-to-file.excalidraw>'
+
+              substituteInPlace $out/SKILL.md \
+                --replace-fail \
+                  'cd .claude/skills/excalidraw-diagram/references
+        uv sync
+        uv run playwright install chromium' \
+                  '# Preinstalled via Nix (home-manager) — no setup required.
+        # references/render bundles Python, Playwright, and a matching Chromium.'
+      '';
   the-elements-of-style = inputs.the-elements-of-style;
   # nixpkgs' todoist-cli ships only the `td` binary, not a static skill file;
   # v1.75.2+ generates SKILL.md on demand from bundled content. Call the
@@ -536,6 +576,7 @@ in
         kami = "${mkKamiSkill config.jeff.kamiSkillBrand}";
         ast-grep = "${ast-grep-skill}/ast-grep/skills/ast-grep";
         grill-me = "${grill-me-skill}/skills/productivity/grill-me";
+        excalidraw-diagram = "${excalidraw-diagram-skill-wrapped}";
       }
       // builtins.listToAttrs (
         map

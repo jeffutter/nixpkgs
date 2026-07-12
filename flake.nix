@@ -125,6 +125,11 @@
       flake = false;
     };
 
+    excalidraw-diagram-skill = {
+      url = "github:coleam00/excalidraw-diagram-skill";
+      flake = false;
+    };
+
     # Fish plugins
     fish-plugin-fenv = {
       url = "github:oh-my-fish/plugin-foreign-env/7f0cf099ae1e1e4ab38f46350ed6757d54471de7";
@@ -186,16 +191,16 @@
       claudeCodeOverlay =
         final: prev:
         let
-          claudeCodeVersion = "2.1.197";
+          claudeCodeVersion = "2.1.202";
           claudeCodeBaseUrl = "https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases";
           # Run `nix-prefetch-url <url>` for your platform to get the correct hash
           # URL format: ${claudeCodeBaseUrl}/${claudeCodeVersion}/<platform>/claude
           # Platforms: darwin-arm64, darwin-x64, linux-arm64, linux-x64
           claudeCodeChecksums = {
-            "darwin-arm64" = "sha256-jMDE0eTrHco7DMkqsC7jUF3nZOAj+MkBdhwWe3IEH7g=";
-            "darwin-x64" = "sha256-XopXzHqSN38HRPpMeRkc+T1LJsecuRmwekB1Ef7RviY=";
-            "linux-arm64" = "sha256-+0hHPEZ8J2Fax5mnVPTvC2jDY+RZbO+7WcOBXVGgzIo=";
-            "linux-x64" = "sha256-9U5py8ibLaYaQVcAr3/1KhR+hiUX1PGw7s92hEjPf4M=";
+            "darwin-arm64" = "sha256-dBT3B4YeL+Wv7zOkZviIqNIXDlAo9enShY8dPvRf/KU=";
+            "darwin-x64" = "sha256-DcV4uylAlPUEHpmgREAwrGrnI2s4flbwDUpSFIFnY70=";
+            "linux-arm64" = "sha256-3l4Lso4rMkCURO1MFDHikxABwF7ScKPclsZwawaThn8=";
+            "linux-x64" = "sha256-cVkCAiSYkts4BezVuGf4MfBLgSnqq9P5pb1LoWtSyDk=";
           };
           platformKey = "${final.stdenv.hostPlatform.parsed.kernel.name}-${
             if final.stdenv.hostPlatform.isAarch64 then "arm64" else "x64"
@@ -390,6 +395,7 @@
         actual-cli = (pkgsFor system).callPackage ./pkgs/actual-cli { };
         screenpipe = (pkgsFor system).callPackage ./pkgs/screenpipe { src = inputs.screenpipe-src; };
         colgrep = (pkgsFor system).callPackage ./pkgs/colgrep { };
+        datadog-pup = (pkgsFor system).callPackage ./pkgs/datadog-pup { };
       });
 
       homeConfigurations = {
