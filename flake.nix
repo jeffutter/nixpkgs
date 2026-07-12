@@ -41,6 +41,11 @@
       url = "github:jeffutter/claude-tail/v0.2.4";
     };
 
+    herdr = {
+      url = "github:ogulcancelik/herdr/v0.7.3";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     peon-ping = {
       url = "github:PeonPing/peon-ping";
       inputs.nixpkgs.follows = "nixpkgs";
