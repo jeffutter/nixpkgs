@@ -8,7 +8,15 @@
 
 let
   agent-browser = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.agent-browser;
-  backlog-md = inputs.backlog-md.packages.${pkgs.stdenv.hostPlatform.system}.default;
+  backlog-md = (inputs.backlog-md.packages.${pkgs.stdenv.hostPlatform.system}.default).overrideAttrs (old: {
+    buildPhase = ''
+      runHook preBuild
+      bun build --compile --minify \
+        --define '__EMBEDDED_VERSION__="${old.version}"' \
+        --outfile=dist/backlog src/cli.ts
+      runHook postBuild
+    '';
+  });
   fabric = inputs.fabric.packages.${pkgs.stdenv.hostPlatform.system}.default;
   stop-slop = inputs.stop-slop;
   humanizer = inputs.humanizer;
@@ -112,7 +120,7 @@ let
   permissionStats = ./ai/permission-stats;
   permissionStatsCapture = {
     type = "command";
-    command = "python3 ${permissionStats}/capture.py";
+    command = "${pkgs.python3}/bin/python3 ${permissionStats}/capture.py";
   };
 
   # peon-ping Claude Code hooks. We wire these declaratively instead of using the
