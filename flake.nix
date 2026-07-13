@@ -125,6 +125,11 @@
       flake = false;
     };
 
+    excalidraw-diagram-skill = {
+      url = "github:coleam00/excalidraw-diagram-skill";
+      flake = false;
+    };
+
     # Fish plugins
     fish-plugin-fenv = {
       url = "github:oh-my-fish/plugin-foreign-env/7f0cf099ae1e1e4ab38f46350ed6757d54471de7";
@@ -390,6 +395,7 @@
         actual-cli = (pkgsFor system).callPackage ./pkgs/actual-cli { };
         screenpipe = (pkgsFor system).callPackage ./pkgs/screenpipe { src = inputs.screenpipe-src; };
         colgrep = (pkgsFor system).callPackage ./pkgs/colgrep { };
+        datadog-pup = (pkgsFor system).callPackage ./pkgs/datadog-pup { };
       });
 
       homeConfigurations = {
