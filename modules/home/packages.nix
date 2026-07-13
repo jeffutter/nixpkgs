@@ -38,8 +38,8 @@ in
     ast-grep
     autoconf
     bandwhich
-    bash-completion
     bash
+    bash-completion
     btop
     bzip2
     cachix
@@ -47,23 +47,25 @@ in
     colmena
     comma
     curl
+    delta
     difftastic
     docker
     duckdb
-    dust
     duf
+    dust
     eza
     fd
     gawk
     gh
     git-absorb
     git-lfs
-    gnused
+    glow
     gnupg
+    gnused
     htop
-    hyperfine
     hunspell
     hunspellDicts.en_US
+    hyperfine
     ijq
     imagemagick
     ispell

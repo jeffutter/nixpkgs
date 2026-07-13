@@ -88,6 +88,13 @@ let
 
   claude-tail = inputs.claude-tail.packages.${pkgs.stdenv.hostPlatform.system}.default;
   herdr = inputs.herdr.packages.${pkgs.stdenv.hostPlatform.system}.default;
+  # herdr ships its agent skill as a single SKILL.md at the repo root rather
+  # than a dedicated skill package; lift just that file into its own skill
+  # derivation so it tracks whatever version the herdr flake input is pinned to.
+  herdr-skill = pkgs.runCommand "herdr-skill" { } ''
+    mkdir -p $out
+    cp ${inputs.herdr}/SKILL.md $out/SKILL.md
+  '';
   peon-ping = inputs.peon-ping.packages.${pkgs.stdenv.hostPlatform.system}.default;
   rtk = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.rtk;
   basePi = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.pi;
@@ -239,6 +246,20 @@ in
       reasoning = false;
       summarizerModel = "instruct";
     };
+
+    # pi-continue (and other extensions) declare @earendil-works/pi-coding-agent
+    # as a peerDependency, resolved at runtime via `import.meta.resolve`. Extensions
+    # live under ~/.pi/agent/npm{,2,3}/node_modules, which pi manages itself via
+    # `npm install` against its own package-lock.json -- that peer is never
+    # installed there since it isn't published to npm; it's meant to be the host
+    # CLI. Node's ESM resolver walks every ancestor node_modules directory, so
+    # placing a symlink one level up, at ~/.pi/agent/node_modules (outside the
+    # npm-managed tree, safe from `pi`'s own installs pruning it), makes it
+    # resolvable for every extension underneath. Points at patchedPi rather than
+    # the `pi` package's own store path so it always matches whatever pi version
+    # this config actually installs.
+    home.file.".pi/agent/node_modules/@earendil-works/pi-coding-agent".source =
+      "${patchedPi}/lib/node_modules/@earendil-works/pi-coding-agent";
 
     home.file.".pi/agent/settings.json".text = builtins.toJSON {
       defaultProvider = "litellm-home";
@@ -605,6 +626,7 @@ in
         peon-ping-use = peonSkill "peon-ping-use";
         stop-slop = "${stop-slop}";
         humanizer = "${humanizer}";
+        herdr = "${herdr-skill}";
         writing-clearly-and-concisely = "${the-elements-of-style}/skills/writing-clearly-and-concisely";
         todoist-cli = "${todoist-cli-skill}";
         agent-browser = "${agent-browser}/share/agent-browser/skills/agent-browser";
