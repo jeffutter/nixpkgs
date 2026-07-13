@@ -16,6 +16,10 @@
     "steam"
   ];
 
+  homebrew.masApps = {
+    "GarageBand" = 682658836;
+  };
+
   users.users.jeffutter = {
     name = "jeffutter";
     home = "/Users/jeffutter";
