@@ -5,22 +5,12 @@
   ...
 }:
 
-let
-  backlog-md = inputs.backlog-md.packages.${pkgs.stdenv.hostPlatform.system}.default;
-
-  backlogCompletions = pkgs.runCommand "backlog-completions" { } ''
-    mkdir -p $out fake-home/.config/fish/completions
-    HOME=$PWD/fake-home ${backlog-md}/bin/backlog completion install --shell fish > /dev/null
-    cp fake-home/.config/fish/completions/backlog.fish $out/backlog.fish
-  '';
-in
-
 {
   programs.fish = {
     enable = true;
     completions = {
       docker = builtins.readFile "${pkgs.docker}/share/fish/vendor_completions.d/docker.fish";
-      backlog = builtins.readFile "${backlogCompletions}/backlog.fish";
+      backlog = builtins.readFile "${inputs.backlog-md}/completions/backlog.fish";
     };
     shellAbbrs = {
       "gcan!" = "git commit -v -a --no-edit --amend";
