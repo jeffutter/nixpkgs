@@ -8,15 +8,17 @@
 
 let
   agent-browser = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.agent-browser;
-  backlog-md = (inputs.backlog-md.packages.${pkgs.stdenv.hostPlatform.system}.default).overrideAttrs (old: {
-    buildPhase = ''
-      runHook preBuild
-      bun build --compile --minify \
-        --define '__EMBEDDED_VERSION__="${old.version}"' \
-        --outfile=dist/backlog src/cli.ts
-      runHook postBuild
-    '';
-  });
+  backlog-md =
+    (inputs.backlog-md.packages.${pkgs.stdenv.hostPlatform.system}.default).overrideAttrs
+      (old: {
+        buildPhase = ''
+          runHook preBuild
+          bun build --compile --minify \
+            --define '__EMBEDDED_VERSION__="${old.version}"' \
+            --outfile=dist/backlog src/cli.ts
+          runHook postBuild
+        '';
+      });
   fabric = inputs.fabric.packages.${pkgs.stdenv.hostPlatform.system}.default;
   stop-slop = inputs.stop-slop;
   humanizer = inputs.humanizer;
@@ -98,12 +100,12 @@ let
   peon-ping = inputs.peon-ping.packages.${pkgs.stdenv.hostPlatform.system}.default;
   rtk = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.rtk;
   basePi = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.pi;
-  # Patch the hardcoded 30s RPC send timeout in pi-coding-agent to 5 minutes,
+  # Patch the hardcoded 30s RPC send timeout in pi-coding-agent to 10 minutes,
   # since local LLM prompt processing can take 1-2 minutes on this hardware.
   patchedPi = pkgs.runCommand "pi-patched" { } ''
     cp -r ${basePi} $out
     chmod -R u+w $out
-    sed -i 's/}, 30000);$/}, 300000);/' \
+    sed -i 's/}, 30000);$/}, 600000);/' \
       $out/lib/node_modules/@earendil-works/pi-coding-agent/dist/modes/rpc/rpc-client.js
   '';
   pi = pkgs.symlinkJoin {
