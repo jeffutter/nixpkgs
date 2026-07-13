@@ -8,7 +8,15 @@
 
 let
   agent-browser = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.agent-browser;
-  backlog-md = inputs.backlog-md.packages.${pkgs.stdenv.hostPlatform.system}.default;
+  backlog-md = (inputs.backlog-md.packages.${pkgs.stdenv.hostPlatform.system}.default).overrideAttrs (old: {
+    buildPhase = ''
+      runHook preBuild
+      bun build --compile --minify \
+        --define '__EMBEDDED_VERSION__="${old.version}"' \
+        --outfile=dist/backlog src/cli.ts
+      runHook postBuild
+    '';
+  });
   fabric = inputs.fabric.packages.${pkgs.stdenv.hostPlatform.system}.default;
   stop-slop = inputs.stop-slop;
   humanizer = inputs.humanizer;
@@ -79,6 +87,7 @@ let
   '';
 
   claude-tail = inputs.claude-tail.packages.${pkgs.stdenv.hostPlatform.system}.default;
+  herdr = inputs.herdr.packages.${pkgs.stdenv.hostPlatform.system}.default;
   peon-ping = inputs.peon-ping.packages.${pkgs.stdenv.hostPlatform.system}.default;
   rtk = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.rtk;
   basePi = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.pi;
@@ -111,7 +120,7 @@ let
   permissionStats = ./ai/permission-stats;
   permissionStatsCapture = {
     type = "command";
-    command = "python3 ${permissionStats}/capture.py";
+    command = "${pkgs.python3}/bin/python3 ${permissionStats}/capture.py";
   };
 
   # peon-ping Claude Code hooks. We wire these declaratively instead of using the
@@ -197,6 +206,7 @@ in
       agent-browser
       backlog-md
       claude-tail
+      herdr
       pi
       rtk
       peon-ping
@@ -209,6 +219,26 @@ in
     ];
 
     home.file.".claude/plugins/marketplaces/superpowers".source = superpowers;
+
+    # `herdr integration install pi`/`claude` would normally drop these files
+    # itself and (for claude) rewrite settings.json to add the SessionStart
+    # hook below. That rewrite can't run here since programs.claude-code owns
+    # settings.json as a read-only Nix store symlink, so both halves are
+    # reproduced declaratively instead: the asset files come straight from
+    # herdr's source tree (kept in sync by bumping the herdr flake input), and
+    # the hook wiring lives alongside our other SessionStart hooks below.
+    home.file.".pi/agent/extensions/herdr-agent-state.ts".source =
+      "${inputs.herdr}/src/integration/assets/pi/herdr-agent-state.ts";
+
+    home.file.".claude/hooks/herdr-agent-state.sh" = {
+      source = "${inputs.herdr}/src/integration/assets/claude/herdr-agent-state.sh";
+      executable = true;
+    };
+
+    home.file.".pi/agent/extensions/pi-continue.json".text = builtins.toJSON {
+      reasoning = false;
+      summarizerModel = "instruct";
+    };
 
     home.file.".pi/agent/settings.json".text = builtins.toJSON {
       defaultProvider = "litellm-home";
@@ -476,6 +506,16 @@ in
           SessionStart = [
             { hooks = [ permissionStatsCapture ]; }
             (mkPeonEntry { async = false; })
+            {
+              matcher = "*";
+              hooks = [
+                {
+                  type = "command";
+                  command = "bash '${config.home.homeDirectory}/.claude/hooks/herdr-agent-state.sh' session";
+                  timeout = 10;
+                }
+              ];
+            }
           ];
           SessionEnd = [
             { hooks = [ permissionStatsCapture ]; }

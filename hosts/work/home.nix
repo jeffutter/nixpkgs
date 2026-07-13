@@ -11,6 +11,26 @@ let
   ];
   thaw = pkgs.callPackage ../../pkgs/thaw { };
   screenpipe = pkgs.callPackage ../../pkgs/screenpipe { src = inputs.screenpipe-src; };
+  pup = pkgs.callPackage ../../pkgs/datadog-pup { };
+
+  # pup captures its embedded Datadog skills (skills/<name>/SKILL.md) and domain
+  # subagents (agents/<name>.md) into pup.skills at build time. Enumerate them so
+  # every entry is wired without hardcoding the ~60 names. Skills are symlinked
+  # by store path (the claude-code module treats path-like strings as skill
+  # directories); agents are inlined as text since that option only symlinks
+  # true Nix paths, not store-path strings.
+  pupSkills = builtins.listToAttrs (
+    map (name: {
+      inherit name;
+      value = "${pup.skills}/skills/${name}";
+    }) (builtins.attrNames (builtins.readDir "${pup.skills}/skills"))
+  );
+  pupAgents = builtins.listToAttrs (
+    map (file: {
+      name = lib.removeSuffix ".md" file;
+      value = builtins.readFile "${pup.skills}/agents/${file}";
+    }) (builtins.attrNames (builtins.readDir "${pup.skills}/agents"))
+  );
 in
 {
   imports = [
@@ -30,6 +50,7 @@ in
     grpcurl
     llvmPackages.bintools
     my_google-cloud-sdk
+    pup
     # screenpipe
     thaw
   ];
@@ -112,7 +133,10 @@ in
   programs.claude-code.skills = {
     screenpipe-api = "${screenpipe.skills}/screenpipe-api";
     screenpipe-cli = "${screenpipe.skills}/screenpipe-cli";
-  };
+  }
+  // pupSkills;
+
+  programs.claude-code.agents = pupAgents;
 
   jeff.kamiSkillBrand = ./kami/brand.md;
 
