@@ -11,13 +11,13 @@ let
   backlog-md =
     (inputs.backlog-md.packages.${pkgs.stdenv.hostPlatform.system}.default).overrideAttrs
       (old: {
-        buildPhase = ''
-          runHook preBuild
-          bun build --compile --minify \
-            --define '__EMBEDDED_VERSION__="${old.version}"' \
-            --outfile=dist/backlog src/cli.ts
-          runHook postBuild
-        '';
+        # The upstream flake overlays `bun` on x86_64-linux with a prebuilt
+        # "baseline" (SSE4.2) release to support older CPUs without AVX2. That
+        # baseline build's `bun build --compile` output is corrupt: the
+        # resulting binary segfaults inside glibc's dynamic linker (dl_main)
+        # before any of backlog's code runs, regardless of buildPhase. Our
+        # CPUs have AVX2, so build with nixpkgs' regular bun instead.
+        nativeBuildInputs = map (drv: if (drv.pname or null) == "bun" then pkgs.bun else drv) old.nativeBuildInputs;
       });
   fabric = inputs.fabric.packages.${pkgs.stdenv.hostPlatform.system}.default;
   stop-slop = inputs.stop-slop;
