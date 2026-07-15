@@ -40,6 +40,7 @@ in
     bandwhich
     bash
     bash-completion
+    bats
     btop
     bzip2
     cachix

@@ -17,7 +17,9 @@ let
         # resulting binary segfaults inside glibc's dynamic linker (dl_main)
         # before any of backlog's code runs, regardless of buildPhase. Our
         # CPUs have AVX2, so build with nixpkgs' regular bun instead.
-        nativeBuildInputs = map (drv: if (drv.pname or null) == "bun" then pkgs.bun else drv) old.nativeBuildInputs;
+        nativeBuildInputs = map (
+          drv: if (drv.pname or null) == "bun" then pkgs.bun else drv
+        ) old.nativeBuildInputs;
       });
   fabric = inputs.fabric.packages.${pkgs.stdenv.hostPlatform.system}.default;
   stop-slop = inputs.stop-slop;
@@ -116,7 +118,7 @@ let
       wrapProgram $out/bin/pi \
         --set NPM_CONFIG_PREFIX ${config.home.homeDirectory}/.pi/npm/ \
         --prefix PATH : ${pkgs.lib.makeBinPath [ pkgs.nodejs_latest ]} \
-        --run 'op whoami > /dev/null 2>&1 || eval $(op signin); export LITELLM_KEY="$(op read '"'"'op://Private/litellm-pi/notesPlain'"'"')"'
+        --run 'if [ -z "$LITELLM_KEY" ]; then op whoami > /dev/null 2>&1 || eval $(op signin); export LITELLM_KEY="$(op read '"'"'op://Private/litellm-pi/notesPlain'"'"')"; fi'
     '';
   };
 
@@ -280,6 +282,7 @@ in
         "npm:@gotgenes/pi-subagents"
         "npm:@juicesharp/rpiv-ask-user-question"
         "npm:@juicesharp/rpiv-todo"
+        "npm:@quintinshaw/pi-dynamic-workflows"
         "npm:@samfp/pi-memory"
         "npm:pi-bar"
         "npm:pi-continue"
@@ -615,27 +618,28 @@ in
       skills = {
         acli = ./ai/skills/acli;
         actual-cli = ./ai/skills/actual-cli;
-        voice-dna = ./ai/skills/voice-dna;
-        voice-dna-creator = ./ai/skills/voice-dna-creator;
+        agent-browser = "${agent-browser}/share/agent-browser/skills/agent-browser";
+        ast-grep = "${ast-grep-skill}/ast-grep/skills/ast-grep";
+        backlog-execute = ./ai/skills/backlog-execute;
+        backlog-planner = ./ai/skills/backlog-planner;
         brainstorming = ./ai/skills/brainstorming;
         elixir = ./ai/skills/elixir;
-        backlog-planner = ./ai/skills/backlog-planner;
-        backlog-execute = ./ai/skills/backlog-execute;
+        excalidraw-diagram = "${excalidraw-diagram-skill-wrapped}";
+        grill-me = "${grill-me-skill}/skills/productivity/grill-me";
+        herdr = "${herdr-skill}";
+        humanizer = "${humanizer}";
+        kami = "${mkKamiSkill config.jeff.kamiSkillBrand}";
         peon-ping-config = peonSkill "peon-ping-config";
         peon-ping-log = peonSkill "peon-ping-log";
         peon-ping-rename = peonSkill "peon-ping-rename";
         peon-ping-toggle = peonSkill "peon-ping-toggle";
         peon-ping-use = peonSkill "peon-ping-use";
+        review-pi-work = ./ai/skills/review-pi-work;
         stop-slop = "${stop-slop}";
-        humanizer = "${humanizer}";
-        herdr = "${herdr-skill}";
-        writing-clearly-and-concisely = "${the-elements-of-style}/skills/writing-clearly-and-concisely";
         todoist-cli = "${todoist-cli-skill}";
-        agent-browser = "${agent-browser}/share/agent-browser/skills/agent-browser";
-        kami = "${mkKamiSkill config.jeff.kamiSkillBrand}";
-        ast-grep = "${ast-grep-skill}/ast-grep/skills/ast-grep";
-        grill-me = "${grill-me-skill}/skills/productivity/grill-me";
-        excalidraw-diagram = "${excalidraw-diagram-skill-wrapped}";
+        voice-dna = ./ai/skills/voice-dna;
+        voice-dna-creator = ./ai/skills/voice-dna-creator;
+        writing-clearly-and-concisely = "${the-elements-of-style}/skills/writing-clearly-and-concisely";
       }
       // builtins.listToAttrs (
         map
