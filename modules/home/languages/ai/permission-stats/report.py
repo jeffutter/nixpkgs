@@ -10,9 +10,14 @@ normal (non-permission) prompt.
 Usage:
   report.py --latest [--json]       # most recently active session
   report.py --all [--json]          # one-line summary of every captured session
+  report.py --daily [N] [--json]    # per-day totals across sessions (last N days)
+  report.py --weekly [N] [--json]   # per-ISO-week totals (last N weeks)
   report.py <session_id> [--json]   # a specific session
   report.py --prompts [session_id]  # list each permission prompt + its reason/command
   report.py --cleanup <days> [-n]   # delete logs older than <days> (-n = dry run)
+
+Sessions are bucketed for --daily/--weekly by the local-time calendar day (or
+ISO week) of their start; each session counts toward exactly one bucket.
 
 The event-log directory defaults to ~/.claude/permission-stats/events and can be
 overridden with $PERMISSION_STATS_DIR (pointing at the permission-stats root).
@@ -166,7 +171,9 @@ def compute(events: list[dict]) -> dict:
     gaps: list[int] = []
     for a, b in zip(perm_ts, perm_ts[1:]):
         gaps.append((b - a) - _overlap(a, b, idle))
-    avg_processing_ms = (sum(gaps) / len(gaps)) if gaps else None
+    gap_total = sum(gaps)
+    gap_count = len(gaps)
+    avg_processing_ms = (gap_total / gap_count) if gap_count else None
 
     return {
         "empty": False,
@@ -180,6 +187,10 @@ def compute(events: list[dict]) -> dict:
         "prompts_per_min": prompts_per_min,
         "prompts_per_active_min": prompts_per_active_min,
         "avg_processing_between_prompts_ms": avg_processing_ms,
+        # Sum/count of the inter-prompt gaps, kept so multiple sessions can be
+        # aggregated into one correct average (--daily/--weekly).
+        "processing_gap_ms_total": gap_total,
+        "processing_gap_count": gap_count,
         "session_start_ms": session_start,
         "session_end_ms": session_end,
         "completed": bool(ends),
@@ -225,6 +236,98 @@ def render(stats: dict, session_id: str | None = None) -> str:
         "  (excl. non-permission user wait)"
     )
     return "\n".join(lines)
+
+
+def _aggregate(stats_list: list[dict]) -> dict:
+    """Combine several sessions' metrics into one bucket total.
+
+    Sums the additive quantities and re-derives the rates and averages from the
+    summed totals, so e.g. the average permission wait is the true per-prompt
+    mean over the whole bucket, not a mean-of-means.
+    """
+    agg = {
+        "sessions": len(stats_list),
+        "permission_prompts": 0,
+        "user_prompts": 0,
+        "total_ms": 0,
+        "active_ms": 0,
+        "user_idle_ms": 0,
+        "permission_wait_ms": 0,
+        "processing_gap_ms_total": 0,
+        "processing_gap_count": 0,
+    }
+    for s in stats_list:
+        agg["permission_prompts"] += s["permission_prompts"]
+        agg["user_prompts"] += s["user_prompts"]
+        agg["total_ms"] += s["total_ms"]
+        agg["active_ms"] += s["active_ms"]
+        agg["user_idle_ms"] += s["user_idle_ms"]
+        agg["permission_wait_ms"] += s["permission_wait_ms"]
+        agg["processing_gap_ms_total"] += s["processing_gap_ms_total"]
+        agg["processing_gap_count"] += s["processing_gap_count"]
+
+    pc = agg["permission_prompts"]
+    agg["avg_permission_wait_ms"] = (agg["permission_wait_ms"] / pc) if pc else None
+    total_min = agg["total_ms"] / 60000.0
+    agg["prompts_per_min"] = (pc / total_min) if total_min > 0 else 0.0
+    active_min = agg["active_ms"] / 60000.0
+    agg["prompts_per_active_min"] = (pc / active_min) if active_min > 0 else 0.0
+    gc = agg["processing_gap_count"]
+    agg["avg_processing_between_prompts_ms"] = (
+        agg["processing_gap_ms_total"] / gc
+    ) if gc else None
+
+    # Per-session means for the bucket.
+    n = agg["sessions"]
+    agg["avg_prompts_per_session"] = (pc / n) if n else 0.0
+    agg["avg_duration_ms"] = (agg["total_ms"] / n) if n else None
+    agg["avg_active_ms"] = (agg["active_ms"] / n) if n else None
+    return agg
+
+
+def _day_key(ts_ms: int) -> str:
+    return time.strftime("%Y-%m-%d", time.localtime(ts_ms / 1000.0))
+
+
+def _week_key(ts_ms: int) -> str:
+    # ISO year + ISO week number, e.g. "2026-W28"; %G/%V are the ISO variants.
+    return time.strftime("%G-W%V", time.localtime(ts_ms / 1000.0))
+
+
+def bucket_stats(key_fn) -> dict[str, dict]:
+    """Group every captured session by key_fn(session_start_ms) and aggregate."""
+    buckets: dict[str, list[dict]] = {}
+    for path in _session_files():
+        stats = compute(load_events(path))
+        if stats.get("empty"):
+            continue
+        buckets.setdefault(key_fn(stats["session_start_ms"]), []).append(stats)
+    return {k: _aggregate(v) for k, v in buckets.items()}
+
+
+def render_buckets(buckets: dict[str, dict], label: str, limit: int | None = None) -> str:
+    """Table of per-day / per-week totals, oldest first, keeping the last N."""
+    keys = sorted(buckets)
+    if limit is not None:
+        keys = keys[-limit:]
+    hdr = (
+        f"{label:10}  {'SESSIONS':>8}  {'PROMPTS':>7}  {'P/SESS':>7}  "
+        f"{'DURATION':>10}  {'AVG DUR':>10}  {'ACTIVE':>10}  {'AVG ACTIVE':>10}  "
+        f"{'P/ACT MIN':>9}  {'AVG GAP':>10}  {'PERM WAIT':>10}"
+    )
+    out = [hdr, "-" * len(hdr)]
+    for k in keys:
+        s = buckets[k]
+        out.append(
+            f"{k:10}  {s['sessions']:>8}  {s['permission_prompts']:>7}  "
+            f"{s['avg_prompts_per_session']:>7.1f}  "
+            f"{_fmt_duration(s['total_ms']):>10}  {_fmt_duration(s['avg_duration_ms']):>10}  "
+            f"{_fmt_duration(s['active_ms']):>10}  {_fmt_duration(s['avg_active_ms']):>10}  "
+            f"{s['prompts_per_active_min']:>9.2f}  "
+            f"{_fmt_duration(s['avg_processing_between_prompts_ms']):>10}  "
+            f"{_fmt_duration(s['permission_wait_ms']):>10}"
+        )
+    return "\n".join(out)
 
 
 # Substrings that flag a payload field as explaining why a prompt was shown.
@@ -371,6 +474,32 @@ def _main(argv: list[str]) -> int:
             sid = os.path.basename(path)[: -len(".jsonl")]
         print(f"Session: {sid}")
         print(list_prompts(load_events(path)))
+        return 0
+
+    if args[0] in ("--daily", "--weekly"):
+        is_week = args[0] == "--weekly"
+        limit: int | None = None
+        if len(args) >= 2:
+            try:
+                limit = int(args[1])
+            except ValueError:
+                unit = "weeks" if is_week else "days"
+                print(f"Invalid number of {unit}: {args[1]!r}")
+                return 1
+            if limit <= 0:
+                print("Limit must be a positive integer.")
+                return 1
+        buckets = bucket_stats(_week_key if is_week else _day_key)
+        if as_json:
+            keys = sorted(buckets)
+            if limit is not None:
+                keys = keys[-limit:]
+            print(json.dumps({k: buckets[k] for k in keys}, indent=2))
+            return 0
+        if not buckets:
+            print("No sessions captured yet.")
+            return 0
+        print(render_buckets(buckets, "WEEK" if is_week else "DATE", limit))
         return 0
 
     if args[0] == "--all":

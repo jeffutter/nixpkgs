@@ -229,6 +229,14 @@ in
 
     home.file.".claude/plugins/marketplaces/superpowers".source = superpowers;
 
+    # Symlink the permission-stats scripts into their data dir so they can be run
+    # directly (e.g. `~/.claude/permission-stats/report.py --daily`) while always
+    # tracking the current build. capture.py imports report.py from its own dir;
+    # both being symlinks in the same dir keeps that import working. The dir also
+    # holds runtime events/ and reports/, which home-manager leaves untouched.
+    home.file.".claude/permission-stats/capture.py".source = "${permissionStats}/capture.py";
+    home.file.".claude/permission-stats/report.py".source = "${permissionStats}/report.py";
+
     # `herdr integration install pi`/`claude` would normally drop these files
     # itself and (for claude) rewrite settings.json to add the SessionStart
     # hook below. That rewrite can't run here since programs.claude-code owns
