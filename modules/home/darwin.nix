@@ -4,6 +4,9 @@
   ...
 }:
 
+let
+  moshi-hook = pkgs.callPackage ../../pkgs/moshi-hook { };
+in
 {
   home.packages = with pkgs; [
     aerospace
@@ -12,6 +15,23 @@
   ];
 
   programs.man.package = pkgs.man;
+
+  # Bridges Claude Code/Codex/etc. sessions to the Moshi mobile app over
+  # SSH/Mosh. Pair once with `moshi-hook pair --token $MOSHI_PAIRING_TOKEN`;
+  # the agent just keeps the daemon running.
+  launchd.agents.moshi-hook = {
+    enable = true;
+    config = {
+      ProgramArguments = [
+        "${moshi-hook}/bin/moshi-hook"
+        "serve"
+      ];
+      RunAtLoad = true;
+      KeepAlive = true;
+      StandardOutPath = "${config.home.homeDirectory}/Library/Logs/moshi-hook.log";
+      StandardErrorPath = "${config.home.homeDirectory}/Library/Logs/moshi-hook.err.log";
+    };
+  };
 
   # Symlink nix-installed apps to ~/Applications for Spotlight
   home.file."Applications" =

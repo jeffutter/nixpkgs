@@ -12,3 +12,4 @@ bin/update-thaw
 bin/update-claude-code
 bin/update-screenpipe
 bin/update-datadog-pup
+bin/update-moshi-hook

@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+PKG="${HOME}/.config/home-manager/pkgs/moshi-hook/default.nix"
+CDN="https://cdn.getmoshi.app/hook"
+
+# Nix system → release-asset platform suffix. Must match the keys in
+# sources = { ... } in default.nix. Add new entries here when supporting
+# more platforms.
+declare -A SUFFIXES=(
+  ["aarch64-darwin"]="Darwin_arm64"
+  ["x86_64-darwin"]="Darwin_x86_64"
+  ["aarch64-linux"]="Linux_arm64"
+  ["x86_64-linux"]="Linux_x86_64"
+)
+
+to_sri() {
+  nix hash convert --hash-algo sha256 --to sri "$1" 2>/dev/null \
+    || nix hash to-sri --type sha256 "$1" 2>/dev/null
+}
+
+echo "Fetching latest moshi-hook version..."
+TAG=$(curl -sfL "${CDN}/latest/version.txt" | tr -d '[:space:]')
+[[ "$TAG" == v* ]] || TAG="v${TAG}"
+LATEST="${TAG#v}"
+
+if [[ -z "$LATEST" ]]; then
+  echo "error: failed to fetch latest version from ${CDN}/latest/version.txt" >&2
+  exit 1
+fi
+
+CURRENT=$(grep 'version = ' "$PKG" | head -1 | sed 's/.*"\(.*\)".*/\1/')
+
+echo "Current: $CURRENT  Latest: $LATEST"
+
+if [[ "$LATEST" == "$CURRENT" ]]; then
+  echo "Already at latest version, nothing to do."
+  exit 0
+fi
+
+WORK="$(mktemp -d "${TMPDIR:-/tmp}/moshi-hook.XXXXXX")"
+trap 'rm -rf "$WORK"' EXIT
+
+# checksums.txt covers every platform asset for this release in one file.
+curl -sfL "${CDN}/${TAG}/checksums.txt" -o "${WORK}/checksums.txt"
+
+echo "Updating pkgs/moshi-hook/default.nix..."
+perl -pi -e "s|version = \"[^\"]+\"|version = \"${LATEST}\"|" "$PKG"
+
+for SYSTEM in "${!SUFFIXES[@]}"; do
+  SUFFIX="${SUFFIXES[$SYSTEM]}"
+  ASSET="moshi-hook_${SUFFIX}.tar.gz"
+  HEX=$(awk -v f="$ASSET" '$2 == f {print $1}' "${WORK}/checksums.txt")
+  if [[ -z "$HEX" ]]; then
+    echo "error: no checksum found for ${ASSET}" >&2
+    exit 1
+  fi
+  SRI=$(to_sri "$HEX")
+  echo "  ${ASSET}: ${SRI}"
+
+  # Replace the hash by anchoring on the platform-specific asset name that
+  # precedes it within the same `{ url = ...; hash = ...; }` block.
+  perl -0777 -pi -e \
+    "s|(${ASSET}\";\s*\n\s*hash = \")sha256-[^\"]+|\${1}${SRI}|s" \
+    "$PKG"
+done
+
+echo "Updated moshi-hook: $CURRENT -> $LATEST"

@@ -11,13 +11,15 @@ let
   backlog-md =
     (inputs.backlog-md.packages.${pkgs.stdenv.hostPlatform.system}.default).overrideAttrs
       (old: {
-        buildPhase = ''
-          runHook preBuild
-          bun build --compile --minify \
-            --define '__EMBEDDED_VERSION__="${old.version}"' \
-            --outfile=dist/backlog src/cli.ts
-          runHook postBuild
-        '';
+        # The upstream flake overlays `bun` on x86_64-linux with a prebuilt
+        # "baseline" (SSE4.2) release to support older CPUs without AVX2. That
+        # baseline build's `bun build --compile` output is corrupt: the
+        # resulting binary segfaults inside glibc's dynamic linker (dl_main)
+        # before any of backlog's code runs, regardless of buildPhase. Our
+        # CPUs have AVX2, so build with nixpkgs' regular bun instead.
+        nativeBuildInputs = map (
+          drv: if (drv.pname or null) == "bun" then pkgs.bun else drv
+        ) old.nativeBuildInputs;
       });
   fabric = inputs.fabric.packages.${pkgs.stdenv.hostPlatform.system}.default;
   stop-slop = inputs.stop-slop;
@@ -90,6 +92,7 @@ let
 
   claude-tail = inputs.claude-tail.packages.${pkgs.stdenv.hostPlatform.system}.default;
   herdr = inputs.herdr.packages.${pkgs.stdenv.hostPlatform.system}.default;
+  moshi-hook = pkgs.callPackage ../../../pkgs/moshi-hook { };
   # herdr ships its agent skill as a single SKILL.md at the repo root rather
   # than a dedicated skill package; lift just that file into its own skill
   # derivation so it tracks whatever version the herdr flake input is pinned to.
@@ -116,7 +119,7 @@ let
       wrapProgram $out/bin/pi \
         --set NPM_CONFIG_PREFIX ${config.home.homeDirectory}/.pi/npm/ \
         --prefix PATH : ${pkgs.lib.makeBinPath [ pkgs.nodejs_latest ]} \
-        --run 'op whoami > /dev/null 2>&1 || eval $(op signin); export LITELLM_KEY="$(op read '"'"'op://Private/litellm-pi/notesPlain'"'"')"'
+        --run 'if [ -z "$LITELLM_KEY" ]; then op whoami > /dev/null 2>&1 || eval $(op signin); export LITELLM_KEY="$(op read '"'"'op://Private/litellm-pi/notesPlain'"'"')"; fi'
     '';
   };
 
@@ -131,6 +134,30 @@ let
     type = "command";
     command = "${pkgs.python3}/bin/python3 ${permissionStats}/capture.py";
   };
+
+  # Claude Code hooks `moshi-hook install` would normally write into
+  # ~/.claude/settings.json itself. The event/matcher/async shape is read back
+  # from the derivation's passthru.agentConfigs (see pkgs/moshi-hook) so it
+  # tracks whatever this binary's template actually emits -- that file can't
+  # be mutated at activation time since programs.claude-code owns
+  # ~/.claude/settings.json as a read-only Nix store symlink, same constraint
+  # as the peon-ping/herdr hooks below. `command` is rebuilt with a proper Nix
+  # interpolation rather than kept from the parsed JSON: this Nix keeps
+  # store-path context on strings read via readFile, and builtins.fromJSON
+  # refuses any string carrying it -- so context is stripped before parsing
+  # (safe here since matcher/async/type are plain non-path strings and
+  # `command` is unconditionally replaced below with a value that does carry
+  # proper context back to the moshi-hook package).
+  moshiHookClaudeCommand = "'${moshi-hook}/bin/moshi-hook' claude-hook";
+  moshiClaudeHooks = lib.mapAttrs (
+    _event: groups: map (group: group // { hooks = map (h: h // { command = moshiHookClaudeCommand; }) group.hooks; }) groups
+  ) (
+    builtins.fromJSON (
+      builtins.unsafeDiscardStringContext (
+        builtins.readFile "${moshi-hook.passthru.agentConfigs}/claude-hooks.json"
+      )
+    )
+  );
 
   # peon-ping Claude Code hooks. We wire these declaratively instead of using the
   # module's `claudeCodeIntegration`, which mutates ~/.claude/settings.json via an
@@ -216,6 +243,7 @@ in
       backlog-md
       claude-tail
       herdr
+      moshi-hook
       pi
       rtk
       peon-ping
@@ -251,6 +279,15 @@ in
       source = "${inputs.herdr}/src/integration/assets/claude/herdr-agent-state.sh";
       executable = true;
     };
+
+    # moshi-hook's pi extension: same "reproduced declaratively" situation as
+    # herdr above, except there's no source tree to point at -- the file is
+    # rendered by the moshi-hook binary itself, so it's captured at build time
+    # instead (see pkgs/moshi-hook's passthru.agentConfigs). The corresponding
+    # Claude Code hooks are spliced into programs.claude-code.settings.hooks
+    # below via moshiClaudeHooks.
+    home.file.".pi/agent/extensions/moshi-hooks.ts".source =
+      "${moshi-hook.passthru.agentConfigs}/pi-extension.ts";
 
     home.file.".pi/agent/extensions/pi-continue.json".text = builtins.toJSON {
       reasoning = false;
@@ -288,6 +325,7 @@ in
         "npm:@gotgenes/pi-subagents"
         "npm:@juicesharp/rpiv-ask-user-question"
         "npm:@juicesharp/rpiv-todo"
+        "npm:@quintinshaw/pi-dynamic-workflows"
         "npm:@samfp/pi-memory"
         "npm:pi-bar"
         "npm:pi-continue"
@@ -517,23 +555,27 @@ in
                   }
                 ];
               }
-            ];
+            ]
+            ++ (moshiClaudeHooks.PreToolUse or [ ]);
           PermissionRequest = [
             { hooks = [ permissionStatsCapture ]; }
             (mkPeonEntry { })
-          ];
+          ]
+          ++ (moshiClaudeHooks.PermissionRequest or [ ]);
           PermissionDenied = [ { hooks = [ permissionStatsCapture ]; } ];
-          PostToolUse = [ { hooks = [ permissionStatsCapture ]; } ];
+          PostToolUse = [ { hooks = [ permissionStatsCapture ]; } ] ++ (moshiClaudeHooks.PostToolUse or [ ]);
           PostToolUseFailure = [ (mkPeonEntry { matcher = "Bash"; }) ];
           UserPromptSubmit = [
             { hooks = [ permissionStatsCapture ]; }
             (mkPeonEntry { })
             peonUserPromptHelpers
-          ];
+          ]
+          ++ (moshiClaudeHooks.UserPromptSubmit or [ ]);
           Stop = [
             { hooks = [ permissionStatsCapture ]; }
             (mkPeonEntry { })
-          ];
+          ]
+          ++ (moshiClaudeHooks.Stop or [ ]);
           SessionStart = [
             { hooks = [ permissionStatsCapture ]; }
             (mkPeonEntry { async = false; })
@@ -547,11 +589,13 @@ in
                 }
               ];
             }
-          ];
+          ]
+          ++ (moshiClaudeHooks.SessionStart or [ ]);
           SessionEnd = [
             { hooks = [ permissionStatsCapture ]; }
             (mkPeonEntry { })
-          ];
+          ]
+          ++ (moshiClaudeHooks.SessionEnd or [ ]);
           SubagentStart = [ (mkPeonEntry { }) ];
           Notification = [ (mkPeonEntry { }) ];
           PreCompact = [ (mkPeonEntry { }) ];
@@ -623,27 +667,28 @@ in
       skills = {
         acli = ./ai/skills/acli;
         actual-cli = ./ai/skills/actual-cli;
-        voice-dna = ./ai/skills/voice-dna;
-        voice-dna-creator = ./ai/skills/voice-dna-creator;
+        agent-browser = "${agent-browser}/share/agent-browser/skills/agent-browser";
+        ast-grep = "${ast-grep-skill}/ast-grep/skills/ast-grep";
+        backlog-execute = ./ai/skills/backlog-execute;
+        backlog-planner = ./ai/skills/backlog-planner;
         brainstorming = ./ai/skills/brainstorming;
         elixir = ./ai/skills/elixir;
-        backlog-planner = ./ai/skills/backlog-planner;
-        backlog-execute = ./ai/skills/backlog-execute;
+        excalidraw-diagram = "${excalidraw-diagram-skill-wrapped}";
+        grill-me = "${grill-me-skill}/skills/productivity/grill-me";
+        herdr = "${herdr-skill}";
+        humanizer = "${humanizer}";
+        kami = "${mkKamiSkill config.jeff.kamiSkillBrand}";
         peon-ping-config = peonSkill "peon-ping-config";
         peon-ping-log = peonSkill "peon-ping-log";
         peon-ping-rename = peonSkill "peon-ping-rename";
         peon-ping-toggle = peonSkill "peon-ping-toggle";
         peon-ping-use = peonSkill "peon-ping-use";
+        review-pi-work = ./ai/skills/review-pi-work;
         stop-slop = "${stop-slop}";
-        humanizer = "${humanizer}";
-        herdr = "${herdr-skill}";
-        writing-clearly-and-concisely = "${the-elements-of-style}/skills/writing-clearly-and-concisely";
         todoist-cli = "${todoist-cli-skill}";
-        agent-browser = "${agent-browser}/share/agent-browser/skills/agent-browser";
-        kami = "${mkKamiSkill config.jeff.kamiSkillBrand}";
-        ast-grep = "${ast-grep-skill}/ast-grep/skills/ast-grep";
-        grill-me = "${grill-me-skill}/skills/productivity/grill-me";
-        excalidraw-diagram = "${excalidraw-diagram-skill-wrapped}";
+        voice-dna = ./ai/skills/voice-dna;
+        voice-dna-creator = ./ai/skills/voice-dna-creator;
+        writing-clearly-and-concisely = "${the-elements-of-style}/skills/writing-clearly-and-concisely";
       }
       // builtins.listToAttrs (
         map

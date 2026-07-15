@@ -17,8 +17,8 @@ Instructions:
 5. Mark acceptance criteria complete as you go
 6. Add implementation notes: `backlog task edit $0 --append-notes "..."`
 7. Add a final summary: `backlog task edit $0 --final-summary "..."`
-8. Mark the ticket done: `backlog task edit $0 -s Done`
-9. Commit ALL changes (this is mandatory — never skip the commit step):
+8. Commit ALL changes (this is mandatory — never skip the commit step). Do this
+   BEFORE marking the ticket Done — see step 10 for why:
    a. If you made changes inside sportsbook-bff/: cd into it, stage the changed files,
       and commit there FIRST (the pre-commit hook must pass).
    b. If you made changes inside penn-core/: cd into it, stage the changed files,
@@ -27,7 +27,15 @@ Instructions:
       updates for sportsbook-bff and/or penn-core if you committed inside them,
       plus backlog task files). Commit with an informative but concise message.
    d. All commits must include the Co-Authored-By trailer.
-10. Print a summary of what you did and exit
+9. Mark the ticket done: `backlog task edit $0 -s Done`
+10. Fold that status change into the commit from step 8 instead of leaving it
+    separate: stage the updated ticket file and `git commit --amend --no-edit`.
+    Committing the code first and folding the Done flip in afterward means an
+    interruption between steps 8-10 (e.g. this process being killed) never
+    leaves a ticket marked Done with its work uncommitted — worst case is a
+    ticket that's already-committed but still shows its prior status, which a
+    future run can safely re-check rather than silently losing finished work.
+11. Print a summary of what you did and exit
 
 Do NOT start work on multiple tickets. Complete exactly ONE ticket then exit.
 
