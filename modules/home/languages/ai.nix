@@ -92,6 +92,7 @@ let
 
   claude-tail = inputs.claude-tail.packages.${pkgs.stdenv.hostPlatform.system}.default;
   herdr = inputs.herdr.packages.${pkgs.stdenv.hostPlatform.system}.default;
+  moshi-hook = pkgs.callPackage ../../../pkgs/moshi-hook { };
   # herdr ships its agent skill as a single SKILL.md at the repo root rather
   # than a dedicated skill package; lift just that file into its own skill
   # derivation so it tracks whatever version the herdr flake input is pinned to.
@@ -133,6 +134,30 @@ let
     type = "command";
     command = "${pkgs.python3}/bin/python3 ${permissionStats}/capture.py";
   };
+
+  # Claude Code hooks `moshi-hook install` would normally write into
+  # ~/.claude/settings.json itself. The event/matcher/async shape is read back
+  # from the derivation's passthru.agentConfigs (see pkgs/moshi-hook) so it
+  # tracks whatever this binary's template actually emits -- that file can't
+  # be mutated at activation time since programs.claude-code owns
+  # ~/.claude/settings.json as a read-only Nix store symlink, same constraint
+  # as the peon-ping/herdr hooks below. `command` is rebuilt with a proper Nix
+  # interpolation rather than kept from the parsed JSON: this Nix keeps
+  # store-path context on strings read via readFile, and builtins.fromJSON
+  # refuses any string carrying it -- so context is stripped before parsing
+  # (safe here since matcher/async/type are plain non-path strings and
+  # `command` is unconditionally replaced below with a value that does carry
+  # proper context back to the moshi-hook package).
+  moshiHookClaudeCommand = "'${moshi-hook}/bin/moshi-hook' claude-hook";
+  moshiClaudeHooks = lib.mapAttrs (
+    _event: groups: map (group: group // { hooks = map (h: h // { command = moshiHookClaudeCommand; }) group.hooks; }) groups
+  ) (
+    builtins.fromJSON (
+      builtins.unsafeDiscardStringContext (
+        builtins.readFile "${moshi-hook.passthru.agentConfigs}/claude-hooks.json"
+      )
+    )
+  );
 
   # peon-ping Claude Code hooks. We wire these declaratively instead of using the
   # module's `claudeCodeIntegration`, which mutates ~/.claude/settings.json via an
@@ -218,6 +243,7 @@ in
       backlog-md
       claude-tail
       herdr
+      moshi-hook
       pi
       rtk
       peon-ping
@@ -245,6 +271,15 @@ in
       source = "${inputs.herdr}/src/integration/assets/claude/herdr-agent-state.sh";
       executable = true;
     };
+
+    # moshi-hook's pi extension: same "reproduced declaratively" situation as
+    # herdr above, except there's no source tree to point at -- the file is
+    # rendered by the moshi-hook binary itself, so it's captured at build time
+    # instead (see pkgs/moshi-hook's passthru.agentConfigs). The corresponding
+    # Claude Code hooks are spliced into programs.claude-code.settings.hooks
+    # below via moshiClaudeHooks.
+    home.file.".pi/agent/extensions/moshi-hooks.ts".source =
+      "${moshi-hook.passthru.agentConfigs}/pi-extension.ts";
 
     home.file.".pi/agent/extensions/pi-continue.json".text = builtins.toJSON {
       reasoning = false;
@@ -512,23 +547,27 @@ in
                   }
                 ];
               }
-            ];
+            ]
+            ++ (moshiClaudeHooks.PreToolUse or [ ]);
           PermissionRequest = [
             { hooks = [ permissionStatsCapture ]; }
             (mkPeonEntry { })
-          ];
+          ]
+          ++ (moshiClaudeHooks.PermissionRequest or [ ]);
           PermissionDenied = [ { hooks = [ permissionStatsCapture ]; } ];
-          PostToolUse = [ { hooks = [ permissionStatsCapture ]; } ];
+          PostToolUse = [ { hooks = [ permissionStatsCapture ]; } ] ++ (moshiClaudeHooks.PostToolUse or [ ]);
           PostToolUseFailure = [ (mkPeonEntry { matcher = "Bash"; }) ];
           UserPromptSubmit = [
             { hooks = [ permissionStatsCapture ]; }
             (mkPeonEntry { })
             peonUserPromptHelpers
-          ];
+          ]
+          ++ (moshiClaudeHooks.UserPromptSubmit or [ ]);
           Stop = [
             { hooks = [ permissionStatsCapture ]; }
             (mkPeonEntry { })
-          ];
+          ]
+          ++ (moshiClaudeHooks.Stop or [ ]);
           SessionStart = [
             { hooks = [ permissionStatsCapture ]; }
             (mkPeonEntry { async = false; })
@@ -542,11 +581,13 @@ in
                 }
               ];
             }
-          ];
+          ]
+          ++ (moshiClaudeHooks.SessionStart or [ ]);
           SessionEnd = [
             { hooks = [ permissionStatsCapture ]; }
             (mkPeonEntry { })
-          ];
+          ]
+          ++ (moshiClaudeHooks.SessionEnd or [ ]);
           SubagentStart = [ (mkPeonEntry { }) ];
           Notification = [ (mkPeonEntry { }) ];
           PreCompact = [ (mkPeonEntry { }) ];
