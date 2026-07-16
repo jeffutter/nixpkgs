@@ -143,11 +143,20 @@ let
   basePi = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.pi;
   # Patch the hardcoded 30s RPC send timeout in pi-coding-agent to 10 minutes,
   # since local LLM prompt processing can take 1-2 minutes on this hardware.
+  #
+  # pi ships as a single `bun compile`d executable (libexec/pi/pi) rather than
+  # an npm-installed JS tree, so the bundled source can't be edited as a
+  # separate file -- it's embedded as a text blob inside the binary. Patching
+  # it in place must preserve the exact byte length of the match, or it
+  # shifts every offset after it and corrupts bun's embedded-bundle trailer.
+  # `6e5` + 2 padding spaces is byte-for-byte the same length as `30000`
+  # (whitespace before `)` is insignificant to JS), so the replacement is
+  # size-preserving. Verified this produces a working binary (`--help`,
+  # `--version` both run) with only the targeted bytes changed.
   patchedPi = pkgs.runCommand "pi-patched" { } ''
     cp -r ${basePi} $out
     chmod -R u+w $out
-    sed -i 's/}, 30000);$/}, 600000);/' \
-      $out/lib/node_modules/@earendil-works/pi-coding-agent/dist/modes/rpc/rpc-client.js
+    LC_ALL=C sed -i 's/}, 30000);/}, 6e5  );/' $out/libexec/pi/pi
   '';
   pi = pkgs.symlinkJoin {
     name = "pi";
