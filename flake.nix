@@ -184,7 +184,11 @@
         "aarch64-darwin"
       ];
       forAllSystems = nixpkgs.lib.genAttrs systems;
-      pkgsFor = system: import nixpkgs { inherit system; };
+      # allowUnfree here (not just in the home/nixos configs' own pkgs) so
+      # unfree packages exposed via the `packages` output -- e.g. moshi-hook,
+      # consumed externally by the colmena repo's hermes-agent VM -- build
+      # standalone without every consumer needing its own override.
+      pkgsFor = system: import nixpkgs { inherit system; config.allowUnfree = true; };
     in
     let
       nixpkgsConfig = {

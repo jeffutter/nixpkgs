@@ -92,6 +92,44 @@ let
 
   claude-tail = inputs.claude-tail.packages.${pkgs.stdenv.hostPlatform.system}.default;
   herdr = inputs.herdr.packages.${pkgs.stdenv.hostPlatform.system}.default;
+  herdrConfig = {
+    onboarding = false;
+    theme = {
+      name = "tokyo-night";
+      auto_switch = false;
+    };
+    ui = {
+      agent_panel_sort = "spaces";
+      show_agent_labels_on_pane_borders = true;
+      toast.delivery = "herdr";
+    };
+    keys = {
+      prefix = "ctrl+a";
+      open_worktree = "prefix+shift+o";
+      remove_worktree = "prefix+alt+d";
+      focus_agent = "prefix+alt+1..9";
+      command = [
+        {
+          # open in a split beside your work
+          key = "prefix+f";
+          type = "shell";
+          command = "herdr plugin action invoke open-file-viewer --plugin herdr-file-viewer";
+        }
+        {
+          # ...or in its own tab
+          key = "prefix+shift+f";
+          type = "shell";
+          command = "herdr plugin action invoke open-file-viewer-tab --plugin herdr-file-viewer";
+        }
+        {
+          # <plugin_id>.<action_id> -- note the id, not the name
+          key = "cmd+r";
+          type = "plugin_action";
+          command = "persiyanov.reviewr.toggle";
+        }
+      ];
+    };
+  };
   moshi-hook = pkgs.callPackage ../../../pkgs/moshi-hook { };
   # herdr ships its agent skill as a single SKILL.md at the repo root rather
   # than a dedicated skill package; lift just that file into its own skill
@@ -149,15 +187,21 @@ let
   # `command` is unconditionally replaced below with a value that does carry
   # proper context back to the moshi-hook package).
   moshiHookClaudeCommand = "'${moshi-hook}/bin/moshi-hook' claude-hook";
-  moshiClaudeHooks = lib.mapAttrs (
-    _event: groups: map (group: group // { hooks = map (h: h // { command = moshiHookClaudeCommand; }) group.hooks; }) groups
-  ) (
-    builtins.fromJSON (
-      builtins.unsafeDiscardStringContext (
-        builtins.readFile "${moshi-hook.passthru.agentConfigs}/claude-hooks.json"
+  moshiClaudeHooks =
+    lib.mapAttrs
+      (
+        _event: groups:
+        map (
+          group: group // { hooks = map (h: h // { command = moshiHookClaudeCommand; }) group.hooks; }
+        ) groups
       )
-    )
-  );
+      (
+        builtins.fromJSON (
+          builtins.unsafeDiscardStringContext (
+            builtins.readFile "${moshi-hook.passthru.agentConfigs}/claude-hooks.json"
+          )
+        )
+      );
 
   # peon-ping Claude Code hooks. We wire these declaratively instead of using the
   # module's `claudeCodeIntegration`, which mutates ~/.claude/settings.json via an
@@ -264,6 +308,10 @@ in
     # holds runtime events/ and reports/, which home-manager leaves untouched.
     home.file.".claude/permission-stats/capture.py".source = "${permissionStats}/capture.py";
     home.file.".claude/permission-stats/report.py".source = "${permissionStats}/report.py";
+
+    xdg.configFile."herdr/config.toml".source =
+      (pkgs.formats.toml { }).generate "herdr-config.toml"
+        herdrConfig;
 
     # `herdr integration install pi`/`claude` would normally drop these files
     # itself and (for claude) rewrite settings.json to add the SessionStart

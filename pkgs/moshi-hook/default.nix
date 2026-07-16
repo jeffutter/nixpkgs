@@ -60,14 +60,16 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     runHook postInstall
   '';
 
-  # `moshi-hook install` renders the Claude Code hook JSON and the pi
-  # extension script from templates that embed its own store path. Capture
-  # that output at build time (fully offline, runs against the binary this
-  # derivation just produced) instead of hand-transcribing generated code, so
-  # it stays byte-for-byte in sync with whatever version is pinned above.
-  # Consumed by modules/home/languages/ai.nix, which can't run `moshi-hook
-  # install` itself at activation time since programs.claude-code owns
-  # ~/.claude/settings.json as a read-only Nix store symlink.
+  # `moshi-hook install` renders the Claude Code hook JSON, the pi extension
+  # script, and the hermes-agent plugin from templates that embed its own
+  # store path. Capture that output at build time (fully offline, runs
+  # against the binary this derivation just produced) instead of
+  # hand-transcribing generated code, so it stays byte-for-byte in sync with
+  # whatever version is pinned above. Consumed by
+  # modules/home/languages/ai.nix (claude/pi) and by the hermes-agent
+  # microvm in the colmena repo (hermes-plugin) -- neither can run
+  # `moshi-hook install` itself at activation time since both own their
+  # respective config files as read-only/regenerated-on-start artifacts.
   passthru.agentConfigs =
     runCommand "moshi-hook-agent-configs-${version}"
       {
@@ -75,10 +77,13 @@ stdenvNoCC.mkDerivation (finalAttrs: {
       }
       ''
         export HOME=$(mktemp -d)
-        ${finalAttrs.finalPackage}/bin/moshi-hook install --target claude,pi
+        ${finalAttrs.finalPackage}/bin/moshi-hook install --target claude,pi,hermes
         mkdir -p $out
         cp "$HOME/.pi/agent/extensions/moshi-hooks.ts" $out/pi-extension.ts
         jq '.hooks' "$HOME/.claude/settings.json" > $out/claude-hooks.json
+        mkdir -p $out/hermes-plugin
+        cp "$HOME/.hermes/plugins/moshi-hooks/__init__.py" $out/hermes-plugin/__init__.py
+        cp "$HOME/.hermes/plugins/moshi-hooks/plugin.yaml" $out/hermes-plugin/plugin.yaml
       '';
 
   meta = {
