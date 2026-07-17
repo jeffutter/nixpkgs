@@ -46,11 +46,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    peon-ping = {
-      url = "github:PeonPing/peon-ping";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
     zen-browser = {
       url = "github:0xc000022070/zen-browser-flake";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -188,7 +183,12 @@
       # unfree packages exposed via the `packages` output -- e.g. moshi-hook,
       # consumed externally by the colmena repo's hermes-agent VM -- build
       # standalone without every consumer needing its own override.
-      pkgsFor = system: import nixpkgs { inherit system; config.allowUnfree = true; };
+      pkgsFor =
+        system:
+        import nixpkgs {
+          inherit system;
+          config.allowUnfree = true;
+        };
     in
     let
       nixpkgsConfig = {

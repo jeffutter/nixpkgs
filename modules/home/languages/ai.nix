@@ -138,7 +138,6 @@ let
     mkdir -p $out
     cp ${inputs.herdr}/SKILL.md $out/SKILL.md
   '';
-  peon-ping = inputs.peon-ping.packages.${pkgs.stdenv.hostPlatform.system}.default;
   rtk = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.rtk;
   basePi = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.pi;
   # Patch the hardcoded 30s RPC send timeout in pi-coding-agent to 10 minutes,
@@ -188,7 +187,7 @@ let
   # tracks whatever this binary's template actually emits -- that file can't
   # be mutated at activation time since programs.claude-code owns
   # ~/.claude/settings.json as a read-only Nix store symlink, same constraint
-  # as the peon-ping/herdr hooks below. `command` is rebuilt with a proper Nix
+  # as the herdr hooks below. `command` is rebuilt with a proper Nix
   # interpolation rather than kept from the parsed JSON: this Nix keeps
   # store-path context on strings read via readFile, and builtins.fromJSON
   # refuses any string carrying it -- so context is stripped before parsing
@@ -212,50 +211,6 @@ let
         )
       );
 
-  # peon-ping Claude Code hooks. We wire these declaratively instead of using the
-  # module's `claudeCodeIntegration`, which mutates ~/.claude/settings.json via an
-  # activation script -- incompatible here, since programs.claude-code owns that
-  # file as a read-only Nix store symlink. Hooks reference the package's scripts
-  # by store path, mirroring the module's own registrations.
-  peonHook = "${peon-ping}/bin/peon";
-  # One peon.sh hook entry. async=true matches the module for every event except
-  # SessionStart; matcher is "" everywhere except PostToolUseFailure ("Bash").
-  mkPeonEntry =
-    {
-      matcher ? "",
-      async ? true,
-    }:
-    {
-      inherit matcher;
-      hooks = [
-        (
-          {
-            type = "command";
-            command = peonHook;
-            timeout = 10;
-          }
-          // lib.optionalAttrs async { async = true; }
-        )
-      ];
-    };
-  # UserPromptSubmit also runs the /peon-ping-use and /peon-ping-rename helpers.
-  peonUserPromptHelpers = {
-    matcher = "";
-    hooks = [
-      {
-        type = "command";
-        command = "${peon-ping}/share/peon-ping/scripts/hook-handle-use.sh";
-        timeout = 5;
-      }
-      {
-        type = "command";
-        command = "${peon-ping}/share/peon-ping/scripts/hook-handle-rename.sh";
-        timeout = 5;
-      }
-    ];
-  };
-  peonSkill = name: "${peon-ping}/share/peon-ping/skills/${name}";
-
   commitMsgCommon = {
     intro = readAiDoc "shared/commit-msg/commit-msg-intro.md";
     writingStyle = readAiDoc "shared/commit-msg/commit-msg-writing-style.md";
@@ -268,8 +223,6 @@ let
 in
 
 {
-  imports = [ inputs.peon-ping.homeManagerModules.default ];
-
   options.jeff.kamiSkillBrand = lib.mkOption {
     type = lib.types.path;
     default = ./ai/kami/brand.md;
@@ -299,7 +252,6 @@ in
       moshi-hook
       pi
       rtk
-      peon-ping
       #fabric
       (llm.withPlugins {
         llm-cmd = true;
@@ -451,39 +403,6 @@ in
       };
     };
 
-    # peon-ping: game-character voice lines / overlays on Claude Code events.
-    # claudeCodeIntegration is left off so this module only manages ~/.openpeon
-    # (config + packs); the Claude hooks themselves are declared in
-    # programs.claude-code.settings.hooks below. Shell integration is off because
-    # this repo uses fish (the package's fish completions load via home.packages).
-    programs.peon-ping = {
-      enable = true;
-      package = peon-ping;
-      claudeCodeIntegration = false;
-      enableZshIntegration = false;
-      enableBashIntegration = false;
-      installPacks = [
-        "peon"
-        "clean_chimes"
-        {
-          name = "cute_ui";
-          src = pkgs.fetchFromGitHub {
-            owner = "TechPdM";
-            repo = "openpeon-cute-minimal";
-            rev = "v1.0.1";
-            sha256 = "sha256-+ieyEOyPcPshOYxVJLhLm/L71Rjarqld7Gpx73MTG7M=";
-          };
-        }
-      ];
-      settings = {
-        default_pack = "cute_ui";
-        volume = 0.3;
-        enabled = true;
-        desktop_notifications = true;
-        notification_style = "standard";
-      };
-    };
-
     programs.claude-code = {
       enable = true;
       package = pkgs.claude-code;
@@ -616,26 +535,20 @@ in
             ++ (moshiClaudeHooks.PreToolUse or [ ]);
           PermissionRequest = [
             { hooks = [ permissionStatsCapture ]; }
-            (mkPeonEntry { })
           ]
           ++ (moshiClaudeHooks.PermissionRequest or [ ]);
           PermissionDenied = [ { hooks = [ permissionStatsCapture ]; } ];
           PostToolUse = [ { hooks = [ permissionStatsCapture ]; } ] ++ (moshiClaudeHooks.PostToolUse or [ ]);
-          PostToolUseFailure = [ (mkPeonEntry { matcher = "Bash"; }) ];
           UserPromptSubmit = [
             { hooks = [ permissionStatsCapture ]; }
-            (mkPeonEntry { })
-            peonUserPromptHelpers
           ]
           ++ (moshiClaudeHooks.UserPromptSubmit or [ ]);
           Stop = [
             { hooks = [ permissionStatsCapture ]; }
-            (mkPeonEntry { })
           ]
           ++ (moshiClaudeHooks.Stop or [ ]);
           SessionStart = [
             { hooks = [ permissionStatsCapture ]; }
-            (mkPeonEntry { async = false; })
             {
               matcher = "*";
               hooks = [
@@ -650,12 +563,8 @@ in
           ++ (moshiClaudeHooks.SessionStart or [ ]);
           SessionEnd = [
             { hooks = [ permissionStatsCapture ]; }
-            (mkPeonEntry { })
           ]
           ++ (moshiClaudeHooks.SessionEnd or [ ]);
-          SubagentStart = [ (mkPeonEntry { }) ];
-          Notification = [ (mkPeonEntry { }) ];
-          PreCompact = [ (mkPeonEntry { }) ];
         };
       }
       // lib.optionalAttrs config.jeff.enableClaudeVoice {
@@ -735,11 +644,6 @@ in
         herdr = "${herdr-skill}";
         humanizer = "${humanizer}";
         kami = "${mkKamiSkill config.jeff.kamiSkillBrand}";
-        peon-ping-config = peonSkill "peon-ping-config";
-        peon-ping-log = peonSkill "peon-ping-log";
-        peon-ping-rename = peonSkill "peon-ping-rename";
-        peon-ping-toggle = peonSkill "peon-ping-toggle";
-        peon-ping-use = peonSkill "peon-ping-use";
         review-pi-work = ./ai/skills/review-pi-work;
         stop-slop = "${stop-slop}";
         todoist-cli = "${todoist-cli-skill}";
