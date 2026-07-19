@@ -323,9 +323,11 @@ in
       quietStartup = true;
       enabledModels = [
         "chat"
+        "chat-fast"
         "coding"
         "instruct"
         "instruct-reasoning"
+        "orchestrator"
         "planning"
         "research"
       ];
@@ -374,6 +376,11 @@ in
               contextWindow = 131072;
             }
             {
+              id = "chat-fast";
+              reasoning = false;
+              contextWindow = 131072;
+            }
+            {
               id = "coding";
               reasoning = true;
               contextWindow = 131072;
@@ -385,6 +392,11 @@ in
             }
             {
               id = "instruct-reasoning";
+              reasoning = true;
+              contextWindow = 131072;
+            }
+            {
+              id = "orchestrator";
               reasoning = true;
               contextWindow = 131072;
             }
