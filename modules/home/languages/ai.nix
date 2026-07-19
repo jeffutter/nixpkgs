@@ -90,6 +90,17 @@ let
     '
   '';
 
+  # worktrunk's Claude Code plugin (skills + activity-tracking hooks), lifted
+  # out of its plugin packaging so the hooks run directly (no
+  # $CLAUDE_PLUGIN_ROOT / enabledPlugins) alongside our other declarative
+  # hook wiring below -- programs.claude-code.settings.hooks is the only
+  # place hooks are actually installed to ~/.claude/settings.json.
+  worktrunkPluginRoot = "${inputs.worktrunk-plugin}/plugins/worktrunk";
+  worktrunkHookScript = "${worktrunkPluginRoot}/hooks/wt.sh";
+  worktrunkMarkerCommand =
+    marker: ''bash "${worktrunkHookScript}" config state marker set ${marker} || true'';
+  worktrunkClearCommand = ''bash "${worktrunkHookScript}" config state marker clear || true'';
+
   claude-tail = inputs.claude-tail.packages.${pkgs.stdenv.hostPlatform.system}.default;
   herdr = inputs.herdr.packages.${pkgs.stdenv.hostPlatform.system}.default;
   herdrConfig = {
@@ -563,22 +574,91 @@ in
                   }
                 ];
               }
+              {
+                matcher = "AskUserQuestion";
+                hooks = [
+                  {
+                    type = "command";
+                    command = worktrunkMarkerCommand "💬";
+                  }
+                ];
+              }
             ]
             ++ (moshiClaudeHooks.PreToolUse or [ ]);
           PermissionRequest = [
             { hooks = [ permissionStatsCapture ]; }
+            {
+              matcher = "";
+              hooks = [
+                {
+                  type = "command";
+                  command = worktrunkMarkerCommand "💬";
+                }
+              ];
+            }
           ]
           ++ (moshiClaudeHooks.PermissionRequest or [ ]);
           PermissionDenied = [ { hooks = [ permissionStatsCapture ]; } ];
           PostToolUse = [ { hooks = [ permissionStatsCapture ]; } ] ++ (moshiClaudeHooks.PostToolUse or [ ]);
           UserPromptSubmit = [
             { hooks = [ permissionStatsCapture ]; }
+            {
+              hooks = [
+                {
+                  type = "command";
+                  command = worktrunkMarkerCommand "🤖";
+                }
+              ];
+            }
           ]
           ++ (moshiClaudeHooks.UserPromptSubmit or [ ]);
+          Notification = [
+            {
+              matcher = "";
+              hooks = [
+                {
+                  type = "command";
+                  command = worktrunkMarkerCommand "💬";
+                }
+              ];
+            }
+          ];
           Stop = [
             { hooks = [ permissionStatsCapture ]; }
+            {
+              hooks = [
+                {
+                  type = "command";
+                  command = worktrunkMarkerCommand "💬";
+                }
+              ];
+            }
           ]
           ++ (moshiClaudeHooks.Stop or [ ]);
+          WorktreeCreate = [
+            {
+              hooks = [
+                {
+                  type = "command";
+                  command = ''
+                    bash -c 'name=$(jq -er .name) || exit 1; cd "''${CLAUDE_PROJECT_DIR:-.}" || exit 1; bash "${worktrunkHookScript}" switch --create "$name" --no-cd --format=json | jq -er .path'
+                  '';
+                }
+              ];
+            }
+          ];
+          WorktreeRemove = [
+            {
+              hooks = [
+                {
+                  type = "command";
+                  command = ''
+                    bash -c 'p=$(jq -er .worktree_path) || exit 1; cd "''${CLAUDE_PROJECT_DIR:-.}" || exit 1; [ -e "$p" ] || exit 0; bash "${worktrunkHookScript}" remove --foreground "$p"'
+                  '';
+                }
+              ];
+            }
+          ];
           SessionStart = [
             { hooks = [ permissionStatsCapture ]; }
             {
@@ -595,6 +675,15 @@ in
           ++ (moshiClaudeHooks.SessionStart or [ ]);
           SessionEnd = [
             { hooks = [ permissionStatsCapture ]; }
+            {
+              matcher = "";
+              hooks = [
+                {
+                  type = "command";
+                  command = worktrunkClearCommand;
+                }
+              ];
+            }
           ]
           ++ (moshiClaudeHooks.SessionEnd or [ ]);
         };
@@ -681,6 +770,8 @@ in
         todoist-cli = "${todoist-cli-skill}";
         voice-dna = ./ai/skills/voice-dna;
         voice-dna-creator = ./ai/skills/voice-dna-creator;
+        worktrunk = "${worktrunkPluginRoot}/skills/worktrunk";
+        wt-switch-create = "${worktrunkPluginRoot}/skills/wt-switch-create";
         writing-clearly-and-concisely = "${the-elements-of-style}/skills/writing-clearly-and-concisely";
       }
       // builtins.listToAttrs (

@@ -160,6 +160,13 @@
       url = "github:screenpipe/screenpipe";
       flake = false;
     };
+
+    # Source for the worktrunk plugin's Claude Code skill/hook assets, not
+    # installed as a Claude plugin -- see modules/home/languages/ai.nix.
+    worktrunk-plugin = {
+      url = "github:max-sixty/worktrunk";
+      flake = false;
+    };
   };
 
   outputs =

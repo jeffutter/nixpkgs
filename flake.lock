@@ -1032,6 +1032,7 @@
         "vale-alex": "vale-alex",
         "vale-proselint": "vale-proselint",
         "vale-write-good": "vale-write-good",
+        "worktrunk-plugin": "worktrunk-plugin",
         "zen-browser": "zen-browser"
       }
     },
@@ -1532,6 +1533,22 @@
         "owner": "vale-cli",
         "ref": "v0.4.1",
         "repo": "write-good",
+        "type": "github"
+      }
+    },
+    "worktrunk-plugin": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1784450157,
+        "narHash": "sha256-ACwaNgf4knVwuE4BICvAkc+0ZvLgzMdt142f3I4CDuw=",
+        "owner": "max-sixty",
+        "repo": "worktrunk",
+        "rev": "b1042cfc2093890afaa4dd73d6032b97ee75817f",
+        "type": "github"
+      },
+      "original": {
+        "owner": "max-sixty",
+        "repo": "worktrunk",
         "type": "github"
       }
     },
