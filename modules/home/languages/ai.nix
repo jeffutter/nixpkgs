@@ -127,6 +127,26 @@ let
           type = "plugin_action";
           command = "persiyanov.reviewr.toggle";
         }
+        {
+          # override herdr's built-in "new worktree" key with worktrunk's
+          # default-branch switch/create picker
+          key = "prefix+shift+g";
+          type = "plugin_action";
+          command = "worktrunk.open";
+          description = "Worktree: switch / create from default branch";
+        }
+        {
+          key = "prefix+shift+c";
+          type = "plugin_action";
+          command = "worktrunk.open-current";
+          description = "Worktree: switch / create from current branch";
+        }
+        {
+          key = "prefix+shift+d";
+          type = "plugin_action";
+          command = "worktrunk.remove";
+          description = "Worktree: remove";
+        }
       ];
     };
   };

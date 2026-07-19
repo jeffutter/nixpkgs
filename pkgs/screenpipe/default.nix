@@ -20,7 +20,7 @@
 }:
 
 let
-  version = "0.4.25";
+  version = "0.4.26";
 
   # The "screenpipe" npm package is a thin shim whose optionalDependencies pull
   # the prebuilt platform binary from @screenpipe/cli-<platform>. We skip the
@@ -29,11 +29,11 @@ let
   sources = {
     "aarch64-darwin" = {
       url = "https://registry.npmjs.org/@screenpipe/cli-darwin-arm64/-/cli-darwin-arm64-${version}.tgz";
-      hash = "sha512-ebiqZD8r1MFz55ff0p44/jTN3UzpVvgRZqmYn1tKixeZZPIDYMrAfcTl7iOTmtaXaCXfld3E9fz8MWj69az/wA==";
+      hash = "sha512-U9L2sE0yYUjdw1hLOrme453YAIU4KU17pwmrtfDBWqYRUIAXWcarWAKebfJz9HrS8MYF8h3q0Okj3lKD8yYgJw==";
     };
     "x86_64-linux" = {
       url = "https://registry.npmjs.org/@screenpipe/cli-linux-x64/-/cli-linux-x64-${version}.tgz";
-      hash = "sha512-UPhoRLh41wALpWh4PKJYhOA9IGdGgw4SVDBBXK7Ls5qXOc39lkbH6+wuzieO/5H3aPivZQILG2F5E77V3gKqnw==";
+      hash = "sha512-kwP+KBBg39n4BCn/yayM56VBPchhf1tVUmdX0CazLHXejCDKTPEePw6rZKXdP/erKb2kQaN7dnTE1P7ZykfEzA==";
     };
   };
 

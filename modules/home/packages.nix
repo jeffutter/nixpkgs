@@ -113,6 +113,7 @@ in
     vips
     # (builtins.getFlake "github:jeffutter/wakeonlan-rust/v0.1.1")
     wget
+    worktrunk
     xz
     yq-go
     zstd
