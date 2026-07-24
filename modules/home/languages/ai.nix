@@ -116,27 +116,32 @@ let
     };
     keys = {
       prefix = "ctrl+a";
-      open_worktree = "prefix+shift+o";
-      remove_worktree = "prefix+alt+d";
+      # open_worktree = "prefix+shift+o";
+      # remove_worktree = "prefix+alt+d";
       focus_agent = "prefix+alt+1..9";
+      next_agent = "prefix+N";
+      previous_agent = "prefix+P";
       command = [
         {
           # open in a split beside your work
           key = "prefix+f";
           type = "shell";
           command = "herdr plugin action invoke open-file-viewer --plugin herdr-file-viewer";
+          description = "File Vewer: Open";
         }
         {
           # ...or in its own tab
           key = "prefix+shift+f";
           type = "shell";
           command = "herdr plugin action invoke open-file-viewer-tab --plugin herdr-file-viewer";
+          description = "File Vewer: Open Tab";
         }
         {
           # <plugin_id>.<action_id> -- note the id, not the name
           key = "cmd+r";
           type = "plugin_action";
           command = "persiyanov.reviewr.toggle";
+          description = "Reviewer: Toggle";
         }
         {
           # override herdr's built-in "new worktree" key with worktrunk's
@@ -199,6 +204,29 @@ let
         --run 'if [ -z "$LITELLM_KEY" ]; then op whoami > /dev/null 2>&1 || eval $(op signin); export LITELLM_KEY="$(op read '"'"'op://Private/litellm-pi/notesPlain'"'"')"; fi'
     '';
   };
+
+  # llm-agents.nix's `pi` package derivation deliberately deletes `$out/lib`
+  # after compiling the standalone binary (all modules are embedded in it),
+  # so there's no npm-style dist+node_modules tree left in the store to
+  # symlink for the `@earendil-works/pi-coding-agent` peer below (see that
+  # symlink's comment). Rebuild from the same npmDepsHash-pinned source
+  # basePi uses, but skip its bun-compile preInstall and lib-deleting
+  # postInstall, so buildNpmPackage's default install phase runs instead --
+  # that's what previously landed a real `lib/node_modules/@earendil-works/
+  # pi-coding-agent` in the store, complete with its resolved node_modules.
+  # Those matter here: pi-continue's dist/core/compaction/*.js transitively
+  # imports several of pi-coding-agent's own npm deps (cross-spawn, diff,
+  # chalk, ...) at module-load time, so a bare copy of `dist/` alone isn't
+  # enough -- Node's resolver needs those deps sitting in an ancestor
+  # node_modules too.
+  piCodingAgentDist =
+    basePi.overrideAttrs (_old: {
+      pname = "pi-coding-agent-dist";
+      preInstall = "";
+      postInstall = "";
+      doInstallCheck = false;
+    })
+    + "/lib/node_modules/@earendil-works/pi-coding-agent";
 
   # Helper function to read markdown files from the ai directory
   readAiDoc = file: builtins.readFile (./ai + "/${file}");
@@ -335,18 +363,19 @@ in
     };
 
     # pi-continue (and other extensions) declare @earendil-works/pi-coding-agent
-    # as a peerDependency, resolved at runtime via `import.meta.resolve`. Extensions
-    # live under ~/.pi/agent/npm{,2,3}/node_modules, which pi manages itself via
-    # `npm install` against its own package-lock.json -- that peer is never
-    # installed there since it isn't published to npm; it's meant to be the host
-    # CLI. Node's ESM resolver walks every ancestor node_modules directory, so
-    # placing a symlink one level up, at ~/.pi/agent/node_modules (outside the
-    # npm-managed tree, safe from `pi`'s own installs pruning it), makes it
-    # resolvable for every extension underneath. Points at patchedPi rather than
-    # the `pi` package's own store path so it always matches whatever pi version
-    # this config actually installs.
-    home.file.".pi/agent/node_modules/@earendil-works/pi-coding-agent".source =
-      "${patchedPi}/lib/node_modules/@earendil-works/pi-coding-agent";
+    # as a peerDependency, resolved at runtime via `import.meta.resolve` followed
+    # by a direct file read of dist/core/compaction/*.js relative to that resolved
+    # path. Extensions live under ~/.pi/agent/npm{,2,3}/node_modules, which pi
+    # manages itself via `npm install` against its own package-lock.json -- that
+    # peer is never installed there since it isn't a dependency of any extension's
+    # own package.json; it's meant to be the host CLI. Node's ESM resolver walks
+    # every ancestor node_modules directory, so placing a symlink one level up, at
+    # ~/.pi/agent/node_modules (outside the npm-managed tree, safe from `pi`'s own
+    # installs pruning it), makes it resolvable for every extension underneath.
+    # Points at piCodingAgentDist rather than patchedPi's own store path,
+    # since the `pi` package output no longer ships this tree at all -- see
+    # piCodingAgentDist's comment above.
+    home.file.".pi/agent/node_modules/@earendil-works/pi-coding-agent".source = piCodingAgentDist;
 
     home.file.".pi/agent/settings.json".text = builtins.toJSON {
       defaultProvider = "litellm-home";
