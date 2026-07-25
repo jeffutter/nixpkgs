@@ -3,21 +3,28 @@ name: review-pi-work
 description: >-
   Audit the last N completed backlog tickets that the autonomous `pi` loop
   finished, judging the work on Correctness, Conciseness, Clarity, Organization,
-  and Resilience. File any required fixes as tightly-scoped backlog tickets with
-  thorough plans and proper dependencies so the next `pi` round course-corrects.
-  Invoke when checking in on pi's progress, e.g. "review pi's last few tickets".
+  and Resilience. Small, mechanical findings against an unpushed commit get
+  patched directly as a `git commit --fixup`; everything else gets a
+  tightly-scoped backlog ticket with a thorough plan so the next `pi` round
+  course-corrects. Invoke when checking in on pi's progress, e.g. "review pi's
+  last few tickets".
 ---
 
 # Review pi's Work
 
 `pi` runs autonomously, churning through backlog tickets one at
 a time. This skill is the human-in-the-loop checkpoint: every few tickets you run
-it to audit what pi shipped and steer it back on course **by filing new backlog
-tickets**, not by editing code yourself.
+it to audit what pi shipped and steer it back on course, **mainly by filing new
+backlog tickets**, not by editing code yourself.
 
-The output of this skill is a short report plus zero or more new backlog tickets.
-You do **not** fix anything directly here — pi fixes its own work on its next
-round. Your job is to find what's wrong and write crystal-clear fix-it tickets.
+The output of this skill is a short report plus zero or more new backlog tickets
+and, occasionally, a small fixup commit (see Step 4). Filing a ticket for every
+finding — even a one-line fix — forces it through pi's full choose/plan/execute
+cycle and leaves a trail of "fix:" commits that has to be squashed by hand later.
+For a narrow class of findings (small, mechanical, and against a commit that
+hasn't been pushed anywhere) it's cheaper and cleaner to patch it directly as a
+`git commit --fixup` and let pi's own loop fold it into the commit it corrects.
+That's the *only* exception — everything else still gets a ticket, not an edit.
 
 ## Arguments
 
@@ -29,23 +36,34 @@ review. If absent, default to **5**. It may also name specific tasks
 
 ## Step 0 — Identify the tickets to review
 
-Completed tickets are committed one-per-task by the committer step, so git log is
-the reliable record of recency.
+Completed tickets are committed one-per-task by the committer step, which always
+ends its commit message with a `Task-Id: <task-id>` trailer. Use that, not the
+subject line, to find them — subject-line conventions (`task-id: ...` vs
+conventional-commit `feat(scope): ...` vs plain description) aren't followed
+consistently across a project's history, and a detection method that depends on
+one silently skips commits written the other way.
 
 ```bash
 # Most recent task commits, newest first.
-git log --oneline -n 40 --grep='^task-[0-9]+' -i --extended-regexp
+git log --oneline -n 40 --grep='^Task-Id: ' --extended-regexp
 ```
 
-Take the first `N` distinct `task-<id>` commits. Cross-check status:
+For each match, `git show <sha>` to read the actual task ID out of the trailer.
+Take the first `N` distinct task IDs. Cross-check status:
 
 ```bash
 backlog task list -s Done --plain
 ```
 
-Record the list of `TASK_ID`s to review. If git log and the Done list disagree
-(e.g. a task marked Done but never committed), note that as a finding — it means
-the loop left work in an inconsistent state.
+**If a task is marked Done but has no matching commit, this is a blocker finding
+on its own, not a passive note** — it means work was either lost or never
+actually implemented, and the loop has no way to notice this by itself. File a
+full ticket for it immediately (never a fixup — there is no commit to patch
+against): `--priority high`, a description stating plainly that the ticket's
+own record and the repository disagree, and acceptance criteria requiring the
+implementer to first check the working tree for uncommitted files matching the
+original plan (the work may still be sitting there, half-committed) before
+redoing anything from scratch.
 
 ---
 
@@ -126,9 +144,56 @@ For each finding, assign a severity:
 
 ---
 
-## Step 4 — File fix-it tickets (the important part)
+## Step 4 — Decide: fixup or full ticket
 
-Create a backlog ticket for **every blocker and should-fix** finding. Nits go in
+For every blocker/should-fix finding, default to a full ticket (Step 5). Patch it
+directly as a fixup commit instead only when **all three** hold:
+
+1. **Small.** A handful of lines, one function or file — the same bar `pi`'s own
+   trivial-ticket triage uses (a one-line fix, a rename, a missing guard, a wrong
+   flag or config value). Anything with real design ambiguity, or that you'd
+   need to explain a tradeoff to justify, is not a fixup — write the ticket.
+2. **Unpushed.** The commit you're correcting hasn't reached any remote branch:
+   ```bash
+   git merge-base --is-ancestor <sha> origin/<default-branch> && echo PUSHED || echo UNPUSHED
+   ```
+   Only proceed if this prints `UNPUSHED`. A pushed commit always gets a ticket
+   instead — rewriting shared history is not this skill's call to make.
+3. **Mechanical.** No behavior you're inventing, just correcting something the
+   original commit clearly got wrong against its own stated intent.
+
+If all three hold:
+
+1. Make the minimal code change directly.
+2. Run the same verification the original ticket's acceptance criteria would
+   have required — tests, typecheck, lint for whatever you touched. A fixup is
+   not exempt from correctness just because it's small.
+3. Stage explicitly (never `git add -A`/`.`) and commit as a fixup targeting the
+   original commit:
+   ```bash
+   git add <file1> <file2> ...
+   git commit --fixup=<sha>
+   ```
+   Do **not** `--amend` and do not squash it yourself — `pi`'s ralph loop folds
+   pending fixup commits into their targets automatically after each review run
+   (scoped only to commits that run itself made, so this never touches history
+   from outside the current session).
+4. Record it on the original ticket so its history stays complete once the
+   commits get folded together and the fixup commit itself disappears:
+   ```bash
+   backlog task edit <TASK_ID> --append-notes "Fixup applied post-review: <what and why>."
+   ```
+5. Report it in Step 6 as a fixup, not a filed ticket — no new `task-<id>`
+   exists for it, and it shouldn't be listed alongside ones that do.
+
+If any of the three don't hold, skip straight to Step 5 and file a ticket.
+
+---
+
+## Step 5 — File fix-it tickets (the important part)
+
+Create a backlog ticket for every blocker/should-fix finding that didn't qualify
+for a Step 4 fixup. Nits go in
 the report only. Each ticket must be picked up cleanly by the next `pi` round, so
 follow these rules exactly.
 
@@ -199,18 +264,22 @@ backlog sequence list --plain     # confirm new fix tickets are in Sequence 1
 
 ---
 
-## Step 5 — Report back
+## Step 6 — Report back
 
 Give the user a concise report:
 
 - **Reviewed:** the `TASK_ID`s and one line each on overall quality.
 - **Findings:** grouped by severity, each with `file:line` and the axis it
   violates. Include nits here (not as tickets).
+- **Fixups applied:** any Step 4 fixup commits — the `<sha>` they target, a
+  one-line description, and the ticket whose notes now reference them.
 - **Tickets filed:** the new `task-<id>`s, their titles, deps, and which reviewed
   task each traces back to. State explicitly that they're in Sequence 1 and will
   be picked up on pi's next round (or, if you blocked a future task, say which).
 - **Verdict:** is pi on track, or should the loop be paused until the
   review-followup tickets are cleared? Recommend a course of action.
 
-Do not commit anything yourself — the new ticket files are created by the
-`backlog` CLI; leave staging/committing to the user or to pi's normal flow.
+Ticket files are created by the `backlog` CLI — nothing to commit there. The
+only commits this skill ever makes itself are Step 4 fixups, each scoped to a
+single small, unpushed, mechanical correction; everything else is left to the
+user or to pi's normal flow.
