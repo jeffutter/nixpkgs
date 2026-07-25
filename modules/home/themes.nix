@@ -67,4 +67,7 @@
     # Disable Stylix for Neovim - use native tokyonight.nvim for richer highlighting
     targets.nixvim.enable = false;
   };
+
+  # Stylix sets home.pointerCursor.package/name/size but not .enable
+  home.pointerCursor.enable = true;
 }
