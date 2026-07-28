@@ -100,6 +100,7 @@ in
     mosh
     ncdu
     nixfmt
+    nix-output-monitor
     nix-sweep
     p7zip
     pigz
