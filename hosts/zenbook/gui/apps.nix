@@ -78,7 +78,6 @@ in
     elephant
     wluma
     zenbrowser
-    # claude-desktop
   ];
 
   home.file."wallpapers/hyprlock.jpg".source = ../../../wallpapers/3977823.jpg;

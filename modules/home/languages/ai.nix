@@ -26,7 +26,6 @@ let
       })
     else
       backlog-md-upstream;
-  fabric = inputs.fabric.packages.${pkgs.stdenv.hostPlatform.system}.default;
   stop-slop = inputs.stop-slop;
   humanizer = inputs.humanizer;
   superpowers = inputs.superpowers;
@@ -316,12 +315,10 @@ in
       moshi-hook
       pi
       rtk
-      #fabric
       (llm.withPlugins {
         llm-cmd = true;
         llm-jq = true;
       })
-      # shell-gpt
     ];
 
     home.file.".claude/plugins/marketplaces/superpowers".source = superpowers;

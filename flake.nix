@@ -27,11 +27,6 @@
     };
 
     # zenbook-specific flakes
-    claude-desktop = {
-      url = "github:k3d3/claude-desktop-linux-flake";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
     iio-ambient-brightness = {
       url = "github:jeffutter/iio_ambient_brightness/v0.2.17";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -62,11 +57,6 @@
 
     stylix = {
       url = "github:nix-community/stylix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    fabric = {
-      url = "github:danielmiessler/Fabric";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 

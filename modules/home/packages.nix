@@ -117,7 +117,6 @@ in
     sshfs
     ssh-copy-id
     gnutar
-    #tlaplus
     unzip
     unixtools.watch
     viddy

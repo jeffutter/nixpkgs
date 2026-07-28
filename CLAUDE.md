@@ -39,7 +39,7 @@ This is a Nix home-manager configuration repository that manages user environmen
   - `home/languages/` - Language-specific tooling (rust, go, elixir, python, javascript, java, ai)
   - `home/vcs/` - Git and jujutsu configuration
   - `home/tools/` - CLI utilities (starship, ssh, direnv, zoxide)
-- **`pkgs/`** - Custom package definitions (ltex-lsp)
+- **`pkgs/`** - Custom package definitions (actual-cli, colgrep, datadog-pup, moshi-hook, screenpipe, thaw)
 - **`bin/`** - Custom scripts (upgrade, rebuild, sunset)
 
 ### Host Configurations
