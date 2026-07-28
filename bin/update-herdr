@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+FLAKE_DIR="${HOME}/.config/home-manager"
+FLAKE="${FLAKE_DIR}/flake.nix"
+REPO="ogulcancelik/herdr"
+
+# Unlike the other update-* scripts, herdr is a flake input pinned to a release
+# tag rather than a pkgs/ derivation, so there are no hashes to refresh --
+# rewriting the tag and re-locking the input is the whole update.
+#
+# The tag pin is deliberate rather than tracking the default branch:
+# modules/home/languages/ai.nix reads SKILL.md and the pi/claude integration
+# assets out of this same input's source tree, so the binary and those assets
+# have to move together.
+
+echo "Fetching latest herdr release..."
+LATEST=$(gh release view --repo "$REPO" --json tagName --jq '.tagName')
+
+if [[ -z "$LATEST" || "$LATEST" == "null" ]]; then
+  echo "error: failed to fetch latest release from GitHub" >&2
+  exit 1
+fi
+
+CURRENT=$(grep -o "github:${REPO}/[^\"]*" "$FLAKE" | head -1 | sed 's|.*/||')
+
+if [[ -z "$CURRENT" ]]; then
+  echo "error: no github:${REPO}/<tag> input found in ${FLAKE}" >&2
+  exit 1
+fi
+
+echo "Current: $CURRENT  Latest: $LATEST"
+
+if [[ "$LATEST" == "$CURRENT" ]]; then
+  echo "Already at latest version, nothing to do."
+  exit 0
+fi
+
+echo "Updating flake.nix..."
+perl -pi -e "s|github:${REPO}/[^\"]+|github:${REPO}/${LATEST}|" "$FLAKE"
+
+# Rewriting the URL leaves flake.lock still resolved to the old tag's commit,
+# so the input has to be re-locked explicitly.
+echo "Re-locking herdr input..."
+nix flake update herdr --flake "$FLAKE_DIR"
+
+echo "Updated herdr: $CURRENT -> $LATEST"
