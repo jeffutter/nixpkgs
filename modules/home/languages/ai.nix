@@ -504,6 +504,7 @@ in
             "rtk cargo *"
             "rtk gh *"
             "rtk git *"
+            "herdr *"
           ];
           network = {
             allowedDomains = [
@@ -512,6 +513,7 @@ in
               "[::1]"
             ];
             allowLocalBinding = true;
+            allowUnixSockets = [ "~/.config/herdr/herdr.sock" ];
           };
         };
         tui = "fullscreen";
