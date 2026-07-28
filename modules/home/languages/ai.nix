@@ -8,19 +8,24 @@
 
 let
   agent-browser = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.agent-browser;
+  backlog-md-upstream = inputs.backlog-md.packages.${pkgs.stdenv.hostPlatform.system}.default;
   backlog-md =
-    (inputs.backlog-md.packages.${pkgs.stdenv.hostPlatform.system}.default).overrideAttrs
-      (old: {
-        # The upstream flake overlays `bun` on x86_64-linux with a prebuilt
-        # "baseline" (SSE4.2) release to support older CPUs without AVX2. That
-        # baseline build's `bun build --compile` output is corrupt: the
-        # resulting binary segfaults inside glibc's dynamic linker (dl_main)
-        # before any of backlog's code runs, regardless of buildPhase. Our
-        # CPUs have AVX2, so build with nixpkgs' regular bun instead.
+    # The upstream flake overlays `bun` on x86_64-linux with a prebuilt
+    # "baseline" (SSE4.2) release to support older CPUs without AVX2. That
+    # baseline build's `bun build --compile` output is corrupt: the
+    # resulting binary segfaults inside glibc's dynamic linker (dl_main)
+    # before any of backlog's code runs, regardless of buildPhase. Our
+    # CPUs have AVX2, so build with nixpkgs' regular bun instead. This only
+    # affects x86_64-linux; elsewhere use the pristine upstream package so we
+    # don't churn the derivation hash for no reason.
+    if pkgs.stdenv.hostPlatform.system == "x86_64-linux" then
+      backlog-md-upstream.overrideAttrs (old: {
         nativeBuildInputs = map (
           drv: if (drv.pname or null) == "bun" then pkgs.bun else drv
         ) old.nativeBuildInputs;
-      });
+      })
+    else
+      backlog-md-upstream;
   fabric = inputs.fabric.packages.${pkgs.stdenv.hostPlatform.system}.default;
   stop-slop = inputs.stop-slop;
   humanizer = inputs.humanizer;
