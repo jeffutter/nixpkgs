@@ -68,6 +68,8 @@
     targets.nixvim.enable = false;
   };
 
-  # Stylix sets home.pointerCursor.package/name/size but not .enable
-  home.pointerCursor.enable = true;
+  # Stylix sets home.pointerCursor.package/name/size but not .enable, and only
+  # does so on Linux. home.pointerCursor itself is a Linux-only module, so gate
+  # .enable to Linux to keep the Darwin build from demanding an unset .name.
+  home.pointerCursor.enable = pkgs.stdenv.hostPlatform.isLinux;
 }

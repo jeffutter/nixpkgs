@@ -27,6 +27,16 @@ let
       "gt_cv_func_CFLocaleCopyPreferredLanguages=no"
     ];
   });
+
+  # worktrunk 0.68.0 has two unit tests that enumerate the OS process table;
+  # both panic in the hermetic Nix build sandbox (own pid / child sh not
+  # visible). Skip just those two so the rest of the suite still runs.
+  worktrunk = pkgs.worktrunk.overrideAttrs (old: {
+    checkFlags = (old.checkFlags or [ ]) ++ [
+      "--skip=shell::utils::tests::test_process_name_and_ppid_self"
+      "--skip=shell::utils::tests::test_probe_reports_invoked_name_for_sh"
+    ];
+  });
 in
 
 {
