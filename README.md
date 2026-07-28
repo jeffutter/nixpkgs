@@ -52,7 +52,7 @@ nix flake update          # update all flake inputs
 ~/bin/rebuild             # apply updates
 ```
 
-Or use `~/bin/upgrade` which runs both plus `topgrade` for a full system update.
+Or use `~/bin/upgrade` which runs both. 
 
 ## Hosts
 

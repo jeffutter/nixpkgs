@@ -13,28 +13,6 @@
     };
   };
 
-  programs.topgrade = {
-    enable = true;
-    settings = {
-      misc = {
-        disable = [
-          "yadm"
-          "node"
-          "gem"
-          "nix"
-          "gcloud"
-          "opam"
-        ];
-        ignore_failures = [ "containers" ];
-        cleanup = true;
-      };
-      commands = {
-        "Expire old home-manager configs" = "home-manager expire-generations '-1 week'";
-        "Run garbage collection on Nix store" = "nix-collect-garbage --delete-older-than 7d";
-      };
-    };
-  };
-
   programs.keychain = {
     enable = true;
     enableFishIntegration = true;

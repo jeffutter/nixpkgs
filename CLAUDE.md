@@ -15,8 +15,7 @@ This is a Nix home-manager configuration repository that manages user environmen
 - `nix-collect-garbage --delete-older-than 7d` - Clean Nix store
 
 ### Upgrading
-- `~/bin/upgrade` - Runs `nix flake update` then `topgrade` for system-wide updates
-- `topgrade` - Cross-platform system updater that handles Nix, Homebrew, etc.
+- `~/bin/upgrade` - Runs `nix flake update` 
 
 ## Architecture
 
