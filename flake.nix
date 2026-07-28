@@ -42,8 +42,7 @@
     };
 
     herdr = {
-      url = "github:ogulcancelik/herdr/v0.7.3";
-      inputs.nixpkgs.follows = "nixpkgs";
+      url = "github:ogulcancelik/herdr/v0.7.5";
     };
 
     zen-browser = {
@@ -148,7 +147,6 @@
 
     backlog-md = {
       url = "github:MrLesk/Backlog.md";
-      inputs.nixpkgs.follows = "nixpkgs";
     };
 
     kami = {
