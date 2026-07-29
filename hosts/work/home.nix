@@ -1,6 +1,5 @@
 {
   pkgs,
-  lib,
   inputs,
   ...
 }:
@@ -14,23 +13,27 @@ let
   pup = pkgs.callPackage ../../pkgs/datadog-pup { };
 
   # pup captures its embedded Datadog skills (skills/<name>/SKILL.md) and domain
-  # subagents (agents/<name>.md) into pup.skills at build time. Enumerate them so
-  # every entry is wired without hardcoding the ~60 names. Skills are symlinked
-  # by store path (the claude-code module treats path-like strings as skill
-  # directories); agents are inlined as text since that option only symlinks
-  # true Nix paths, not store-path strings.
+  # subagents (agents/<name>.md) into pup.skills at build time. Wiring the whole
+  # bundle costs ~2.4k resident context tokens per session (~60 skill/agent
+  # listing entries), so allowlist the ones actually in use instead. To wire
+  # everything again, drop the filter and restore the agents listToAttrs below.
+  # Skills are symlinked by store path (the claude-code module treats path-like
+  # strings as skill directories); agents are inlined as text since that option
+  # only symlinks true Nix paths, not store-path strings.
+  pupSkillsKeep = [ "dd-pup" ];
   pupSkills = builtins.listToAttrs (
-    map (name: {
-      inherit name;
-      value = "${pup.skills}/skills/${name}";
-    }) (builtins.attrNames (builtins.readDir "${pup.skills}/skills"))
+    map
+      (name: {
+        inherit name;
+        value = "${pup.skills}/skills/${name}";
+      })
+      (
+        builtins.filter (name: builtins.elem name pupSkillsKeep) (
+          builtins.attrNames (builtins.readDir "${pup.skills}/skills")
+        )
+      )
   );
-  pupAgents = builtins.listToAttrs (
-    map (file: {
-      name = lib.removeSuffix ".md" file;
-      value = builtins.readFile "${pup.skills}/agents/${file}";
-    }) (builtins.attrNames (builtins.readDir "${pup.skills}/agents"))
-  );
+  pupAgents = { };
 in
 {
   imports = [
