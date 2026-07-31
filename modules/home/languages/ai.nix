@@ -503,13 +503,15 @@ in
         tui = "fullscreen";
         permissions = {
           defaultMode = "acceptEdits";
+          additionalDirectories = [
+            "~/.herdr/worktrees"
+          ];
           allow = [
+            "Bash(acli confluence *)"
+            "Bash(acli jira *)"
             "Bash(biome check *)"
             "Bash(biome format *)"
             "Bash(biome lint *)"
-            "Bash(acli confluence *)"
-            "Bash(acli jira *)"
-            "Bash(confluence-search.sh *)"
             "Bash(cargo bench *)"
             "Bash(cargo build *)"
             "Bash(cargo check *)"
@@ -520,6 +522,7 @@ in
             "Bash(cargo run *)"
             "Bash(cargo test *)"
             "Bash(cargo tree *)"
+            "Bash(claude agents *)"
             "Bash(echo \"exit=$?\")"
             "Bash(lefthook *)"
             "Bash(mix compile *)"
@@ -538,11 +541,14 @@ in
             "Bash(nix flake check *)"
             "Bash(nix flake metadata *)"
             "Bash(nix fmt *)"
+            "Bash(pup auth *)"
+            "Bash(pup events *)"
+            "Bash(pup on-call *)"
             "Bash(rover supergraph compose *)"
             "Bash(rtk curl *)"
             "Bash(rtk find *)"
-            "Bash(rtk git *)"
             "Bash(rtk gh *)"
+            "Bash(rtk git *)"
             "Bash(rtk grep *)"
             "Bash(rtk ls *)"
             "Bash(rtk ps *)"
@@ -551,7 +557,10 @@ in
             "Read(/private/tmp/claude-*/**)"
             "Read(/tmp/claude-*/**)"
             "Read(~/.claude/skills/**)"
+            "Skill(humanizer)"
+            "Skill(skill-creator)"
             "Skill(update-config)"
+            "WebFetch(domain:api.datadoghq.com)"
             "WebFetch(domain:docs.rs)"
             "WebFetch(domain:github.com)"
             "WebFetch(domain:hexdocs.pm)"

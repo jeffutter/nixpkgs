@@ -141,6 +141,10 @@ in
 
   programs.claude-code.agents = pupAgents;
 
+  programs.claude-code.settings.sandbox.filesystem.allowWrite = [
+    "~/theScore/*/.git/**"
+  ];
+
   jeff.kamiSkillBrand = ./kami/brand.md;
 
   jeff.enableRtkHooks = false;
