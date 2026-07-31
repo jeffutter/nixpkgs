@@ -180,27 +180,10 @@ let
   '';
   rtk = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.rtk;
   basePi = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.pi;
-  # Patch the hardcoded 30s RPC send timeout in pi-coding-agent to 10 minutes,
-  # since local LLM prompt processing can take 1-2 minutes on this hardware.
-  #
-  # pi ships as a single `bun compile`d executable (libexec/pi/pi) rather than
-  # an npm-installed JS tree, so the bundled source can't be edited as a
-  # separate file -- it's embedded as a text blob inside the binary. Patching
-  # it in place must preserve the exact byte length of the match, or it
-  # shifts every offset after it and corrupts bun's embedded-bundle trailer.
-  # `6e5` + 2 padding spaces is byte-for-byte the same length as `30000`
-  # (whitespace before `)` is insignificant to JS), so the replacement is
-  # size-preserving. Verified this produces a working binary (`--help`,
-  # `--version` both run) with only the targeted bytes changed.
-  patchedPi = pkgs.runCommand "pi-patched" { } ''
-    cp -r ${basePi} $out
-    chmod -R u+w $out
-    LC_ALL=C sed -i 's/}, 30000);/}, 6e5  );/' $out/libexec/pi/pi
-  '';
   pi = pkgs.symlinkJoin {
     name = "pi";
     buildInputs = [ pkgs.makeWrapper ];
-    paths = [ patchedPi ];
+    paths = [ basePi ];
     postBuild = ''
       wrapProgram $out/bin/pi \
         --set NPM_CONFIG_PREFIX ${config.home.homeDirectory}/.pi/npm/ \
@@ -213,24 +196,23 @@ let
   # after compiling the standalone binary (all modules are embedded in it),
   # so there's no npm-style dist+node_modules tree left in the store to
   # symlink for the `@earendil-works/pi-coding-agent` peer below (see that
-  # symlink's comment). Rebuild from the same npmDepsHash-pinned source
-  # basePi uses, but skip its bun-compile preInstall and lib-deleting
-  # postInstall, so buildNpmPackage's default install phase runs instead --
-  # that's what previously landed a real `lib/node_modules/@earendil-works/
-  # pi-coding-agent` in the store, complete with its resolved node_modules.
-  # Those matter here: pi-continue's dist/core/compaction/*.js transitively
-  # imports several of pi-coding-agent's own npm deps (cross-spawn, diff,
-  # chalk, ...) at module-load time, so a bare copy of `dist/` alone isn't
-  # enough -- Node's resolver needs those deps sitting in an ancestor
-  # node_modules too.
+  # symlink's comment). `useBun = false` is that derivation's own switch for
+  # building the plain Node entry point instead: it skips the bun-compile
+  # preInstall, the lib-deleting postInstall, and the rcodesign postFixup all
+  # at once, leaving buildNpmPackage's default install phase to land a real
+  # `lib/node_modules/@earendil-works/pi-coding-agent` in the store, complete
+  # with its resolved node_modules. Those matter here: pi-continue's
+  # dist/core/compaction/*.js transitively imports several of
+  # pi-coding-agent's own npm deps (cross-spawn, diff, chalk, ...) at
+  # module-load time, so a bare copy of `dist/` alone isn't enough -- Node's
+  # resolver needs those deps sitting in an ancestor node_modules too.
+  #
+  # Prefer this over clearing phases with overrideAttrs: that has to be kept
+  # in sync by hand every time upstream adds a phase to the bun path, and it
+  # already broke once when postFixup's rcodesign step appeared and tried to
+  # sign a libexec/pi/pi this build never produces.
   piCodingAgentDist =
-    basePi.overrideAttrs (_old: {
-      pname = "pi-coding-agent-dist";
-      preInstall = "";
-      postInstall = "";
-      doInstallCheck = false;
-    })
-    + "/lib/node_modules/@earendil-works/pi-coding-agent";
+    (basePi.override { useBun = false; }) + "/lib/node_modules/@earendil-works/pi-coding-agent";
 
   # Helper function to read markdown files from the ai directory
   readAiDoc = file: builtins.readFile (./ai + "/${file}");
@@ -374,8 +356,8 @@ in
     # every ancestor node_modules directory, so placing a symlink one level up, at
     # ~/.pi/agent/node_modules (outside the npm-managed tree, safe from `pi`'s own
     # installs pruning it), makes it resolvable for every extension underneath.
-    # Points at piCodingAgentDist rather than patchedPi's own store path,
-    # since the `pi` package output no longer ships this tree at all -- see
+    # Points at piCodingAgentDist rather than the `pi` package's own store
+    # path, since that output no longer ships this tree at all -- see
     # piCodingAgentDist's comment above.
     home.file.".pi/agent/node_modules/@earendil-works/pi-coding-agent".source = piCodingAgentDist;
 
