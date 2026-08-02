@@ -11,7 +11,6 @@
     ../../modules/home/languages/python.nix
     ../../modules/home/languages/javascript.nix
     ../../modules/home/languages/ai.nix
-    ../../modules/home/opencode.nix
   ];
 
   home.packages = with pkgs; [

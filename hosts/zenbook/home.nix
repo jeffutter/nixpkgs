@@ -4,7 +4,6 @@
     ../../modules/home/languages/rust.nix
     ../../modules/home/languages/javascript.nix
     ../../modules/home/languages/ai.nix
-    ../../modules/home/opencode.nix
     ./gui/eww.nix
     ./gui/hyprland.nix
     ./gui/niri.nix
