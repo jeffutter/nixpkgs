@@ -53,18 +53,35 @@ in
       autoUpdate = true;
       cleanup = "zap";
       upgrade = true;
-      # Homebrew 5.x refuses `brew bundle install --cleanup` unless given
-      # --force/--force-cleanup/$HOMEBREW_ASK. nix-darwin doesn't pass this
-      # yet, so force non-interactive cleanup ourselves.
+      # Originally a workaround: Homebrew 5.x refuses `brew bundle install
+      # --cleanup` without --force/--force-cleanup/$HOMEBREW_ASK. nix-darwin now
+      # passes --force-cleanup itself for cleanup = "zap", so that part is
+      # redundant. What's left is that --force also reaches `brew install
+      # --cask`, letting casks overwrite an existing app bundle. Keeping it for
+      # that; drop it if cask installs start clobbering something they
+      # shouldn't.
       extraFlags = [ "--force" ];
     };
     caskArgs = {
       appdir = "~/Applications";
     };
 
+    # `trusted` is required on every non-official tap. Homebrew 6.0 turned on
+    # HOMEBREW_REQUIRE_TAP_TRUST, so an untrusted tap's formulae hard-error and
+    # its casks/commands are silently skipped during activation. Trust can't be
+    # granted out-of-band with `brew trust` either: activation runs
+    # `brew bundle --force-cleanup`, and cleanup calls Trust.replace!, which
+    # overwrites ~/.homebrew/trust.json with exactly what the Brewfile declares.
+    # Anything trusted by hand is wiped on the next rebuild.
     taps = [
-      "1password/tap"
-      "buo/cask-upgrade"
+      {
+        name = "1password/tap";
+        trusted = true;
+      }
+      {
+        name = "buo/cask-upgrade";
+        trusted = true;
+      }
     ];
 
     brews = [

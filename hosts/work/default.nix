@@ -9,9 +9,13 @@ in
     ../../modules/common/cachix.nix
   ];
 
+  # See the taps comment in modules/darwin/common.nix for why `trusted` is
+  # mandatory here.
   homebrew.taps = [
-    "atlassian/homebrew-acli"
-    "menubar-apps/menubar-apps"
+    {
+      name = "atlassian/homebrew-acli";
+      trusted = true;
+    }
   ];
 
   homebrew.brews = [
