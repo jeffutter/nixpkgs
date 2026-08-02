@@ -1,5 +1,6 @@
 {
   config,
+  lib,
   pkgs,
   inputs,
   ...
@@ -46,17 +47,10 @@
         src = inputs.fish-plugin-autopair;
       }
     ];
+    # Locale lives in modules/home/environment.nix (home.language); don't set
+    # LANG/LC_* here too.
     shellInit = ''
       set fish_greeting
-
-      set -x LANG "en_US.UTF-8"
-      set -x LC_COLLATE "en_US.UTF-8"
-      set -x LC_CTYPE "en_US.UTF-8"
-      set -x LC_MESSAGES "en_US.UTF-8"
-      set -x LC_MONETARY "en_US.UTF-8"
-      set -x LC_NUMERIC "en_US.UTF-8"
-      set -x LC_TIME "en_US.UTF-8"
-      set -x LC_ALL "en_US.UTF-8"
 
       if [ -e /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh ] && ! set -q NIX_GLOBAL_SOURCED
         fenv source /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
@@ -68,12 +62,18 @@
       end
 
       fish_add_path -p "$HOME/bin"
-      fish_add_path -p "$HOME/homebrew/bin"
       fish_add_path -a /usr/local/bin
-      fish_add_path -a /Applications/Docker.app/Contents/Resources/bin
-      fish_add_path -a "$HOME/Applications/Obsidian.app/Contents/MacOS" 
 
-      set -x HOMEBREW_CASK_OPTS "--appdir=$HOME/Applications"
+      ${lib.optionalString pkgs.stdenv.isDarwin ''
+        fish_add_path -p "$HOME/homebrew/bin"
+        fish_add_path -a /Applications/Docker.app/Contents/Resources/bin
+        fish_add_path -a "$HOME/Applications/Obsidian.app/Contents/MacOS"
+
+        # Mirrors homebrew.caskArgs.appdir in modules/darwin/common.nix, so
+        # `brew` run by hand lands casks in the same place nix-darwin does.
+        set -x HOMEBREW_CASK_OPTS "--appdir=$HOME/Applications"
+      ''}
+
       set -x ERL_AFLAGS "-kernel shell_history enabled"
 
       set -x RUST_SRC_PATH "${pkgs.rust.packages.stable.rustPlatform.rustLibSrc}";
@@ -87,7 +87,6 @@
       set -x COLORTERM truecolor
       set -x AWS_DEFAULT_REGION "us-east-1";
       set -x AWS_PAGER "";
-      set -x EDITOR "nvim";
       set -x TICKET_PAGER "bat -l markdown";
 
       # Stylix handles LS_COLORS and fish theme colors

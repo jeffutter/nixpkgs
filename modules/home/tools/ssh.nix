@@ -1,70 +1,67 @@
 { ... }:
 
+let
+  # Boxes on the home LAN. These get reinstalled often enough that their host
+  # keys churn, so host-key checking is relaxed for them — specifically, and
+  # deliberately not globally: a global `StrictHostKeyChecking no` also covers
+  # GitHub and work hosts, where it removes the only defence against a MITM.
+  lanHosts = {
+    homelab = {
+      hostName = "192.168.10.4";
+      user = "root";
+    };
+    workstation = {
+      hostName = "192.168.10.5";
+      user = "jeffutter";
+    };
+    work = {
+      hostName = "192.168.10.6";
+      user = "Jeffery.Utter";
+    };
+    laptop = {
+      hostName = "192.168.10.9";
+      user = "jeffutter";
+    };
+    ns1 = {
+      hostName = "192.168.10.11";
+      user = "root";
+    };
+    zenbook = {
+      hostName = "192.168.10.12";
+      user = "jeffutter";
+    };
+    llm = {
+      hostName = "192.168.10.17";
+      user = "root";
+    };
+  };
+
+  mkLanHost =
+    _name:
+    { hostName, user }:
+    {
+      HostName = hostName;
+      User = user;
+      ForwardAgent = true;
+      RequestTTY = "yes";
+      # Scoped host-key relaxation; see the lanHosts comment above.
+      StrictHostKeyChecking = "no";
+      UserKnownHostsFile = "/dev/null";
+      # Without this the two settings above print a warning banner on every
+      # connection.
+      LogLevel = "ERROR";
+    };
+in
 {
   programs.ssh = {
     enable = true;
     enableDefaultConfig = false;
     extraOptionOverrides = {
-      StrictHostKeyChecking = "no";
-      userKnownHostsFile = "/dev/null";
       IgnoreUnknown = "UseKeychain";
       UseKeychain = "yes";
       AddKeysToAgent = "yes";
     };
-    settings = {
-      "homelab" = {
-        HostName = "192.168.10.4";
-        User = "root";
-        ForwardAgent = true;
-        RequestTTY = "yes";
-      };
-      "workstation" = {
-        HostName = "192.168.10.5";
-        User = "jeffutter";
-        ForwardAgent = true;
-        RequestTTY = "yes";
-      };
-      "work" = {
-        HostName = "192.168.10.6";
-        User = "Jeffery.Utter";
-        ForwardAgent = true;
-        RequestTTY = "yes";
-      };
-      "old-laptop" = {
-        HostName = "192.168.10.7";
-        User = "jeffutter";
-        ForwardAgent = true;
-        RequestTTY = "yes";
-      };
-      "borg" = {
-        HostName = "192.168.10.8";
-        User = "borg-backup";
-        Ciphers = "3des-cbc";
-      };
-      "laptop" = {
-        HostName = "192.168.10.9";
-        User = "jeffutter";
-        ForwardAgent = true;
-        RequestTTY = "yes";
-      };
-      "ns1" = {
-        HostName = "192.168.10.11";
-        User = "root";
-        ForwardAgent = true;
-        RequestTTY = "yes";
-      };
-      "zenbook" = {
-        HostName = "192.168.10.12";
-        User = "jeffutter";
-        ForwardAgent = true;
-        RequestTTY = "yes";
-      };
-      "llm" = {
-        HostName = "192.168.10.17";
-        User = "root";
-        ForwardAgent = true;
-        RequestTTY = "yes";
-      };
+    settings = builtins.mapAttrs mkLanHost lanHosts // {
       "* !github.com-penn-interactive" = {
         IdentityFile = "~/.ssh/id_ed25519";
       };

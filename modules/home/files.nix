@@ -4,6 +4,11 @@
 }:
 
 {
+  home.file."bin/rebuild" = {
+    source = ../../bin/rebuild;
+    executable = true;
+  };
+
   home.file."bin/update" = {
     source = ../../bin/update;
     executable = true;

@@ -9,10 +9,9 @@
     enableFishIntegration = true;
     settings = {
       add_newline = true;
-      kubernetes.context_aliases = {
-        "gke_[\\\\w]+-prod[\\\\w-]+_scorebet-(?P<cluster>[\\\\w-]+)" = "PROD $cluster PROD";
-        "gke_s[\\\\w]+-[\\\\w-]+_scorebet-(?P<cluster>[\\\\w-]+)" = "$cluster";
-      };
+      # Note: the built-in `kubernetes` module is disabled below in favour of
+      # `custom.kube_info`, which reimplements the same context aliasing in
+      # bash. Edit the aliases there, not here.
       format = lib.strings.replaceStrings [ "\n" ] [ "" ] ''
         ''${custom.hostname_info}
         $shlvl

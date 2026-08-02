@@ -10,7 +10,7 @@ in
 {
   home.packages = with pkgs; [
     aerospace
-    fastmail-desktop
+    # fastmail-desktop
     telegram-desktop
   ];
 

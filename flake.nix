@@ -220,6 +220,75 @@
           });
         };
 
+      mkPkgs =
+        system:
+        import nixpkgs {
+          inherit system;
+          config = nixpkgsConfig;
+          overlays = [
+            claudeCodeOverlay
+          ];
+        };
+
+      # Every host in this flake has the same shape: pkgs pinned through
+      # mkPkgs, `inputs` threaded into specialArgs, stylix at both the system
+      # and home level, and home-manager importing common.nix + the platform
+      # module + the host's own home.nix. mkSystem holds that shape so the
+      # per-host entries below carry only what actually differs.
+      #
+      # `platform` supplies the NixOS/darwin differences; see mkNixos/mkDarwin.
+      mkSystem =
+        platform:
+        {
+          system,
+          username,
+          host,
+          extraModules ? [ ],
+        }:
+        platform.builder {
+          inherit system;
+          specialArgs = { inherit inputs; };
+          modules = [
+            { nixpkgs.pkgs = mkPkgs system; }
+            ./hosts/${host}/default.nix
+          ]
+          ++ extraModules
+          ++ [
+            platform.stylixModule
+            platform.homeManagerModule
+            {
+              home-manager.useGlobalPkgs = true;
+              home-manager.useUserPackages = platform.useUserPackages;
+              home-manager.extraSpecialArgs = { inherit inputs; };
+              home-manager.sharedModules = [ inputs.stylix.homeModules.stylix ];
+              home-manager.users.${username} = {
+                imports = [
+                  ./modules/home/common.nix
+                  platform.homeModule
+                  ./hosts/${host}/home.nix
+                ];
+              };
+            }
+          ];
+        };
+
+      mkNixos = mkSystem {
+        builder = nixpkgs.lib.nixosSystem;
+        stylixModule = inputs.stylix.nixosModules.stylix;
+        homeManagerModule = home-manager.nixosModules.home-manager;
+        homeModule = ./modules/home/linux.nix;
+        useUserPackages = true;
+      };
+
+      mkDarwin = mkSystem {
+        builder = nix-darwin.lib.darwinSystem;
+        stylixModule = inputs.stylix.darwinModules.stylix;
+        homeManagerModule = home-manager.darwinModules.home-manager;
+        homeModule = ./modules/home/darwin.nix;
+        # Keep packages in ~/.nix-profile/bin/
+        useUserPackages = false;
+      };
+
       mkHome =
         {
           system,
@@ -228,13 +297,7 @@
           extraModules ? [ ],
         }:
         home-manager.lib.homeManagerConfiguration {
-          pkgs = import nixpkgs {
-            inherit system;
-            config = nixpkgsConfig;
-            overlays = [
-              claudeCodeOverlay
-            ];
-          };
+          pkgs = mkPkgs system;
           extraSpecialArgs = { inherit inputs; };
           modules = [
             inputs.stylix.homeModules.stylix
@@ -249,150 +312,36 @@
     in
     {
       nixosConfigurations = {
-        zenbook =
-          let
-            system = "x86_64-linux";
-            pkgs = import nixpkgs {
-              inherit system;
-              config = nixpkgsConfig;
-              overlays = [
-                claudeCodeOverlay
-              ];
-            };
-          in
-          nixpkgs.lib.nixosSystem {
-            inherit system;
-            specialArgs = { inherit inputs; };
-            modules = [
-              { nixpkgs.pkgs = pkgs; }
-              ./hosts/zenbook/default.nix
-              nixos-hardware.nixosModules.common-pc-laptop
-              nixos-hardware.nixosModules.common-cpu-intel
-              nixos-hardware.nixosModules.common-gpu-intel
-              inputs.stylix.nixosModules.stylix
-              home-manager.nixosModules.home-manager
-              {
-                home-manager.useGlobalPkgs = true;
-                home-manager.useUserPackages = true;
-                home-manager.extraSpecialArgs = { inherit inputs; };
-                home-manager.sharedModules = [ inputs.stylix.homeModules.stylix ];
-                home-manager.users.jeffutter = {
-                  imports = [
-                    ./modules/home/common.nix
-                    ./modules/home/linux.nix
-                    ./hosts/zenbook/home.nix
-                  ];
-                };
-              }
-            ];
-          };
+        zenbook = mkNixos {
+          system = "x86_64-linux";
+          username = "jeffutter";
+          host = "zenbook";
+          extraModules = [
+            nixos-hardware.nixosModules.common-pc-laptop
+            nixos-hardware.nixosModules.common-cpu-intel
+            nixos-hardware.nixosModules.common-gpu-intel
+          ];
+        };
 
-        workstation =
-          let
-            system = "x86_64-linux";
-            pkgs = import nixpkgs {
-              inherit system;
-              config = nixpkgsConfig;
-              overlays = [
-                claudeCodeOverlay
-              ];
-            };
-          in
-          nixpkgs.lib.nixosSystem {
-            inherit system;
-            specialArgs = { inherit inputs; };
-            modules = [
-              { nixpkgs.pkgs = pkgs; }
-              ./hosts/workstation/default.nix
-              inputs.stylix.nixosModules.stylix
-              home-manager.nixosModules.home-manager
-              {
-                home-manager.useGlobalPkgs = true;
-                home-manager.useUserPackages = true;
-                home-manager.extraSpecialArgs = { inherit inputs; };
-                home-manager.sharedModules = [ inputs.stylix.homeModules.stylix ];
-                home-manager.users.jeffutter = {
-                  imports = [
-                    ./modules/home/common.nix
-                    ./modules/home/linux.nix
-                    ./hosts/workstation/home.nix
-                  ];
-                };
-              }
-            ];
-          };
+        workstation = mkNixos {
+          system = "x86_64-linux";
+          username = "jeffutter";
+          host = "workstation";
+        };
       };
 
       darwinConfigurations = {
-        work =
-          let
-            system = "aarch64-darwin";
-            pkgs = import nixpkgs {
-              inherit system;
-              config = nixpkgsConfig;
-              overlays = [
-                claudeCodeOverlay
-              ];
-            };
-          in
-          nix-darwin.lib.darwinSystem {
-            inherit system;
-            specialArgs = { inherit inputs; };
-            modules = [
-              { nixpkgs.pkgs = pkgs; }
-              ./hosts/work/default.nix
-              inputs.stylix.darwinModules.stylix
-              home-manager.darwinModules.home-manager
-              {
-                home-manager.useGlobalPkgs = true;
-                home-manager.useUserPackages = false; # Keep packages in ~/.nix-profile/bin/
-                home-manager.extraSpecialArgs = { inherit inputs; };
-                home-manager.sharedModules = [ inputs.stylix.homeModules.stylix ];
-                home-manager.users."jeffery.utter" = {
-                  imports = [
-                    ./modules/home/common.nix
-                    ./modules/home/darwin.nix
-                    ./hosts/work/home.nix
-                  ];
-                };
-              }
-            ];
-          };
+        work = mkDarwin {
+          system = "aarch64-darwin";
+          username = "jeffery.utter";
+          host = "work";
+        };
 
-        personal =
-          let
-            system = "aarch64-darwin";
-            pkgs = import nixpkgs {
-              inherit system;
-              config = nixpkgsConfig;
-              overlays = [
-                claudeCodeOverlay
-              ];
-            };
-          in
-          nix-darwin.lib.darwinSystem {
-            inherit system;
-            specialArgs = { inherit inputs; };
-            modules = [
-              { nixpkgs.pkgs = pkgs; }
-              ./hosts/personal/default.nix
-              inputs.stylix.darwinModules.stylix
-              home-manager.darwinModules.home-manager
-              {
-                home-manager.useGlobalPkgs = true;
-                home-manager.useUserPackages = false; # Keep packages in ~/.nix-profile/bin/
-                home-manager.extraSpecialArgs = { inherit inputs; };
-                home-manager.sharedModules = [ inputs.stylix.homeModules.stylix ];
-                home-manager.users.jeffutter = {
-                  imports = [
-                    ./modules/home/common.nix
-                    ./modules/home/darwin.nix
-                    ./hosts/personal/home.nix
-                  ];
-                };
-              }
-            ];
-          };
+        personal = mkDarwin {
+          system = "aarch64-darwin";
+          username = "jeffutter";
+          host = "personal";
+        };
       };
 
       packages = forAllSystems (system: {

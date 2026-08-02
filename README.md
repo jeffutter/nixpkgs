@@ -20,39 +20,41 @@ git clone git@github.com:jeffutter/nixpkgs.git ~/.config/home-manager
 
 ## Applying Configuration
 
-The `~/bin/rebuild` script handles the right command for each platform automatically:
+The `~/bin/rebuild` script picks the right command and flake output for the
+current machine:
 
 ```bash
-~/bin/rebuild
+~/bin/rebuild                  # autodetect
+~/bin/rebuild personal         # force a specific config
+~/bin/rebuild -- --show-trace  # pass flags through
 ```
+
+On NixOS the config name is the short hostname. On macOS the hostname is
+IT-assigned and meaningless, so the config is selected by username.
 
 Or run the appropriate command manually:
 
 **NixOS:**
 ```bash
-sudo nixos-rebuild switch --flake ~/.config/home-manager#<hostname>
+sudo nixos-rebuild switch --flake ~/.config/home-manager#<config>
 # e.g. zenbook or workstation
 ```
 
 **macOS (nix-darwin):**
 ```bash
-darwin-rebuild switch --flake ~/.config/home-manager#<hostname>
+sudo darwin-rebuild switch --flake ~/.config/home-manager#<config>
 # e.g. work or personal
-```
-
-**Standalone home-manager:**
-```bash
-home-manager switch --flake ~/.config/home-manager#<user>@<hostname>
 ```
 
 ## Updating
 
-```bash
-nix flake update          # update all flake inputs
-~/bin/rebuild             # apply updates
-```
+`~/bin/update` pulls, updates all flake inputs, and refreshes the pinned
+binary packages under `pkgs/`:
 
-Or use `~/bin/upgrade` which runs both. 
+```bash
+~/bin/update              # fetch updates
+~/bin/rebuild             # apply them
+```
 
 ## Hosts
 

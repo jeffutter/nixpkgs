@@ -42,9 +42,6 @@ in
 {
   home.packages = with pkgs; [
     inputs.nix-options-search.packages.${pkgs.stdenv.hostPlatform.system}.default
-    aspell
-    aspellDicts.en
-    aspellDicts.en-computers
     ast-grep
     autoconf
     bandwhich
@@ -58,7 +55,6 @@ in
     colmena
     comma
     curl
-    delta
     difftastic
     docker
     duckdb
@@ -74,12 +70,9 @@ in
     gnupg
     gnused
     htop
-    hunspell
-    hunspellDicts.en_US
     hyperfine
     ijq
     imagemagick
-    ispell
     jq
     k6
     kubectl
@@ -120,8 +113,6 @@ in
     unzip
     unixtools.watch
     viddy
-    vips
-    # (builtins.getFlake "github:jeffutter/wakeonlan-rust/v0.1.1")
     wget
     worktrunk
     xz

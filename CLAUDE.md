@@ -9,13 +9,16 @@ This is a Nix home-manager configuration repository that manages user environmen
 ## Common Commands
 
 ### Building and Switching
-- `~/bin/rebuild` - Rebuild NixOS or home-manager depending on system type
-- `nix flake update` - Update flake inputs
-- `nixfmt-rfc-style **/*.nix` - Format all Nix files
+- `~/bin/rebuild` - Rebuild this machine (`nixos-rebuild` on NixOS,
+  `darwin-rebuild` on macOS). Takes an optional config name; autodetects
+  otherwise.
+- `nixfmt **/*.nix` - Format all Nix files (nixfmt 1.x is the RFC-style
+  formatter; there is no separate `nixfmt-rfc-style`)
 - `nix-collect-garbage --delete-older-than 7d` - Clean Nix store
 
 ### Upgrading
-- `~/bin/upgrade` - Runs `nix flake update` 
+- `~/bin/update` - Pulls, runs `nix flake update`, and refreshes the pinned
+  binary packages under `pkgs/`. Follow with `~/bin/rebuild` to apply.
 
 ## Hosts
 

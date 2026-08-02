@@ -1,25 +1,65 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-FLAKE_DIR="${HOME}/.config/home-manager"
-HOSTNAME=$(hostname)
+# Build and activate this flake's configuration for the current machine.
+#
+#   rebuild                     # autodetect the config for this machine
+#   rebuild personal            # force a specific flake output
+#   rebuild -- --show-trace     # pass extra flags to nixos-/darwin-rebuild
+#
+# Flake outputs: nixosConfigurations.{zenbook,workstation}
+#                darwinConfigurations.{work,personal}
 
-case "$(uname -s)" in
+FLAKE_DIR="${HOME}/.config/home-manager"
+
+config=""
+if [ $# -gt 0 ] && [ "$1" != "--" ]; then
+  config="$1"
+  shift
+fi
+[ "${1:-}" = "--" ] && shift
+
+os="$(uname -s)"
+
+# Pick the flake output. On NixOS the short hostname is the config name. On
+# macOS it isn't: work machines get an IT-assigned name (PINTWSYM0630N6W1),
+# so match on the username instead, which is stable per machine and is what
+# distinguishes the two darwin configs (see hosts/*/default.nix).
+if [ -z "$config" ]; then
+  case "$os" in
+    Linux)
+      config="$(hostname -s)"
+      ;;
+    Darwin)
+      case "$USER" in
+        jeffery.utter) config="work" ;;
+        jeffutter) config="personal" ;;
+        *)
+          echo "rebuild: no darwin config mapped for user '${USER}'." >&2
+          echo "Pass one explicitly: rebuild work|personal" >&2
+          exit 1
+          ;;
+      esac
+      ;;
+    *)
+      echo "rebuild: unsupported operating system '${os}'" >&2
+      exit 1
+      ;;
+  esac
+fi
+
+case "$os" in
   Linux)
-    if [ -f /etc/NIXOS ]; then
-      echo "Rebuilding NixOS configuration for ${HOSTNAME}..."
-      sudo nixos-rebuild switch --flake "${FLAKE_DIR}#${HOSTNAME}"
-    else
-      echo "Rebuilding home-manager for ${USER}@${HOSTNAME}..."
-      home-manager switch --flake "${FLAKE_DIR}#${USER}@${HOSTNAME}"
+    if [ ! -f /etc/NIXOS ]; then
+      echo "rebuild: not a NixOS system; this flake has no standalone" >&2
+      echo "home-manager output for it." >&2
+      exit 1
     fi
+    echo "Rebuilding NixOS configuration '${config}'..."
+    exec sudo nixos-rebuild switch --flake "${FLAKE_DIR}#${config}" "$@"
     ;;
   Darwin)
-    echo "Rebuilding home-manager for ${USER}@${HOSTNAME}..."
-    home-manager switch --flake "${FLAKE_DIR}#${USER}@${HOSTNAME}"
-    ;;
-  *)
-    echo "Unknown operating system"
-    exit 1
+    echo "Rebuilding nix-darwin configuration '${config}'..."
+    exec sudo darwin-rebuild switch --flake "${FLAKE_DIR}#${config}" "$@"
     ;;
 esac

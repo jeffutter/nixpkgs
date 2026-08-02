@@ -8,8 +8,11 @@ echo "Updating flake inputs..."
 cd "${FLAKE_DIR}"
 git pull
 nix flake update
+# Pinned-binary packages under pkgs/ aren't flake inputs, so each needs its
+# own version/hash refresh. Keep this list in sync with bin/update-*.
 bin/update-thaw
 bin/update-claude-code
+bin/update-colgrep
 bin/update-screenpipe
 bin/update-datadog-pup
 bin/update-moshi-hook
