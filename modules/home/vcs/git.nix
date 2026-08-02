@@ -8,15 +8,6 @@
     };
   };
 
-  programs.delta = {
-    enable = false;
-    options = {
-      side-by-side = true;
-      line-numbers-left-format = "";
-      line-numbers-right-format = "| ";
-    };
-  };
-
   programs.git = {
     enable = true;
     settings = {
@@ -41,7 +32,6 @@
         defaultBranch = "main";
       };
     };
-    # Stylix handles delta theming
     ignores = [
       ".DS_Store?"
       ".Spotlight-V100"

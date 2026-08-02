@@ -53,18 +53,35 @@ in
       autoUpdate = true;
       cleanup = "zap";
       upgrade = true;
-      # Homebrew 5.x refuses `brew bundle install --cleanup` unless given
-      # --force/--force-cleanup/$HOMEBREW_ASK. nix-darwin doesn't pass this
-      # yet, so force non-interactive cleanup ourselves.
+      # Originally a workaround: Homebrew 5.x refuses `brew bundle install
+      # --cleanup` without --force/--force-cleanup/$HOMEBREW_ASK. nix-darwin now
+      # passes --force-cleanup itself for cleanup = "zap", so that part is
+      # redundant. What's left is that --force also reaches `brew install
+      # --cask`, letting casks overwrite an existing app bundle. Keeping it for
+      # that; drop it if cask installs start clobbering something they
+      # shouldn't.
       extraFlags = [ "--force" ];
     };
     caskArgs = {
       appdir = "~/Applications";
     };
 
+    # `trusted` is required on every non-official tap. Homebrew 6.0 turned on
+    # HOMEBREW_REQUIRE_TAP_TRUST, so an untrusted tap's formulae hard-error and
+    # its casks/commands are silently skipped during activation. Trust can't be
+    # granted out-of-band with `brew trust` either: activation runs
+    # `brew bundle --force-cleanup`, and cleanup calls Trust.replace!, which
+    # overwrites ~/.homebrew/trust.json with exactly what the Brewfile declares.
+    # Anything trusted by hand is wiped on the next rebuild.
     taps = [
-      "1password/tap"
-      "buo/cask-upgrade"
+      {
+        name = "1password/tap";
+        trusted = true;
+      }
+      {
+        name = "buo/cask-upgrade";
+        trusted = true;
+      }
     ];
 
     brews = [
@@ -170,6 +187,8 @@ in
       autohide = true;
       tilesize = 48;
       mru-spaces = false;
+      show-recents = false;
+      expose-group-apps = true;
     };
 
     NSGlobalDomain = {
@@ -177,11 +196,27 @@ in
       ApplePressAndHoldEnabled = false;
       AppleShowScrollBars = "WhenScrolling";
       "com.apple.swipescrolldirection" = false;
+      # Full Keyboard Access: Tab moves focus between every control, not just
+      # text fields and lists.
+      AppleKeyboardUIMode = 2;
     };
 
     trackpad = {
       TrackpadRightClick = true;
       Clicking = false;
+      # Disable three-finger tap (Look up & data detectors).
+      TrackpadThreeFingerTapGesture = 0;
+    };
+
+    # AeroSpace owns window management, so the built-in tiling and
+    # Stage Manager gestures are turned off to stay out of its way.
+    WindowManager = {
+      EnableTilingByEdgeDrag = false;
+      EnableTilingOptionAccelerator = false;
+      EnableTiledWindowMargins = false;
+      EnableStandardClickToShowDesktop = false;
+      HideDesktop = true;
+      AppWindowGroupingBehavior = true;
     };
 
     screencapture = {
@@ -196,6 +231,10 @@ in
       ShowAMPM = false;
       ShowDate = 0;
       ShowDayOfWeek = false;
+    };
+
+    iCal = {
+      CalendarSidebarShown = true;
     };
 
     CustomUserPreferences = {
@@ -229,6 +268,67 @@ in
         NSUserKeyEquivalents = {
           Zoom = "@$z";
         };
+
+        # System Settings > Keyboard > Text Replacements
+        NSUserDictionaryReplacementItems = [
+          {
+            on = 1;
+            replace = "ddx";
+            "with" = "Datadex";
+          }
+          {
+            on = 1;
+            replace = "omw";
+            "with" = "On my way!";
+          }
+          {
+            on = 1;
+            replace = "*shrug*";
+            "with" = "¯\\_(ツ)_/¯";
+          }
+          {
+            on = 1;
+            replace = "pn";
+            "with" = "partner";
+          }
+          {
+            on = 1;
+            replace = "lh";
+            "with" = "lighthouse";
+          }
+          {
+            on = 1;
+            replace = "interp";
+            "with" = "interpreter";
+          }
+          {
+            on = 1;
+            replace = "tdu";
+            "with" = "Thank you,\nDr. Utter";
+          }
+        ];
+
+        # Mute the alert beep entirely (and don't flash the screen instead).
+        "com.apple.sound.beep.volume" = 0.0;
+        "com.apple.sound.beep.flash" = 0;
+
+        # Trackpad tracking speed; macOS default is 0.6875.
+        "com.apple.trackpad.scaling" = 0.875;
+      };
+
+      # Menu bar item visibility (System Settings > Control Center).
+      # Positions are deliberately not managed — they're pixel offsets that
+      # depend on display width.
+      "com.apple.controlcenter" = {
+        "NSStatusItem Visible Battery" = false;
+        "NSStatusItem Visible FocusModes" = false;
+        "NSStatusItem Visible Shortcuts" = false;
+        "NSStatusItem Visible BentoBox" = true;
+      };
+
+      "com.apple.screencapture" = {
+        showsClicks = true; # Highlight clicks in screen recordings
+        captureDelay = 5.0; # Countdown before a timed capture, in seconds
       };
 
       # System keyboard shortcuts (symbolic hotkeys)
