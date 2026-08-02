@@ -170,6 +170,8 @@ in
       autohide = true;
       tilesize = 48;
       mru-spaces = false;
+      show-recents = false;
+      expose-group-apps = true;
     };
 
     NSGlobalDomain = {
@@ -177,11 +179,27 @@ in
       ApplePressAndHoldEnabled = false;
       AppleShowScrollBars = "WhenScrolling";
       "com.apple.swipescrolldirection" = false;
+      # Full Keyboard Access: Tab moves focus between every control, not just
+      # text fields and lists.
+      AppleKeyboardUIMode = 2;
     };
 
     trackpad = {
       TrackpadRightClick = true;
       Clicking = false;
+      # Disable three-finger tap (Look up & data detectors).
+      TrackpadThreeFingerTapGesture = 0;
+    };
+
+    # AeroSpace owns window management, so the built-in tiling and
+    # Stage Manager gestures are turned off to stay out of its way.
+    WindowManager = {
+      EnableTilingByEdgeDrag = false;
+      EnableTilingOptionAccelerator = false;
+      EnableTiledWindowMargins = false;
+      EnableStandardClickToShowDesktop = false;
+      HideDesktop = true;
+      AppWindowGroupingBehavior = true;
     };
 
     screencapture = {
@@ -196,6 +214,10 @@ in
       ShowAMPM = false;
       ShowDate = 0;
       ShowDayOfWeek = false;
+    };
+
+    iCal = {
+      CalendarSidebarShown = true;
     };
 
     CustomUserPreferences = {
@@ -229,6 +251,67 @@ in
         NSUserKeyEquivalents = {
           Zoom = "@$z";
         };
+
+        # System Settings > Keyboard > Text Replacements
+        NSUserDictionaryReplacementItems = [
+          {
+            on = 1;
+            replace = "ddx";
+            "with" = "Datadex";
+          }
+          {
+            on = 1;
+            replace = "omw";
+            "with" = "On my way!";
+          }
+          {
+            on = 1;
+            replace = "*shrug*";
+            "with" = "¯\\_(ツ)_/¯";
+          }
+          {
+            on = 1;
+            replace = "pn";
+            "with" = "partner";
+          }
+          {
+            on = 1;
+            replace = "lh";
+            "with" = "lighthouse";
+          }
+          {
+            on = 1;
+            replace = "interp";
+            "with" = "interpreter";
+          }
+          {
+            on = 1;
+            replace = "tdu";
+            "with" = "Thank you,\nDr. Utter";
+          }
+        ];
+
+        # Mute the alert beep entirely (and don't flash the screen instead).
+        "com.apple.sound.beep.volume" = 0.0;
+        "com.apple.sound.beep.flash" = 0;
+
+        # Trackpad tracking speed; macOS default is 0.6875.
+        "com.apple.trackpad.scaling" = 0.875;
+      };
+
+      # Menu bar item visibility (System Settings > Control Center).
+      # Positions are deliberately not managed — they're pixel offsets that
+      # depend on display width.
+      "com.apple.controlcenter" = {
+        "NSStatusItem Visible Battery" = false;
+        "NSStatusItem Visible FocusModes" = false;
+        "NSStatusItem Visible Shortcuts" = false;
+        "NSStatusItem Visible BentoBox" = true;
+      };
+
+      "com.apple.screencapture" = {
+        showsClicks = true; # Highlight clicks in screen recordings
+        captureDelay = 5.0; # Countdown before a timed capture, in seconds
       };
 
       # System keyboard shortcuts (symbolic hotkeys)
