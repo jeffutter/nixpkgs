@@ -217,15 +217,6 @@ let
   # Helper function to read markdown files from the ai directory
   readAiDoc = file: builtins.readFile (./ai + "/${file}");
 
-  # Permission-prompt stats hook. capture.py and report.py are deployed together
-  # to a single store path so capture.py can import report.py alongside it; the
-  # scripts write their event/report data to ~/.claude/permission-stats at runtime.
-  permissionStats = ./ai/permission-stats;
-  permissionStatsCapture = {
-    type = "command";
-    command = "${pkgs.python3}/bin/python3 ${permissionStats}/capture.py";
-  };
-
   # Claude Code hooks `moshi-hook install` would normally write into
   # ~/.claude/settings.json itself. The event/matcher/async shape is read back
   # from the derivation's passthru.agentConfigs (see pkgs/moshi-hook) so it
@@ -304,14 +295,6 @@ in
     ];
 
     home.file.".claude/plugins/marketplaces/superpowers".source = superpowers;
-
-    # Symlink the permission-stats scripts into their data dir so they can be run
-    # directly (e.g. `~/.claude/permission-stats/report.py --daily`) while always
-    # tracking the current build. capture.py imports report.py from its own dir;
-    # both being symlinks in the same dir keeps that import working. The dir also
-    # holds runtime events/ and reports/, which home-manager leaves untouched.
-    home.file.".claude/permission-stats/capture.py".source = "${permissionStats}/capture.py";
-    home.file.".claude/permission-stats/report.py".source = "${permissionStats}/report.py";
 
     xdg.configFile."herdr/config.toml".source =
       (pkgs.formats.toml { }).generate "herdr-config.toml"
@@ -610,7 +593,6 @@ in
             ]
             ++ (moshiClaudeHooks.PreToolUse or [ ]);
           PermissionRequest = [
-            { hooks = [ permissionStatsCapture ]; }
             {
               matcher = "";
               hooks = [
@@ -622,10 +604,8 @@ in
             }
           ]
           ++ (moshiClaudeHooks.PermissionRequest or [ ]);
-          PermissionDenied = [ { hooks = [ permissionStatsCapture ]; } ];
-          PostToolUse = [ { hooks = [ permissionStatsCapture ]; } ] ++ (moshiClaudeHooks.PostToolUse or [ ]);
+          PostToolUse = moshiClaudeHooks.PostToolUse or [ ];
           UserPromptSubmit = [
-            { hooks = [ permissionStatsCapture ]; }
             {
               hooks = [
                 {
@@ -648,7 +628,6 @@ in
             }
           ];
           Stop = [
-            { hooks = [ permissionStatsCapture ]; }
             {
               hooks = [
                 {
@@ -684,7 +663,6 @@ in
             }
           ];
           SessionStart = [
-            { hooks = [ permissionStatsCapture ]; }
             {
               matcher = "*";
               hooks = [
@@ -698,7 +676,6 @@ in
           ]
           ++ (moshiClaudeHooks.SessionStart or [ ]);
           SessionEnd = [
-            { hooks = [ permissionStatsCapture ]; }
             {
               matcher = "";
               hooks = [
