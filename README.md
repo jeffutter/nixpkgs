@@ -20,7 +20,7 @@ git clone git@github.com:jeffutter/nixpkgs.git ~/.config/home-manager
 
 ### Darwin
 ```
-sudo nix run nix-darwin/master#darwin-rebuild -- switch --flake ~/.config/home-manager#<config>
+sudo nix --extra-experimental-features nix-command --extra-experimental-features flakes run nix-darwin/master#darwin-rebuild -- switch --flake ~/.config/home-manager#<config>
 ```
 
 ## Applying Configuration
