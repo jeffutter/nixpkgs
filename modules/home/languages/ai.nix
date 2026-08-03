@@ -214,6 +214,58 @@ let
   piCodingAgentDist =
     (basePi.override { useBun = false; }) + "/lib/node_modules/@earendil-works/pi-coding-agent";
 
+  # Teaches Claude Code to write pi skills (SKILL.md) and pi extensions
+  # (TypeScript). Rather than hand-transcribing pi's skill/extension format into
+  # this repo -- which would silently drift out of sync every time pi's API
+  # changes -- bundle the docs and example extensions straight out of
+  # piCodingAgentDist, so this skill always reflects whatever pi version
+  # `inputs.llm-agents` is pinned to. The only sync step is bumping that input.
+  pi-authoring-skill = pkgs.runCommand "pi-authoring-skill" { } ''
+        mkdir -p $out/references
+        cp ${piCodingAgentDist}/docs/skills.md $out/references/skills.md
+        cp ${piCodingAgentDist}/docs/extensions.md $out/references/extensions.md
+        cp ${piCodingAgentDist}/docs/sdk.md $out/references/sdk.md
+        cp -r ${piCodingAgentDist}/examples/extensions $out/references/example-extensions
+        cp -r ${piCodingAgentDist}/examples/sdk $out/references/example-sdk
+        chmod -R u+w $out
+
+        cat > $out/SKILL.md <<'SKILLEOF'
+    ---
+    name: pi-authoring
+    description: >-
+      Write or edit skills and extensions for pi (the pi.dev/earendil-works coding
+      agent) -- SKILL.md files under .pi/skills, ~/.pi/agent/skills, or a pi
+      package's skills/ directory, and TypeScript extensions under
+      .pi/extensions or ~/.pi/agent/extensions. Use whenever the user asks to
+      create, modify, or debug a pi skill or pi extension, or asks how pi's
+      skill/extension system works.
+    ---
+
+    # Authoring pi Skills and Extensions
+
+    pi's skill format is the same Agent Skills standard Claude Code itself uses
+    (a `SKILL.md` with YAML frontmatter: `name`, `description`, optional
+    `allowed-tools`, progressive disclosure of the body). `references/skills.md`
+    covers pi's specific deltas: discovery locations
+    (`~/.pi/agent/skills/`, `.pi/skills/`, `.agents/skills/`, package
+    `skills/` dirs), the root-`.md`-file shortcut in the first two, and naming
+    validation rules.
+
+    pi extensions have no external standard -- they're a pi-specific TypeScript
+    API (lifecycle event subscriptions, custom tool registration, `ctx.reload()`,
+    etc.) that changes across pi releases. Before writing or editing one, always
+    read `references/extensions.md` and skim 2-3 relevant files under
+    `references/example-extensions/` for the current API shape -- do not rely on
+    prior/memorized knowledge of pi's extension API, since these reference files
+    are refreshed to match whatever pi version is actually installed and prior
+    knowledge may be stale.
+
+    If the task involves pi's SDK (`@earendil-works/pi-coding-agent` used
+    programmatically, not the CLI) instead of a CLI extension, read
+    `references/sdk.md` and `references/example-sdk/` instead.
+    SKILLEOF
+  '';
+
   # Helper function to read markdown files from the ai directory
   readAiDoc = file: builtins.readFile (./ai + "/${file}");
 
@@ -326,7 +378,7 @@ in
 
     home.file.".pi/agent/extensions/pi-continue.json".text = builtins.toJSON {
       reasoning = false;
-      summarizerModel = "instruct";
+      summarizerModel = "litellm-home/instruct";
     };
 
     # pi-continue (and other extensions) declare @earendil-works/pi-coding-agent
@@ -766,6 +818,7 @@ in
         herdr = "${herdr-skill}";
         humanizer = "${humanizer}";
         kami = "${mkKamiSkill config.jeff.kamiSkillBrand}";
+        pi-authoring = "${pi-authoring-skill}";
         review-pi-work = ./ai/skills/review-pi-work;
         stop-slop = "${stop-slop}";
         todoist-cli = "${todoist-cli-skill}";

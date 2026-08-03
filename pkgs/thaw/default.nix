@@ -10,7 +10,7 @@ stdenvNoCC.mkDerivation rec {
   version = "1.2.0";
 
   src = fetchurl {
-    url = "https://github.com/stonerl/Thaw/releases/download/${version}/Thaw_${version}.zip";
+    url = "https://github.com/thaw-app/Thaw/releases/download/${version}/Thaw_${version}.zip";
     sha256 = "sha256-1n9NMe+foFeEmphUC4EM+kLgvGYBnTYFq9CORcaaoG8=";
   };
 
@@ -27,7 +27,7 @@ stdenvNoCC.mkDerivation rec {
 
   meta = with lib; {
     description = "Menu bar manager for macOS";
-    homepage = "https://github.com/stonerl/Thaw";
+    homepage = "https://github.com/thaw-app/Thaw";
     license = licenses.mit;
     platforms = platforms.darwin;
     maintainers = [ ];
