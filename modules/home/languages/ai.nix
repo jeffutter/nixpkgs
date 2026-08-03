@@ -171,12 +171,15 @@ let
     };
   };
   moshi-hook = pkgs.callPackage ../../../pkgs/moshi-hook { };
-  # herdr ships its agent skill as a single SKILL.md at the repo root rather
-  # than a dedicated skill package; lift just that file into its own skill
-  # derivation so it tracks whatever version the herdr flake input is pinned to.
+  # `herdr --skill` prints herdr's bundled agent skill file and is the
+  # documented extraction point for this (see `herdr --help`); prefer it over
+  # reading the skill file out of the source tree directly, since that
+  # in-tree path has already moved once across herdr releases (root
+  # SKILL.md -> skills/herdr/SKILL.md as of v0.8.0) while the CLI flag is a
+  # stable contract.
   herdr-skill = pkgs.runCommand "herdr-skill" { } ''
     mkdir -p $out
-    cp ${inputs.herdr}/SKILL.md $out/SKILL.md
+    ${herdr}/bin/herdr --skill > $out/SKILL.md
   '';
   rtk = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.rtk;
   basePi = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.pi;

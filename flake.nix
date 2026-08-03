@@ -37,7 +37,7 @@
     };
 
     herdr = {
-      url = "github:ogulcancelik/herdr/v0.7.5";
+      url = "github:ogulcancelik/herdr/v0.8.0";
     };
 
     zen-browser = {
