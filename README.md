@@ -18,6 +18,11 @@ experimental-features = nix-flakes nix-command
 git clone git@github.com:jeffutter/nixpkgs.git ~/.config/home-manager
 ```
 
+### Darwin
+```
+sudo nix run nix-darwin/master#darwin-rebuild -- switch --flake ~/.config/home-manager#<config>
+```
+
 ## Applying Configuration
 
 The `~/bin/rebuild` script picks the right command and flake output for the
