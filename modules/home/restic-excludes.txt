@@ -1,0 +1,106 @@
+# restic exclude patterns for home directory backup
+# used via: --exclude-file=restic-excludes.txt
+
+# --- Dotfile / tool caches, state, logs ---
+*/.anydesk
+*/.atuin/logs
+*/.herdr/worktrees
+*/.local/state/ghostty/crash
+*/.mix
+*/.npm
+*/.ollama
+*/.vscode-server
+*/*cache*
+*/.Trash
+*/.cache
+*/.screenpipe
+*/.docker
+*/.eclipse
+*/.elixir_ls
+
+# --- macOS Library noise ---
+*/Application Support/*
+*/Application*/Google
+*/Application*/Slack
+*/Caches
+*/CoreSimulator
+*/Group Containers
+*/Library/Containers
+*/Library/Python
+*/Library/WebKit
+*/Library/Developer
+*/Library/Developer/*
+*/Logs
+*/Outlook*
+*/Photos Library
+*/Photos Library.photoslibrary
+*/Trash
+**/.DS_Store
+
+Application Support/*
+Application*/Google
+Application*/Slack
+Applications/*
+Library/Calendars
+Library/CloudStorage
+Library/Containers
+Library/Developer
+Library/Developer/*
+Library/Fonts/HomeManager/*
+Library/Java
+Library/Java/JavaVirtualMachines
+Library/Mail
+Library/Messages
+Library/Metadata
+Library/Metadata/*
+Library/Mobile Documents
+Library/Photos
+Library/Saved Application State
+Library/pnpm
+
+# --- Dev toolchains / build artifacts (regenerable) ---
+.cargo
+.emacs.d
+.expert
+.gradle
+.hex
+.jdtls
+.local/share/gem
+.local/share/nvim/lazy
+.local/share/nvim/mason
+.local/share/uv
+.m2
+.nix-hex
+.node-gyp
+.pnpm-store
+.rustup
+.vscode
+YouCompleteMe
+_build
+com.docker.docker
+deps
+go
+node_modules
+qmk_firmware
+target
+
+# --- Misc large/one-off items ---
+*/BIGBoxXVintageClassics
+*/Backups
+*/DBGO1_Combo
+*/DBGO4_Combo
+*/DelicatePiano_SG
+*/Desktop/Import
+*/Downalods/JZ-MAL
+*/GoPro
+*/LofiExpanses_SG
+BR/billboard/*.gz
+BR/billboard/*.json
+BR/billboard/*.zst
+BR/moderation_data/*.csv
+BR/moderation_data/*.json
+DBGO1_Combo.zip
+DBGO4_Combo.zip
+Downloads/flattened_orbis
+MyDownloads/*zip
+MyDownloads/BIGBox*

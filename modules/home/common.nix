@@ -5,6 +5,7 @@
 
 {
   imports = [
+    ./backup.nix
     ./themes.nix
     ./fonts.nix
     ./packages.nix
