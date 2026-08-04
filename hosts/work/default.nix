@@ -24,12 +24,13 @@ in
 
   homebrew.casks = [
     "balenaetcher"
+    "beekeeper-studio"
     "deskpad"
+    "insta360-link-controller"
     "intellij-idea-ce"
     "jetbrains-toolbox"
     "rode-central"
     "shottr"
-    "beekeeper-studio"
   ];
 
   homebrew.masApps = {
