@@ -48,6 +48,7 @@ in
   ];
 
   home.packages = with pkgs; [
+    acli
     # argocd
     colima
     grpcurl

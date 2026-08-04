@@ -519,8 +519,7 @@ in
         skipInstallOnStartup = true;
         sandbox = {
           excludedCommands = [
-            "acli confluence *"
-            "acli jira *"
+            "acli *"
             "nix build *"
             "nix eval *"
             "rtk cargo *"
