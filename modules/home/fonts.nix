@@ -6,6 +6,7 @@
     barlow
     font-awesome
     input-fonts
+    oswald
     nerd-fonts.commit-mono
     nerd-fonts.fantasque-sans-mono
     nerd-fonts.fira-code
