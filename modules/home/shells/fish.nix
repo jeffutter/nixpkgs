@@ -65,7 +65,14 @@
       fish_add_path -a /usr/local/bin
 
       ${lib.optionalString pkgs.stdenv.isDarwin ''
-        fish_add_path -p "$HOME/homebrew/bin"
+        # /etc/paths.d/homebrew only reaches shells that run path_helper
+        # (/etc/zprofile, /etc/profile). fish doesn't, so add the prefix here.
+        # The prefix varies by install: /opt/homebrew is the ARM default (and
+        # what nix-darwin's homebrew module assumes), $HOME/homebrew is a
+        # custom-prefix install. fish_add_path skips non-existent directories,
+        # so listing both is safe; the first one present wins.
+        fish_add_path -p /opt/homebrew/bin /opt/homebrew/sbin \
+          "$HOME/homebrew/bin" "$HOME/homebrew/sbin"
         fish_add_path -a /Applications/Docker.app/Contents/Resources/bin
         fish_add_path -a "$HOME/Applications/Obsidian.app/Contents/MacOS"
 

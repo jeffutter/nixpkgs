@@ -159,7 +159,7 @@ in
   nixpkgs.hostPlatform = "aarch64-darwin";
 
   # Match existing Nix installation's GID
-  ids.gids.nixbld = 30000;
+  ids.gids.nixbld = 350;
 
   # Use Touch ID for sudo (reattach enables tmux support)
   security.pam.services.sudo_local = {
