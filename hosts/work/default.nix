@@ -32,7 +32,7 @@ in
   system.defaults.dock = {
     persistent-apps = [
       { app = "/System/Applications/Apps.app"; }
-      { app = "${homeDir}/Applications/Zen Browser.app"; }
+      { app = "${homeDir}/Applications/Zen.app"; }
       { app = "${homeDir}/Applications/Ghostty.app"; }
       { app = "/System/Applications/Messages.app"; }
       { app = "/System/Applications/Mail.app"; }
