@@ -158,8 +158,8 @@ in
   # The platform the configuration will be used on.
   nixpkgs.hostPlatform = "aarch64-darwin";
 
-  # Match existing Nix installation's GID
-  ids.gids.nixbld = 350;
+  # ids.gids.nixbld must match the GID the local Nix installer created, which
+  # differs per machine — set it in each host's default.nix.
 
   # Use Touch ID for sudo (reattach enables tmux support)
   security.pam.services.sudo_local = {

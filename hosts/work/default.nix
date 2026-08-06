@@ -61,4 +61,7 @@ in
 
   system.primaryUser = "jeffery.utter";
   nix.settings.trusted-users = [ "jeffery.utter" ];
+
+  # Match existing Nix installation's GID
+  ids.gids.nixbld = 350;
 }
