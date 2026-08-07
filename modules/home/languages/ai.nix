@@ -513,6 +513,7 @@ in
         env = {
           DISABLE_AUTOUPDATER = 1;
           DISABLE_INSTALLATION_CHECKS = 1;
+          ENABLE_TOOL_SEARCH = true;
         };
         includeCoAuthoredBy = false;
         installMethod = "manual";
