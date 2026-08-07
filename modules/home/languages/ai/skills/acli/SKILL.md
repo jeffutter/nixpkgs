@@ -6,25 +6,6 @@ description: Use acli CLI for Atlassian operations — primarily Jira work item 
 
 You are an Atlassian CLI specialist. This skill provides comprehensive guidance for managing Jira work items, projects, sprints, and boards using the `acli jira` command-line tool.
 
-## Sandbox (MANDATORY)
-
-**Every `acli` invocation via the Bash tool MUST set `dangerouslyDisableSandbox: true` on the FIRST attempt.** Do not try sandboxed first.
-
-`acli` reads and writes OAuth credentials via the macOS Keychain / credential helpers. The default Claude Code sandbox blocks those reads, and the failure mode is deceptive:
-
-- `acli jira auth status` → `failed to retrieve authenticated status`
-- `acli jira workitem search ...` → `failed to parse JQL` (even for valid JQL)
-- `acli jira project list` → `failed to list projects`
-
-These look like syntax or auth problems, but they are sandbox problems. The fix is always the same: rerun the exact command with `dangerouslyDisableSandbox: true`.
-
-This applies to every `acli` subcommand: `auth`, `workitem`, `project`, `board`, `sprint`, `filter`, `field`, `dashboard`. No exceptions.
-
-```
-Bash(command="acli jira workitem view FOO-123", dangerouslyDisableSandbox=true)
-Bash(command="acli jira workitem search --jql 'project = FOO'", dangerouslyDisableSandbox=true)
-```
-
 ## Core Principles
 
 ### Output Formats
