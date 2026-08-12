@@ -540,7 +540,7 @@ in
         };
         tui = "fullscreen";
         permissions = {
-          defaultMode = "acceptEdits";
+          defaultMode = "auto";
           additionalDirectories = [
             "~/.herdr/worktrees"
           ];

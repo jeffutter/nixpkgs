@@ -39,11 +39,21 @@ Instructions:
    rather than from ticket statuses, and the next actionable step:
    `backlog task edit $0 --append-notes "..."`. A future run reads that
    instead of rediscovering the block.
-5. Mark acceptance criteria complete as you go
+5. Mark acceptance criteria complete as you go: `backlog task edit $0 --check-ac <n>`
+   for each one, right after its work is actually verified — not just described in
+   notes or the final summary. The checkbox state itself is what review-pi-work and
+   future runs treat as "done"; prose saying it's done is not a substitute.
 6. Add implementation notes: `backlog task edit $0 --append-notes "..."`
 7. Add a final summary: `backlog task edit $0 --final-summary "..."`
-8. Commit ALL changes (this is mandatory — never skip the commit step). Do this
-   BEFORE marking the ticket Done — see step 10 for why:
+8. Verify every acceptance criterion is actually checked before proceeding:
+   `backlog task $0 --plain` and confirm no `[ ]` remains. If one genuinely
+   doesn't apply, say why in the implementation notes and check it anyway
+   (`--check-ac <n>`) rather than leaving it unchecked. Never continue to the
+   commit step with an unresolved, unchecked criterion — a ticket marked Done
+   with unchecked ACs is exactly the kind of finding that stops review-pi-work
+   from trusting the loop's own status.
+9. Commit ALL changes (this is mandatory — never skip the commit step). Do this
+   BEFORE marking the ticket Done — see step 11 for why:
    a. If you made changes inside sportsbook-bff/: cd into it, stage the changed files,
       and commit there FIRST (the pre-commit hook must pass).
    b. If you made changes inside penn-core/: cd into it, stage the changed files,
@@ -51,43 +61,49 @@ Instructions:
    c. Back in the root repo, stage any changed files (including submodule pointer
       updates for sportsbook-bff and/or penn-core if you committed inside them,
       plus backlog task files). Commit with an informative but concise message.
-   d. Every commit must carry the Co-Authored-By trailer. Pass it as a trailer
-      flag rather than relying on the hook to add it, so the message is already
-      correct when the hook checks it:
+   d. Every commit must carry both a `Co-Authored-By` trailer and a
+      `Task-Id: <task-id>` trailer, even when the task ID already appears in the
+      subject line — review-pi-work and other tooling correlate commits to
+      tickets via this trailer, not by parsing the subject, since subject-line
+      conventions aren't followed consistently across a project's history. Pass
+      them as trailer flags rather than relying on the hook to add them, so the
+      message is already correct when the hook checks it:
 
       ```
-      git commit --trailer "Co-Authored-By: Claude Code <noreply@anthropic.com>"
+      git commit --trailer "Co-Authored-By: Claude Code <noreply@anthropic.com>" \
+        --trailer "Task-Id: $0"
       ```
 
       This works alongside `-m` and `-F`, and repeating an identical trailer is
       a no-op, so it is safe even when something else already appended one.
-9. Mark the ticket done: `backlog task edit $0 -s Done`
-10. Fold that status change into the commit from step 8 instead of leaving it
-    separate: stage the updated ticket file and amend, carrying the trailer
+10. Mark the ticket done: `backlog task edit $0 -s Done`
+11. Fold that status change into the commit from step 9 instead of leaving it
+    separate: stage the updated ticket file and amend, carrying the trailers
     through the amend as well:
 
     ```
     git commit --amend --no-edit \
-      --trailer "Co-Authored-By: Claude Code <noreply@anthropic.com>"
+      --trailer "Co-Authored-By: Claude Code <noreply@anthropic.com>" \
+      --trailer "Task-Id: $0"
     ```
 
     Committing the code first and folding the Done flip in afterward means an
-    interruption between steps 8-10 (e.g. this process being killed) never
+    interruption between steps 9-11 (e.g. this process being killed) never
     leaves a ticket marked Done with its work uncommitted — worst case is a
     ticket that's already-committed but still shows its prior status, which a
     future run can safely re-check rather than silently losing finished work.
 
     Only ever amend a commit you created yourself during this run. If HEAD is a
     commit you did not just make, do not amend it — make a new commit instead.
-11. **Never bypass a git hook.** Do not pass `--no-verify` to `git commit`,
+12. **Never bypass a git hook.** Do not pass `--no-verify` to `git commit`,
     `git push`, or anything else, and do not disable, move, or rewrite hook
-    files. If a hook fails — including on the amend in step 10 — that failure
+    files. If a hook fails — including on the amend in step 11 — that failure
     is a real finding: read what it reported and fix the underlying problem.
     The attribution hook is mandatory policy, and the pre-commit hooks are the
     formatting, lint, and test gates this repo relies on; a commit that skipped
     them looks reviewed when it is not. If you genuinely cannot get a hook to
     pass, stop and report that in your summary rather than working around it.
-12. Print a summary of what you did and exit
+13. Print a summary of what you did and exit
 
 Do NOT start work on multiple tickets. Complete exactly ONE ticket then exit.
 

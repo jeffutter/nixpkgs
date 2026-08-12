@@ -63,7 +63,8 @@ against): `--priority high`, a description stating plainly that the ticket's
 own record and the repository disagree, and acceptance criteria requiring the
 implementer to first check the working tree for uncommitted files matching the
 original plan (the work may still be sitting there, half-committed) before
-redoing anything from scratch.
+redoing anything from scratch. Commit this new ticket file immediately, the
+same way and for the same reason as Step 5's ticket-filing commit below.
 
 ---
 
@@ -168,21 +169,25 @@ If all three hold:
 2. Run the same verification the original ticket's acceptance criteria would
    have required — tests, typecheck, lint for whatever you touched. A fixup is
    not exempt from correctness just because it's small.
-3. Stage explicitly (never `git add -A`/`.`) and commit as a fixup targeting the
-   original commit:
+3. Record it on the original ticket first, so its file is ready to go into the
+   same commit as the code fix instead of being left dirty afterward:
    ```bash
-   git add <file1> <file2> ...
+   backlog task edit <TASK_ID> --append-notes "Fixup applied post-review: <what and why>."
+   ```
+4. Stage explicitly (never `git add -A`/`.` — include the code files from step 1
+   *and* the ticket file the note edit just touched) and commit as a fixup
+   targeting the original commit:
+   ```bash
+   git add <file1> <file2> ... backlog/tasks/<task-id>.md
    git commit --fixup=<sha>
    ```
    Do **not** `--amend` and do not squash it yourself — `pi`'s ralph loop folds
    pending fixup commits into their targets automatically after each review run
    (scoped only to commits that run itself made, so this never touches history
-   from outside the current session).
-4. Record it on the original ticket so its history stays complete once the
-   commits get folded together and the fixup commit itself disappears:
-   ```bash
-   backlog task edit <TASK_ID> --append-notes "Fixup applied post-review: <what and why>."
-   ```
+   from outside the current session). That autosquash is a plain `git rebase
+   --autosquash`, which refuses to run at all against a dirty working tree —
+   folding the note edit into this same commit instead of leaving it uncommitted
+   is what keeps that rebase able to run.
 5. Report it in Step 6 as a fixup, not a filed ticket — no new `task-<id>`
    exists for it, and it shouldn't be listed alongside ones that do.
 
@@ -262,6 +267,17 @@ After creating tickets, sanity-check the wiring:
 backlog sequence list --plain     # confirm new fix tickets are in Sequence 1
 ```
 
+**Commit the new ticket file(s) before finishing this review.** `backlog task
+create` only writes `backlog/tasks/task-<id>.md` to disk — it does not commit
+it. Ralph's autosquash step runs `git rebase --autosquash` after every review,
+which refuses outright against a dirty working tree, so an uncommitted ticket
+file left here blocks *every* pending fixup from folding, not just this
+review's own findings:
+```bash
+git add backlog/tasks/task-<new-id>.md   # one per ticket created this run
+git commit -m "chore: file review-followup ticket(s) from review of <reviewed TASK_IDs>"
+```
+
 ---
 
 ## Step 6 — Report back
@@ -279,7 +295,8 @@ Give the user a concise report:
 - **Verdict:** is pi on track, or should the loop be paused until the
   review-followup tickets are cleared? Recommend a course of action.
 
-Ticket files are created by the `backlog` CLI — nothing to commit there. The
-only commits this skill ever makes itself are Step 4 fixups, each scoped to a
-single small, unpushed, mechanical correction; everything else is left to the
-user or to pi's normal flow.
+This skill commits its own output twice: Step 4 fixups (each scoped to a
+single small, unpushed, mechanical correction) and the Step 5 ticket-filing
+commit above. Both exist so this run never hands ralph's autosquash step a
+dirty working tree — everything else (actually implementing filed tickets) is
+left to the user or to pi's normal flow.
