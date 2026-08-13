@@ -120,7 +120,6 @@ in
     masApps = {
       "1Password for Safari" = 1569813296;
       "Amphetamine" = 937984704;
-      "CARROTweather" = 993487541;
       "Foodnoms" = 1479461686;
       "GIPHY CAPTURE" = 668208984;
       "Home Assistant" = 1099568401;
@@ -175,6 +174,9 @@ in
 
   # Enable fish shell integration at system level
   programs.fish.enable = true;
+
+  # Remote Login (SSH), Apple's built-in sshd
+  services.openssh.enable = true;
 
   # System-level packages
   environment.systemPackages = with pkgs; [
@@ -259,6 +261,16 @@ in
           {
             "Bundle ID" = "com.apple.PressAndHold";
             InputSourceKind = "Non Keyboard Input Method";
+          }
+        ];
+        # AppleEnabledInputSources only lists what's available in the input
+        # menu; macOS tracks the live/active layout separately here. Without
+        # this, it silently falls back to the first enabled source (U.S.).
+        AppleSelectedInputSources = [
+          {
+            InputSourceKind = "Keyboard Layout";
+            "KeyboardLayout ID" = 12825;
+            "KeyboardLayout Name" = "Colemak";
           }
         ];
       };

@@ -7,7 +7,6 @@
   ];
 
   homebrew.casks = [
-    "adobe-dng-converter"
     "calibre"
     "fastrawviewer"
     "nvidia-geforce-now"

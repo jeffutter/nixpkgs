@@ -8,9 +8,10 @@ set -euo pipefail
 #   rebuild -- --show-trace     # pass extra flags to nixos-/darwin-rebuild
 #
 # Flake outputs: nixosConfigurations.{zenbook,workstation}
-#                darwinConfigurations.{work,personal}
+#                darwinConfigurations.{work,personal,mbp16}
 
 FLAKE_DIR="${HOME}/.config/home-manager"
+DARWIN_HOST_MARKER="${HOME}/.config/darwin-host"
 
 config=""
 if [ $# -gt 0 ] && [ "$1" != "--" ]; then
@@ -23,23 +24,32 @@ os="$(uname -s)"
 
 # Pick the flake output. On NixOS the short hostname is the config name. On
 # macOS it isn't: work machines get an IT-assigned name (PINTWSYM0630N6W1),
-# so match on the username instead, which is stable per machine and is what
-# distinguishes the two darwin configs (see hosts/*/default.nix).
+# and both personal Macs (personal, mbp16) run as the same $USER, so neither
+# hostname nor username alone can tell them apart. Check for a marker file
+# first; fall back to username for the unambiguous case.
 if [ -z "$config" ]; then
   case "$os" in
     Linux)
       config="$(hostname -s)"
       ;;
     Darwin)
-      case "$USER" in
-        jeffery.utter) config="work" ;;
-        jeffutter) config="personal" ;;
-        *)
-          echo "rebuild: no darwin config mapped for user '${USER}'." >&2
-          echo "Pass one explicitly: rebuild work|personal" >&2
-          exit 1
-          ;;
-      esac
+      if [ -s "$DARWIN_HOST_MARKER" ]; then
+        config="$(tr -d '[:space:]' < "$DARWIN_HOST_MARKER")"
+      else
+        case "$USER" in
+          jeffery.utter) config="work" ;;
+          jeffutter)
+            echo "rebuild: \$USER=jeffutter matches multiple darwin configs (personal, mbp16)." >&2
+            echo "Create ${DARWIN_HOST_MARKER} containing the config name, or pass one explicitly: rebuild mbp16|personal" >&2
+            exit 1
+            ;;
+          *)
+            echo "rebuild: no darwin config mapped for user '${USER}'." >&2
+            echo "Pass one explicitly: rebuild work|personal|mbp16" >&2
+            exit 1
+            ;;
+        esac
+      fi
       ;;
     *)
       echo "rebuild: unsupported operating system '${os}'" >&2
