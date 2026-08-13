@@ -342,6 +342,12 @@
           username = "jeffutter";
           host = "personal";
         };
+
+        mbp16 = mkDarwin {
+          system = "aarch64-darwin";
+          username = "jeffutter";
+          host = "mbp16";
+        };
       };
 
       packages = forAllSystems (system: {
@@ -370,6 +376,16 @@
           extraModules = [
             ./modules/home/darwin.nix
             ./hosts/work/home.nix
+          ];
+        };
+
+        "jeffutter@mbp16" = mkHome {
+          system = "aarch64-darwin";
+          username = "jeffutter";
+          homeDirectory = "/Users/jeffutter";
+          extraModules = [
+            ./modules/home/darwin.nix
+            ./hosts/mbp16/home.nix
           ];
         };
       };
