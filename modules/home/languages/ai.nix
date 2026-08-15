@@ -39,7 +39,7 @@ let
     '';
   apollo_skills = inputs.apollo_skills;
   ast-grep-skill = inputs.ast-grep-skill;
-  grill-me-skill = inputs.grill-me-skill;
+  matt-pocock-skills = inputs.matt-pocock-skills;
   excalidraw-diagram-skill = inputs.excalidraw-diagram-skill;
   # The upstream skill renders diagrams to PNG (for visual self-validation) via a
   # `uv sync` + `playwright install chromium` flow that needs network access and a
@@ -808,6 +808,11 @@ in
 
       # skillsDir = claude-skills;
       skills = {
+        domain-modeling = "${matt-pocock-skills}/skills/engineering/domain-modeling";
+        grill-me = "${matt-pocock-skills}/skills/productivity/grill-me";
+        grilling = "${matt-pocock-skills}/skills/productivity/grilling";
+        research = "${matt-pocock-skills}/skills/engineering/research";
+
         acli = ./ai/skills/acli;
         actual-cli = ./ai/skills/actual-cli;
         agent-browser = "${agent-browser}/share/agent-browser/skills/agent-browser";
@@ -817,7 +822,6 @@ in
         brainstorming = ./ai/skills/brainstorming;
         elixir = ./ai/skills/elixir;
         excalidraw-diagram = "${excalidraw-diagram-skill-wrapped}";
-        grill-me = "${grill-me-skill}/skills/productivity/grill-me";
         herdr = "${herdr-skill}";
         humanizer = "${humanizer}";
         kami = "${mkKamiSkill config.jeff.kamiSkillBrand}";
@@ -828,8 +832,8 @@ in
         voice-dna = ./ai/skills/voice-dna;
         voice-dna-creator = ./ai/skills/voice-dna-creator;
         worktrunk = "${worktrunkPluginRoot}/skills/worktrunk";
-        wt-switch-create = "${worktrunkPluginRoot}/skills/wt-switch-create";
         writing-clearly-and-concisely = "${the-elements-of-style}/skills/writing-clearly-and-concisely";
+        wt-switch-create = "${worktrunkPluginRoot}/skills/wt-switch-create";
       }
       // builtins.listToAttrs (
         map

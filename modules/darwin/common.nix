@@ -101,6 +101,7 @@ in
       "discord"
       "ghostty"
       "leader-key"
+      "linearmouse"
       "localsend"
       "loopback"
       "obsidian"
