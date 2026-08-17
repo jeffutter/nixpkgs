@@ -379,11 +379,6 @@ in
     home.file.".pi/agent/extensions/moshi-hooks.ts".source =
       "${moshi-hook.passthru.agentConfigs}/pi-extension.ts";
 
-    home.file.".pi/agent/extensions/pi-continue.json".text = builtins.toJSON {
-      reasoning = false;
-      summarizerModel = "litellm-home/instruct";
-    };
-
     # pi-continue (and other extensions) declare @earendil-works/pi-coding-agent
     # as a peerDependency, resolved at runtime via `import.meta.resolve` followed
     # by a direct file read of dist/core/compaction/*.js relative to that resolved
@@ -421,7 +416,7 @@ in
         "npm:@quintinshaw/pi-dynamic-workflows"
         "npm:@samfp/pi-memory"
         "npm:pi-bar"
-        "npm:pi-continue"
+        "npm:pi-context"
         "npm:pi-intercom"
         "npm:pi-lens"
         "npm:pi-mcp-adapter"
