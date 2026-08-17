@@ -42,6 +42,7 @@
       ".elixir_ls"
       ".envrc"
       ".expert"
+      ".pi/continue/"
       ".vscode"
       "DS_Store"
       "Thumbs.db"
