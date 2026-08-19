@@ -516,6 +516,7 @@ in
         sandbox = {
           excludedCommands = [
             "acli *"
+            "backlog *"
             "nix build *"
             "nix eval *"
             "rtk cargo *"
@@ -523,6 +524,12 @@ in
             "rtk git *"
             "herdr *"
           ];
+          filesystem = {
+            allowWrite = [
+              "/var/folders/*/*/T/**"
+              "/private/var/folders/*/*/T/**"
+            ];
+          };
           network = {
             allowedDomains = [
               "localhost"
