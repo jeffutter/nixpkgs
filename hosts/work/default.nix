@@ -59,6 +59,12 @@ in
     home = "/Users/Jeffery.Utter";
   };
 
+  # Scope home.jeffutter.com DNS lookups to the home DNS server so the
+  # GlobalProtect VPN's pushed resolver doesn't shadow local *.home.jeffutter.com records.
+  environment.etc."resolver/home.jeffutter.com".text = ''
+    nameserver 192.168.10.7
+  '';
+
   system.primaryUser = "jeffery.utter";
   nix.settings.trusted-users = [ "jeffery.utter" ];
 
