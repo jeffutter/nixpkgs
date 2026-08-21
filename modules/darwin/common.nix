@@ -107,6 +107,7 @@ in
       "obsidian"
       "postico"
       "raycast"
+      "scoot"
       "screenflow"
       "soundsource"
       "stats"
