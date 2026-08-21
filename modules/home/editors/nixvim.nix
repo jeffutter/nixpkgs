@@ -108,7 +108,6 @@
       blink-cmp-spell.enable = true;
       blink-emoji.enable = true;
       blink-ripgrep.enable = true;
-      claudecode.enable = true;
       comment.enable = true;
       cursorline.enable = true;
       fidget.enable = true;
