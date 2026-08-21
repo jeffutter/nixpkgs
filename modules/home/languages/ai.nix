@@ -517,17 +517,19 @@ in
           excludedCommands = [
             "acli *"
             "backlog *"
+            "herdr *"
+            "mkdir *"
             "nix build *"
             "nix eval *"
             "rtk cargo *"
             "rtk gh *"
             "rtk git *"
-            "herdr *"
           ];
           filesystem = {
             allowWrite = [
-              "/var/folders/*/*/T/**"
               "/private/var/folders/*/*/T/**"
+              "/var/folders/*/*/T/**"
+              "~/obsidian/**"
             ];
           };
           network = {
@@ -545,6 +547,7 @@ in
           defaultMode = "auto";
           additionalDirectories = [
             "~/.herdr/worktrees"
+            "~/obsidian"
           ];
           allow = [
             "Bash(acli confluence *)"
