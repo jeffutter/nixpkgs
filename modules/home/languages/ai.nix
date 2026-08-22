@@ -272,6 +272,12 @@ let
   # Helper function to read markdown files from the ai directory
   readAiDoc = file: builtins.readFile (./ai + "/${file}");
 
+  # The global context file every agent harness gets, assembled per harness:
+  # a shared core (design bias, working preferences) behind an environment
+  # preamble naming that harness's own nix-managed paths. Claude Code reads it
+  # as ~/.claude/CLAUDE.md, pi as ~/.pi/agent/AGENTS.md.
+  mkAgentContext = env: readAiDoc "context/${env}" + "\n" + readAiDoc "context/core.md";
+
   # Claude Code hooks `moshi-hook install` would normally write into
   # ~/.claude/settings.json itself. The event/matcher/async shape is read back
   # from the derivation's passthru.agentConfigs (see pkgs/moshi-hook) so it
@@ -393,6 +399,8 @@ in
     # path, since that output no longer ships this tree at all -- see
     # piCodingAgentDist's comment above.
     home.file.".pi/agent/node_modules/@earendil-works/pi-coding-agent".source = piCodingAgentDist;
+
+    home.file.".pi/agent/AGENTS.md".text = mkAgentContext "env-pi.md";
 
     home.file.".pi/agent/settings.json".text = builtins.toJSON {
       defaultProvider = "litellm-home";
@@ -756,7 +764,7 @@ in
         };
       };
 
-      context = readAiDoc "context.md";
+      context = mkAgentContext "env-claude.md";
 
       agents = {
       };
@@ -832,6 +840,7 @@ in
         kami = "${mkKamiSkill config.jeff.kamiSkillBrand}";
         pi-authoring = "${pi-authoring-skill}";
         review-pi-work = ./ai/skills/review-pi-work;
+        software-design = ./ai/skills/software-design;
         stop-slop = "${stop-slop}";
         todoist-cli = "${todoist-cli-skill}";
         voice-dna = ./ai/skills/voice-dna;
