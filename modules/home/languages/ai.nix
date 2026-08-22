@@ -458,41 +458,73 @@ in
             {
               id = "chat";
               reasoning = true;
+              input = [
+                "text"
+                "image"
+              ];
               contextWindow = 131072;
             }
             {
               id = "chat-fast";
               reasoning = false;
+              input = [
+                "text"
+                "image"
+              ];
               contextWindow = 131072;
             }
             {
               id = "coding";
               reasoning = true;
+              input = [
+                "text"
+                "image"
+              ];
               contextWindow = 131072;
             }
             {
               id = "instruct";
               reasoning = false;
+              input = [
+                "text"
+                "image"
+              ];
               contextWindow = 131072;
             }
             {
               id = "instruct-reasoning";
               reasoning = true;
+              input = [
+                "text"
+                "image"
+              ];
               contextWindow = 131072;
             }
             {
               id = "orchestrator";
               reasoning = true;
+              input = [
+                "text"
+                "image"
+              ];
               contextWindow = 131072;
             }
             {
               id = "planning";
               reasoning = true;
+              input = [
+                "text"
+                "image"
+              ];
               contextWindow = 131072;
             }
             {
               id = "research";
               reasoning = true;
+              input = [
+                "text"
+                "image"
+              ];
               contextWindow = 131072;
             }
           ];
