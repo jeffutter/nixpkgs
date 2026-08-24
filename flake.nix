@@ -21,9 +21,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # Does not follow the top-level nixpkgs: expert's flake.nix pins a
+    # specific nixpkgs revision and relies on APIs (e.g. beam*Packages.extend)
+    # that get removed/renamed upstream faster than expert's flake is updated.
     expert = {
       url = "github:elixir-lang/expert";
-      inputs.nixpkgs.follows = "nixpkgs";
     };
 
     # zenbook-specific flakes
