@@ -73,6 +73,17 @@ const PI_WEB_ACCESS_EXTENSION = join(
   ".pi/agent/npm/node_modules/pi-web-access/index.ts",
 );
 
+/**
+ * unblocked-todo.sh lists backlog.md tasks in a given status whose dependencies are all
+ * Done. It's deployed by ai.nix alongside this extension's own index.ts (not inside each
+ * project's own backlog/ directory, since ralph loads globally across projects) and cds
+ * into the target project's backlog/ itself when run.
+ */
+const UNBLOCKED_TODO_SCRIPT = join(
+  homedir(),
+  ".pi/agent/extensions/ralph/unblocked-todo.sh",
+);
+
 const DEFAULT_ITERATIONS = 16;
 const DEFAULT_REVIEW_EVERY = 3;
 
@@ -317,7 +328,7 @@ async function listUnblockedByStatus(
   cwd: string,
   status: string,
 ): Promise<Ticket[]> {
-  const { stdout } = await execCapture(pi, "./backlog/unblocked-todo.sh", [status], {
+  const { stdout } = await execCapture(pi, UNBLOCKED_TODO_SCRIPT, [status], {
     cwd,
     timeout: 30_000,
   });

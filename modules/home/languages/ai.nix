@@ -394,6 +394,16 @@ in
     home.file.".pi/agent/extensions/ralph/index.ts".source =
       ./ai/pi-extensions/ralph/index.ts;
 
+    # unblocked-todo.sh: finds backlog.md tasks whose dependencies are all Done, used by
+    # ralph's choose/promote steps (see UNBLOCKED_TODO_SCRIPT in index.ts). Deployed next to
+    # the extension rather than living inside each project's own backlog/ directory, since
+    # ralph now loads globally; the script cds into the target project's backlog/ itself
+    # rather than locating it via its own path.
+    home.file.".pi/agent/extensions/ralph/unblocked-todo.sh" = {
+      source = ./ai/pi-extensions/ralph/unblocked-todo.sh;
+      executable = true;
+    };
+
     # pi-continue (and other extensions) declare @earendil-works/pi-coding-agent
     # as a peerDependency, resolved at runtime via `import.meta.resolve` followed
     # by a direct file read of dist/core/compaction/*.js relative to that resolved
