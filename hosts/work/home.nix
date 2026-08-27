@@ -10,6 +10,8 @@ let
   ];
   thaw = pkgs.callPackage ../../pkgs/thaw { };
   screenpipe = pkgs.callPackage ../../pkgs/screenpipe { src = inputs.screenpipe-src; };
+  graphql-document-utils =
+    inputs.graphql-document-utils.packages.${pkgs.stdenv.hostPlatform.system}.default;
   pup = pkgs.callPackage ../../pkgs/datadog-pup { };
 
   # pup captures its embedded Datadog skills (skills/<name>/SKILL.md) and domain
@@ -51,6 +53,7 @@ in
     acli
     # argocd
     colima
+    graphql-document-utils
     grpcurl
     llvmPackages.bintools
     my_google-cloud-sdk

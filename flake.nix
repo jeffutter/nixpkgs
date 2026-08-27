@@ -38,6 +38,10 @@
       url = "github:jeffutter/claude-tail/v0.2.4";
     };
 
+    graphql-document-utils = {
+      url = "github:jeffutter/graphql-document-utils/v0.1.1";
+    };
+
     herdr = {
       url = "github:ogulcancelik/herdr/v0.8.2";
     };
