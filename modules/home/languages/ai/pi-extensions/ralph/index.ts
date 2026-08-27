@@ -28,8 +28,13 @@
  * systemic in extension load/teardown rather than one buggy package, with
  * risk compounding across however many are loaded. None of our worker steps
  * need any of them except the research step's web search, which explicitly
- * re-enables just `pi-web-access` via `-e` (`--no-extensions` only disables
- * auto-discovery; explicit `-e` paths still load). Skills are unaffected —
+ * re-enables just `pi-web-access` via `-e`, and the planning step's parallel
+ * research subagents, which re-enable just `@gotgenes/pi-subagents` the same
+ * way (`--no-extensions` only disables auto-discovery; explicit `-e` paths
+ * still load). Without the subagent tool, `/backlog-planner`'s codebase
+ * research runs inline and serially, which blows through PLAN_TIMEOUT_MS on
+ * feature-sized tickets (confirmed live: two consecutive 20-min timeouts on
+ * TASK-051, both still mid-research at the kill). Skills are unaffected —
  * that's a separate `--no-skills` flag we don't touch.
  */
 
@@ -71,6 +76,16 @@ function stateDirFor(cwd: string): string {
 const PI_WEB_ACCESS_EXTENSION = join(
   homedir(),
   ".pi/agent/npm/node_modules/pi-web-access/index.ts",
+);
+
+/** Same path assumption for `@gotgenes/pi-subagents`: the planning step loads
+ * its extension entry explicitly so `/backlog-planner` can spawn parallel
+ * Explore subagents despite `--no-extensions` (see file header). Verified
+ * headless: `pi -p --no-session --no-extensions -e <this file>` spawns an
+ * Explore subagent that completes in ~50s. */
+const PI_SUBAGENTS_EXTENSION = join(
+  homedir(),
+  ".pi/agent/npm/node_modules/@gotgenes/pi-subagents/src/index.ts",
 );
 
 /**
@@ -371,6 +386,23 @@ async function promoteUnblockedBlockedTickets(
     if (ok) promoted.push(ticket);
   }
   return promoted;
+}
+
+/** True if `ticketId` currently sits in `status` — a deterministic read of the
+ * backlog, independent of what a worker subprocess claims or how it exited. */
+async function isTicketInStatus(
+  pi: ExtensionAPI,
+  cwd: string,
+  ticketId: string,
+  status: string,
+): Promise<boolean> {
+  const { stdout } = await execCapture(
+    pi,
+    "backlog",
+    ["task", "list", "-s", status, "--plain"],
+    { cwd, timeout: 15_000 },
+  );
+  return parsePlainTaskList(stdout).some((t) => t.id === ticketId);
 }
 
 /** All known ticket IDs, across every status. Used to detect new tickets filed by a review
@@ -707,14 +739,26 @@ async function doPlan(
   const plan = await runHeadless(pi, cwd, planPrompt, {
     timeout: PLAN_TIMEOUT_MS,
     model: "planning",
+    extensions: [PI_SUBAGENTS_EXTENSION],
   });
+
+  // The known post-response hang (see file header) means a run whose work fully landed can
+  // still be killed at the deadline with result.ok false. The ticket's own status is
+  // unambiguous external state — the same "don't trust the subprocess claim" check doExecute
+  // does against HEAD — so a killed run that left the ticket Dev Ready counts as success.
+  // A legitimate early exit for unplanned children leaves the status as-is and stays a failure.
+  const verified = !plan.ok && (await isTicketInStatus(pi, cwd, ticket.id, "Dev Ready"));
+  const ok = plan.ok || verified;
   await recordHistory(cwd, state, {
     kind: "plan",
     ticket: ticket.id,
-    outcome: plan.ok ? "ok" : "failed",
-    summary: summarize(plan),
+    outcome: ok ? "ok" : "failed",
+    summary:
+      (verified
+        ? `verified Dev Ready on disk despite subprocess ${plan.killed ? "timeout" : "failure"} — `
+        : "") + summarize(plan),
   });
-  return plan.ok;
+  return ok;
 }
 
 async function doChoose(
