@@ -90,6 +90,7 @@ in
     ))
     lftp
     mprocs
+    moreutils
     mosh
     ncdu
     nixfmt

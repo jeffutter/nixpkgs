@@ -30,6 +30,14 @@ let
       hostName = "192.168.10.12";
       user = "jeffutter";
     };
+    spark = {
+      hostName = "192.168.10.14";
+      user = "jeffutter";
+    };
+    mbp16 = {
+      hostName = "192.168.10.16";
+      user = "jeffutter";
+    };
     llm = {
       hostName = "192.168.10.17";
       user = "root";
