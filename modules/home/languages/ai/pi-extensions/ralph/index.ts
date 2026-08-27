@@ -573,6 +573,11 @@ const ORCHESTRATOR_ROLE_GUIDANCE = dedent`
   - Your job is to orchestrate and report: track the loop with the ralph_status tool, relay
     worker progress to the user, and surface failures or stalls (loop history under
     ~/.pi/agent/ralph/<project>/history.jsonl; worker transcripts under ~/.pi/agent/sessions/).
+  - Intercom pings are one-way status updates, not conversations — a worker sends them via
+    \`send\`, never \`ask\`, so nothing is waiting on a reply. Don't intercom a worker back for a
+    routine progress ping; just relay it to the user. Only message a worker back if it's
+    actually going off track (e.g. duplicating another worker's ticket, working outside its
+    assigned scope) and needs to be redirected.
   - Explicit user instructions always override this framing: if the user directly asks you to
     do something, follow them even if it touches a ralph-managed ticket.
 `;
