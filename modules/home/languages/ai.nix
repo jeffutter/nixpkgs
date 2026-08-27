@@ -385,6 +385,15 @@ in
     home.file.".pi/agent/extensions/moshi-hooks.ts".source =
       "${moshi-hook.passthru.agentConfigs}/pi-extension.ts";
 
+    # Ralph: autonomous backlog-churning loop (`/ralph`). Originally authored inside
+    # gql-fiddle's own .pi/extensions/ralph, promoted here so it loads for every
+    # project instead of just that one -- source lives at ./ai/pi-extensions/ralph
+    # and is edited in place in this repo going forward. Its session state
+    # (state.json, history.jsonl) is written to ~/.pi/agent/ralph/<project>, not
+    # anywhere under this store path, so this symlink being read-only is fine.
+    home.file.".pi/agent/extensions/ralph/index.ts".source =
+      ./ai/pi-extensions/ralph/index.ts;
+
     # pi-continue (and other extensions) declare @earendil-works/pi-coding-agent
     # as a peerDependency, resolved at runtime via `import.meta.resolve` followed
     # by a direct file read of dist/core/compaction/*.js relative to that resolved
