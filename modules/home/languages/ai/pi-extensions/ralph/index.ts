@@ -26,17 +26,22 @@
  * and every one of this user's ~15 globally-loaded extensions reproduces it
  * in isolation (roughly 1-in-2 to 1-in-3 runs each) — pointing at something
  * systemic in extension load/teardown rather than one buggy package, with
- * risk compounding across however many are loaded. Two exceptions re-enable a
+ * risk compounding across however many are loaded. A few exceptions re-enable a
  * specific extension via `-e` (`--no-extensions` only disables auto-discovery;
  * explicit `-e` paths still load): the research step's web search needs
- * `pi-web-access`, and the execute/research/plan/review steps load
- * `pi-intercom` so they can ping the orchestrating session with progress
- * updates (see `intercomStatusGuidance`). Both knowingly pay the hang-risk tax
- * above — accepted because the existing `execCapture` watchdog already turns
- * a hung subprocess into "runs its full timeout instead of returning
- * promptly," not a stuck loop, which was judged an acceptable price for live
- * progress visibility. Skills are unaffected — that's a separate `--no-skills`
- * flag we don't touch.
+ * `pi-web-access`; the execute/research/plan/review steps load `pi-intercom`
+ * so they can ping the orchestrating session with progress updates (see
+ * `intercomStatusGuidance`); and the execute and plan steps load
+ * `@gotgenes/pi-subagents` so screenshot verification and `/backlog-planner`'s
+ * codebase research can be delegated to nested subagents instead of running
+ * inline — without it, planning's research runs serially and blows through
+ * PLAN_TIMEOUT_MS on feature-sized tickets (confirmed live: two consecutive
+ * 20-min timeouts on TASK-051, both still mid-research at the kill). All of
+ * these knowingly pay the hang-risk tax above — accepted because the existing
+ * `execCapture` watchdog already turns a hung subprocess into "runs its full
+ * timeout instead of returning promptly," not a stuck loop, which was judged
+ * an acceptable price for live progress visibility and delegated work.
+ * Skills are unaffected — that's a separate `--no-skills` flag we don't touch.
  *
  * The orchestrating session gets the mirror-image framing: while a loop is
  * running, a `before_agent_start` handler appends `ORCHESTRATOR_ROLE_GUIDANCE`
@@ -114,7 +119,10 @@ const PI_INTERCOM_EXTENSION = join(
  * --limit-mm-per-prompt image=4 hard cap (HTTP 400). Verified end-to-end 2026-08-18:
  * a --no-extensions parent with this -e flag spawns in-process children that load
  * the parent's extensions (minus the recursion-guarded dispatch tools) and can read
- * images fine. */
+ * images fine. Same mechanism also lets the planning step spawn parallel Explore
+ * subagents for `/backlog-planner`'s codebase research (verified headless: `pi -p
+ * --no-session --no-extensions -e <this file>` spawns an Explore subagent that
+ * completes in ~50s). */
 const PI_SUBAGENTS_EXTENSION = join(
   homedir(),
   ".pi/agent/npm/node_modules/@gotgenes/pi-subagents/src/index.ts",
@@ -432,6 +440,23 @@ async function promoteUnblockedBlockedTickets(
     if (ok) promoted.push(ticket);
   }
   return promoted;
+}
+
+/** True if `ticketId` currently sits in `status` — a deterministic read of the
+ * backlog, independent of what a worker subprocess claims or how it exited. */
+async function isTicketInStatus(
+  pi: ExtensionAPI,
+  cwd: string,
+  ticketId: string,
+  status: string,
+): Promise<boolean> {
+  const { stdout } = await execCapture(
+    pi,
+    "backlog",
+    ["task", "list", "-s", status, "--plain"],
+    { cwd, timeout: 15_000 },
+  );
+  return parsePlainTaskList(stdout).some((t) => t.id === ticketId);
 }
 
 /** All known ticket IDs, across every status. Used to detect new tickets filed by a review
@@ -893,16 +918,27 @@ async function doPlan(
   const plan = await runHeadless(pi, cwd, planPrompt, {
     timeout: PLAN_TIMEOUT_MS,
     model: "planning",
-    extensions: [PI_INTERCOM_EXTENSION],
+    extensions: [PI_INTERCOM_EXTENSION, PI_SUBAGENTS_EXTENSION],
   });
+
+  // The known post-response hang (see file header) means a run whose work fully landed can
+  // still be killed at the deadline with result.ok false. The ticket's own status is
+  // unambiguous external state — the same "don't trust the subprocess claim" check doExecute
+  // does against HEAD — so a killed run that left the ticket Dev Ready counts as success.
+  // A legitimate early exit for unplanned children leaves the status as-is and stays a failure.
+  const verified = !plan.ok && (await isTicketInStatus(pi, cwd, ticket.id, "Dev Ready"));
+  const ok = plan.ok || verified;
   await recordHistory(cwd, state, {
     kind: "plan",
     ticket: ticket.id,
-    outcome: plan.ok ? "ok" : "failed",
-    summary: summarize(plan),
+    outcome: ok ? "ok" : "failed",
+    summary:
+      (verified
+        ? `verified Dev Ready on disk despite subprocess ${plan.killed ? "timeout" : "failure"} — `
+        : "") + summarize(plan),
   });
-  if (plan.ok) state.planCache = undefined;
-  return plan.ok;
+  if (ok) state.planCache = undefined;
+  return ok;
 }
 
 async function doChoose(
