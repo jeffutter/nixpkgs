@@ -1,0 +1,24 @@
+{
+  "permission": {
+    "*": "allow",
+    "path": {
+      "*": "allow",
+      "*.env": "deny",
+      "*.env.*": "deny",
+      "*.env.example": "allow"
+    },
+    "bash": {
+      "rm -rf *": "deny",
+      "sudo *": "ask"
+    },
+    "external_directory": {
+      "*": "ask",
+      "/tmp/*": "allow",
+      "~/.pi/*": "allow",
+      "~/.cache/*": "allow",
+      "~/.cargo/*": "allow",
+      "/nix/store/*": "allow",
+      "/nix/*": "allow"
+    }
+  }
+}

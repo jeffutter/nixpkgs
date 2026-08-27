@@ -404,6 +404,12 @@ in
       executable = true;
     };
 
+    # pi-permission-system's global config (its permission rules) -- edited in
+    # place at ./ai/pi-extensions/pi-permission-system/config.json going
+    # forward rather than imperatively at ~/.pi/agent/extensions/pi-permission-system/config.json.
+    home.file.".pi/agent/extensions/pi-permission-system/config.json".source =
+      ./ai/pi-extensions/pi-permission-system/config.json;
+
     # pi-continue (and other extensions) declare @earendil-works/pi-coding-agent
     # as a peerDependency, resolved at runtime via `import.meta.resolve` followed
     # by a direct file read of dist/core/compaction/*.js relative to that resolved
