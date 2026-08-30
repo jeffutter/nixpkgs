@@ -682,17 +682,37 @@ function tailSummary(output: string, maxLen = 240): string {
  * guidance leaves the tool available but unused, and the guidance without the extension gives
  * the model a tool call that doesn't exist.
  */
-function intercomStatusGuidance(mainSessionId: string): string {
+/**
+ * Standing instructions for a headless worker on how to keep the orchestrator informed via
+ * intercom pings. The second argument is the step's own timeout: the worker-heartbeat extension
+ * resets that deadline on every ping the worker sends, so a live-but-slow step survives only as
+ * long as it keeps pinging. The guidance therefore makes pre-launch pings load-bearing — a worker
+ * that dives into a long build/test/e2e without pinging first goes silent past the deadline and
+ * gets killed mid-work (confirmed live: TASK-046.10's two execute attempts, both stopped ~40m
+ * after their last ping). Passing the real timeout keeps the "stay quiet less than N minutes"
+ * rule honest and self-updating when a phase's budget changes.
+ */
+function intercomStatusGuidance(mainSessionId: string, timeoutMs: number): string {
+  const mins = Math.round(timeoutMs / 60_000);
   return dedent`
-    Progress updates: every few minutes, or after finishing each meaningfully distinct sub-step
-    (not more often than that), send a one-line status ping back to the orchestrating session via
-    the intercom tool. Use \`send\`, never \`ask\` — nobody is waiting on a reply:
+    Progress updates: send a one-line status ping back to the orchestrating session via the
+    intercom tool after each meaningfully distinct sub-step, and — most importantly — right before
+    you launch any long-running operation. You can't ping while a command is running, and if you
+    stay silent for longer than about ${mins} minutes the orchestrator will assume you've hung and
+    stop your step, discarding the work in flight. So ping first, then run it:
+      - a full workspace build or a large compile,
+      - the whole test suite (or a big chunk of it),
+      - a spawned-binary / end-to-end check,
+      - a large multi-file edit or refactor.
+    When such an operation returns, ping again before starting the next long one. Use \`send\`,
+    never \`ask\` — nobody is waiting on a reply:
     intercom({ action: "send", to: "${mainSessionId}", message: "<one sentence: what you just
-    finished or are doing now>" })
-    These pings are fire-and-forget: the orchestrator does not acknowledge them (delivery is
-    guaranteed by the intercom broker), so never wait for an ack or re-send because none arrived.
-    Skip this entirely if the intercom tool isn't available — it's a courtesy update, not part of
-    the task itself.
+    finished or are about to run>" })
+    These pings are your liveness signal, not optional courtesy — they're what keeps a slow but
+    healthy step from being killed. They are fire-and-forget: the orchestrator does not
+    acknowledge them (delivery is guaranteed by the intercom broker), so never wait for an ack or
+    re-send because none arrived. Don't spam between quick steps, but never let a long phase go
+    un-pinged. Skip this entirely only if the intercom tool isn't available.
   `;
 }
 
@@ -1063,7 +1083,7 @@ async function doExecute(
 
       ${screenshotGuidance}
 
-      ${intercomStatusGuidance(state.mainSessionId)}
+      ${intercomStatusGuidance(state.mainSessionId, EXECUTE_TIMEOUT_MS)}
     `,
     {
       model: "coding",
@@ -1214,7 +1234,7 @@ async function doPlan(
       relevant prior art, library documentation, or best practices that would help write a thorough
       implementation plan. Return a concise research summary (bullet points), not a plan.
 
-      ${intercomStatusGuidance(state.mainSessionId)}
+      ${intercomStatusGuidance(state.mainSessionId, RESEARCH_TIMEOUT_MS)}
     `;
     const research = await runHeadless(pi, cwd, researchPrompt, {
       timeout: RESEARCH_TIMEOUT_MS,
@@ -1260,7 +1280,7 @@ async function doPlan(
 
     ${subagentThinkingGuidance("medium")}
 
-    ${intercomStatusGuidance(state.mainSessionId)}
+    ${intercomStatusGuidance(state.mainSessionId, PLAN_TIMEOUT_MS)}
   `;
   const plan = await runHeadless(pi, cwd, planPrompt, {
     timeout: PLAN_TIMEOUT_MS,
@@ -1406,7 +1426,7 @@ async function doReview(
     line containing exactly \`REVIEW_PANE_ID: <new-pane-id>\` (the id from step 1) so the caller can verify
     the pane is gone.
 
-    ${intercomStatusGuidance(state.mainSessionId)}
+    ${intercomStatusGuidance(state.mainSessionId, REVIEW_TIMEOUT_MS)}
   `;
   const result = await runHeadless(pi, cwd, prompt, {
     timeout: REVIEW_TIMEOUT_MS,
