@@ -188,6 +188,14 @@ in
   # Remote Login (SSH), Apple's built-in sshd
   services.openssh.enable = true;
 
+  # Keep this box awake while on AC -- it's accessed remotely via mosh/herdr,
+  # and idling into Power Nap breaks new outbound TCP connections mid-session
+  # (even though the mosh UDP session survives).
+  system.activationScripts.postActivation.text = ''
+    pmset -c disablesleep 1
+    pmset -c powernap 0
+  '';
+
   # System-level packages
   environment.systemPackages = with pkgs; [
     vim
