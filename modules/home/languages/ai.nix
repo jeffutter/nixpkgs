@@ -391,8 +391,7 @@ in
     # and is edited in place in this repo going forward. Its session state
     # (state.json, history.jsonl) is written to ~/.pi/agent/ralph/<project>, not
     # anywhere under this store path, so this symlink being read-only is fine.
-    home.file.".pi/agent/extensions/ralph/index.ts".source =
-      ./ai/pi-extensions/ralph/index.ts;
+    home.file.".pi/agent/extensions/ralph/index.ts".source = ./ai/pi-extensions/ralph/index.ts;
 
     # unblocked-todo.sh: finds backlog.md tasks whose dependencies are all Done, used by
     # ralph's choose/promote steps (see UNBLOCKED_TODO_SCRIPT in index.ts). Deployed next to
@@ -403,6 +402,27 @@ in
       source = ./ai/pi-extensions/ralph/unblocked-todo.sh;
       executable = true;
     };
+
+    # clear-alias: aliases /clear to /new. Same "promoted to load globally"
+    # situation as ralph above -- source lives at ./ai/pi-extensions/clear-alias.ts
+    # and is edited in place in this repo going forward.
+    home.file.".pi/agent/extensions/clear-alias.ts".source = ./ai/pi-extensions/clear-alias.ts;
+
+    # command-history: cross-session command history for pi's editor (up/down
+    # arrow recall across sessions), mirroring Claude Code's behavior. Same
+    # "promoted to load globally" situation as ralph above -- source lives at
+    # ./ai/pi-extensions/command-history and is edited in place in this repo
+    # going forward. Its state (command-history.json) is written to
+    # ~/.pi/agent/, not anywhere under this store path, so this symlink being
+    # read-only is fine.
+    home.file.".pi/agent/extensions/command-history/index.ts".source =
+      ./ai/pi-extensions/command-history/index.ts;
+    home.file.".pi/agent/extensions/command-history/history-manager.ts".source =
+      ./ai/pi-extensions/command-history/history-manager.ts;
+    home.file.".pi/agent/extensions/command-history/history-editor.ts".source =
+      ./ai/pi-extensions/command-history/history-editor.ts;
+    home.file.".pi/agent/extensions/command-history/README.md".source =
+      ./ai/pi-extensions/command-history/README.md;
 
     # pi-permission-system's global config (its permission rules) -- edited in
     # place at ./ai/pi-extensions/pi-permission-system/config.json going
