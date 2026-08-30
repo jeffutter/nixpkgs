@@ -391,8 +391,14 @@ in
     # and is edited in place in this repo going forward. Its session state
     # (state.json, history.jsonl) is written to ~/.pi/agent/ralph/<project>, not
     # anywhere under this store path, so this symlink being read-only is fine.
-    home.file.".pi/agent/extensions/ralph/index.ts".source =
-      ./ai/pi-extensions/ralph/index.ts;
+    home.file.".pi/agent/extensions/ralph/index.ts".source = ./ai/pi-extensions/ralph/index.ts;
+
+    # worker-heartbeat.ts: ralph's worker-side liveness companion (see its own header). Loaded
+    # via -e into ralph's long-running headless steps; each intercom ping the worker sends
+    # touches a nonce-scoped heartbeat file that the orchestrator polls to reset the step's
+    # deadline, so slow-but-alive workers aren't killed by the wall-clock phase timeout.
+    home.file.".pi/agent/extensions/ralph/worker-heartbeat.ts".source =
+      ./ai/pi-extensions/ralph/worker-heartbeat.ts;
 
     # unblocked-todo.sh: finds backlog.md tasks whose dependencies are all Done, used by
     # ralph's choose/promote steps (see UNBLOCKED_TODO_SCRIPT in index.ts). Deployed next to

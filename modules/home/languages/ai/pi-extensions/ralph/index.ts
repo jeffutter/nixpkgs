@@ -36,7 +36,11 @@
  * codebase research can be delegated to nested subagents instead of running
  * inline — without it, planning's research runs serially and blows through
  * PLAN_TIMEOUT_MS on feature-sized tickets (confirmed live: two consecutive
- * 20-min timeouts on TASK-051, both still mid-research at the kill). All of
+ * 20-min timeouts on TASK-051, both still mid-research at the kill;
+ * re-confirmed 2026-08-28 with the subagent parallelism in place — TASK-050's
+ * Explore phase alone consumed the full 45-min budget on every attempt, with
+ * every worker transcript verified alive up to the kill moment, so
+ * PLAN_TIMEOUT_MS was doubled to 90 min). All of
  * these knowingly pay the hang-risk tax above — accepted because the existing
  * `execCapture` watchdog already turns a hung subprocess into "runs its full
  * timeout instead of returning promptly," not a stuck loop, which was judged
@@ -49,10 +53,28 @@
  * (which arrive as ordinary injected user messages) are read as status
  * reports to relay — not task assignments to execute in parallel with the
  * worker that owns the ticket.
+ *
+ * Pings never trigger an orchestrator turn: pi-intercom's config
+ * (~/.pi/agent/intercom/config.json) sets `inboundTrigger: "replies"`, so a
+ * plain `send` ping lands in the transcript inertly (the user reads it live)
+ * and only a genuine `ask` reply triggers a model response. That kills both
+ * failure modes confirmed live — wasted orchestrator turns on routine pings,
+ * and the orchestrator intercom-acknowledging a worker, which injects a
+ * message into the worker's own context mid-task and interrupts it. Delivery
+ * is guaranteed by the broker, so no acknowledgement exists or is expected.
+ * The setting is loaded once at extension init, so sessions started before
+ * it was written keep triggering turns on pings until restarted.
  */
 
-import { existsSync } from "node:fs";
-import { appendFile, mkdir, readFile, writeFile } from "node:fs/promises";
+import { randomUUID } from "node:crypto";
+import { existsSync, statSync } from "node:fs";
+import {
+  appendFile,
+  mkdir,
+  readFile,
+  rm,
+  writeFile,
+} from "node:fs/promises";
 import { homedir } from "node:os";
 import { join, resolve } from "node:path";
 import { defineTool } from "@earendil-works/pi-coding-agent";
@@ -61,7 +83,13 @@ import type {
   ExtensionCommandContext,
 } from "@earendil-works/pi-coding-agent";
 import { Type } from "@earendil-works/pi-ai";
-import { Box, Key, matchesKey, Text, truncateToWidth } from "@earendil-works/pi-tui";
+import {
+  Box,
+  Key,
+  matchesKey,
+  Text,
+  truncateToWidth,
+} from "@earendil-works/pi-tui";
 
 // --- Types & constants ---------------------------------------------------
 
@@ -110,6 +138,26 @@ const PI_INTERCOM_EXTENSION = join(
   ".pi/agent/npm/node_modules/pi-intercom/index.ts",
 );
 
+/** The worker-side heartbeat companion (deployed next to this file by ai.nix).
+ * Loaded via `-e` into the long-running headless steps so each worker's intercom
+ * progress pings touch a nonce-scoped heartbeat file the orchestrator polls — see
+ * `beginHeartbeatStep` and the `heartbeat` option on `execCapture`. */
+const RALPH_WORKER_HEARTBEAT_EXTENSION = join(
+  homedir(),
+  ".pi/agent/extensions/ralph/worker-heartbeat.ts",
+);
+
+/** How often a heartbeat-enabled step re-checks its worker's heartbeat file.
+ * Pings are fire-and-forget liveness evidence, not a protocol — a few seconds of
+ * polling slack is irrelevant against a minute-scale ping cadence. */
+const HEARTBEAT_POLL_INTERVAL_MS = 5_000;
+/** Max times one step's deadline may be reset by worker heartbeats. A live worker
+ * pings roughly every few minutes, so a healthy slow step uses only a handful of
+ * resets; the cap exists so a worker stuck in a busy loop that keeps pinging can't
+ * run forever — past it, the then-current deadline stands and the step times out
+ * exactly as if no heartbeat had ever arrived. */
+const MAX_HEARTBEAT_RESETS = 4;
+
 /** Path assumption: wherever this user's `@gotgenes/pi-subagents` package currently
  * resolves — the live `npm/` tree (npm2/npm3 are stale pre-migration backups; verified
  * 2026-08-18 via package versions and lockfile mtimes). May need updating if `pi update`
@@ -133,7 +181,7 @@ const DEFAULT_REVIEW_EVERY = 3;
 
 const TRIAGE_TIMEOUT_MS = 5 * 60_000;
 const RESEARCH_TIMEOUT_MS = 15 * 60_000;
-const PLAN_TIMEOUT_MS = 45 * 60_000;
+const PLAN_TIMEOUT_MS = 90 * 60_000;
 const EXECUTE_TIMEOUT_MS = 40 * 60_000;
 const CHOOSE_TIMEOUT_MS = 10 * 60_000;
 const REVIEW_TIMEOUT_MIN = 50;
@@ -180,6 +228,13 @@ type RalphState = {
   /** The timeout backing the current step's subprocess call, if it has one (bookkeeping
    * steps like a single-candidate `choose` don't spawn a headless call and leave this unset). */
   currentStepTimeoutMs?: number;
+  /** Absolute deadline (epoch ms) for the current step once a worker heartbeat has extended
+   * it — each reset moves the deadline to (reset moment + full phase timeout). Undefined until
+   * the first reset; the widget then counts down from here instead of from step start. */
+  currentStepDeadlineAt?: number;
+  /** How many times the current step's deadline was reset by its worker's intercom activity
+   * (see MAX_HEARTBEAT_RESETS). Reset to 0 at each step start. */
+  currentStepHeartbeatResets?: number;
   startedAt: string;
   history: RalphHistoryEntry[];
   /** Consecutive failures of the same (kind, ticket) step — see MAX_CONSECUTIVE_FAILURES. */
@@ -250,6 +305,8 @@ function createState(
     currentStep: undefined,
     currentStepStartedAt: undefined,
     currentStepTimeoutMs: undefined,
+    currentStepDeadlineAt: undefined,
+    currentStepHeartbeatResets: undefined,
     startedAt: new Date().toISOString(),
     history: [],
     failureStreak: undefined,
@@ -304,20 +361,54 @@ async function recordHistory(
  * timer so a stuck exec call can never block the loop's forward progress —
  * if the process survives both kill attempts, the orphaned promise (and
  * process) is left running and simply ignored.
+ *
+ * Heartbeat extension: for long-running headless steps (`opts.heartbeat`), the
+ * deadline is NOT fixed at start. The step's worker loads worker-heartbeat.ts,
+ * which touches `opts.heartbeat.file` whenever the worker sends an intercom
+ * progress ping; the poller below watches that file and, on change, reschedules
+ * BOTH timers to the full original timeout from now — a live, pinging worker
+ * keeps getting a fresh phase budget, while a genuinely stuck one (no pings)
+ * dies exactly as before. Resets are capped at `maxResets`. When a heartbeat is
+ * active we deliberately do NOT pass `timeout` to `pi.exec` itself: its
+ * deadline can't be extended after the fact and would fire at the original
+ * wall-clock moment, killing a legitimately extended step — our own
+ * AbortController becomes the sole kill path (it is deterministic by
+ * construction, and the watchdog race still bounds everything even if the
+ * signal fails).
  */
 const WATCHDOG_GRACE_MS = 30_000;
+
+/** Liveness watch passed by heartbeat-enabled callers — see the execCapture header. */
+type HeartbeatWatch = {
+  /** Nonce-scoped heartbeat file the step's worker touches on each intercom ping. */
+  file: string;
+  /** Max deadline resets this call will honour (see MAX_HEARTBEAT_RESETS). */
+  maxResets: number;
+  /** Called (on the orchestrator's event loop) after each honoured reset. */
+  onReset?: (resetCount: number) => void;
+};
+
+type ExecResult = {
+  ok: boolean;
+  killed: boolean;
+  stdout: string;
+  stderr: string;
+  /** How many times this call's deadline was reset by worker heartbeats (0/undefined when none). */
+  heartbeatResets?: number;
+};
 
 async function execCapture(
   pi: ExtensionAPI,
   cmd: string,
   args: string[],
-  opts: { cwd: string; timeout?: number },
-): Promise<{ ok: boolean; killed: boolean; stdout: string; stderr: string }> {
+  opts: { cwd: string; timeout?: number; heartbeat?: HeartbeatWatch },
+): Promise<ExecResult> {
   const controller = opts.timeout ? new AbortController() : undefined;
   const execPromise = pi
     .exec(cmd, args, {
       cwd: opts.cwd,
-      timeout: opts.timeout,
+      // Omit pi.exec's own timeout when a heartbeat can extend ours — see the header.
+      ...(opts.heartbeat ? {} : { timeout: opts.timeout }),
       signal: controller?.signal,
     })
     .then((result) => ({
@@ -329,29 +420,68 @@ async function execCapture(
 
   if (!opts.timeout || !controller) return execPromise;
 
-  const abortTimer = setTimeout(() => controller.abort(), opts.timeout);
-  abortTimer.unref?.();
-
-  const watchdog = new Promise<{
-    ok: boolean;
-    killed: boolean;
-    stdout: string;
-    stderr: string;
-  }>((resolve) => {
-    const timer = setTimeout(
+  let resets = 0;
+  let abortTimer: ReturnType<typeof setTimeout> | undefined;
+  let watchdogTimer: ReturnType<typeof setTimeout> | undefined;
+  let watchdogResolve: ((r: ExecResult) => void) | undefined;
+  const watchdog = new Promise<ExecResult>((resolve) => {
+    watchdogResolve = resolve;
+  });
+  const armAbort = (delayMs: number): void => {
+    clearTimeout(abortTimer);
+    abortTimer = setTimeout(() => controller!.abort(), delayMs);
+    abortTimer.unref?.();
+  };
+  const armWatchdog = (delayMs: number): void => {
+    clearTimeout(watchdogTimer);
+    watchdogTimer = setTimeout(
       () =>
-        resolve({
+        watchdogResolve!({
           ok: false,
           killed: true,
           stdout: "",
           stderr: `(watchdog: "${cmd}" exec call never returned ${opts.timeout! + WATCHDOG_GRACE_MS}ms after start — pi.exec's timeout and our own abort signal both failed to kill it; the process may still be running orphaned)`,
+          heartbeatResets: resets,
         }),
-      opts.timeout + WATCHDOG_GRACE_MS,
+      delayMs,
     );
-    timer.unref?.();
-  });
+    watchdogTimer.unref?.();
+  };
+  armAbort(opts.timeout);
+  armWatchdog(opts.timeout + WATCHDOG_GRACE_MS);
 
-  return Promise.race([execPromise, watchdog]);
+  let poller: ReturnType<typeof setInterval> | undefined;
+  if (opts.heartbeat) {
+    const hb = opts.heartbeat;
+    let lastSeenMtime: number | undefined;
+    try {
+      lastSeenMtime = statSync(hb.file).mtimeMs;
+    } catch {
+      // No heartbeat yet (normal at step start) — any appearance counts.
+    }
+    poller = setInterval(() => {
+      let mtime: number | undefined;
+      try {
+        mtime = statSync(hb.file).mtimeMs;
+      } catch {
+        return; // No heartbeat yet / file cleaned up: nothing to do.
+      }
+      if (mtime === lastSeenMtime) return;
+      lastSeenMtime = mtime;
+      if (resets >= hb.maxResets) return; // Cap reached: current deadline stands.
+      resets += 1;
+      armAbort(opts.timeout!); // Full phase budget from now — the reset semantics.
+      armWatchdog(opts.timeout! + WATCHDOG_GRACE_MS);
+      hb.onReset?.(resets);
+    }, HEARTBEAT_POLL_INTERVAL_MS);
+    poller.unref?.();
+  }
+
+  const raced = await Promise.race([execPromise, watchdog]);
+  clearTimeout(abortTimer);
+  clearTimeout(watchdogTimer);
+  if (poller) clearInterval(poller);
+  return { ...raced, heartbeatResets: resets };
 }
 
 function parsePlainTaskList(output: string): Ticket[] {
@@ -424,7 +554,11 @@ async function promoteUnblockedBlockedTickets(
   cwd: string,
   state: RalphState,
 ): Promise<Ticket[]> {
-  setCurrentStep(ctx, state, "checking Blocked tickets for satisfied dependencies");
+  setCurrentStep(
+    ctx,
+    state,
+    "checking Blocked tickets for satisfied dependencies",
+  );
   const promotable = await listUnblockedByStatus(pi, cwd, "Blocked");
   const promoted: Ticket[] = [];
   for (const ticket of promotable) {
@@ -461,11 +595,19 @@ async function isTicketInStatus(
 
 /** All known ticket IDs, across every status. Used to detect new tickets filed by a review
  * step via a before/after diff, rather than parsing the review agent's free-text summary. */
-async function listAllTicketIds(pi: ExtensionAPI, cwd: string): Promise<Set<string>> {
-  const { stdout } = await execCapture(pi, "backlog", ["task", "list", "--plain"], {
-    cwd,
-    timeout: 15_000,
-  });
+async function listAllTicketIds(
+  pi: ExtensionAPI,
+  cwd: string,
+): Promise<Set<string>> {
+  const { stdout } = await execCapture(
+    pi,
+    "backlog",
+    ["task", "list", "--plain"],
+    {
+      cwd,
+      timeout: 15_000,
+    },
+  );
   return new Set(parsePlainTaskList(stdout).map((t) => t.id));
 }
 
@@ -547,8 +689,25 @@ function intercomStatusGuidance(mainSessionId: string): string {
     the intercom tool. Use \`send\`, never \`ask\` — nobody is waiting on a reply:
     intercom({ action: "send", to: "${mainSessionId}", message: "<one sentence: what you just
     finished or are doing now>" })
+    These pings are fire-and-forget: the orchestrator does not acknowledge them (delivery is
+    guaranteed by the intercom broker), so never wait for an ack or re-send because none arrived.
     Skip this entirely if the intercom tool isn't available — it's a courtesy update, not part of
     the task itself.
+  `;
+}
+
+/**
+ * Instructs a headless /backlog-planner run to set the `subagent` tool's `thinking` parameter to
+ * "medium" on every subagent it spawns for codebase research (see PI_SUBAGENTS_EXTENSION above) —
+ * otherwise those subagents inherit the parent call's own thinking level (xhigh, for the final
+ * plan write) by default. Injected per-call from here rather than set in the backlog-planner skill
+ * itself, since that skill is also invoked directly from interactive Claude Code, where its
+ * subagents should keep Claude's own default thinking level instead of a pi-specific override.
+ */
+function subagentThinkingGuidance(level: "medium" | "xhigh"): string {
+  return dedent`
+    Subagent thinking level: for every subagent tool call you make to delegate codebase research,
+    pass thinking: "${level}" as one of the call's parameters.
   `;
 }
 
@@ -560,6 +719,19 @@ function intercomStatusGuidance(mainSessionId: string): string {
  * framing the orchestrator spontaneously started parallel research on the same ticket —
  * duplicating the worker's effort and risking conflicting backlog/code edits. Re-appended on
  * every agent start, so the framing survives context compaction.
+ *
+ * Re-confirmed live 2026-08-28 with the guidance in context: the orchestrator asked a
+ * finished worker to resend its summary by intercom, then began reading the ticket's core
+ * files "to verify the worker's findings" while waiting. Prose alone did not hold, which is
+ * why the terminal-ping and no-pre-work rules below name those exact rationalisations, and
+ * why the `context` handler additionally attaches a per-ping reminder (see PING_REMINDER)
+ * at the moment the ping enters the LLM's context.
+ *
+ * Deterministic guard added the same day: pi-intercom's `inboundTrigger: "replies"` setting
+ * (see file header) means routine pings no longer trigger an orchestrator turn at all —
+ * they land in the transcript inertly and surface in context only on the next real turn.
+ * The prose rules remain for that later turn (and for any session still running on the old
+ * `always` default until restarted).
  */
 const ORCHESTRATOR_ROLE_GUIDANCE = dedent`
   Ralph orchestrator role: an autonomous ralph backlog loop is currently running in this
@@ -574,13 +746,71 @@ const ORCHESTRATOR_ROLE_GUIDANCE = dedent`
     worker progress to the user, and surface failures or stalls (loop history under
     ~/.pi/agent/ralph/<project>/history.jsonl; worker transcripts under ~/.pi/agent/sessions/).
   - Intercom pings are one-way status updates, not conversations — a worker sends them via
-    \`send\`, never \`ask\`, so nothing is waiting on a reply. Don't intercom a worker back for a
-    routine progress ping; just relay it to the user. Only message a worker back if it's
-    actually going off track (e.g. duplicating another worker's ticket, working outside its
-    assigned scope) and needs to be redirected.
+    \`send\`, never \`ask\`, delivery is guaranteed by the broker, and (with pi-intercom's
+    inboundTrigger set to "replies") they don't even trigger a turn here: the user reads them
+    live in the transcript. Never intercom a worker back in response to a ping — a reply lands
+    inside the worker's own context mid-task and interrupts it. Only message a worker back if
+    it's actually going off track (e.g. duplicating another worker's ticket, working outside
+    its assigned scope) and needs to be redirected.
+  - A ping saying a worker is done or "ready to return" its result ends the conversation
+    rather than starting one: the step's deliverable comes back through the loop's captured
+    output and history.jsonl, not intercom. Never ask a worker to send or resend its results
+    by intercom.
+  - Waiting for a worker's deliverable is not a reason to pre-work the ticket. Do not open,
+    read, or "verify" the ticket's source files, tests, or backlog record "while waiting" or
+    "to check the worker's findings" — that is performing the worker's work under a different
+    name. If you catch yourself about to open a file a worker just reported on, stop: your
+    moves are ralph_status, relaying to the user, and (rarely) redirecting the worker.
   - Explicit user instructions always override this framing: if the user directly asks you to
     do something, follow them even if it touches a ralph-managed ticket.
 `;
+
+/**
+ * One-line reminder attached to a worker's progress ping for the first LLM call that includes
+ * it. The standing guidance above sits at the top of the system prompt, but the drift moment
+ * is the first turn after the ping lands in context — and that is exactly the turn where the
+ * model rationalises around the standing rule ("I'm only verifying", "the worker is asking
+ * for a fetch").
+ * Confirmed live twice with the standing guidance in context (2026-08-19, 2026-08-28), so
+ * the rule also lands beside the ping itself, where the decision is made.
+ *
+ * Pings reach the LLM as user messages rendered from pi-intercom's `intercom_message`
+ * custom entries (header "**From subagent-chat-<id>** ..."), so the `context` event sees
+ * them. Each ping's body carries a unique `_id <uuid>` line, which keys the once-only
+ * annotation: the reminder rides the decision turn and does not linger in every later
+ * context. Pings older than PING_REMINDER_MAX_AGE_MS are left alone, so a resumed session
+ * does not re-annotate history.
+ */
+const PING_REMINDER =
+  "[ralph] One-way progress report from a ralph worker; the user already sees it in the " +
+  "transcript. Do not research, plan, edit, or mutate anything for the named ticket in this " +
+  "session, and do not message the worker back — its deliverable arrives through the loop's " +
+  "captured output.";
+const PING_HEADER_PATTERN = /From subagent-chat-[0-9a-f]{8}-[0-9a-f]{4}/;
+const PING_ID_PATTERN =
+  /_id ([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/;
+const PING_INJECTED_PATTERN = /injected (\d{4}-\d{2}-\d{2}T[\d:.]+Z)/;
+/** Pings older than this are history, not a fresh nudge — don't annotate them. */
+const PING_REMINDER_MAX_AGE_MS = 15 * 60 * 1000;
+
+/** The text of a user message, whatever shape its content takes, or null if not one. */
+function userMessageText(message: unknown): string | null {
+  const m = message as { role?: unknown; content?: unknown } | null;
+  if (!m || m.role !== "user") return null;
+  if (typeof m.content === "string") return m.content;
+  if (Array.isArray(m.content)) {
+    return m.content
+      .map((block) =>
+        typeof block === "object" &&
+        block !== null &&
+        typeof (block as { text?: unknown }).text === "string"
+          ? (block as { text: string }).text
+          : "",
+      )
+      .join("");
+  }
+  return null;
+}
 
 async function runHeadless(
   pi: ExtensionAPI,
@@ -589,10 +819,18 @@ async function runHeadless(
   opts: {
     timeout: number;
     model?: string;
+    thinking?: "medium" | "xhigh";
     extensions?: string[];
     noSkills?: boolean;
+    /** When set (see beginHeartbeatStep), this step's worker loads worker-heartbeat.ts and
+     * each of its intercom pings resets the step deadline (full phase budget from the ping,
+     * capped at MAX_HEARTBEAT_RESETS). Only the long-running steps that already load
+     * PI_INTERCOM_EXTENSION and get intercomStatusGuidance pass this — triage/choose don't
+     * ping, so there is nothing for a heartbeat to observe. */
+    heartbeatNonce?: string;
+    onHeartbeatReset?: (resetCount: number) => void;
   },
-): Promise<{ ok: boolean; killed: boolean; output: string }> {
+): Promise<{ ok: boolean; killed: boolean; output: string; resets: number }> {
   // No --no-session: pi-intercom needs the headless worker to have a live session identity
   // to address progress pings back to the orchestrator from.
   const args = ["-p", "--no-extensions"];
@@ -606,24 +844,93 @@ async function runHeadless(
   // genuinely need a skill (backlog-planner for planning, project skills for implementation)
   // must not pass this — they call runHeadless with noSkills left unset.
   if (opts.noSkills) args.push("--no-skills");
+  // Load order is irrelevant for correctness (tool_call handlers chain across
+  // extensions) — the heartbeat extension just goes first so a broken companion
+  // file shows up early in the worker's startup log rather than after the broker.
+  const heartbeatLoaded =
+    !!opts.heartbeatNonce && existsSync(RALPH_WORKER_HEARTBEAT_EXTENSION);
+  if (heartbeatLoaded) args.push("-e", RALPH_WORKER_HEARTBEAT_EXTENSION);
   for (const ext of opts.extensions ?? []) args.push("-e", ext);
   if (opts.model) args.push("--model", opts.model);
+  if (opts.thinking) args.push("--thinking", opts.thinking);
   args.push(prompt);
-  const { ok, killed, stdout, stderr } = await execCapture(pi, "pi", args, {
+  const result = await execCapture(pi, "pi", args, {
     cwd,
     timeout: opts.timeout,
+    ...(heartbeatLoaded
+      ? {
+          heartbeat: {
+            file: join(stateDirFor(cwd), `heartbeat-${opts.heartbeatNonce}.json`),
+            maxResets: MAX_HEARTBEAT_RESETS,
+            onReset: opts.onHeartbeatReset,
+          },
+        }
+      : {}),
   });
-  return { ok, killed, output: (stdout || stderr || "").trim() };
+  return {
+    ok: result.ok,
+    killed: result.killed,
+    output: (result.stdout || result.stderr || "").trim(),
+    resets: result.heartbeatResets ?? 0,
+  };
+}
+
+/** Writes the per-step nonce control file that worker-heartbeat.ts reads when the worker
+ * sends an intercom ping, then returns the nonce. The nonce scopes the heartbeat file to
+ * THIS step: orphaned processes from previously killed steps (known to survive timeout
+ * kills — see the execCapture header) keep writing, but only to a stale-nonce file nobody
+ * watches, so they can never extend a new step's deadline. */
+async function beginHeartbeatStep(cwd: string): Promise<string> {
+  const nonce = randomUUID();
+  await ensureStateDir(cwd);
+  await writeFile(
+    join(stateDirFor(cwd), "current-step.json"),
+    `${JSON.stringify({ nonce, startedAt: new Date().toISOString() })}\n`,
+    "utf8",
+  );
+  return nonce;
+}
+
+/** Best-effort cleanup of a finished step's heartbeat file. The control file stays in
+ * place — the next step simply overwrites it. */
+async function endHeartbeatStep(cwd: string, nonce: string): Promise<void> {
+  try {
+    await rm(join(stateDirFor(cwd), `heartbeat-${nonce}.json`));
+  } catch {
+    // Never written / already gone: nothing to clean up.
+  }
+}
+
+/** Builds the onHeartbeatReset callback the four heartbeat-enabled steps share: bump the
+ * live counters the widget reads and repaint immediately (the 1s widget ticker would also
+ * pick it up, but a reset is worth showing the same second it happens). */
+function trackHeartbeatReset(
+  ctx: ExtensionCommandContext,
+  state: RalphState,
+  timeoutMs: number,
+): (resetCount: number) => void {
+  return (resetCount: number) => {
+    state.currentStepHeartbeatResets = resetCount;
+    state.currentStepDeadlineAt = Date.now() + timeoutMs;
+    renderWidget(ctx, state);
+  };
 }
 
 /** Prefixes a summary with a timeout marker when the subprocess was killed, so
- * history.jsonl (see stateDirFor) distinguishes "hung until we killed it" from other failures. */
+ * history.jsonl (see stateDirFor) distinguishes "hung until we killed it" from other failures.
+ * Appends how many times the step's deadline was extended by worker heartbeats, so a
+ * post-mortem can tell "slow but alive until the cap" from "dead silent". */
 function summarize(
   result: { killed: boolean; output: string },
   maxLen?: number,
+  heartbeatResets?: number,
 ): string {
   const prefix = result.killed ? "[timed out] " : "";
-  return prefix + tailSummary(result.output, maxLen);
+  const suffix =
+    heartbeatResets && heartbeatResets > 0
+      ? ` [deadline extended ${heartbeatResets}× by worker pings]`
+      : "";
+  return prefix + tailSummary(result.output, maxLen) + suffix;
 }
 
 /** Scans a headless call's final message for a line matching one of `candidates` exactly
@@ -658,12 +965,17 @@ function setCurrentStep(
   state.currentStep = text;
   state.currentStepStartedAt = new Date().toISOString();
   state.currentStepTimeoutMs = timeoutMs;
+  state.currentStepDeadlineAt = undefined;
+  state.currentStepHeartbeatResets = 0;
   renderWidget(ctx, state);
 }
 
 /** `git rev-parse HEAD`, or null if the command itself failed (not "no commits yet" — this
  * repo always has history; a null here means something is wrong with git itself). */
-async function currentHeadSha(pi: ExtensionAPI, cwd: string): Promise<string | null> {
+async function currentHeadSha(
+  pi: ExtensionAPI,
+  cwd: string,
+): Promise<string | null> {
   const { ok, stdout } = await execCapture(pi, "git", ["rev-parse", "HEAD"], {
     cwd,
     timeout: 10_000,
@@ -690,7 +1002,8 @@ async function autosquashFixups(
   cwd: string,
   runStartSha: string | null,
 ): Promise<{ ok: boolean; summary: string }> {
-  if (!runStartSha) return { ok: true, summary: "skipped (no run-start SHA recorded)" };
+  if (!runStartSha)
+    return { ok: true, summary: "skipped (no run-start SHA recorded)" };
 
   const { stdout: log } = await execCapture(
     pi,
@@ -706,7 +1019,11 @@ async function autosquashFixups(
     ["-c", "sequence.editor=true", "rebase", "--autosquash", "-i", runStartSha],
     { cwd, timeout: 60_000 },
   );
-  if (rebase.ok) return { ok: true, summary: "folded pending fixup commit(s) into their targets" };
+  if (rebase.ok)
+    return {
+      ok: true,
+      summary: "folded pending fixup commit(s) into their targets",
+    };
 
   await execCapture(pi, "git", ["rebase", "--abort"], { cwd, timeout: 15_000 });
   return {
@@ -723,6 +1040,7 @@ async function doExecute(
   ticket: Ticket,
 ): Promise<boolean> {
   setCurrentStep(ctx, state, `executing ${ticket.id}`, EXECUTE_TIMEOUT_MS);
+  const heartbeatNonce = await beginHeartbeatStep(cwd);
   const shaBefore = await currentHeadSha(pi, cwd);
   // Screenshot-cap guard: without the subagent tool, visual verification reads every
   // rendered screenshot into the executor's own context and dies at 5 images (vLLM
@@ -748,13 +1066,22 @@ async function doExecute(
       ${intercomStatusGuidance(state.mainSessionId)}
     `,
     {
+      model: "coding",
+      thinking: "medium",
       timeout: EXECUTE_TIMEOUT_MS,
       extensions: [
         PI_INTERCOM_EXTENSION,
         ...(hasSubagents ? [PI_SUBAGENTS_EXTENSION] : []),
       ],
+      heartbeatNonce,
+      onHeartbeatReset: trackHeartbeatReset(
+        ctx,
+        state,
+        EXECUTE_TIMEOUT_MS,
+      ),
     },
   );
+  await endHeartbeatStep(cwd, heartbeatNonce);
 
   // A subprocess reporting success — even a Final Summary claiming every AC is met — isn't
   // proof anything actually landed. Confirmed live: a first attempt hit EXECUTE_TIMEOUT_MS and
@@ -764,7 +1091,8 @@ async function doExecute(
   // a commit. HEAD not moving is unambiguous, so a "successful" run that leaves it where it
   // started is treated as a failure here regardless of what the subprocess claimed.
   const shaAfter = result.ok ? await currentHeadSha(pi, cwd) : shaBefore;
-  const committed = shaBefore !== null && shaAfter !== null && shaBefore !== shaAfter;
+  const committed =
+    shaBefore !== null && shaAfter !== null && shaBefore !== shaAfter;
   const ok = result.ok && committed;
 
   if (ok) state.executedSinceReview += 1;
@@ -774,8 +1102,8 @@ async function doExecute(
     outcome: ok ? "ok" : "failed",
     summary:
       result.ok && !committed
-        ? `claimed success but no commit landed (HEAD still ${shaBefore?.slice(0, 8) ?? "unknown"}) — ${summarize(result)}`
-        : summarize(result),
+        ? `claimed success but no commit landed (HEAD still ${shaBefore?.slice(0, 8) ?? "unknown"}) — ${summarize(result, undefined, result.resets)}`
+        : summarize(result, undefined, result.resets),
   });
   return ok;
 }
@@ -806,6 +1134,8 @@ async function classifyTrivial(
   `;
   const result = await runHeadless(pi, cwd, prompt, {
     timeout: TRIAGE_TIMEOUT_MS,
+    model: "chat-fast",
+    thinking: "medium",
     noSkills: true,
   });
   const verdict = extractMarkerLine(result.output, ["TRIVIAL", "NORMAL"]);
@@ -877,6 +1207,7 @@ async function doPlan(
     });
   } else {
     setCurrentStep(ctx, state, `researching ${ticket.id}`, RESEARCH_TIMEOUT_MS);
+    const researchNonce = await beginHeartbeatStep(cwd);
     const researchPrompt = dedent`
       Research context to inform planning ticket ${ticket.id} ("${ticket.title}") in this repo.
       Run \`backlog task ${ticket.id} --plain\` first to see the full ticket, then search the web for
@@ -888,13 +1219,21 @@ async function doPlan(
     const research = await runHeadless(pi, cwd, researchPrompt, {
       timeout: RESEARCH_TIMEOUT_MS,
       model: "research",
+      thinking: "medium",
       extensions: [PI_WEB_ACCESS_EXTENSION, PI_INTERCOM_EXTENSION],
+      heartbeatNonce: researchNonce,
+      onHeartbeatReset: trackHeartbeatReset(
+        ctx,
+        state,
+        RESEARCH_TIMEOUT_MS,
+      ),
     });
+    await endHeartbeatStep(cwd, researchNonce);
     await recordHistory(cwd, state, {
       kind: "plan",
       ticket: ticket.id,
       outcome: research.ok ? "ok" : "failed",
-      summary: `research: ${summarize(research, 120)}`,
+      summary: `research: ${summarize(research, 120, research.resets)}`,
     });
     researchOutput = research.output;
     state.planCache = {
@@ -905,6 +1244,7 @@ async function doPlan(
   }
 
   setCurrentStep(ctx, state, `planning ${ticket.id}`, PLAN_TIMEOUT_MS);
+  const planNonce = await beginHeartbeatStep(cwd);
   const planPrompt = dedent`
     /backlog-planner ${ticket.id}
 
@@ -918,20 +1258,27 @@ async function doPlan(
     exited early because it found unplanned child tickets, leave the status as-is and explain why in
     your final message.
 
+    ${subagentThinkingGuidance("medium")}
+
     ${intercomStatusGuidance(state.mainSessionId)}
   `;
   const plan = await runHeadless(pi, cwd, planPrompt, {
     timeout: PLAN_TIMEOUT_MS,
     model: "planning",
+    thinking: "xhigh",
     extensions: [PI_INTERCOM_EXTENSION, PI_SUBAGENTS_EXTENSION],
+    heartbeatNonce: planNonce,
+    onHeartbeatReset: trackHeartbeatReset(ctx, state, PLAN_TIMEOUT_MS),
   });
+  await endHeartbeatStep(cwd, planNonce);
 
   // The known post-response hang (see file header) means a run whose work fully landed can
   // still be killed at the deadline with result.ok false. The ticket's own status is
   // unambiguous external state — the same "don't trust the subprocess claim" check doExecute
   // does against HEAD — so a killed run that left the ticket Dev Ready counts as success.
   // A legitimate early exit for unplanned children leaves the status as-is and stays a failure.
-  const verified = !plan.ok && (await isTicketInStatus(pi, cwd, ticket.id, "Dev Ready"));
+  const verified =
+    !plan.ok && (await isTicketInStatus(pi, cwd, ticket.id, "Dev Ready"));
   const ok = plan.ok || verified;
   await recordHistory(cwd, state, {
     kind: "plan",
@@ -940,7 +1287,7 @@ async function doPlan(
     summary:
       (verified
         ? `verified Dev Ready on disk despite subprocess ${plan.killed ? "timeout" : "failure"} — `
-        : "") + summarize(plan),
+        : "") + summarize(plan, undefined, plan.resets),
   });
   if (ok) state.planCache = undefined;
   return ok;
@@ -1024,6 +1371,7 @@ async function doReview(
     `reviewing last ${n} ticket(s)`,
     REVIEW_TIMEOUT_MS,
   );
+  const reviewNonce = await beginHeartbeatStep(cwd);
   const ticketsBefore = await listAllTicketIds(pi, cwd);
   const prompt = dedent`
     You are the review checkpoint for pi's autonomous backlog loop. Use the herdr CLI to have a
@@ -1063,8 +1411,13 @@ async function doReview(
   const result = await runHeadless(pi, cwd, prompt, {
     timeout: REVIEW_TIMEOUT_MS,
     noSkills: true,
+    model: "orchestrator",
+    thinking: "medium",
     extensions: [PI_INTERCOM_EXTENSION],
+    heartbeatNonce: reviewNonce,
+    onHeartbeatReset: trackHeartbeatReset(ctx, state, REVIEW_TIMEOUT_MS),
   });
+  await endHeartbeatStep(cwd, reviewNonce);
 
   // Don't trust the model to have actually run step 5 — close the pane ourselves as a
   // guaranteed cleanup pass. Closing an already-closed pane just errors, which is the
@@ -1078,16 +1431,19 @@ async function doReview(
       cwd,
       timeout: 10_000,
     });
-    if (closed.ok) cleanupNote = ` [cleanup: pane ${paneId} was still open, closed it]`;
+    if (closed.ok)
+      cleanupNote = ` [cleanup: pane ${paneId} was still open, closed it]`;
   }
 
   const ticketsAfter = await listAllTicketIds(pi, cwd);
-  const createdTickets = [...ticketsAfter].filter((id) => !ticketsBefore.has(id));
+  const createdTickets = [...ticketsAfter].filter(
+    (id) => !ticketsBefore.has(id),
+  );
 
   await recordHistory(cwd, state, {
     kind: "review",
     outcome: result.ok ? "ok" : "failed",
-    summary: summarize(result, 300) + cleanupNote,
+    summary: summarize(result, 300, result.resets) + cleanupNote,
     createdTickets: createdTickets.length ? createdTickets : undefined,
   });
   // Only clear the trigger counter on success. A failed/timed-out review leaves it at or above
@@ -1106,6 +1462,8 @@ function finish(state: RalphState, status: RalphStatus, reason: string): void {
   state.currentStep = reason;
   state.currentStepStartedAt = undefined;
   state.currentStepTimeoutMs = undefined;
+  state.currentStepDeadlineAt = undefined;
+  state.currentStepHeartbeatResets = undefined;
 }
 
 /** True if this step's failure streak just hit the cap; `finish()`s the state with an explanatory reason. */
@@ -1196,11 +1554,15 @@ async function runFinalReviewIfNeeded(
   const exitStep = state.currentStep;
   const exitStepStartedAt = state.currentStepStartedAt;
   const exitStepTimeoutMs = state.currentStepTimeoutMs;
+  const exitStepDeadlineAt = state.currentStepDeadlineAt;
+  const exitStepHeartbeatResets = state.currentStepHeartbeatResets;
   await doReviewAndSquash(pi, ctx, cwd, state, runStartSha);
   state.status = exitStatus;
   state.currentStep = exitStep;
   state.currentStepStartedAt = exitStepStartedAt;
   state.currentStepTimeoutMs = exitStepTimeoutMs;
+  state.currentStepDeadlineAt = exitStepDeadlineAt;
+  state.currentStepHeartbeatResets = exitStepHeartbeatResets;
 }
 
 /**
@@ -1208,7 +1570,10 @@ async function runFinalReviewIfNeeded(
  * MAX_HISTORY and would silently drop early tickets on a long run) and reports what
  * actually got done: tickets executed/planned/chosen and review outcomes.
  */
-async function buildFinalSummary(cwd: string, state: RalphState): Promise<string> {
+async function buildFinalSummary(
+  cwd: string,
+  state: RalphState,
+): Promise<string> {
   const raw = await readFile(
     join(stateDirFor(cwd), "history.jsonl"),
     "utf8",
@@ -1243,10 +1608,14 @@ async function buildFinalSummary(cwd: string, state: RalphState): Promise<string
       ? `Executed (${executed.length}): ${executed.join(", ")}`
       : "Executed: none",
   ];
-  if (planned.length) lines.push(`Also touched by planning: ${planned.join(", ")}`);
+  if (planned.length)
+    lines.push(`Also touched by planning: ${planned.join(", ")}`);
   if (promoted.length)
-    lines.push(`Promoted from Blocked to To Do (${promoted.length}): ${promoted.join(", ")}`);
-  if (executeFailed.length) lines.push(`Failed to execute: ${executeFailed.join(", ")}`);
+    lines.push(
+      `Promoted from Blocked to To Do (${promoted.length}): ${promoted.join(", ")}`,
+    );
+  if (executeFailed.length)
+    lines.push(`Failed to execute: ${executeFailed.join(", ")}`);
   lines.push(
     `Reviews: ${reviews.length} (${reviews.filter((r) => r.outcome === "ok").length} ok)`,
   );
@@ -1258,7 +1627,9 @@ async function buildFinalSummary(cwd: string, state: RalphState): Promise<string
       ? `New tickets filed by review (${createdByReview.length}): ${createdByReview.join(", ")}`
       : "New tickets filed by review: none",
   );
-  const squashFailures = thisRun.filter((e) => e.kind === "squash" && e.outcome === "failed");
+  const squashFailures = thisRun.filter(
+    (e) => e.kind === "squash" && e.outcome === "failed",
+  );
   if (squashFailures.length) {
     lines.push(
       `Fixup squash failed ${squashFailures.length}x — left as separate commit(s), check history.jsonl`,
@@ -1348,7 +1719,8 @@ async function runLoop(
         const ok = await doExecute(pi, ctx, cwd, state, active);
         await persist(cwd, state);
         renderWidget(ctx, state);
-        if (stoppedByFailureStreak(cwd, state, `execute:${active.id}`, ok)) break;
+        if (stoppedByFailureStreak(cwd, state, `execute:${active.id}`, ok))
+          break;
         continue;
       }
 
@@ -1357,13 +1729,19 @@ async function runLoop(
         const ok = await doPlan(pi, ctx, cwd, state, needsPlan);
         await persist(cwd, state);
         renderWidget(ctx, state);
-        if (stoppedByFailureStreak(cwd, state, `plan:${needsPlan.id}`, ok)) break;
+        if (stoppedByFailureStreak(cwd, state, `plan:${needsPlan.id}`, ok))
+          break;
         continue;
       }
 
       let unblocked = await listUnblocked(pi, cwd);
       if (unblocked.length === 0) {
-        const promoted = await promoteUnblockedBlockedTickets(pi, ctx, cwd, state);
+        const promoted = await promoteUnblockedBlockedTickets(
+          pi,
+          ctx,
+          cwd,
+          state,
+        );
         await persist(cwd, state);
         renderWidget(ctx, state);
         if (promoted.length > 0) unblocked = await listUnblocked(pi, cwd);
@@ -1413,13 +1791,19 @@ function formatDuration(ms: number): string {
 }
 
 /** ` (Nm left of timeout Mm)` for the current step, or "" if it has no tracked timeout
- * (bookkeeping steps like a single-candidate `choose` don't spawn a headless call). */
+ * (bookkeeping steps like a single-candidate `choose` don't spawn a headless call). Once a
+ * worker heartbeat has extended the deadline, counts down from the extended deadline and
+ * says so. */
 function stepTimingSuffix(state: RalphState): string {
   if (!state.currentStepStartedAt || !state.currentStepTimeoutMs) return "";
-  const elapsedMs = Date.now() - Date.parse(state.currentStepStartedAt);
-  const remainingMs = state.currentStepTimeoutMs - elapsedMs;
-  const remaining = formatDuration(remainingMs);
-  return ` (${remaining} left of ${formatDuration(state.currentStepTimeoutMs)} timeout)`;
+  const baseStart = Date.parse(state.currentStepStartedAt);
+  const deadlineAt =
+    state.currentStepDeadlineAt ?? baseStart + state.currentStepTimeoutMs;
+  const remaining = formatDuration(deadlineAt - Date.now());
+  const extended = state.currentStepHeartbeatResets
+    ? `, extended ${state.currentStepHeartbeatResets}× by worker pings`
+    : "";
+  return ` (${remaining} left of ${formatDuration(state.currentStepTimeoutMs)} timeout${extended})`;
 }
 
 function widgetLines(state: RalphState): string[] {
@@ -1563,7 +1947,8 @@ const ralphStatusTool = defineTool({
   description:
     "Reports the live status of the autonomous ralph backlog loop (plan/execute/review tickets) " +
     "running in this pi session, if any: current step, iteration progress, and recent history.",
-  promptSnippet: "Check live status of the running ralph autonomous backlog loop",
+  promptSnippet:
+    "Check live status of the running ralph autonomous backlog loop",
   promptGuidelines: [
     "Use ralph_status when the user asks what ralph is doing, whether it's running or stuck, " +
       "or wants a progress update on the autonomous backlog loop.",
@@ -1584,7 +1969,10 @@ export default function (pi: ExtensionAPI) {
     const details = message.details as { level: "info" | "warn" } | undefined;
     const level = details?.level ?? "info";
     const color = level === "warn" ? "warning" : "success";
-    const prefix = theme.fg(color, `[ralph ${level === "warn" ? "needs you" : "done"}]`);
+    const prefix = theme.fg(
+      color,
+      `[ralph ${level === "warn" ? "needs you" : "done"}]`,
+    );
     const box = new Box(1, 1, (t) => theme.bg("customMessageBg", t));
     box.addChild(new Text(`${prefix} ${message.content}`, 0, 0));
     return box;
@@ -1708,7 +2096,10 @@ export default function (pi: ExtensionAPI) {
         ctx.ui.notify("ralph has not been run in this session.", "info");
         return;
       }
-      if (activeState.status === "running" || activeState.status === "stopping") {
+      if (
+        activeState.status === "running" ||
+        activeState.status === "stopping"
+      ) {
         ctx.ui.notify(
           "ralph is still running — use /ralph-stop first, then /ralph-clear.",
           "warn",
@@ -1732,6 +2123,45 @@ export default function (pi: ExtensionAPI) {
     return {
       systemPrompt: event.systemPrompt + "\n\n" + ORCHESTRATOR_ROLE_GUIDANCE,
     };
+  });
+
+  // Attach PING_REMINDER to a worker's progress ping on the first LLM call after it arrives.
+  // `context` fires before every LLM call with a deep copy of the messages, so annotating here
+  // touches nothing on disk and costs one extra line on the decision turn only. Gated on the
+  // loop being live, exactly like the standing guidance above.
+  const annotatedPings = new Set<string>();
+  pi.on("context", async (event) => {
+    const state = activeState;
+    if (!state || (state.status !== "running" && state.status !== "stopping")) {
+      return undefined;
+    }
+    let changed = false;
+    for (const message of event.messages) {
+      const text = userMessageText(message);
+      if (!text || !PING_HEADER_PATTERN.test(text)) continue;
+      const id = PING_ID_PATTERN.exec(text)?.[1];
+      if (!id || annotatedPings.has(id)) continue;
+      const injectedAt = Date.parse(
+        PING_INJECTED_PATTERN.exec(text)?.[1] ?? "",
+      );
+      if (
+        Number.isFinite(injectedAt) &&
+        Date.now() - injectedAt > PING_REMINDER_MAX_AGE_MS
+      ) {
+        // Remember stale pings too, so they are not re-tested on every later call.
+        annotatedPings.add(id);
+        continue;
+      }
+      annotatedPings.add(id);
+      const m = message as { content: unknown };
+      if (typeof m.content === "string") {
+        m.content += "\n\n" + PING_REMINDER;
+      } else if (Array.isArray(m.content)) {
+        m.content.push({ type: "text", text: "\n\n" + PING_REMINDER });
+      }
+      changed = true;
+    }
+    return changed ? { messages: event.messages } : undefined;
   });
 
   pi.on("session_shutdown", async () => {
