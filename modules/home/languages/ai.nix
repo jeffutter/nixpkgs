@@ -599,6 +599,8 @@ in
         };
         includeCoAuthoredBy = false;
         installMethod = "manual";
+        outputStyle = "concise";
+        remoteControlAtStartup = false;
         skipInstallOnStartup = true;
         sandbox = {
           excludedCommands = [
