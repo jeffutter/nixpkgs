@@ -38,6 +38,19 @@ let
       cp ${brandFile} $out/references/brand.md
     '';
   apollo_skills = inputs.apollo_skills;
+  # apollo_skills ships client SDKs (apollo-client/ios/kotlin), agent tooling
+  # (apollo-mcp-server), and meta (skill-creator) alongside the server/federation
+  # skills that are actually relevant to Jeff's work -- keep only the latter
+  # rather than pulling in the whole upstream skills/ tree.
+  apolloSkillsWanted = [
+    "apollo-federation"
+    "apollo-router"
+    "apollo-server"
+    "graphql-operations"
+    "graphql-schema"
+    "rover"
+    "rust-best-practices"
+  ];
   # litellm-home's reasoning-capable models only accept these three effort values —
   # everything else (off, minimal, high, max) is clamped/hidden by pi rather than sent upstream.
   reasoningThinkingLevelMap = {
@@ -484,7 +497,6 @@ in
         "npm:@gotgenes/pi-subagents"
         "npm:@juicesharp/rpiv-ask-user-question"
         "npm:@juicesharp/rpiv-todo"
-        "npm:@quintinshaw/pi-dynamic-workflows"
         "npm:@samfp/pi-memory"
         "npm:pi-bar"
         "npm:pi-context"
@@ -958,9 +970,11 @@ in
             value = apollo_skills + "/skills/${name}";
           })
           (
-            builtins.filter (name: (builtins.readDir (apollo_skills + "/skills")).${name} == "directory") (
-              builtins.attrNames (builtins.readDir (apollo_skills + "/skills"))
-            )
+            builtins.filter (
+              name:
+              (builtins.readDir (apollo_skills + "/skills")).${name} == "directory"
+              && builtins.elem name apolloSkillsWanted
+            ) (builtins.attrNames (builtins.readDir (apollo_skills + "/skills")))
           )
       );
     };
