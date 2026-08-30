@@ -38,6 +38,17 @@ let
       cp ${brandFile} $out/references/brand.md
     '';
   apollo_skills = inputs.apollo_skills;
+  # litellm-home's reasoning-capable models only accept these three effort values —
+  # everything else (off, minimal, high, max) is clamped/hidden by pi rather than sent upstream.
+  reasoningThinkingLevelMap = {
+    off = null;
+    minimal = null;
+    low = "low";
+    medium = "medium";
+    high = null;
+    xhigh = "xhigh";
+    max = null;
+  };
   ast-grep-skill = inputs.ast-grep-skill;
   matt-pocock-skills = inputs.matt-pocock-skills;
   excalidraw-diagram-skill = inputs.excalidraw-diagram-skill;
@@ -483,12 +494,13 @@ in
           apiKey = "$LITELLM_KEY";
           compat = {
             supportsDeveloperRole = false;
-            supportsReasoningEffort = false;
+            supportsReasoningEffort = true;
           };
           models = [
             {
               id = "chat";
               reasoning = true;
+              thinkingLevelMap = reasoningThinkingLevelMap;
               input = [
                 "text"
                 "image"
@@ -507,6 +519,7 @@ in
             {
               id = "coding";
               reasoning = true;
+              thinkingLevelMap = reasoningThinkingLevelMap;
               input = [
                 "text"
                 "image"
@@ -524,7 +537,7 @@ in
             }
             {
               id = "instruct-reasoning";
-              reasoning = true;
+              reasoning = false;
               input = [
                 "text"
                 "image"
@@ -534,6 +547,7 @@ in
             {
               id = "orchestrator";
               reasoning = true;
+              thinkingLevelMap = reasoningThinkingLevelMap;
               input = [
                 "text"
                 "image"
@@ -543,6 +557,7 @@ in
             {
               id = "planning";
               reasoning = true;
+              thinkingLevelMap = reasoningThinkingLevelMap;
               input = [
                 "text"
                 "image"
@@ -552,6 +567,7 @@ in
             {
               id = "research";
               reasoning = true;
+              thinkingLevelMap = reasoningThinkingLevelMap;
               input = [
                 "text"
                 "image"
