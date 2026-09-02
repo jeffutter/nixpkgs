@@ -783,16 +783,16 @@
         "rust-overlay": "rust-overlay_5"
       },
       "locked": {
-        "lastModified": 1788278633,
-        "narHash": "sha256-qHr1ellSfm7gQcn6UFslMMk0hkwA9uk7F2BnJ2jsHJc=",
+        "lastModified": 1788382615,
+        "narHash": "sha256-XRT09URzPZ3hqsQj4+AT5LC2W0KsDl+KsvLfERPmE9o=",
         "owner": "jeffutter",
         "repo": "meethook",
-        "rev": "fed25e75dd2a897eb5bf20b84c17d862ad4a8846",
+        "rev": "59863115a2d0114c0a27a75068302dc106920e08",
         "type": "github"
       },
       "original": {
         "owner": "jeffutter",
-        "ref": "v0.1.0",
+        "ref": "v0.2.1",
         "repo": "meethook",
         "type": "github"
       }
