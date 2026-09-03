@@ -14,6 +14,7 @@ let
     inputs.graphql-document-utils.packages.${pkgs.stdenv.hostPlatform.system}.default;
   meethook = inputs.meethook.packages.${pkgs.stdenv.hostPlatform.system}.default;
   pup = pkgs.callPackage ../../pkgs/datadog-pup { };
+  zvec-grep = pkgs.callPackage ../../pkgs/zvec-grep { };
 
   # pup captures its embedded Datadog skills (skills/<name>/SKILL.md) and domain
   # subagents (agents/<name>.md) into pup.skills at build time. Wiring the whole
@@ -62,6 +63,7 @@ in
     pup
     # screenpipe
     thaw
+    zvec-grep
   ];
 
   home.file.".ssh/allowed_signers".text = ''

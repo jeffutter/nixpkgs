@@ -44,6 +44,7 @@
       ".expert"
       ".pi/continue/"
       ".vscode"
+      ".zvec-grep/"
       "DS_Store"
       "Thumbs.db"
       "ehthumbs.db"

@@ -1,0 +1,7 @@
+{
+  "name": "zvec-grep-wrapper",
+  "version": "1.0.0",
+  "dependencies": {
+    "@zvec/zvec-grep": "0.2.1"
+  }
+}
