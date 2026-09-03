@@ -732,6 +732,34 @@ function subagentThinkingGuidance(level: "medium" | "xhigh"): string {
 }
 
 /**
+ * Standing guidance nudging execute/plan workers toward pi-lens's structural tools instead of
+ * blind whole-file `read` calls. Confirmed from session analysis (2026-09-02): reads with no
+ * offset/limit against this repo's oversized files (lib.rs, interview.rs, meeting.rs, render.rs,
+ * etc.) were the single largest source of tool-result bytes across a week of ralph runs, each
+ * capped at pi's ~50KB read truncation and re-paid from zero by every fresh headless worker,
+ * since headless sessions share no context with each other. `module_report` (always active, no
+ * activation needed) returns a whole file's symbol table with exact line ranges in a fraction of
+ * the bytes of one truncated read, and `ast_grep_search`/`lsp_navigation` (now statically active —
+ * see the pi-lens tools.lazy: false home-manager config) locate a definition or its usages
+ * directly. None of the three appeared meaningfully in a week of transcripts despite being
+ * available, so the nudge is spelled out here rather than assumed.
+ */
+function largeFileGuidance(): string {
+  return dedent`
+    Large files: before running \`read\` on a file you haven't already seen in this session,
+    consider whether you actually need the whole thing. For anything nontrivially sized, prefer:
+      - \`module_report\` for "what's in this file and where" — it returns every symbol with exact
+        line ranges for the whole file, cheaper than a full read and not subject to its truncation.
+      - \`ast_grep_search\` or \`lsp_navigation\` (definition/references/documentSymbol) to jump
+        straight to the function or symbol you need instead of reading the file top to bottom.
+      - a targeted \`read\` with \`offset\`/\`limit\` once you know the line range you actually need.
+    A blind \`read\` on a large file gets truncated (pi tells you how much was cut and how to
+    continue) — if you do need the rest, follow up with \`offset\` rather than re-reading from the
+    top or proceeding on a partial view.
+  `;
+}
+
+/**
  * Standing role instructions appended to the orchestrating session's system prompt on every
  * turn while a loop is running (see the `before_agent_start` handler in the default export).
  * Guards against a confirmed live failure mode (2026-08-19): a worker's intercom progress ping
@@ -1083,6 +1111,8 @@ async function doExecute(
 
       ${screenshotGuidance}
 
+      ${largeFileGuidance()}
+
       ${intercomStatusGuidance(state.mainSessionId, EXECUTE_TIMEOUT_MS)}
     `,
     {
@@ -1279,6 +1309,8 @@ async function doPlan(
     your final message.
 
     ${subagentThinkingGuidance("medium")}
+
+    ${largeFileGuidance()}
 
     ${intercomStatusGuidance(state.mainSessionId, PLAN_TIMEOUT_MS)}
   `;

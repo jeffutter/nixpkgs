@@ -154,4 +154,6 @@ in
   jeff.enableRtkHooks = false;
 
   jeff.enableClaudeVoice = true;
+
+  jeff.enableApolloSkills = true;
 }
