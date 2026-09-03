@@ -195,6 +195,7 @@ let
     };
   };
   moshi-hook = pkgs.callPackage ../../../pkgs/moshi-hook { };
+  zvec-grep = pkgs.callPackage ../../../pkgs/zvec-grep { };
   # `herdr --skill` prints herdr's bundled agent skill file and is the
   # documented extraction point for this (see `herdr --help`); prefer it over
   # reading the skill file out of the source tree directly, since that
@@ -371,20 +372,32 @@ in
     default = false;
   };
 
+  # zvec-grep (hybrid ripgrep + semantic workspace search, `zg`). Installs the
+  # CLI, registers its MCP server, and (via darwin.nix/linux.nix) runs its
+  # daemon as a login service. Only enabled on hosts that opt in, since the
+  # daemon and its embedding models are unwanted dead weight elsewhere.
+  options.jeff.enableZvecGrep = lib.mkOption {
+    type = lib.types.bool;
+    default = false;
+  };
+
   config = {
-    home.packages = with pkgs; [
-      agent-browser
-      backlog-md
-      claude-tail
-      herdr
-      moshi-hook
-      pi
-      rtk
-      (llm.withPlugins {
-        llm-cmd = true;
-        llm-jq = true;
-      })
-    ];
+    home.packages =
+      with pkgs;
+      [
+        agent-browser
+        backlog-md
+        claude-tail
+        herdr
+        moshi-hook
+        pi
+        rtk
+        (llm.withPlugins {
+          llm-cmd = true;
+          llm-jq = true;
+        })
+      ]
+      ++ lib.optional config.jeff.enableZvecGrep zvec-grep;
 
     home.file.".claude/plugins/marketplaces/superpowers".source = superpowers;
 
@@ -532,6 +545,14 @@ in
             "get_task_execution_guide"
             "get_task_finalization_guide"
           ];
+        };
+      }
+      // lib.optionalAttrs config.jeff.enableZvecGrep {
+        # Talks to the daemon started by launchd.agents.zvec-grep /
+        # systemd.user.services.zvec-grep (darwin.nix / linux.nix), not
+        # spawned by the MCP client itself -- the service must be running.
+        zvec-grep = {
+          url = "http://127.0.0.1:7999/mcp";
         };
       };
     };

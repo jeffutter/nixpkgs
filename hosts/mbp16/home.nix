@@ -14,10 +14,6 @@
     ../../modules/home/languages/ai.nix
   ];
 
-  home.packages = [
-    (pkgs.callPackage ../../pkgs/zvec-grep { })
-  ];
-
   home.file.".ssh/allowed_signers".text = ''
     jeff@jeffutter.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFdcZzshajKcShGRcADGbH2V3Dzjv+C65imbg2/B6gkh
   '';
@@ -32,4 +28,6 @@
   programs.claude-code.settings.model = "sonnet";
 
   jeff.enableClaudeVoice = true;
+
+  jeff.enableZvecGrep = true;
 }
