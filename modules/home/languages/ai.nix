@@ -557,7 +557,6 @@ in
         "npm:@gotgenes/pi-subagents"
         "npm:@juicesharp/rpiv-ask-user-question"
         "npm:@juicesharp/rpiv-todo"
-        "npm:@samfp/pi-memory"
         "npm:pi-bar"
         "npm:pi-context"
         "npm:pi-intercom"
