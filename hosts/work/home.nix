@@ -12,6 +12,7 @@ let
   screenpipe = pkgs.callPackage ../../pkgs/screenpipe { src = inputs.screenpipe-src; };
   graphql-document-utils =
     inputs.graphql-document-utils.packages.${pkgs.stdenv.hostPlatform.system}.default;
+  meethook = inputs.meethook.packages.${pkgs.stdenv.hostPlatform.system}.default;
   pup = pkgs.callPackage ../../pkgs/datadog-pup { };
 
   # pup captures its embedded Datadog skills (skills/<name>/SKILL.md) and domain
@@ -56,6 +57,7 @@ in
     graphql-document-utils
     grpcurl
     llvmPackages.bintools
+    meethook
     my_google-cloud-sdk
     pup
     # screenpipe
