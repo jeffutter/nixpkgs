@@ -364,6 +364,13 @@ in
     default = false;
   };
 
+  # Apollo's server/federation skills are only relevant to Jeff's work
+  # projects; keep them off other hosts to avoid clutter.
+  options.jeff.enableApolloSkills = lib.mkOption {
+    type = lib.types.bool;
+    default = false;
+  };
+
   config = {
     home.packages = with pkgs; [
       agent-browser
@@ -461,6 +468,16 @@ in
     home.file.".pi/agent/extensions/pi-permission-system/config.json".source =
       ./ai/pi-extensions/pi-permission-system/config.json;
 
+    # pi-lens: disable lazy tool activation so ast_grep_* and lsp_navigation are
+    # active from the first turn instead of requiring a pi_lens_activate_tools
+    # call. Headless ralph workers never make that call, so on the default lazy
+    # setting these tools go entirely unused and workers fall back to blind
+    # whole-file reads on large source files. Costs a slightly longer tool list
+    # every turn in exchange for the tools actually being reachable.
+    home.file.".pi-lens/config.json".text = builtins.toJSON {
+      tools.lazy = false;
+    };
+
     # pi-continue (and other extensions) declare @earendil-works/pi-coding-agent
     # as a peerDependency, resolved at runtime via `import.meta.resolve` followed
     # by a direct file read of dist/core/compaction/*.js relative to that resolved
@@ -475,6 +492,49 @@ in
     # path, since that output no longer ships this tree at all -- see
     # piCodingAgentDist's comment above.
     home.file.".pi/agent/node_modules/@earendil-works/pi-coding-agent".source = piCodingAgentDist;
+
+    # Tool-agnostic global MCP config, read by pi-mcp-adapter (and any other
+    # MCP-aware tool that follows the same convention) from
+    # $XDG_CONFIG_HOME/mcp/mcp.json. Previously hand-maintained as a loose
+    # file at ~/.config/mcp/mcp.json; declared here instead so it's tracked
+    # alongside the rest of the AI tooling config.
+    programs.mcp = {
+      enable = true;
+      servers = {
+        context7 = {
+          url = "https://mcp.context7.com/mcp";
+          protocolVersion = "auto";
+        };
+        backlog = {
+          command = "backlog";
+          args = [
+            "mcp"
+            "start"
+          ];
+          directTools = [
+            "get_backlog_instructions"
+            "task_create"
+            "task_list"
+            "task_search"
+            "task_edit"
+            "task_view"
+            "task_archive"
+            "task_complete"
+            "definition_of_done_defaults_get"
+            "definition_of_done_defaults_upsert"
+            "document_list"
+            "document_view"
+            "document_create"
+            "document_update"
+            "document_search"
+            "get_backlog_workflow_overview"
+            "get_task_creation_guide"
+            "get_task_execution_guide"
+            "get_task_finalization_guide"
+          ];
+        };
+      };
+    };
 
     home.file.".pi/agent/AGENTS.md".text = mkAgentContext "env-pi.md";
 
@@ -497,7 +557,6 @@ in
         "npm:@gotgenes/pi-subagents"
         "npm:@juicesharp/rpiv-ask-user-question"
         "npm:@juicesharp/rpiv-todo"
-        "npm:@samfp/pi-memory"
         "npm:pi-bar"
         "npm:pi-context"
         "npm:pi-intercom"
@@ -963,19 +1022,21 @@ in
         writing-clearly-and-concisely = "${the-elements-of-style}/skills/writing-clearly-and-concisely";
         wt-switch-create = "${worktrunkPluginRoot}/skills/wt-switch-create";
       }
-      // builtins.listToAttrs (
-        map
-          (name: {
-            inherit name;
-            value = apollo_skills + "/skills/${name}";
-          })
-          (
-            builtins.filter (
-              name:
-              (builtins.readDir (apollo_skills + "/skills")).${name} == "directory"
-              && builtins.elem name apolloSkillsWanted
-            ) (builtins.attrNames (builtins.readDir (apollo_skills + "/skills")))
-          )
+      // lib.optionalAttrs config.jeff.enableApolloSkills (
+        builtins.listToAttrs (
+          map
+            (name: {
+              inherit name;
+              value = apollo_skills + "/skills/${name}";
+            })
+            (
+              builtins.filter (
+                name:
+                (builtins.readDir (apollo_skills + "/skills")).${name} == "directory"
+                && builtins.elem name apolloSkillsWanted
+              ) (builtins.attrNames (builtins.readDir (apollo_skills + "/skills")))
+            )
+        )
       );
     };
   }; # end config

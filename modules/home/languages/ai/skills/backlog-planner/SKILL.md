@@ -104,7 +104,7 @@ Dependency analysis is metadata lookup, not codebase research — run the CLI di
 
 ### Step 2: Spawn Research Subagents
 
-Delegate codebase research to parallel subagents via the Task tool with `subagent_type: "Explore"`. **Choose the count based on the ticket — no prescribed number.** Spawn exactly as many as the work demands, and no more.
+Delegate codebase research to parallel Explore-type subagents via your agent-dispatch tool. Use whichever field your tool's own schema declares for the subagent's type or role (e.g. `subagent_type` on Claude Code's Task tool, `type` on pi's `subagent` tool) — match the schema, not a literal copied from this line. **Choose the count based on the ticket — no prescribed number.** Spawn exactly as many as the work demands, and no more.
 
 **Default to spawning subagents.** The plan produced here has to hold up during execution, so prefer thorough parallel research over inline shortcuts. Even moderate-sized tickets benefit from dedicated agents per dimension. Skip subagents entirely only when the ticket is truly trivial — planning effort matches implementation effort (e.g. a one-line fix, a rename, a config tweak). For sprawling Epics, several focused agents in parallel return better results than one catch-all.
 

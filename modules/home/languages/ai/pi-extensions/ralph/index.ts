@@ -151,12 +151,15 @@ const RALPH_WORKER_HEARTBEAT_EXTENSION = join(
  * Pings are fire-and-forget liveness evidence, not a protocol — a few seconds of
  * polling slack is irrelevant against a minute-scale ping cadence. */
 const HEARTBEAT_POLL_INTERVAL_MS = 5_000;
-/** Max times one step's deadline may be reset by worker heartbeats. A live worker
- * pings roughly every few minutes, so a healthy slow step uses only a handful of
- * resets; the cap exists so a worker stuck in a busy loop that keeps pinging can't
- * run forever — past it, the then-current deadline stands and the step times out
- * exactly as if no heartbeat had ever arrived. */
-const MAX_HEARTBEAT_RESETS = 4;
+/** Max times one step's deadline may be reset by worker heartbeats. The cap exists
+ * so a worker stuck in a busy loop that keeps pinging can't run forever — past it,
+ * the then-current deadline stands and the step times out exactly as if no heartbeat
+ * had ever arrived. Raised 4 → 12 (2026-09-03): confirmed live that TASK-059.02's
+ * two execute attempts needed ~2h of wall clock, and under the old cap a worker
+ * pinging flawlessly every ~10 minutes still exhausted its four resets and died
+ * mid-ticket. 12 resets ≈ an 8h ceiling for a live, pinging worker; a genuinely
+ * stuck worker stops pinging and dies at the next deadline regardless. */
+const MAX_HEARTBEAT_RESETS = 12;
 
 /** Path assumption: wherever this user's `@gotgenes/pi-subagents` package currently
  * resolves — the live `npm/` tree (npm2/npm3 are stale pre-migration backups; verified
@@ -682,17 +685,56 @@ function tailSummary(output: string, maxLen = 240): string {
  * guidance leaves the tool available but unused, and the guidance without the extension gives
  * the model a tool call that doesn't exist.
  */
-function intercomStatusGuidance(mainSessionId: string): string {
+/**
+ * Standing instructions for a headless worker on how to keep the orchestrator informed via
+ * intercom pings. The second argument is the step's own timeout: the worker-heartbeat extension
+ * resets that deadline on every ping the worker sends, so a live-but-slow step survives only as
+ * long as it keeps pinging. The guidance therefore makes pre-launch pings load-bearing — a worker
+ * that dives into a long build/test/e2e without pinging first goes silent past the deadline and
+ * gets killed mid-work (confirmed live: TASK-046.10's two execute attempts, both stopped ~40m
+ * after their last ping). Event-only pings turned out insufficient on their own too: TASK-059.02's
+ * two execute attempts (2026-09-03) died ~40m after their last ping while doing continuous
+ * quick-step work (each individual edit/build returned in seconds, so no single step triggered a
+ * "long operation" ping) — hence the explicit time-floor rule below. Passing the real timeout
+ * keeps the "stay quiet less than N minutes" rule honest and self-updating when a phase's budget
+ * changes.
+ */
+function intercomStatusGuidance(mainSessionId: string, timeoutMs: number): string {
+  const mins = Math.round(timeoutMs / 60_000);
+  // Ping cadence: a quarter of the step's budget, floored at 5 min. A quarter leaves three
+  // missed pings of slack before the deadline fires, and scales up automatically if a phase's
+  // budget grows (same self-updating property the ${mins} figure relies on).
+  const cadenceMin = Math.max(5, Math.round(mins / 4));
   return dedent`
-    Progress updates: every few minutes, or after finishing each meaningfully distinct sub-step
-    (not more often than that), send a one-line status ping back to the orchestrating session via
-    the intercom tool. Use \`send\`, never \`ask\` — nobody is waiting on a reply:
+    Progress updates: send a one-line status ping back to the orchestrating session via the
+    intercom tool after each meaningfully distinct sub-step, and — most importantly — right before
+    you launch any long-running operation. You can't ping while a command is running, and if you
+    stay silent for longer than about ${mins} minutes the orchestrator will assume you've hung and
+    stop your step, discarding the work in flight. So ping first, then run it:
+      - a full workspace build or a large compile,
+      - the whole test suite (or a big chunk of it),
+      - a spawned-binary / end-to-end check,
+      - a large multi-file edit or refactor.
+    When such an operation returns, ping again before starting the next long one.
+    Two extra rules that event-only pinging misses:
+      - Time floor: even when work flows continuously as a run of quick steps (edits and small
+        builds that each return in seconds), ping at least once every ${cadenceMin} minutes. The
+        deadline counts wall-clock silence, not how steadily you're progressing — a continuous
+        stretch of quick steps with no pings kills the step exactly like a hang.
+      - Long single commands: if one command is likely to run longer than ~${cadenceMin} minutes,
+        don't block on it in the foreground — you'd be unable to ping for its entire runtime.
+        Launch it detached instead (e.g. \`nohup <cmd> > /tmp/<name>.log 2>&1 &\`) and poll the
+        log with short sleeps between pings, so you stay free to keep the liveness signal going.
+    Use \`send\`,
+    never \`ask\` — nobody is waiting on a reply:
     intercom({ action: "send", to: "${mainSessionId}", message: "<one sentence: what you just
-    finished or are doing now>" })
-    These pings are fire-and-forget: the orchestrator does not acknowledge them (delivery is
-    guaranteed by the intercom broker), so never wait for an ack or re-send because none arrived.
-    Skip this entirely if the intercom tool isn't available — it's a courtesy update, not part of
-    the task itself.
+    finished or are about to run>" })
+    These pings are your liveness signal, not optional courtesy — they're what keeps a slow but
+    healthy step from being killed. They are fire-and-forget: the orchestrator does not
+    acknowledge them (delivery is guaranteed by the intercom broker), so never wait for an ack or
+    re-send because none arrived. Don't spam between quick steps, but the time floor above still
+    applies across them — a continuous run of quick steps is not a reason to stay quiet for tens
+    of minutes. Skip this entirely only if the intercom tool isn't available.
   `;
 }
 
@@ -708,6 +750,34 @@ function subagentThinkingGuidance(level: "medium" | "xhigh"): string {
   return dedent`
     Subagent thinking level: for every subagent tool call you make to delegate codebase research,
     pass thinking: "${level}" as one of the call's parameters.
+  `;
+}
+
+/**
+ * Standing guidance nudging execute/plan workers toward pi-lens's structural tools instead of
+ * blind whole-file `read` calls. Confirmed from session analysis (2026-09-02): reads with no
+ * offset/limit against this repo's oversized files (lib.rs, interview.rs, meeting.rs, render.rs,
+ * etc.) were the single largest source of tool-result bytes across a week of ralph runs, each
+ * capped at pi's ~50KB read truncation and re-paid from zero by every fresh headless worker,
+ * since headless sessions share no context with each other. `module_report` (always active, no
+ * activation needed) returns a whole file's symbol table with exact line ranges in a fraction of
+ * the bytes of one truncated read, and `ast_grep_search`/`lsp_navigation` (now statically active —
+ * see the pi-lens tools.lazy: false home-manager config) locate a definition or its usages
+ * directly. None of the three appeared meaningfully in a week of transcripts despite being
+ * available, so the nudge is spelled out here rather than assumed.
+ */
+function largeFileGuidance(): string {
+  return dedent`
+    Large files: before running \`read\` on a file you haven't already seen in this session,
+    consider whether you actually need the whole thing. For anything nontrivially sized, prefer:
+      - \`module_report\` for "what's in this file and where" — it returns every symbol with exact
+        line ranges for the whole file, cheaper than a full read and not subject to its truncation.
+      - \`ast_grep_search\` or \`lsp_navigation\` (definition/references/documentSymbol) to jump
+        straight to the function or symbol you need instead of reading the file top to bottom.
+      - a targeted \`read\` with \`offset\`/\`limit\` once you know the line range you actually need.
+    A blind \`read\` on a large file gets truncated (pi tells you how much was cut and how to
+    continue) — if you do need the rest, follow up with \`offset\` rather than re-reading from the
+    top or proceeding on a partial view.
   `;
 }
 
@@ -1063,7 +1133,9 @@ async function doExecute(
 
       ${screenshotGuidance}
 
-      ${intercomStatusGuidance(state.mainSessionId)}
+      ${largeFileGuidance()}
+
+      ${intercomStatusGuidance(state.mainSessionId, EXECUTE_TIMEOUT_MS)}
     `,
     {
       model: "coding",
@@ -1214,7 +1286,7 @@ async function doPlan(
       relevant prior art, library documentation, or best practices that would help write a thorough
       implementation plan. Return a concise research summary (bullet points), not a plan.
 
-      ${intercomStatusGuidance(state.mainSessionId)}
+      ${intercomStatusGuidance(state.mainSessionId, RESEARCH_TIMEOUT_MS)}
     `;
     const research = await runHeadless(pi, cwd, researchPrompt, {
       timeout: RESEARCH_TIMEOUT_MS,
@@ -1260,7 +1332,9 @@ async function doPlan(
 
     ${subagentThinkingGuidance("medium")}
 
-    ${intercomStatusGuidance(state.mainSessionId)}
+    ${largeFileGuidance()}
+
+    ${intercomStatusGuidance(state.mainSessionId, PLAN_TIMEOUT_MS)}
   `;
   const plan = await runHeadless(pi, cwd, planPrompt, {
     timeout: PLAN_TIMEOUT_MS,
@@ -1406,7 +1480,7 @@ async function doReview(
     line containing exactly \`REVIEW_PANE_ID: <new-pane-id>\` (the id from step 1) so the caller can verify
     the pane is gone.
 
-    ${intercomStatusGuidance(state.mainSessionId)}
+    ${intercomStatusGuidance(state.mainSessionId, REVIEW_TIMEOUT_MS)}
   `;
   const result = await runHeadless(pi, cwd, prompt, {
     timeout: REVIEW_TIMEOUT_MS,
