@@ -74,18 +74,33 @@ Instructions:
         --trailer "Task-Id: $0"
       ```
 
-      This works alongside `-m` and `-F`, and repeating an identical trailer is
-      a no-op, so it is safe even when something else already appended one.
+      This works alongside `-m` and `-F`. It is NOT idempotent: `git commit --trailer`
+      appends without checking whether the message already carries that trailer, so the
+      flags belong on the original commit only — never on an amend of a commit that already
+      has them (see step 11).
 10. Mark the ticket done: `backlog task edit $0 -s Done`
 11. Fold that status change into the commit from step 9 instead of leaving it
-    separate: stage the updated ticket file and amend, carrying the trailers
-    through the amend as well:
+    separate: stage the updated ticket file and amend. Use `--amend --no-edit` with **no
+    `--trailer` flags** — `--no-edit` keeps the existing message, trailers included, so the
+    trailers are already carried through:
 
     ```
-    git commit --amend --no-edit \
-      --trailer "Co-Authored-By: Claude Code <noreply@anthropic.com>" \
-      --trailer "Task-Id: $0"
+    git commit --amend --no-edit
     ```
+
+    Re-passing the trailer flags here duplicates them. Verified against git 2.55 in a scratch
+    repo: amending a commit whose message ends with one `Co-Authored-By`/`Task-Id` pair while
+    passing both flags again produces two pairs, and every later amend keeps the damage — this
+    is exactly how four consecutive TASK-62 commits each ended up with `Task-Id:` twice.
+
+    Check it after the amend, since nothing else will catch it:
+
+    ```
+    git log -1 --format=%B | grep -c '^Task-Id:'   # must print 1
+    ```
+
+    If it prints more than 1, repair the message once by rewriting it (`git commit --amend -F
+    <file>` with a single trailer block) rather than amending again with flags.
 
     Committing the code first and folding the Done flip in afterward means an
     interruption between steps 9-11 (e.g. this process being killed) never

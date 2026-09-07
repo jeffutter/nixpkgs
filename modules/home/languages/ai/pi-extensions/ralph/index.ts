@@ -1083,10 +1083,25 @@ async function autosquashFixups(
   );
   if (!/\bfixup! /.test(log)) return { ok: true, summary: "no pending fixups" };
 
+  // --autostash is not optional here. A review run leaves the worktree dirty whenever an
+  // unrelated change is sitting unstaged (a stray deleted file is enough), and plain
+  // `git rebase` refuses outright in that state — "cannot rebase: You have unstaged
+  // changes" — before ever looking at the fixup. Confirmed live on TASK-62: the squash
+  // step reported "failed, likely a conflict" for what was purely a dirty tree, so the
+  // fixup had to be folded by hand. Autostash makes an unrelated dirty worktree irrelevant;
+  // a genuine conflict still fails, and the abort below restores the stash.
   const rebase = await execCapture(
     pi,
     "git",
-    ["-c", "sequence.editor=true", "rebase", "--autosquash", "-i", runStartSha],
+    [
+      "-c",
+      "sequence.editor=true",
+      "rebase",
+      "--autosquash",
+      "--autostash",
+      "-i",
+      runStartSha,
+    ],
     { cwd, timeout: 60_000 },
   );
   if (rebase.ok)
@@ -1098,7 +1113,7 @@ async function autosquashFixups(
   await execCapture(pi, "git", ["rebase", "--abort"], { cwd, timeout: 15_000 });
   return {
     ok: false,
-    summary: `autosquash failed, likely a conflict — aborted; fixup commit(s) left unsquashed: ${tailSummary(rebase.stderr || rebase.stdout, 200)}`,
+    summary: `autosquash failed — aborted; fixup commit(s) left unsquashed: ${tailSummary(rebase.stderr || rebase.stdout, 200)}`,
   };
 }
 
