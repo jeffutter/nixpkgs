@@ -20,6 +20,8 @@
     todoist-cli
   ];
 
+  jeff.enablePacaAgent = true;
+
   programs.ghostty = {
     enable = false;
   };
