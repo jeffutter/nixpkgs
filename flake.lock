@@ -270,6 +270,22 @@
         "type": "github"
       }
     },
+    "diagram-design-skill": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1788755950,
+        "narHash": "sha256-fCIDB+TiVCKelcQa+2r5vkWQQ6jaftatye+AR9TtjSE=",
+        "owner": "cathrynlavery",
+        "repo": "diagram-design",
+        "rev": "2724fd2efd8c6737f6fa704fbf5da52d67375497",
+        "type": "github"
+      },
+      "original": {
+        "owner": "cathrynlavery",
+        "repo": "diagram-design",
+        "type": "github"
+      }
+    },
     "excalidraw-diagram-skill": {
       "flake": false,
       "locked": {
@@ -1084,6 +1100,7 @@
         "ast-grep-skill": "ast-grep-skill",
         "backlog-md": "backlog-md",
         "claude-tail": "claude-tail",
+        "diagram-design-skill": "diagram-design-skill",
         "excalidraw-diagram-skill": "excalidraw-diagram-skill",
         "expert": "expert",
         "fish-plugin-autopair": "fish-plugin-autopair",

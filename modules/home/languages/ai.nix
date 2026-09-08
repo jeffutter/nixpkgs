@@ -89,6 +89,7 @@ let
   ast-grep-skill = inputs.ast-grep-skill;
   matt-pocock-skills = inputs.matt-pocock-skills;
   excalidraw-diagram-skill = inputs.excalidraw-diagram-skill;
+  diagram-design-skill = inputs.diagram-design-skill;
   # The upstream skill renders diagrams to PNG (for visual self-validation) via a
   # `uv sync` + `playwright install chromium` flow that needs network access and a
   # first-time setup step. Replace it with a Nix-provided renderer: Python with the
@@ -1074,6 +1075,7 @@ in
         backlog-execute = ./ai/skills/backlog-execute;
         backlog-planner = ./ai/skills/backlog-planner;
         brainstorming = ./ai/skills/brainstorming;
+        diagram-design = "${diagram-design-skill}/skills/diagram-design";
         elixir = ./ai/skills/elixir;
         excalidraw-diagram = "${excalidraw-diagram-skill-wrapped}";
         herdr = "${herdr-skill}";
