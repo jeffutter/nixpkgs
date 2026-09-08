@@ -54,13 +54,6 @@ let
   humanizer = inputs.humanizer;
   superpowers = inputs.superpowers;
   kami = inputs.kami;
-  mkKamiSkill =
-    brandFile:
-    pkgs.runCommand "kami-skill" { } ''
-      cp -r ${kami} $out
-      chmod -R u+w $out
-      cp ${brandFile} $out/references/brand.md
-    '';
   apollo_skills = inputs.apollo_skills;
   # apollo_skills ships client SDKs (apollo-client/ios/kotlin), agent tooling
   # (apollo-mcp-server), and meta (skill-creator) alongside the server/federation
@@ -370,6 +363,9 @@ let
 in
 
 {
+  # kami reads its brand profile from ~/.config/kami/brand.md at runtime
+  # (XDG, not baked into the skill package) -- see the xdg.configFile
+  # deployment below.
   options.jeff.kamiSkillBrand = lib.mkOption {
     type = lib.types.path;
     default = ./ai/kami/brand.md;
@@ -445,6 +441,8 @@ in
     );
 
     home.file.".claude/plugins/marketplaces/superpowers".source = superpowers;
+
+    xdg.configFile."kami/brand.md".source = config.jeff.kamiSkillBrand;
 
     xdg.configFile."herdr/config.toml".source =
       (pkgs.formats.toml { }).generate "herdr-config.toml"
@@ -1080,7 +1078,7 @@ in
         excalidraw-diagram = "${excalidraw-diagram-skill-wrapped}";
         herdr = "${herdr-skill}";
         humanizer = "${humanizer}";
-        kami = "${mkKamiSkill config.jeff.kamiSkillBrand}";
+        kami = "${kami}/skills/kami";
         pi-authoring = "${pi-authoring-skill}";
         review-pi-work = ./ai/skills/review-pi-work;
         software-design = ./ai/skills/software-design;
