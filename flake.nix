@@ -47,7 +47,7 @@
     };
 
     herdr = {
-      url = "github:ogulcancelik/herdr/v0.8.2";
+      url = "github:ogulcancelik/herdr/v0.9.0";
     };
 
     zen-browser = {
@@ -205,16 +205,16 @@
       claudeCodeOverlay =
         final: prev:
         let
-          claudeCodeVersion = "2.1.259";
+          claudeCodeVersion = "2.1.263";
           claudeCodeBaseUrl = "https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases";
           # Run `nix-prefetch-url <url>` for your platform to get the correct hash
           # URL format: ${claudeCodeBaseUrl}/${claudeCodeVersion}/<platform>/claude
           # Platforms: darwin-arm64, darwin-x64, linux-arm64, linux-x64
           claudeCodeChecksums = {
-            "darwin-arm64" = "sha256-iEuqOP4aYkviXEqRVov1oItc9OfXrPKbd2DjUl2WSJg=";
-            "darwin-x64" = "sha256-r4dBz/DT+1xLiTx8s2E70hso+mHMpFRp1guOXhYeudg=";
-            "linux-arm64" = "sha256-xv8Dw4nM3q4PGencMkiO66YfvvR5b1Mdv7psAPRQQNA=";
-            "linux-x64" = "sha256-991irkFTeAGM0h3ZUOs7rBdKsIWDAwTTuLCYFGv9R7Y=";
+            "darwin-arm64" = "sha256-710pCcivSfMattVIfpAxZ3e8L6wXCt/oFgcWyqiq9Pk=";
+            "darwin-x64" = "sha256-qUqLIp+oXDoxbGtKNeCqIr7BqrvT0UIoJs4dEN3Ih1E=";
+            "linux-arm64" = "sha256-fSXXyK5sbgCcx9rk6Bf2dBef0x+3dhvNVv7kwpArTAM=";
+            "linux-x64" = "sha256-JtAgNR6BEvQAZ5Dzz85DtMnfDBux0OVCNk1kFRuB1bo=";
           };
           platformKey = "${final.stdenv.hostPlatform.parsed.kernel.name}-${
             if final.stdenv.hostPlatform.isAarch64 then "arm64" else "x64"
