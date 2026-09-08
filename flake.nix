@@ -213,13 +213,20 @@
           claudeCodeVersion = "2.1.263";
           claudeCodeBaseUrl = "https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases";
           # Run `nix-prefetch-url <url>` for your platform to get the correct hash
-          # URL format: ${claudeCodeBaseUrl}/${claudeCodeVersion}/<platform>/claude
+          # URL format: ${claudeCodeBaseUrl}/${claudeCodeVersion}/<platform>/claude.zst
           # Platforms: darwin-arm64, darwin-x64, linux-arm64, linux-x64
+          #
+          # Anthropic's CDN serves both a raw ELF binary at `claude` and a
+          # zstd-compressed one at `claude.zst`; nixpkgs' claude-code
+          # installPhase unconditionally runs `unzstd` on $src
+          # (pkgs/by-name/cl/claude-code/package.nix), so this override must
+          # point at the `.zst` artifact or unzstd fails with "unsupported
+          # format" on the raw binary.
           claudeCodeChecksums = {
-            "darwin-arm64" = "sha256-710pCcivSfMattVIfpAxZ3e8L6wXCt/oFgcWyqiq9Pk=";
-            "darwin-x64" = "sha256-qUqLIp+oXDoxbGtKNeCqIr7BqrvT0UIoJs4dEN3Ih1E=";
-            "linux-arm64" = "sha256-fSXXyK5sbgCcx9rk6Bf2dBef0x+3dhvNVv7kwpArTAM=";
-            "linux-x64" = "sha256-JtAgNR6BEvQAZ5Dzz85DtMnfDBux0OVCNk1kFRuB1bo=";
+            "darwin-arm64" = "sha256-36zEkiQpSYNccdPKf6DNco03YdkatKcH5SqSooNoRyc=";
+            "darwin-x64" = "sha256-OdBHRKoHUZ5D8vR/fl7l2UsEVqIHoGfAkqTTaXF3oqo=";
+            "linux-arm64" = "sha256-sk95Pz/aiqL+heg0/tm15Bcudysp3W+L7DZebTVa3fA=";
+            "linux-x64" = "sha256-+zg7q3Lb8rWMGw56i3OyqE8iAz3IrXdP15RjIYEzbfA=";
           };
           platformKey = "${final.stdenv.hostPlatform.parsed.kernel.name}-${
             if final.stdenv.hostPlatform.isAarch64 then "arm64" else "x64"
@@ -229,7 +236,7 @@
           claude-code = prev.claude-code.overrideAttrs (oldAttrs: {
             version = claudeCodeVersion;
             src = final.fetchurl {
-              url = "${claudeCodeBaseUrl}/${claudeCodeVersion}/${platformKey}/claude";
+              url = "${claudeCodeBaseUrl}/${claudeCodeVersion}/${platformKey}/claude.zst";
               hash = claudeCodeChecksums.${platformKey};
             };
           });
