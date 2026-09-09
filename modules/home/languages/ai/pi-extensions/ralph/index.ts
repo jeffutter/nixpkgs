@@ -125,6 +125,9 @@ const PI_WEB_ACCESS_EXTENSION = join(
  * Done. It's deployed by ai.nix alongside this extension's own index.ts (not inside each
  * project's own backlog/ directory, since ralph loads globally across projects) and cds
  * into the target project's backlog/ itself when run.
+ *
+ * It also splits the result by assignee (`--assignee agent|human|all`, default `agent`), which
+ * is what keeps the loop off `@human` tickets — see AssigneeFilter below.
  */
 const UNBLOCKED_TODO_SCRIPT = join(
   homedir(),
@@ -249,6 +252,10 @@ type RalphState = {
    * won't surface, since backlog-execute correctly reports success for documenting the blocker
    * and reverting status. */
   repeatedChoiceStreak?: { ticketId: string; count: number };
+  /** Set when the loop stops because its own pool was empty: unblocked `To Do` tickets assigned
+   * to a person. Only ever populated on that path, so an empty field means either there was
+   * agent work throughout or the run stopped for some other reason — see buildFinalSummary. */
+  waitingOnHuman?: Ticket[];
   /** Cached triage verdict / research output for the ticket currently being planned. A doPlan
    * retry (triggered by the outer loop re-finding the same still-"Needs Plan" ticket after a
    * failure) reuses this instead of redoing triage and research from scratch — only the step
@@ -314,6 +321,7 @@ function createState(
     history: [],
     failureStreak: undefined,
     repeatedChoiceStreak: undefined,
+    waitingOnHuman: undefined,
     planCache: undefined,
     mainSessionId,
     mainPaneId,
@@ -525,20 +533,49 @@ async function findFirstByStatus(
   return parsePlainTaskList(stdout)[0];
 }
 
+/**
+ * Which side of the `@agent`/`@human` ticket convention a listing should cover. Projects put
+ * work that no agent can finish — plugging in a board, listening to a sound, deciding
+ * something that belongs to the owner — under `@human`, with `HUMAN:`-prefixed acceptance
+ * criteria an agent cannot satisfy by reading code. Nothing here used to read that label: the
+ * choose step was handed `${id} - ${title}` alone, so a hardware-verification ticket looked
+ * identical to any other and got queued, planned, executed, produced no commit (correctly — a
+ * person was needed), tripped the no-commit guard, and was re-picked until the failure-streak
+ * guard halted the whole run. Observed on TASK-004.
+ */
+type AssigneeFilter = "agent" | "human" | "all";
+
 async function listUnblockedByStatus(
   pi: ExtensionAPI,
   cwd: string,
   status: string,
+  assignee: AssigneeFilter = "agent",
 ): Promise<Ticket[]> {
-  const { stdout } = await execCapture(pi, UNBLOCKED_TODO_SCRIPT, [status], {
-    cwd,
-    timeout: 30_000,
-  });
+  const { stdout } = await execCapture(
+    pi,
+    UNBLOCKED_TODO_SCRIPT,
+    [status, "--assignee", assignee],
+    {
+      cwd,
+      timeout: 30_000,
+    },
+  );
   return parseUnblockedList(stdout);
 }
 
 async function listUnblocked(pi: ExtensionAPI, cwd: string): Promise<Ticket[]> {
   return listUnblockedByStatus(pi, cwd, "To Do");
+}
+
+/** Unblocked `To Do` tickets sitting with a person. Read only when the agent pool has run dry,
+ * so the run can say "nothing left for me, these N are yours" instead of the misleading "no
+ * unblocked tickets remain" — those two states look the same from the outside and mean very
+ * different things. */
+async function listWaitingOnHuman(
+  pi: ExtensionAPI,
+  cwd: string,
+): Promise<Ticket[]> {
+  return listUnblockedByStatus(pi, cwd, "To Do", "human");
 }
 
 /**
@@ -550,6 +587,11 @@ async function listUnblocked(pi: ExtensionAPI, cwd: string): Promise<Ticket[]> {
  * Done and promotes them to "To Do" so the normal choose/plan/execute flow picks them up. Only
  * called as a fallback when the "To Do" pool is empty — it's an extra backlog scan, not worth
  * paying on every iteration while there's already unblocked work.
+ *
+ * Promotion is assignee-agnostic (`all`) on purpose: it is status bookkeeping, not work
+ * selection. Filtering it would strand a `@human` ticket in "Blocked" forever, and every ticket
+ * depending on it would silently look blocked forever too — the promotion exists precisely to
+ * stop that class of quiet starvation.
  */
 async function promoteUnblockedBlockedTickets(
   pi: ExtensionAPI,
@@ -562,7 +604,7 @@ async function promoteUnblockedBlockedTickets(
     state,
     "checking Blocked tickets for satisfied dependencies",
   );
-  const promotable = await listUnblockedByStatus(pi, cwd, "Blocked");
+  const promotable = await listUnblockedByStatus(pi, cwd, "Blocked", "all");
   const promoted: Ticket[] = [];
   for (const ticket of promotable) {
     const ok = await setTicketStatus(pi, cwd, ticket.id, "To Do");
@@ -1345,6 +1387,20 @@ async function doPlan(
     exited early because it found unplanned child tickets, leave the status as-is and explain why in
     your final message.
 
+    Assignment — when a step needs a person: work here is done by an agent unless it genuinely
+    cannot be — it needs the physical device, ears to judge what something sounds like, a real
+    instrument, or a decision that belongs to the project owner. When planning surfaces such a
+    step, split it into its own sub-task rather than leaving it inside an agent-owned ticket, and
+    assign only that sub-task: \`backlog task create ... -a "@human"\` (or \`-a "@human"\` on edit),
+    prefixing each of its acceptance criteria with \`HUMAN:\`. Keep everything else \`@agent\`.
+    Both directions matter. A criterion left \`@agent\` that actually needs hands cannot be
+    satisfied by reading code or watching a build succeed — the executor can only report that a
+    person is required, which lands as a failed step and stalls the loop on the one ticket it was
+    meant to move past. And reassigning a whole parent to \`@human\` because a single child needs
+    hands is over-applying the label: a parent already inherits the strictest assignee among its
+    children, so it stays unclosable until that child ships either way, while marking the parent
+    itself \`@human\` additionally hides all of its remaining agent work from the loop.
+
     ${subagentThinkingGuidance("medium")}
 
     ${largeFileGuidance()}
@@ -1697,6 +1753,11 @@ async function buildFinalSummary(
       ? `Executed (${executed.length}): ${executed.join(", ")}`
       : "Executed: none",
   ];
+  if (state.waitingOnHuman?.length)
+    lines.push(
+      `Waiting on a human (${state.waitingOnHuman.length}) — these cannot be closed by agent work:` +
+        state.waitingOnHuman.map((t) => `\n  ${t.id} - ${t.title}`).join(""),
+    );
   if (planned.length)
     lines.push(`Also touched by planning: ${planned.join(", ")}`);
   if (promoted.length)
@@ -1836,7 +1897,19 @@ async function runLoop(
         if (promoted.length > 0) unblocked = await listUnblocked(pi, cwd);
       }
       if (unblocked.length === 0) {
-        finish(state, "done", "no unblocked tickets remain");
+        // Nothing left that an agent may take. Before declaring the backlog drained, check the
+        // other half of the assignment convention: if unblocked work sits with a person, that
+        // is the actual state of the project, and "no unblocked tickets remain" would be a lie
+        // that sends the owner off to look for work that does not exist.
+        const waiting = await listWaitingOnHuman(pi, cwd);
+        state.waitingOnHuman = waiting;
+        finish(
+          state,
+          "done",
+          waiting.length > 0
+            ? `no agent-pickable tickets remain (${waiting.length} waiting on a human)`
+            : "no unblocked tickets remain",
+        );
         break;
       }
       const ok = await doChoose(pi, ctx, cwd, state, unblocked);
