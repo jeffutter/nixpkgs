@@ -1063,8 +1063,14 @@ in
       skills = {
         domain-modeling = "${matt-pocock-skills}/skills/engineering/domain-modeling";
         grill-me = "${matt-pocock-skills}/skills/productivity/grill-me";
+        grill-with-docs = "${matt-pocock-skills}/skills/engineering/grill-with-docs";
         grilling = "${matt-pocock-skills}/skills/productivity/grilling";
+        handoff = "${matt-pocock-skills}/skills/productivity/handoff";
         research = "${matt-pocock-skills}/skills/engineering/research";
+        prototype = "${matt-pocock-skills}/skills/engineering/prototype";
+        to-spec = "${matt-pocock-skills}/skills/engineering/to-spec";
+        to-tickets = "${matt-pocock-skills}/skills/engineering/to-tickets";
+        wayfinder = "${matt-pocock-skills}/skills/engineering/wayfinder";
 
         acli = ./ai/skills/acli;
         actual-cli = ./ai/skills/actual-cli;
