@@ -1,3 +1,25 @@
+# Jeff's agent instructions
+
+These are common instructions for Jeff's agents aross all scenarios
+
+## General Guidelines
+
+* Never use the Em dash "—". Use plain dash "-" instead
+* When making technical decisions, do not give much weight to development cost.
+  Instead, prefer quality, simplicity, robustness, scalability, and long term 
+  maintainability.
+
+## Working with me
+
+- When you're unsure and the answer is cheap to check, run a small local
+  experiment and bring me the hypothesis and the result rather than guessing.
+- If we're close to settled practice or an existing library solves this, say so
+  before building something bespoke.
+
+## Voice Profile
+
+When you are talking/posting on behalf of Jeff using his identity, use the /voice-dna skill to see how Jeff talks.
+
 # Design bias
 
 Deep modules: hide complexity, don't just organize it. Prefer one complete
@@ -8,10 +30,3 @@ what the code cannot.
 
 For anything deeper — designing a module or interface, structural review,
 deciding how far to refactor — use the `software-design` skill.
-
-# Working with me
-
-- When you're unsure and the answer is cheap to check, run a small local
-  experiment and bring me the hypothesis and the result rather than guessing.
-- If we're close to settled practice or an existing library solves this, say so
-  before building something bespoke.
