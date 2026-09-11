@@ -1719,7 +1719,7 @@ const FAILURE_CLASS_TEXT: Record<
       "timeout was involved.",
   },
   "no-commit": {
-    label: "claimed success but moved no commit",
+    label: "uncommitted success (reported done, moved no commit)",
     advice:
       "The worker finished talking with HEAD where it started, so its work sits uncommitted on disk " +
       "and the next attempt will inherit it as half-finished prior work. Check \"git status\"/\"git stash\" " +
@@ -1728,26 +1728,35 @@ const FAILURE_CLASS_TEXT: Record<
 };
 
 /** The failure classes recorded for the streak behind `key` ("execute:<id>", "plan:<id>",
- * "review", "choose"), oldest first, up to the streak cap. Entries with no recorded class are
- * reported as such rather than guessed at. */
+ * "review", "choose"), oldest first. Walks back from the newest history entry and stops at the
+ * first one that is not a matching failure, so an older failure of the same kind separated by a
+ * success is not counted into a message about the current streak. Entries with no recorded class
+ * are reported as such rather than guessed at. */
 function streakFailureClasses(
   state: RalphState,
   key: string,
 ): (FailureClass | "unrecorded")[] {
   const [kind, ticket] = key.split(":");
-  const matches = state.history.filter(
-    (h) =>
-      h.outcome === "failed" &&
-      h.kind === kind &&
-      (ticket === undefined || h.ticket === ticket),
-  );
-  return matches
-    .slice(-MAX_CONSECUTIVE_FAILURES)
-    .map((h) => h.failure ?? "unrecorded");
+  const classes: (FailureClass | "unrecorded")[] = [];
+  for (let i = state.history.length - 1; i >= 0; i--) {
+    const h = state.history[i];
+    if (
+      h.outcome !== "failed" ||
+      h.kind !== kind ||
+      (ticket !== undefined && h.ticket !== ticket)
+    ) {
+      break;
+    }
+    classes.unshift(h.failure ?? "unrecorded");
+    if (classes.length >= MAX_CONSECUTIVE_FAILURES) break;
+  }
+  return classes;
 }
 
-/** Turns the observed classes into the cause sentence of a stop reason: one shared class gets
- * that class's advice, mixed classes get each label and a note that they need different fixes. */
+/** Turns the observed classes into the cause sentence of a stop reason. Phrasing is deliberately
+ * count- and article-neutral ("observed cause:") — the cap is a constant, and labels that read as
+ * noun phrases or clauses both have to fit. One shared class gets that class's advice; mixed
+ * classes get each label and a note that they need different fixes. */
 function describeFailureStreak(classes: (FailureClass | "unrecorded")[]): string {
   const text = (c: FailureClass | "unrecorded"): string =>
     c === "unrecorded"
@@ -1757,12 +1766,12 @@ function describeFailureStreak(classes: (FailureClass | "unrecorded")[]): string
   if (distinct.length === 1) {
     const c = distinct[0];
     return (
-      `both were a ${text(c)}.` +
+      `observed cause in all ${classes.length}: ${text(c)}.` +
       (c === "unrecorded" ? "" : " " + FAILURE_CLASS_TEXT[c].advice)
     );
   }
   return (
-    `${distinct.map((c) => `a ${text(c)}`).join("; and ")} — the attempts failed for ` +
+    `observed causes: ${distinct.map((c) => text(c)).join("; ")} — these attempts failed for ` +
     "different reasons, so there is no single cause to name. Each needs a different fix, so read " +
     "both attempts before choosing one."
   );
