@@ -2,7 +2,7 @@
 # List tasks in a given status (default "To Do") whose dependencies (if any) are all Done,
 # split by who is allowed to do the work.
 #
-# Usage: unblocked-todo.sh [status] [--assignee agent|human|all]
+# Usage: unblocked-todo.sh [status] [--assignee agent|human|all] [--explain]
 #   --assignee agent   (default) Tickets an agent may pick up: unassigned, or assigned to
 #                      anyone other than @human.
 #   --assignee human   Tickets waiting on a person — identical dependency and container
@@ -22,6 +22,26 @@
 # commit landed" guard, and was re-picked until the failure-streak guard halted the whole run.
 # Callers that want everything pass --assignee all explicitly.
 #
+# --explain prints one "id|reason" line per task whose .status matches, ineligible ones included,
+# so a caller that has to say why a ticket was refused gets verdict and reason for the whole pool
+# in one call. Reasons come from the same three rules that set the verdict, computed in this file
+# alongside it, so the two cannot disagree; reconstructing them in a caller would be a second copy
+# of those rules, which is how this script's two copies drifted apart once already.
+#
+# The vocabulary is closed at four values, reported in this precedence:
+#   dependencies-unresolved  some dependency does not resolve to Done
+#   container-children-open  some descendant is not Done
+#   assignee-human           some assignee normalises to human
+#   eligible                 none of the three applies, so an agent may pick it up
+# A reason names the condition and never the offending id, so TASK-038.06 reports
+# `dependencies-unresolved` rather than naming the dependency holding it back: low cardinality is
+# what lets a caller switch on the value, and the ticket's own frontmatter says which dependency.
+# Reasons are identical in all three --assignee modes and --explain does not filter by mode, so
+# they describe the board rather than what one mode happens to print: agent mode reads
+# `assignee-human` as "not mine to pick up", human mode reads the same fact as "waiting on a
+# person". Explain output is also a different line format from the listing (`id|reason` versus
+# `ID - Title`), so callers must not feed one to the other's parser.
+#
 # Container tickets are held back in every mode: a ticket with an unfinished child is never
 # listed, because there is nothing left to execute on it — its children own the remaining
 # work. See the check below for why this matters and how a parent becomes eligible again.
@@ -34,8 +54,15 @@ cd backlog
 
 TARGET_STATUS="To Do"
 ASSIGNEE_MODE="agent"
+EXPLAIN=false
+# Explain lines counted: how many tasks matched TARGET_STATUS at all, eligible or not.
+explained=0
 while [ $# -gt 0 ]; do
   case "$1" in
+    --explain)
+      EXPLAIN=true
+      shift
+      ;;
     -a | --assignee)
       ASSIGNEE_MODE="${2:-}"
       shift 2
@@ -73,13 +100,14 @@ frontmatter() {
 # and being read last it overwrote the real "Done". Everything depending on that ID looked
 # permanently blocked, so the loop quietly starved with no error anywhere. `backlog doctor`
 # cannot catch this: it only scans active and completed tasks, not archive/.
-declare -A status_of
+declare -A status_of seen_statuses
 for f in archive/tasks/*.md completed/*.md tasks/*.md; do
   [ -f "$f" ] || continue
   fm=$(frontmatter "$f")
   id=$(printf '%s\n' "$fm" | yq -r '.id')
   st=$(printf '%s\n' "$fm" | yq -r '.status')
   status_of["$id"]="$st"
+  seen_statuses["$st"]=1
 done
 
 for f in tasks/*.md; do
@@ -87,16 +115,23 @@ for f in tasks/*.md; do
   fm=$(frontmatter "$f")
   st=$(printf '%s\n' "$fm" | yq -r '.status')
   [ "$st" = "$TARGET_STATUS" ] || continue
+  explained=$((explained + 1))
 
   id=$(printf '%s\n' "$fm" | yq -r '.id')
   title=$(printf '%s\n' "$fm" | yq -r '.title')
   mapfile -t deps < <(printf '%s\n' "$fm" | yq -o=json '.dependencies // []' | jq -r '.[]')
 
   blocked=false
+  # Which condition holds this ticket, in the order the rules run: dependencies, then the container
+  # check, then ownership. Rules 2 and 3 still execute after rule 1 has set `blocked`, so each one
+  # writes the reason only while it is still `eligible`; that guard is what keeps the documented
+  # precedence dependencies > container > assignee.
+  reason=eligible
   for d in "${deps[@]:-}"; do
     [ -z "$d" ] && continue
     if [ "${status_of[$d]:-MISSING}" != "Done" ]; then
       blocked=true
+      [ "$reason" = eligible ] && reason=dependencies-unresolved
       break
     fi
   done
@@ -119,6 +154,7 @@ for f in tasks/*.md; do
     esac
     if [ "${status_of[$child_id]}" != "Done" ]; then
       blocked=true
+      [ "$reason" = eligible ] && reason=container-children-open
       break
     fi
   done
@@ -129,7 +165,9 @@ for f in tasks/*.md; do
   # strictest assignee among its children. Anything else, including no assignee at all, stays
   # agent-pickable: projects without the convention must keep working, and an unassigned
   # ticket is far more likely a filing slip than a request for a person.
-  if [ "$ASSIGNEE_MODE" != all ]; then
+  # In `all` mode the verdict needs no ownership at all, but an explanation does: without the
+  # second condition `--assignee all --explain` would print `eligible` for a @human ticket.
+  if [ "$ASSIGNEE_MODE" != all ] || [ "$EXPLAIN" = true ]; then
     human_owned=false
     mapfile -t assignees < <(
       printf '%s\n' "$fm" | yq -o=json '.assignee // []' 2>/dev/null |
@@ -140,6 +178,7 @@ for f in tasks/*.md; do
         human) human_owned=true ;;
       esac
     done
+    [ "$human_owned" = true ] && [ "$reason" = eligible ] && reason=assignee-human
     if [ "$ASSIGNEE_MODE" = agent ]; then
       [ "$human_owned" = true ] && blocked=true
     else
@@ -147,7 +186,18 @@ for f in tasks/*.md; do
     fi
   fi
 
-  if [ "$blocked" = false ]; then
+  if [ "$EXPLAIN" = true ]; then
+    echo "$id|$reason"
+  elif [ "$blocked" = false ]; then
     echo "$id - $title"
   fi
 done
+
+# A status nobody typed correctly looks exactly like a status that has nothing in it. stdout stays
+# empty and the exit stays 0, because the line-per-matching-task contract holds either way; the
+# difference goes to stderr, where it cannot reach the parsers of either caller. Only explain mode
+# says anything: the ralph JS workflow reads this script's stderr interleaved with stdout.
+if [ "$EXPLAIN" = true ] && [ "$explained" -eq 0 ]; then
+  printf 'unblocked-todo.sh: no task on this board has status "%s" (statuses present: %s)\n' \
+    "$TARGET_STATUS" "$(printf '%s\n' "${!seen_statuses[@]}" | sort | paste -sd ',' -)" >&2
+fi
