@@ -765,8 +765,13 @@ function intercomStatusGuidance(mainSessionId: string, timeoutMs: number): strin
         stretch of quick steps with no pings kills the step exactly like a hang.
       - Long single commands: if one command is likely to run longer than ~${cadenceMin} minutes,
         don't block on it in the foreground — you'd be unable to ping for its entire runtime.
-        Launch it detached instead (e.g. \`nohup <cmd> > /tmp/<name>.log 2>&1 &\`) and poll the
-        log with short sleeps between pings, so you stay free to keep the liveness signal going.
+        Launch it detached and keep its pid (\`nohup <cmd> > /tmp/<name>.log 2>&1 & echo $!\`), then
+        poll that pid with short sleeps between pings (\`kill -0 <pid>\`), or grep the log for its
+        final summary line. Never wait on \`pgrep -f "<the command>"\`: \`-f\` matches whole command
+        lines, so the polling shell matches itself - its own argv contains the string you are
+        searching for - the loop can never observe the run finishing, and you burn wall clock until
+        the deadline kills a step whose work was already done. Confirmed live 2026-09-12: a worker
+        polled a finished suite with \`pgrep -f "cargo test"\` for roughly 25 minutes.
     Use \`send\`,
     never \`ask\` — nobody is waiting on a reply:
     intercom({ action: "send", to: "${mainSessionId}", message: "<one sentence: what you just
@@ -1159,6 +1164,51 @@ async function autosquashFixups(
   };
 }
 
+/**
+ * Paths the working tree holds uncommitted, measured before dispatching an execute worker.
+ * Returns [] when the repo is clean or git can't be consulted; callers only act on non-empty.
+ */
+async function dirtyPaths(pi: ExtensionAPI, cwd: string): Promise<string[]> {
+  const { ok, stdout } = await execCapture(
+    pi,
+    "git",
+    ["status", "--porcelain"],
+    { cwd, timeout: 10_000 },
+  );
+  if (!ok) return [];
+  return stdout
+    .split("\n")
+    .filter((line) => line.trim() !== "")
+    .map((line) => line.slice(3));
+}
+
+/**
+ * Tells an execute worker that the tree it is inheriting is not clean.
+ *
+ * A killed worker leaves its ticket In Progress and assigned, which is exactly what the loop reads
+ * as work to run, so the next dispatch lands on the same ticket with the dead run's edits still on
+ * disk and no memory of them. Confirmed live 2026-09-12 on TASK-2.15: three sessions were pointed
+ * at it in a row, each surveying from scratch against a tree that already held its predecessor's
+ * new crate, and none was told the tree was dirty. The existing HEAD-didn't-move guard catches the
+ * resulting pretence of success after the fact; this says so up front, so continuing prior work is
+ * a choice the worker makes knowingly rather than something it stumbles into or quietly undoes.
+ */
+function dirtyTreeGuidance(paths: string[]): string {
+  const shown = paths.slice(0, 15);
+  const rest = paths.length - shown.length;
+  return dedent`
+    Uncommitted work predating this run: \`git status\` shows ${paths.length} dirty path(s) -
+    ${shown.join(", ")}${rest > 0 ? `, plus ${rest} more` : ""}. This ticket was already In Progress,
+    so those edits are most likely a previous attempt at it that was killed mid-run. A headless retry
+    shares no context with the run that died, so look before you write: read the diff, then decide
+    knowingly whether to continue that work or discard it, and say which in your first intercom ping.
+    Never silently revert, stash, clean or reset it. Discarding is allowed, but only as a decision you
+    state out loud, because those edits may be the only copy of that design work. If they turn out to
+    be complete and green, land them (commit with the ticket's Task-Id trailer) instead of redoing
+    them.
+  `;
+}
+
 async function doExecute(
   pi: ExtensionAPI,
   ctx: ExtensionCommandContext,
@@ -1175,6 +1225,8 @@ async function doExecute(
   // found (package moved/removed), degrade gracefully with an explicit fallback
   // instruction rather than silently losing the capability.
   const hasSubagents = existsSync(PI_SUBAGENTS_EXTENSION);
+  // Measured before the worker touches anything, so a dirty tree can be named in its prompt.
+  const dirty = await dirtyPaths(pi, cwd);
   const screenshotGuidance = hasSubagents
     ? dedent`
         Widget visual verification: never read more than 4 screenshots into your own session (the model provider rejects prompts with >4 images). Delegate screenshot review to subagent calls — one subagent per batch of <=4 images, each reporting findings back as text.
@@ -1182,34 +1234,24 @@ async function doExecute(
     : dedent`
         Widget visual verification: the subagent tool is NOT available in this session. Never read more than 4 screenshots into your own context (the model provider rejects prompts with >4 images). Instead verify each batch of <=4 screenshots with a separate headless \`pi -p\` call that instructs the fresh process to read the image files with the read tool and report findings as text — each call starts from a clean context, so the 4-image cap is never exceeded.
       `;
-  const result = await runHeadless(
-    pi,
-    cwd,
-    dedent`
-      /backlog-execute ${ticket.id}
-
-      ${screenshotGuidance}
-
-      ${largeFileGuidance()}
-
-      ${intercomStatusGuidance(state.mainSessionId, EXECUTE_TIMEOUT_MS)}
-    `,
-    {
-      model: "coding",
-      thinking: "medium",
-      timeout: EXECUTE_TIMEOUT_MS,
-      extensions: [
-        PI_INTERCOM_EXTENSION,
-        ...(hasSubagents ? [PI_SUBAGENTS_EXTENSION] : []),
-      ],
-      heartbeatNonce,
-      onHeartbeatReset: trackHeartbeatReset(
-        ctx,
-        state,
-        EXECUTE_TIMEOUT_MS,
-      ),
-    },
-  );
+  const promptBlocks = [
+    `/backlog-execute ${ticket.id}`,
+    screenshotGuidance,
+    largeFileGuidance(),
+    dirty.length > 0 ? dirtyTreeGuidance(dirty) : "",
+    intercomStatusGuidance(state.mainSessionId, EXECUTE_TIMEOUT_MS),
+  ].filter((block) => block.trim() !== "");
+  const result = await runHeadless(pi, cwd, promptBlocks.join("\n\n"), {
+    model: "coding",
+    thinking: "medium",
+    timeout: EXECUTE_TIMEOUT_MS,
+    extensions: [
+      PI_INTERCOM_EXTENSION,
+      ...(hasSubagents ? [PI_SUBAGENTS_EXTENSION] : []),
+    ],
+    heartbeatNonce,
+    onHeartbeatReset: trackHeartbeatReset(ctx, state, EXECUTE_TIMEOUT_MS),
+  });
   await endHeartbeatStep(cwd, heartbeatNonce);
 
   // A subprocess reporting success — even a Final Summary claiming every AC is met — isn't
