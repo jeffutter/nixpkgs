@@ -15,12 +15,11 @@
   ];
 
   # Bootloader.
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.efi.canTouchEfiVariables = true;
-  boot.loader.grub = {
-    useOSProber = true;
+  boot.loader.systemd-boot = {
+    enable = true;
     configurationLimit = 3;
   };
+  boot.loader.efi.canTouchEfiVariables = true;
   boot.kernelPackages = pkgs.linuxPackages_latest;
   #boot.kernelPackages = pkgs.linuxKernel.packages.linux_6_16;
   boot.kernelParams = [ "i915.force_probe=7d45" ];
