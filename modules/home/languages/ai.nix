@@ -530,8 +530,25 @@ in
     # setting these tools go entirely unused and workers fall back to blind
     # whole-file reads on large source files. Costs a slightly longer tool list
     # every turn in exchange for the tools actually being reachable.
+    # Backlog.md stores its task and document bodies as markdown whose comment
+    # fences are `author:` / `created:` / `---`. markdownlint parses that `---`
+    # as a setext heading underline, so the line above it becomes a heading and
+    # `markdownlint-cli2 --fix` rewrites stored data: strips trailing punctuation
+    # off comment headers (MD026), inserts blanks around "fences", and relabels
+    # the walking-skeleton spec's user-story lists, which are numbered
+    # continuously on purpose because those numbers are references.
+    #
+    # pi-lens runs `--fix` for any fixable finding in the file, and its own
+    # allowlist of deterministically-fixable rules (MD029 is absent from it)
+    # gates only what gets *reported*, not what the rewrite applies. So one
+    # stray blank-line warning in a ticket is enough to renumber stories nobody
+    # touched. Those files are Backlog's storage format rather than prose a
+    # linter should own, so exclude them from every scan, autofix included.
+    # Verified in dist: written paths reach the fix pipeline through
+    # isPathIgnoredByProject, which honours these globs.
     home.file.".pi-lens/config.json".text = builtins.toJSON {
       tools.lazy = false;
+      ignore = [ "backlog/**" ];
     };
 
     # pi-continue (and other extensions) declare @earendil-works/pi-coding-agent

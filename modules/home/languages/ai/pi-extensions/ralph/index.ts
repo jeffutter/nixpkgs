@@ -823,8 +823,13 @@ function intercomStatusGuidance(mainSessionId: string, timeoutMs: number): strin
         stretch of quick steps with no pings kills the step exactly like a hang.
       - Long single commands: if one command is likely to run longer than ~${cadenceMin} minutes,
         don't block on it in the foreground — you'd be unable to ping for its entire runtime.
-        Launch it detached instead (e.g. \`nohup <cmd> > /tmp/<name>.log 2>&1 &\`) and poll the
-        log with short sleeps between pings, so you stay free to keep the liveness signal going.
+        Launch it detached and keep its pid (\`nohup <cmd> > /tmp/<name>.log 2>&1 & echo $!\`), then
+        poll that pid with short sleeps between pings (\`kill -0 <pid>\`), or grep the log for its
+        final summary line. Never wait on \`pgrep -f "<the command>"\`: \`-f\` matches whole command
+        lines, so the polling shell matches itself - its own argv contains the string you are
+        searching for - the loop can never observe the run finishing, and you burn wall clock until
+        the deadline kills a step whose work was already done. Confirmed live 2026-09-12: a worker
+        polled a finished suite with \`pgrep -f "cargo test"\` for roughly 25 minutes.
     Use \`send\`,
     never \`ask\` — nobody is waiting on a reply:
     intercom({ action: "send", to: "${mainSessionId}", message: "<one sentence: what you just
@@ -1224,6 +1229,153 @@ async function autosquashFixups(
   };
 }
 
+/**
+ * Paths the working tree holds uncommitted, measured before dispatching an execute worker.
+ * Returns [] when the repo is clean or git can't be consulted; callers only act on non-empty.
+ */
+async function dirtyPaths(pi: ExtensionAPI, cwd: string): Promise<string[]> {
+  const { ok, stdout } = await execCapture(
+    pi,
+    "git",
+    ["status", "--porcelain"],
+    { cwd, timeout: 10_000 },
+  );
+  if (!ok) return [];
+  return stdout
+    .split("\n")
+    .filter((line) => line.trim() !== "")
+    .map((line) => line.slice(3));
+}
+
+/**
+ * Tells an execute worker that the tree it is inheriting is not clean.
+ *
+ * A killed worker leaves its ticket In Progress and assigned, which is exactly what the loop reads
+ * as work to run, so the next dispatch lands on the same ticket with the dead run's edits still on
+ * disk and no memory of them. Confirmed live 2026-09-12 on TASK-2.15: three sessions were pointed
+ * at it in a row, each surveying from scratch against a tree that already held its predecessor's
+ * new crate, and none was told the tree was dirty. The existing HEAD-didn't-move guard catches the
+ * resulting pretence of success after the fact; this says so up front, so continuing prior work is
+ * a choice the worker makes knowingly rather than something it stumbles into or quietly undoes.
+ */
+function dirtyTreeGuidance(paths: string[]): string {
+  const shown = paths.slice(0, 15);
+  const rest = paths.length - shown.length;
+  return dedent`
+    Uncommitted work predating this run: \`git status\` shows ${paths.length} dirty path(s) -
+    ${shown.join(", ")}${rest > 0 ? `, plus ${rest} more` : ""}. This ticket was already In Progress,
+    so those edits are most likely a previous attempt at it that was killed mid-run. A headless retry
+    shares no context with the run that died, so look before you write: read the diff, then decide
+    knowingly whether to continue that work or discard it, and say which in your first intercom ping.
+    Never silently revert, stash, clean or reset it. Discarding is allowed, but only as a decision you
+    state out loud, because those edits may be the only copy of that design work. If they turn out to
+    be complete and green, land them (commit with the ticket's Task-Id trailer) instead of redoing
+    them.
+  `;
+}
+
+/**
+ * Tells a worker that its own account of what it has done is not evidence about the repo,
+ * and gives it the three cheap reads that are.
+ *
+ * Confirmed on 2026-09-16 across one ralph cycle: five separate sessions were pointed at
+ * TASK-2.15.3 and TASK-2.15.3.1, both of which had already shipped (`ecffcf1`, `6d00cad`,
+ * `1c70c6c`). None of them was sloppy. Each had been through context compaction mid-ticket,
+ * and a summary carries forward what the session intended while going quiet about what it
+ * finished, so each one opened a Done ticket, read a plan that described merged work as
+ * pending, and set out to build it again. Two of them reported landing commits whose hashes
+ * existed in no repository - `5a61ff3` and `976f8d4` were values recited from their own
+ * pre-compaction notes. The work they "did" was the work already on disk, which they then
+ * described as their own.
+ *
+ * The failure is not reasoning quality but reference point: every finding those sessions
+ * produced was true of the commit they had read and false of the one they were standing on.
+ * A research session pinned at `0bd0019` reported four open contract gaps that later commits
+ * had closed, citing prior art in detail. So the fix is to make the repo, not the transcript,
+ * the thing a worker quotes: pin the SHA it reads, look for the deliverable before building
+ * it, and re-establish its own progress from git after any compaction.
+ */
+function stateVerificationGuidance(
+  ticketId: string,
+  headSha: string | null,
+  audience: "execute" | "plan",
+): string {
+  const shipped =
+    audience === "execute"
+      ? dedent`
+        do NOT re-implement it and do not write a competing version into the same files - two
+        implementations of one decision is worse than either alone, and whichever the tests fail to
+        pin loses silently. Instead confirm the shipped code actually meets each acceptance
+        criterion, tick the criteria it meets, mark the ticket Done, and commit the ticket file alone
+        with the required trailers. Name the commit that shipped it in your summary. If only part of
+        it shipped, build exactly the remainder and say which part was already there.
+      `
+      : dedent`
+        do NOT write an implementation plan for it. A plan describing merged work as pending is the
+        artifact that misled five sessions on 2026-09-16: once committed it reads as a queue entry
+        forever, and it kept pointing fresh runs at finished tickets. End your run reporting
+        ALREADY_SHIPPED with the SHA that landed it, so the loop closes the ticket on evidence rather
+        than on a plan. Do not change the ticket's status yourself.
+      `;
+  return dedent`
+    Verify state from git before believing anything about your own progress, including this prompt.
+
+    HEAD is ${headSha ?? "unknown"} right now. Record that value. Every other agent
+    working here shares this checkout and main moves underneath you, so before you quote any source
+    file, and again before you report results, run \`git rev-parse HEAD\`. If it changed
+    mid-task, re-read whatever you meant to cite - a finding about a file you read three commits
+    ago is not a finding about that file.
+
+    Then check whether ${ticketId}'s deliverable already exists before building it:
+
+      git log --oneline -20
+      git log --grep="${ticketId}" --oneline
+      grep -rn "<the specific symbols/files/routes the ticket names>" crates/
+
+    Search for the artifacts, not just the ticket ID: much of this project's work landed under
+    descriptive subject lines with the ID only in a trailer. If the deliverable is already in HEAD,
+    ${shipped}
+
+    After a context compaction, none of the above is optional. A summary saying you are "about to
+    implement X" is a statement about intent, not about the tree; several sessions today re-ran a
+    completed plan for precisely that reason. Re-run \`git log --oneline -8\`, \`git status
+    --porcelain\` and \`backlog task ${ticketId} --plain\` and believe those over the summary.
+  `;
+}
+
+/**
+ * Forbids restoring tracked files as a cleanup step, because cleanup in a shared checkout is not
+ * a private act.
+ *
+ * Observed the same day: a research session announced it would temporarily edit
+ * `crates/server/src/live.rs` - the file four other sessions were in and out of that afternoon -
+ * and "leave the tree clean" with \`git checkout --\` afterward. On a file another session holds
+ * uncommitted edits in, that command destroys their work with no conflict marker, no record in
+ * the reflog, and nothing in the perpetrator's summary suggesting it happened. It also proposed
+ * it in good faith, as tidiness.
+ *
+ * Complements dirtyTreeGuidance rather than repeating it: that block governs work inheriting a
+ * dirty tree, this one governs the scratch files a run creates for itself. Deleting a file you
+ * created cannot harm anybody, which makes an untracked probe strictly better than a temporary
+ * edit to something tracked.
+ */
+function sharedCheckoutGuidance(): string {
+  return dedent`
+    Other agents work in this exact checkout, so treat tracked files as shared.
+
+    Never undo someone else's work to tidy up. Do not run \`git checkout -- <path>\`,
+    \`git restore\`, \`git stash\`, or \`git reset --hard\` on a tracked file to clean up after an
+    experiment, and do not delete a tracked file you did not create. Those commands discard any
+    uncommitted edit another session is holding in that file, silently and unrecoverably.
+
+    Run throwaway probes in files you created and nobody else can be editing - an untracked
+    \`crates/<crate>/tests/probe_*.rs\`, a scratch file outside the repo - and clean up by deleting
+    your own file. Check \`git status --porcelain\` before and after any experiment anyway, and if a
+    path you touched shows up modified in a way you did not cause, stop and report it rather than
+    reverting it.
+  `;
+}
+
 async function doExecute(
   pi: ExtensionAPI,
   ctx: ExtensionCommandContext,
@@ -1232,6 +1384,20 @@ async function doExecute(
   ticket: Ticket,
 ): Promise<boolean> {
   setCurrentStep(ctx, state, `executing ${ticket.id}`, EXECUTE_TIMEOUT_MS);
+  // Fail-open re-check against the backlog itself. Choose listed this ticket from a status query,
+  // so it was startable moments ago; if it now reads Done, some other session closed it while this
+  // step was queued, and handing it to a worker would restart finished work - which is what happened
+  // five times over on TASK-2.15.3 on 2026-09-16. Only a positive Done reading skips, so a failed or
+  // empty backlog read cannot strand the loop by pretending every ticket is complete.
+  if (await isTicketInStatus(pi, cwd, ticket.id, "Done")) {
+    await recordHistory(cwd, state, {
+      kind: "execute",
+      ticket: ticket.id,
+      outcome: "ok",
+      summary: "skipped - ticket already Done before dispatch, not re-executed",
+    });
+    return true;
+  }
   const heartbeatNonce = await beginHeartbeatStep(cwd);
   const shaBefore = await currentHeadSha(pi, cwd);
   // Screenshot-cap guard: without the subagent tool, visual verification reads every
@@ -1240,6 +1406,8 @@ async function doExecute(
   // found (package moved/removed), degrade gracefully with an explicit fallback
   // instruction rather than silently losing the capability.
   const hasSubagents = existsSync(PI_SUBAGENTS_EXTENSION);
+  // Measured before the worker touches anything, so a dirty tree can be named in its prompt.
+  const dirty = await dirtyPaths(pi, cwd);
   const screenshotGuidance = hasSubagents
     ? dedent`
         Widget visual verification: never read more than 4 screenshots into your own session (the model provider rejects prompts with >4 images). Delegate screenshot review to subagent calls — one subagent per batch of <=4 images, each reporting findings back as text.
@@ -1247,34 +1415,26 @@ async function doExecute(
     : dedent`
         Widget visual verification: the subagent tool is NOT available in this session. Never read more than 4 screenshots into your own context (the model provider rejects prompts with >4 images). Instead verify each batch of <=4 screenshots with a separate headless \`pi -p\` call that instructs the fresh process to read the image files with the read tool and report findings as text — each call starts from a clean context, so the 4-image cap is never exceeded.
       `;
-  const result = await runHeadless(
-    pi,
-    cwd,
-    dedent`
-      /backlog-execute ${ticket.id}
-
-      ${screenshotGuidance}
-
-      ${largeFileGuidance()}
-
-      ${intercomStatusGuidance(state.mainSessionId, EXECUTE_TIMEOUT_MS)}
-    `,
-    {
-      model: "coding",
-      thinking: "medium",
-      timeout: EXECUTE_TIMEOUT_MS,
-      extensions: [
-        PI_INTERCOM_EXTENSION,
-        ...(hasSubagents ? [PI_SUBAGENTS_EXTENSION] : []),
-      ],
-      heartbeatNonce,
-      onHeartbeatReset: trackHeartbeatReset(
-        ctx,
-        state,
-        EXECUTE_TIMEOUT_MS,
-      ),
-    },
-  );
+  const promptBlocks = [
+    `/backlog-execute ${ticket.id}`,
+    screenshotGuidance,
+    largeFileGuidance(),
+    stateVerificationGuidance(ticket.id, shaBefore, "execute"),
+    sharedCheckoutGuidance(),
+    dirty.length > 0 ? dirtyTreeGuidance(dirty) : "",
+    intercomStatusGuidance(state.mainSessionId, EXECUTE_TIMEOUT_MS),
+  ].filter((block) => block.trim() !== "");
+  const result = await runHeadless(pi, cwd, promptBlocks.join("\n\n"), {
+    model: "coding",
+    thinking: "medium",
+    timeout: EXECUTE_TIMEOUT_MS,
+    extensions: [
+      PI_INTERCOM_EXTENSION,
+      ...(hasSubagents ? [PI_SUBAGENTS_EXTENSION] : []),
+    ],
+    heartbeatNonce,
+    onHeartbeatReset: trackHeartbeatReset(ctx, state, EXECUTE_TIMEOUT_MS),
+  });
   await endHeartbeatStep(cwd, heartbeatNonce);
 
   // A subprocess reporting success — even a Final Summary claiming every AC is met — isn't
@@ -1404,11 +1564,14 @@ async function doPlan(
   } else {
     setCurrentStep(ctx, state, `researching ${ticket.id}`, RESEARCH_TIMEOUT_MS);
     const researchNonce = await beginHeartbeatStep(cwd);
+    const researchSha = await currentHeadSha(pi, cwd);
     const researchPrompt = dedent`
       Research context to inform planning ticket ${ticket.id} ("${ticket.title}") in this repo.
       Run \`backlog task ${ticket.id} --plain\` first to see the full ticket, then search the web for
       relevant prior art, library documentation, or best practices that would help write a thorough
       implementation plan. Return a concise research summary (bullet points), not a plan.
+
+      ${stateVerificationGuidance(ticket.id, researchSha, "plan")}
 
       ${intercomStatusGuidance(state.mainSessionId, RESEARCH_TIMEOUT_MS)}
     `;
@@ -1442,8 +1605,11 @@ async function doPlan(
 
   setCurrentStep(ctx, state, `planning ${ticket.id}`, PLAN_TIMEOUT_MS);
   const planNonce = await beginHeartbeatStep(cwd);
+  const planSha = await currentHeadSha(pi, cwd);
   const planPrompt = dedent`
     /backlog-planner ${ticket.id}
+
+    ${stateVerificationGuidance(ticket.id, planSha, "plan")}
 
     Research gathered before planning (best-effort — the research step may have been cut short by a
     timeout partway through, or its output may just be an unrelated startup warning with no real

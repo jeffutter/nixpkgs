@@ -43,7 +43,7 @@
     };
 
     meethook = {
-      url = "github:jeffutter/meethook/v0.2.1";
+      url = "github:jeffutter/meethook/v0.3.0";
     };
 
     herdr = {
@@ -210,7 +210,7 @@
       claudeCodeOverlay =
         final: prev:
         let
-          claudeCodeVersion = "2.1.263";
+          claudeCodeVersion = "2.1.270";
           claudeCodeBaseUrl = "https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases";
           # Run `nix-prefetch-url <url>` for your platform to get the correct hash
           # URL format: ${claudeCodeBaseUrl}/${claudeCodeVersion}/<platform>/claude.zst
@@ -223,10 +223,10 @@
           # point at the `.zst` artifact or unzstd fails with "unsupported
           # format" on the raw binary.
           claudeCodeChecksums = {
-            "darwin-arm64" = "sha256-36zEkiQpSYNccdPKf6DNco03YdkatKcH5SqSooNoRyc=";
-            "darwin-x64" = "sha256-OdBHRKoHUZ5D8vR/fl7l2UsEVqIHoGfAkqTTaXF3oqo=";
-            "linux-arm64" = "sha256-sk95Pz/aiqL+heg0/tm15Bcudysp3W+L7DZebTVa3fA=";
-            "linux-x64" = "sha256-+zg7q3Lb8rWMGw56i3OyqE8iAz3IrXdP15RjIYEzbfA=";
+            "darwin-arm64" = "sha256-G2dGhXbf4J8ZdcXd8uEImOdjISSZXWj7i5RUVCLNhYg=";
+            "darwin-x64" = "sha256-s+4yN6AZuKWrswCPHH3dRilaDm5lq5RUWnnJuZfciSg=";
+            "linux-arm64" = "sha256-e/nzOswSTfmrzPbyNmOXqCp0A3jVNfoS1Cb6d/28mUY=";
+            "linux-x64" = "sha256-WcBWzTIcEx6yEfbpD0uYEt0kggNXFp8uycpqS1HYnZw=";
           };
           platformKey = "${final.stdenv.hostPlatform.parsed.kernel.name}-${
             if final.stdenv.hostPlatform.isAarch64 then "arm64" else "x64"
