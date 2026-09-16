@@ -226,7 +226,7 @@
             "darwin-arm64" = "sha256-G2dGhXbf4J8ZdcXd8uEImOdjISSZXWj7i5RUVCLNhYg=";
             "darwin-x64" = "sha256-s+4yN6AZuKWrswCPHH3dRilaDm5lq5RUWnnJuZfciSg=";
             "linux-arm64" = "sha256-e/nzOswSTfmrzPbyNmOXqCp0A3jVNfoS1Cb6d/28mUY=";
-            "linux-x64" = "sha256-OmJKWnzXm7rU0yvX2zbxGX7PRYvFvx4q7YGDSgGtPvA=";
+            "linux-x64" = "sha256-WcBWzTIcEx6yEfbpD0uYEt0kggNXFp8uycpqS1HYnZw=";
           };
           platformKey = "${final.stdenv.hostPlatform.parsed.kernel.name}-${
             if final.stdenv.hostPlatform.isAarch64 then "arm64" else "x64"
