@@ -7,7 +7,36 @@ Execute one ticket: $0
 
 Instructions:
 1. View the task: `backlog task $0 --plain`
+
+   Before anything else, get your bearings from git rather than from this prompt or from ticket
+   text. Record `git rev-parse HEAD`; run `git log --oneline -20`, `git log --grep="$0" --oneline`
+   and `git status --porcelain`. Main moves underneath every session in this checkout, so re-run
+   `git rev-parse HEAD` before you report results and re-read anything you meant to cite if it moved.
+
+   If the ticket's status is already `Done`, stop and say so  - do not claim it, do not "finish off"
+   any remaining criterion. A Done ticket that reached you is a queueing bug worth reporting, not
+   work worth repeating.
+
+   Then check whether the deliverable already exists before building it. Search for the artifacts
+   the ticket names  - files, symbols, routes, columns  - not only the ticket ID, because much work
+   landed under a descriptive subject line with the ID solely in a trailer. If it is already in
+   HEAD, do NOT re-implement it or write a competing version into the same files: verify each
+   acceptance criterion against what shipped, tick the ones it meets, and commit the ticket file
+   alone at step 9 naming the commit that shipped it. If part of it shipped, build exactly the
+   remainder and say which part was already there.
+
+   After a context compaction, redo all of step 1 from the commands, not from your summary. A
+   summary carries forward what you intended and goes quiet about what you finished, which is how
+   five sessions on 2026-09-16 re-implemented tickets that had already merged  - two of them quoted
+   commit hashes that existed in no repository, lifted from their own pre-compaction notes.
 2. Claim the task (if not already In Progress): `backlog task edit $0 -s "In Progress" -a @ralph`
+
+   Other agents share this exact checkout, so tracked files are not yours to tidy up. Never run
+   `git checkout -- <path>`, `git restore`, `git stash`, or `git reset --hard` on a tracked file to
+   undo an experiment, and never delete a tracked file you did not create: those commands discard
+   another session's uncommitted edits silently and unrecoverably. Run throwaway probes in files you
+   created  - an untracked `probe_*.rs`, a scratch file outside the repo  - and clean up by deleting
+   your own.
 3. Execute the work described in the task and its acceptance criteria
 4. If you discover new work, create a follow-up ticket. If that follow-up
    blocks the current ticket (i.e., $0 cannot proceed until the new
@@ -45,6 +74,16 @@ Instructions:
    future runs treat as "done"; prose saying it's done is not a substitute.
 6. Add implementation notes: `backlog task edit $0 --append-notes "..."`
 7. Add a final summary: `backlog task edit $0 --final-summary "..."`
+
+   Then replace the plan with a record that it shipped:
+   `backlog task edit $0 --plan "SHIPPED by <commit sha>. This plan is superseded; the ticket's
+   final summary describes what actually landed."`
+
+   Do not leave the plan text describing unfinished work. A plan never states which revision it was
+   written against, so once the code merges it still reads as a queue entry, and a fresh session
+   that trusts it starts building merged work again - five sessions did exactly that to
+   TASK-2.15.3 on 2026-09-16. Nothing is lost by replacing it: the original text stays in the
+   ticket file's git history.
 8. Verify every acceptance criterion is actually checked before proceeding:
    `backlog task $0 --plain` and confirm no `[ ]` remains. If one genuinely
    doesn't apply, say why in the implementation notes and check it anyway
@@ -78,7 +117,12 @@ Instructions:
       appends without checking whether the message already carries that trailer, so the
       flags belong on the original commit only — never on an amend of a commit that already
       has them (see step 11).
-10. Mark the ticket done: `backlog task edit $0 -s Done`
+10. Mark the ticket done: `backlog task edit $0 -s Done --remove-label ready-for-agent`
+
+    Drop the pickup labels in the same command as the status flip. A ticket left carrying
+    `ready-for-agent` while sitting in Done is bait for a fresh session: statuses filter the queues,
+    but labels are what agent-written plans and ad-hoc listings key off, and today one such stale
+    label helped send four sessions at TASK-2.15.3 long after `ecffcf1` had merged it.
 11. Fold that status change into the commit from step 9 instead of leaving it
     separate: stage the updated ticket file and amend. Use `--amend --no-edit` with **no
     `--trailer` flags** — `--no-edit` keeps the existing message, trailers included, so the

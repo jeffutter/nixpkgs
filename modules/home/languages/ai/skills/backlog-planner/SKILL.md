@@ -69,7 +69,28 @@ Phase 0: Prerequisites  →  Phase 1: Research  →  Phase 2: Plan  →  Phase 3
 1. Fetch ticket details:
    ```bash
    backlog task <ticket_id> --plain
+   git rev-parse HEAD
    ```
+
+   Record the SHA. Every session here shares one checkout and main moves underneath it, so re-check
+   `git rev-parse HEAD` before you report anything, and re-read any source you meant to cite if it
+   moved. A survey pinned at an older commit reports the gaps that commit still has open, however
+   carefully it was done  - on 2026-09-16 a research pass found four unresolved contract questions
+   that later commits had already closed, citing prior art throughout.
+
+   Then confirm the work is actually outstanding:
+   ```bash
+   git log --oneline -20
+   git log --grep="<ticket_id>" --oneline
+   ```
+
+   Grep for the files, symbols and routes the ticket names, not only its ID  - much of this project
+   landed under a descriptive subject line with the ID solely in a trailer. If the deliverable is
+   already in HEAD, or the ticket's status is already Done, do not plan it. Report ALREADY_SHIPPED
+   with the SHA that landed it and stop. A committed plan that describes merged work as pending is
+   worse than no plan: it reads as a legitimate queue entry indefinitely, and on 2026-09-16 five
+   sessions followed exactly such a document into reimplementing TASK-2.15.3 and TASK-2.15.3.1,
+   because nothing in a plan states which commit it was written against.
 
 2. Check for unplanned child tickets:
    ```bash
@@ -222,6 +243,9 @@ backlog task edit <ticket_id> --plan "<orchestration plan>"
 ```
 
 The main ticket's plan should include:
+- A first line naming the revision it was written against: `Planned against <git rev-parse --short
+  HEAD>`. Without it, a plan outlives its own accuracy and the next session cannot tell a stale one
+  from a current one - the trap that sent five sessions to rebuild TASK-2.15.3 on 2026-09-16
 - Overview of the approach
 - How sub-tickets fit together
 - Integration and verification steps
