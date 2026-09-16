@@ -195,11 +195,43 @@ const REVIEW_TIMEOUT_MS = REVIEW_TIMEOUT_MIN * 60_000;
 
 /**
  * A step that fails this many times in a row (same kind + ticket) stops the
- * loop instead of retrying forever. Repeated identical failure is a signal
- * of a systemic problem (a hung subprocess, a broken tool), not a one-off
- * bad ticket — silently burning the iteration budget on it just hides that.
+ * loop instead of retrying forever. Repeated identical failure means the loop
+ * should stop spending its budget on this step — but *why* it failed is not
+ * something the count itself can tell you, and asserting a cause you have not
+ * measured sends the reader off to check the wrong thing. Confirmed live
+ * (2026-09-11, TASK-038.03.02): two consecutive execute failures were stopped
+ * with "this looks like a systemic problem (a hung subprocess or broken tool)",
+ * while the session logs showed both workers actively editing files when they
+ * were cut exactly 40 minutes after their last intercom ping — a liveness
+ * timeout from a too-large ticket and dropped ping discipline, with nothing
+ * hung anywhere.
+ *
+ * So each failure carries a `FailureClass` into history.jsonl, and
+ * `stoppedByFailureStreak` composes the stop reason from the classes it
+ * actually observed rather than from one guess.
  */
 const MAX_CONSECUTIVE_FAILURES = 2;
+
+/** How a step failed. Produced where the truth lives (`execCapture` for the process,
+ * `doExecute`'s HEAD comparison for the no-commit case), stored on the history entry, and
+ * read back by `stoppedByFailureStreak` — see MAX_CONSECUTIVE_FAILURES for why the count
+ * alone is not a diagnosis. */
+type FailureClass =
+  /** `pi.exec` never returned even after our abort fired: a genuinely wedged subprocess,
+   * which may still be running orphaned. The only class here that really is systemic. */
+  | "wedged"
+  /** A heartbeat-enabled step cut at its deadline because its worker had gone quiet. The
+   * worker may well have been working fine — silence is the absence of a liveness signal,
+   * not proof of a hang. Confirmed live: both TASK-038.03.02 attempts were mid-edit. */
+  | "silent"
+  /** A step with no heartbeat watching it (triage, choose, or any step whose companion
+   * extension was missing) killed at its fixed budget. */
+  | "timeout"
+  /** The subprocess exited nonzero on its own — the step itself failed, no timeout involved. */
+  | "exit"
+  /** The worker claimed success but HEAD never moved: work left uncommitted on disk, which
+   * the next attempt inherits as half-finished "prior work". */
+  | "no-commit";
 
 type RalphStatus = "running" | "stopping" | "stopped" | "done";
 
@@ -211,6 +243,10 @@ type RalphHistoryEntry = {
   ticket?: string;
   outcome: "ok" | "failed";
   summary: string;
+  /** Why a failed step failed — see FailureClass. Absent on success and on failures with no
+   * headless subprocess behind them (a backlog CLI call that merely returned nonzero), where
+   * we genuinely do not know. Read back by stoppedByFailureStreak to word the stop reason. */
+  failure?: FailureClass;
   /** New ticket IDs that appeared between the start and end of this step — only populated
    * for review steps, via a deterministic before/after diff rather than parsing the review
    * agent's free-text summary for ticket mentions. */
@@ -406,7 +442,23 @@ type ExecResult = {
   stderr: string;
   /** How many times this call's deadline was reset by worker heartbeats (0/undefined when none). */
   heartbeatResets?: number;
+  /** Why the call failed, once we know it did (see FailureClass). Undefined on success. */
+  failure?: FailureClass;
+  /** Set on the promise the watchdog resolves, so a wedged exec is told apart from one we
+   * successfully aborted. */
+  watchdogFired?: boolean;
 };
+
+/** Classifies a failed exec from the two things that actually distinguish the causes: whether
+ * `pi.exec` ever came back, whether we had to kill it, and whether a heartbeat was watching. */
+function classifyExecFailure(
+  raced: ExecResult,
+  hadHeartbeat: boolean,
+): FailureClass {
+  if (raced.watchdogFired) return "wedged";
+  if (raced.killed) return hadHeartbeat ? "silent" : "timeout";
+  return "exit";
+}
 
 async function execCapture(
   pi: ExtensionAPI,
@@ -415,6 +467,7 @@ async function execCapture(
   opts: { cwd: string; timeout?: number; heartbeat?: HeartbeatWatch },
 ): Promise<ExecResult> {
   const controller = opts.timeout ? new AbortController() : undefined;
+  const hadHeartbeat = !!opts.heartbeat;
   const execPromise = pi
     .exec(cmd, args, {
       cwd: opts.cwd,
@@ -453,6 +506,7 @@ async function execCapture(
           stdout: "",
           stderr: `(watchdog: "${cmd}" exec call never returned ${opts.timeout! + WATCHDOG_GRACE_MS}ms after start — pi.exec's timeout and our own abort signal both failed to kill it; the process may still be running orphaned)`,
           heartbeatResets: resets,
+          watchdogFired: true,
         }),
       delayMs,
     );
@@ -492,7 +546,11 @@ async function execCapture(
   clearTimeout(abortTimer);
   clearTimeout(watchdogTimer);
   if (poller) clearInterval(poller);
-  return { ...raced, heartbeatResets: resets };
+  return {
+    ...raced,
+    heartbeatResets: resets,
+    failure: raced.ok ? undefined : classifyExecFailure(raced, hadHeartbeat),
+  };
 }
 
 function parsePlainTaskList(output: string): Ticket[] {
@@ -947,7 +1005,13 @@ async function runHeadless(
     heartbeatNonce?: string;
     onHeartbeatReset?: (resetCount: number) => void;
   },
-): Promise<{ ok: boolean; killed: boolean; output: string; resets: number }> {
+): Promise<{
+  ok: boolean;
+  killed: boolean;
+  output: string;
+  resets: number;
+  failure?: FailureClass;
+}> {
   // No --no-session: pi-intercom needs the headless worker to have a live session identity
   // to address progress pings back to the orchestrator from.
   const args = ["-p", "--no-extensions"];
@@ -989,6 +1053,7 @@ async function runHeadless(
     killed: result.killed,
     output: (result.stdout || result.stderr || "").trim(),
     resets: result.heartbeatResets ?? 0,
+    failure: result.failure,
   };
 }
 
@@ -1389,6 +1454,7 @@ async function doExecute(
     kind: "execute",
     ticket: ticket.id,
     outcome: ok ? "ok" : "failed",
+    failure: ok ? undefined : (result.failure ?? "no-commit"),
     summary:
       result.ok && !committed
         ? `claimed success but no commit landed (HEAD still ${shaBefore?.slice(0, 8) ?? "unknown"}) — ${summarize(result, undefined, result.resets)}`
@@ -1432,6 +1498,7 @@ async function classifyTrivial(
     kind: "plan",
     ticket: ticket.id,
     outcome: result.ok ? "ok" : "failed",
+    failure: result.failure,
     summary: `triage: ${verdict ?? summarize(result, 80)}`,
   });
   return result.ok && verdict === "TRIVIAL";
@@ -1525,6 +1592,7 @@ async function doPlan(
       kind: "plan",
       ticket: ticket.id,
       outcome: research.ok ? "ok" : "failed",
+      failure: research.failure,
       summary: `research: ${summarize(research, 120, research.resets)}`,
     });
     researchOutput = research.output;
@@ -1595,6 +1663,7 @@ async function doPlan(
     kind: "plan",
     ticket: ticket.id,
     outcome: ok ? "ok" : "failed",
+    failure: ok ? undefined : plan.failure,
     summary:
       (verified
         ? `verified Dev Ready on disk despite subprocess ${plan.killed ? "timeout" : "failure"} — `
@@ -1664,6 +1733,7 @@ async function doChoose(
     kind: "choose",
     ticket: chosenId,
     outcome: ok ? "ok" : "failed",
+    failure: ok ? undefined : result.failure,
     summary,
   });
   return ok;
@@ -1754,6 +1824,7 @@ async function doReview(
   await recordHistory(cwd, state, {
     kind: "review",
     outcome: result.ok ? "ok" : "failed",
+    failure: result.failure,
     summary: summarize(result, 300, result.resets) + cleanupNote,
     createdTickets: createdTickets.length ? createdTickets : undefined,
   });
@@ -1777,6 +1848,101 @@ function finish(state: RalphState, status: RalphStatus, reason: string): void {
   state.currentStepHeartbeatResets = undefined;
 }
 
+/** What each observed FailureClass is worth telling the person who has to restart the loop:
+ * a plain-language label plus the fix that class actually calls for. Wording matters here —
+ * the old text asserted "a hung subprocess or broken tool" for every streak and sent people
+ * hunting for a hang that was never there (see MAX_CONSECUTIVE_FAILURES). */
+const FAILURE_CLASS_TEXT: Record<
+  FailureClass,
+  { label: string; advice: string }
+> = {
+  silent: {
+    label: "liveness timeout (the worker stopped pinging and its deadline expired)",
+    advice:
+      "Nothing necessarily hung — a step is only cut after a full phase budget with no ping, and " +
+      "a healthy worker pings about every quarter of that budget. The usual causes are a ticket too " +
+      "large for one increment (split it into leaves) or an executor that dropped its ping cadence. " +
+      "Read the worker's session log under ~/.pi/agent/sessions/ to see what it was doing when it was " +
+      "cut, and check whether it left an uncommitted dirty tree behind for the next attempt.",
+  },
+  wedged: {
+    label: "wedged subprocess (pi.exec never returned even after abort)",
+    advice:
+      "This one really is systemic: the subprocess may still be running orphaned. Check \"ps\" for " +
+      "leftover \"pi -p\" processes and kill them, then find the command that does not return before " +
+      "restarting.",
+  },
+  timeout: {
+    label: "fixed-budget timeout",
+    advice:
+      "No heartbeat was watching this step, so silence and slow-but-live work look identical here — " +
+      "raise the phase's timeout or check what the step was waiting on.",
+  },
+  exit: {
+    label: "nonzero exit",
+    advice:
+      "The step ran to completion and failed on its own terms — read its summary in history.jsonl; no " +
+      "timeout was involved.",
+  },
+  "no-commit": {
+    label: "uncommitted success (reported done, moved no commit)",
+    advice:
+      "The worker finished talking with HEAD where it started, so its work sits uncommitted on disk " +
+      "and the next attempt will inherit it as half-finished prior work. Check \"git status\"/\"git stash\" " +
+      "before restarting.",
+  },
+};
+
+/** The failure classes recorded for the streak behind `key` ("execute:<id>", "plan:<id>",
+ * "review", "choose"), oldest first. Walks back from the newest history entry and stops at the
+ * first one that is not a matching failure, so an older failure of the same kind separated by a
+ * success is not counted into a message about the current streak. Entries with no recorded class
+ * are reported as such rather than guessed at. */
+function streakFailureClasses(
+  state: RalphState,
+  key: string,
+): (FailureClass | "unrecorded")[] {
+  const [kind, ticket] = key.split(":");
+  const classes: (FailureClass | "unrecorded")[] = [];
+  for (let i = state.history.length - 1; i >= 0; i--) {
+    const h = state.history[i];
+    if (
+      h.outcome !== "failed" ||
+      h.kind !== kind ||
+      (ticket !== undefined && h.ticket !== ticket)
+    ) {
+      break;
+    }
+    classes.unshift(h.failure ?? "unrecorded");
+    if (classes.length >= MAX_CONSECUTIVE_FAILURES) break;
+  }
+  return classes;
+}
+
+/** Turns the observed classes into the cause sentence of a stop reason. Phrasing is deliberately
+ * count- and article-neutral ("observed cause:") — the cap is a constant, and labels that read as
+ * noun phrases or clauses both have to fit. One shared class gets that class's advice; mixed
+ * classes get each label and a note that they need different fixes. */
+function describeFailureStreak(classes: (FailureClass | "unrecorded")[]): string {
+  const text = (c: FailureClass | "unrecorded"): string =>
+    c === "unrecorded"
+      ? "cause not recorded (a step predating this build, or a failure with no subprocess behind it)"
+      : FAILURE_CLASS_TEXT[c].label;
+  const distinct = [...new Set(classes)];
+  if (distinct.length === 1) {
+    const c = distinct[0];
+    return (
+      `observed cause in all ${classes.length}: ${text(c)}.` +
+      (c === "unrecorded" ? "" : " " + FAILURE_CLASS_TEXT[c].advice)
+    );
+  }
+  return (
+    `observed causes: ${distinct.map((c) => text(c)).join("; ")} — these attempts failed for ` +
+    "different reasons, so there is no single cause to name. Each needs a different fix, so read " +
+    "both attempts before choosing one."
+  );
+}
+
 /** True if this step's failure streak just hit the cap; `finish()`s the state with an explanatory reason. */
 function stoppedByFailureStreak(
   cwd: string,
@@ -1788,9 +1954,9 @@ function stoppedByFailureStreak(
   finish(
     state,
     "stopped",
-    `stopping: "${key}" failed ${MAX_CONSECUTIVE_FAILURES} times in a row. This looks like a systemic ` +
-      `problem (a hung subprocess or broken tool), not a one-off bad ticket — check ${join(stateDirFor(cwd), "history.jsonl")} ` +
-      "before restarting.",
+    `stopping: "${key}" failed ${MAX_CONSECUTIVE_FAILURES} times in a row — ` +
+      describeFailureStreak(streakFailureClasses(state, key)) +
+      ` Per-attempt detail: ${join(stateDirFor(cwd), "history.jsonl")}.`,
   );
   return true;
 }
