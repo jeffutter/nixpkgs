@@ -1104,6 +1104,7 @@ in
         kami = "${kami}/skills/kami";
         pi-authoring = "${pi-authoring-skill}";
         review-pi-work = ./ai/skills/review-pi-work;
+        skill-critic = ./ai/skills/skill-critic;
         software-design = ./ai/skills/software-design;
         stop-slop = "${stop-slop}";
         todoist-cli = "${todoist-cli-skill}";
