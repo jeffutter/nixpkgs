@@ -5,6 +5,19 @@ FLAKE="${HOME}/.config/home-manager/flake.nix"
 BASE_URL="https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases"
 PLATFORMS=("darwin-arm64" "darwin-x64" "linux-arm64" "linux-x64")
 
+# --force re-fetches every platform hash even when the pinned version is
+# already current, to repair a flake whose hashes are wrong rather than stale.
+FORCE=0
+for ARG in "$@"; do
+  case "$ARG" in
+    --force) FORCE=1 ;;
+    *)
+      echo "usage: ${0##*/} [--force]" >&2
+      exit 1
+      ;;
+  esac
+done
+
 to_sri() {
   nix hash convert --hash-algo sha256 --to sri "$1" 2>/dev/null \
     || nix hash to-sri --type sha256 "$1" 2>/dev/null
@@ -23,8 +36,9 @@ CURRENT=$(grep 'claudeCodeVersion = ' "$FLAKE" | sed 's/.*"\(.*\)".*/\1/')
 
 echo "Current: $CURRENT  Latest: $LATEST"
 
-if [[ "$LATEST" == "$CURRENT" ]]; then
+if [[ "$LATEST" == "$CURRENT" && "$FORCE" != "1" ]]; then
   echo "Already at latest version, nothing to do."
+  echo "Pass --force to re-fetch the hashes for $CURRENT anyway."
   exit 0
 fi
 
@@ -33,8 +47,16 @@ declare -A HASHES
 
 for PLATFORM in "${PLATFORMS[@]}"; do
   echo "Fetching hash for $PLATFORM..."
-  RAW=$(nix-prefetch-url "${BASE_URL}/${LATEST}/${PLATFORM}/claude" 2>/dev/null)
+  # Must be the `.zst` artifact, not the raw `claude` binary next to it: the
+  # flake's claude-code override fetches claude.zst because the nixpkgs
+  # installPhase runs `unzstd` on $src. Prefetching the wrong one writes a
+  # hash that only fails later, at build time.
+  RAW=$(nix-prefetch-url "${BASE_URL}/${LATEST}/${PLATFORM}/claude.zst")
   HASHES["$PLATFORM"]=$(to_sri "$RAW")
+  if [[ ! "${HASHES[$PLATFORM]}" =~ ^sha256-[A-Za-z0-9+/=]+$ ]]; then
+    echo "error: could not compute hash for $PLATFORM (got '${HASHES[$PLATFORM]}')" >&2
+    exit 1
+  fi
   echo "  ${HASHES[$PLATFORM]}"
 done
 
@@ -45,6 +67,17 @@ perl -pi -e "s|claudeCodeVersion = \"[^\"]+\"|claudeCodeVersion = \"${LATEST}\"|
 
 for PLATFORM in "${PLATFORMS[@]}"; do
   perl -pi -e "s|\"${PLATFORM}\" = \"sha256-[A-Za-z0-9+/=]+\"|\"${PLATFORM}\" = \"${HASHES[$PLATFORM]}\"|" "$FLAKE"
+  # A perl s||| that matches nothing exits 0, so confirm each hash actually
+  # landed rather than leaving the flake pinned to the previous release.
+  if ! grep -qF "\"${PLATFORM}\" = \"${HASHES[$PLATFORM]}\"" "$FLAKE"; then
+    echo "error: failed to write $PLATFORM hash into $FLAKE" >&2
+    exit 1
+  fi
 done
+
+if ! grep -qF "claudeCodeVersion = \"${LATEST}\"" "$FLAKE"; then
+  echo "error: failed to write version into $FLAKE" >&2
+  exit 1
+fi
 
 echo "Updated claude-code: $CURRENT -> $LATEST"
