@@ -1,108 +1,85 @@
 # Modules and Decomposition
 
-## Deep Modules
+## Deep modules
 
-**Modules should hide complexity, not just organize code.**
-
-A deep module has a simple interface but significant implementation behind it. A
-shallow module has an interface nearly as complex as its implementation — it
-provides little leverage against complexity.
+Give each module a simple interface over a substantial implementation. A module whose interface is nearly as complex as its implementation is shallow; merge or redesign it.
 
 ```
-Good:
+Deep:
   read(file, buffer, count)  // hides buffering, caching, disk blocks, error recovery
 
-Bad:
+Shallow:
   file_stream = open_file(path)
   buffered = add_buffering(file_stream)
   object_stream = add_serialization(buffered)
-  // caller assembles the abstraction themselves
+  // caller assembles the abstraction
 ```
 
-**Test for depth:** If understanding the implementation is necessary to use the
-interface correctly, the module is too shallow.
+- Depth test: a caller must understand the implementation to use the interface correctly. The module is too shallow.
+- False-layer test: changing one layer forces a change in another. Merge the layers or redesign the boundary.
 
-**Test for false layers:** If changing one layer requires changing another, they
-aren't truly separate — merge them or redesign the boundary.
+## Information hiding
 
-## Information Hiding
-
-**Each module should encapsulate design decisions.**
-
-Hidden information typically includes:
+Make each module own its design decisions:
 
 - Data structure choices
 - Algorithms and their parameters
-- File/wire formats
-- Policies (retry logic, caching strategies)
+- File and wire formats
+- Policies, such as retry logic and caching strategies
 - Platform-specific details
 
-**Information leakage is a critical red flag.** If the same knowledge appears in
-multiple modules, you have a dependency that will cause pain during changes.
+When the same knowledge appears in two modules, move it into one module.
 
 ```
 Leaky:
-  // Module A knows file format
+  // Module A knows the file format
   write_header(file, VERSION_2, CHECKSUM_CRC32)
+  // Module B also knows the file format
+  if header.version == VERSION_2 and header.checksum_type == CHECKSUM_CRC32: ...
 
-  // Module B also knows file format
-  if header.version == VERSION_2 and header.checksum_type == CHECKSUM_CRC32:
-    ...
-
-Better:
-  // Single module owns format knowledge
+Hidden:
   file_handler.write(data)  // format is internal
-  file_handler.read()       // format is internal
+  file_handler.read()
 ```
 
-## Complete Functions
+## Complete functions
 
-**Each function should do one thing completely.**
-
-Don't fragment a single responsibility across multiple functions that must be
-called in sequence or that share implicit state. A longer function that handles
-its full responsibility is better than several short functions that leak
-implementation details to each other.
+Give each responsibility one function that does it completely. Merge functions that callers must invoke in sequence or that share implicit state.
 
 ```
-Fragmented (bad):
+Fragmented:
   fuse = get_fuse(service)
   check_fuse_state(fuse)
   result = call_if_fuse_ok(fuse, request)
   update_cache_from_result(result)
   maybe_blow_fuse(fuse, result)
 
-Complete (better):
+Complete:
   result = fetch_with_circuit_breaker(service, request)
-  // All fuse logic, caching, and retry is internal
+  // fuse logic, caching, and retry are internal
 ```
 
-**Long functions are acceptable when:**
+Keep a long function whole when all three hold:
 
-- They have a simple interface
-- Their blocks are relatively independent (can be read sequentially)
-- Breaking them up would create conjoined functions that can't be understood
-  independently
+- Its interface is simple.
+- Its blocks read in sequence without depending on each other.
+- Splitting it would create functions that cannot be understood alone.
 
-## Different Layer, Different Abstraction
+## Different layer, different abstraction
 
-**If two layers have the same abstraction, one is probably unnecessary.**
+Give each layer an abstraction different from the layer below it. Two layers with the same abstraction mean one is unnecessary.
 
-Pass-through methods are a red flag — they add interface complexity without
-adding functionality:
+Remove pass-through methods. Expose the inner object directly, or give the outer class a different abstraction.
 
 ```
-Bad (pass-through):
+Pass-through:
   class Document:
     def get_cursor_offset(self):
-      return self.text_area.get_cursor_offset()  // adds nothing
-
-Better:
-  // Expose text_area directly, or give Document a genuinely different abstraction
+      return self.text_area.get_cursor_offset()
 ```
 
-**Decorators and wrappers should be used sparingly.** Before creating one, ask:
+Before you create a decorator or wrapper, check each option in order and take the first that works:
 
-- Can this functionality go directly in the base class?
-- Can it merge with an existing decorator?
-- Does it actually need to wrap, or can it be independent?
+1. Put the functionality directly in the base class.
+2. Merge it into an existing decorator.
+3. Make it independent instead of wrapping.

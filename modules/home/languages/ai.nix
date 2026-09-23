@@ -279,36 +279,26 @@ let
     ---
     name: pi-authoring
     description: >-
-      Write or edit skills and extensions for pi (the pi.dev/earendil-works coding
-      agent) -- SKILL.md files under .pi/skills, ~/.pi/agent/skills, or a pi
-      package's skills/ directory, and TypeScript extensions under
-      .pi/extensions or ~/.pi/agent/extensions. Use whenever the user asks to
-      create, modify, or debug a pi skill or pi extension, or asks how pi's
-      skill/extension system works.
+      Write, edit, or debug skills, extensions, or SDK code for pi, the
+      pi.dev/earendil-works coding agent. Covers SKILL.md files under .pi/skills,
+      ~/.pi/agent/skills, or a pi package's skills/ directory, and TypeScript
+      extensions under .pi/extensions or ~/.pi/agent/extensions. Use when the user
+      asks to create, modify, or debug a pi skill or extension, or asks how they work.
     ---
 
-    # Authoring pi Skills and Extensions
+    The end state is a pi file that matches the installed pi version. The
+    `references/` files in this skill's directory document that version.
 
-    pi's skill format is the same Agent Skills standard Claude Code itself uses
-    (a `SKILL.md` with YAML frontmatter: `name`, `description`, optional
-    `allowed-tools`, progressive disclosure of the body). `references/skills.md`
-    covers pi's specific deltas: discovery locations
-    (`~/.pi/agent/skills/`, `.pi/skills/`, `.agents/skills/`, package
-    `skills/` dirs), the root-`.md`-file shortcut in the first two, and naming
-    validation rules.
-
-    pi extensions have no external standard -- they're a pi-specific TypeScript
-    API (lifecycle event subscriptions, custom tool registration, `ctx.reload()`,
-    etc.) that changes across pi releases. Before writing or editing one, always
-    read `references/extensions.md` and skim 2-3 relevant files under
-    `references/example-extensions/` for the current API shape -- do not rely on
-    prior/memorized knowledge of pi's extension API, since these reference files
-    are refreshed to match whatever pi version is actually installed and prior
-    knowledge may be stale.
-
-    If the task involves pi's SDK (`@earendil-works/pi-coding-agent` used
-    programmatically, not the CLI) instead of a CLI extension, read
-    `references/sdk.md` and `references/example-sdk/` instead.
+    1. Read the references for the task type.
+       - Skill: read `references/skills.md`. pi uses the Agent Skills `SKILL.md`
+         format Claude Code uses; that file lists pi's discovery paths and name rules.
+       - Extension: read `references/extensions.md`, then
+         `references/example-extensions/README.md`. Open the 2-3 closest examples.
+       - SDK code (`@earendil-works/pi-coding-agent` imported as a library): read
+         `references/sdk.md`, then `references/example-sdk/README.md`. Open the
+         closest examples.
+    2. Write the file using only APIs shown in those references. Memorized pi APIs
+       are often outdated.
     SKILLEOF
   '';
 

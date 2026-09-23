@@ -5,160 +5,84 @@ description: Analyze writing samples to create a comprehensive voice DNA profile
 
 # Voice DNA Creator
 
-Analyze writing samples to extract and codify a unique voice profile that AI can use to replicate your authentic writing style.
+Use this skill when the user wants a voice profile built from their writing, or from a client's writing. The end state is a saved JSON voice profile that the user confirms sounds like them.
 
-## When to Use This Skill
+Profile path for the user's own voice: `~/.config/home-manager/modules/home/languages/ai/skills/voice-dna/references/voice-dna.json`. The `voice-dna` skill reads this file.
 
-- Setting up a new writing system
-- Creating voice profiles for clients (ghostwriting)
-- Updating voice profiles after style evolution
-- Onboarding into content creation workflow
+Profile path for another person's voice: `./voice-dna-<person-name>.json` in the current working directory.
 
-## Requirements
+## Steps
 
-The user must provide:
-- **Minimum**: 3 writing samples (500+ words each)
-- **Ideal**: 5-10 samples across different content types
-- **Best**: Mix of casual (social posts) and formal (articles) content
+1. Ask the user for 3 to 10 writing samples of 500+ words each. Ask for a mix of casual pieces (social posts, emails) and formal pieces (articles, newsletters). Accept pasted text or file paths.
+   - Fewer than 3 samples: tell the user the profile will be less reliable, then ask whether to proceed.
+2. Read every sample. For each sample, record:
+   - Personality: traits shown, energy level, how the writer relates to the reader.
+   - Emotion: emotions expressed, their intensity, the dominant tone.
+   - Communication style: formality, sentence length, paragraph structure, mix of questions, commands, and statements.
+   - Language: repeated signature phrases, frequent strong words, transition phrases, opening and closing patterns.
+   - Absences: words, phrases, tones, and approaches the writer never uses.
+   - Formatting: emoji, lists, headers, bold and italic use.
+3. Compare the per-sample notes. Sort each pattern into one group:
+   - Consistent: appears in most samples.
+   - Contextual: changes with content type, such as social posts versus articles.
+   - Core: appears in every sample.
+4. Write the JSON profile using the structure below. Set `last_updated` to today's date.
+   - Describe tone and personality, beyond word frequency.
+   - Fill `never_say` with the absences from step 2.
+   - Record contextual variations in `communication_style` or `formatting_preferences`, keyed by content type.
+   - Keep every trait at the strength the samples show. A profile that exaggerates traits produces parody.
 
-## Analysis Process
+   ```json
+   {
+     "voice_dna": {
+       "version": "1.0",
+       "last_updated": "YYYY-MM-DD",
+       "core_essence": {
+         "identity": "",
+         "primary_role": "",
+         "unique_angle": ""
+       },
+       "personality_traits": {
+         "primary": [],
+         "how_it_shows": {}
+       },
+       "emotional_palette": {
+         "dominant_emotions": [],
+         "emotional_range": {},
+         "energy_level": ""
+       },
+       "communication_style": {
+         "formality": "",
+         "complexity": "",
+         "sentence_structure": {},
+         "paragraph_style": ""
+       },
+       "language_patterns": {
+         "signature_phrases": [],
+         "power_words": [],
+         "words_to_avoid": [],
+         "transitions": []
+       },
+       "never_say": {
+         "phrases": [],
+         "tones": [],
+         "approaches": []
+       },
+       "formatting_preferences": {},
+       "content_philosophy": {},
+       "voice_examples": {
+         "opening_lines": [],
+         "closing_lines": [],
+         "transitional_phrases": []
+       }
+     }
+   }
+   ```
 
-### Step 1: Collect Samples
-
-Ask: "Please share 3-10 writing samples that represent your authentic voice. These can be:
-- Newsletter issues
-- Blog posts
-- Social media posts
-- Emails you've written
-- Any content where you feel 'this sounds like me'
-
-Paste them here or point me to files in the knowledge folder."
-
-### Step 2: Analyze Core Elements
-
-For each sample, analyze:
-
-**Personality Markers**
-- What personality traits come through?
-- What's the energy level?
-- How does the writer relate to the reader?
-
-**Emotional Range**
-- What emotions are expressed?
-- How intense are they?
-- What's the dominant emotional tone?
-
-**Communication Style**
-- Formality level (casual to professional)
-- Sentence length patterns
-- Paragraph structure
-- Use of questions, commands, statements
-
-**Language Patterns**
-- Signature phrases that repeat
-- Power words used frequently
-- Transition phrases
-- Opening and closing patterns
-
-**What They Avoid**
-- Words or phrases never used
-- Tones never taken
-- Approaches avoided
-
-**Formatting Habits**
-- Emoji usage
-- List usage
-- Header styles
-- Bold/italic patterns
-
-### Step 3: Synthesize Findings
-
-Combine analysis across all samples to identify:
-- Consistent patterns (appear in most samples)
-- Contextual variations (change based on content type)
-- Core voice elements (never change)
-
-### Step 4: Generate Voice DNA
-
-Create the profile following this structure:
-
-```json
-{
-  "voice_dna": {
-    "version": "1.0",
-    "last_updated": "YYYY-MM-DD",
-    "core_essence": {
-      "identity": "",
-      "primary_role": "",
-      "unique_angle": ""
-    },
-    "personality_traits": {
-      "primary": [],
-      "how_it_shows": {}
-    },
-    "emotional_palette": {
-      "dominant_emotions": [],
-      "emotional_range": {},
-      "energy_level": ""
-    },
-    "communication_style": {
-      "formality": "",
-      "complexity": "",
-      "sentence_structure": {},
-      "paragraph_style": ""
-    },
-    "language_patterns": {
-      "signature_phrases": [],
-      "power_words": [],
-      "words_to_avoid": [],
-      "transitions": []
-    },
-    "never_say": {
-      "phrases": [],
-      "tones": [],
-      "approaches": []
-    },
-    "formatting_preferences": {},
-    "content_philosophy": {},
-    "voice_examples": {
-      "opening_lines": [],
-      "closing_lines": [],
-      "transitional_phrases": []
-    }
-  }
-}
-```
-
-## Output Instructions
-
-1. After analysis, present key findings in a summary
-
-2. Generate the complete JSON voice profile
-
-3. Save to `/context/voice-dna.json`
-
-4. Provide 3 example sentences written in the captured voice for validation
-
-5. Ask: "Does this capture your voice? What would you adjust?"
-
-## Best Practices
-
-- Focus on TONE and PERSONALITY, not just word choice
-- Avoid creating a profile that just repeats phrases
-- Capture the "feeling" of the writing, not just patterns
-- Include what NOT to do (equally important)
-- Make the profile actionable for content generation
-
-## Validation Test
-
-After creating the profile, write a short paragraph on any topic using ONLY the voice DNA as guidance. Ask the user: "Does this sound like you?"
-
-If not, iterate on the profile based on feedback.
-
-## Common Pitfalls to Avoid
-
-- Don't just list frequently used words
-- Don't create a parody of the voice (too exaggerated)
-- Don't ignore context (social posts ≠ articles)
-- Don't miss the underlying personality
-- Don't forget emotional elements
+5. Show the user a summary of the key findings from step 3.
+6. Save the profile to the profile path that matches whose voice it is.
+   - The write fails: show the full JSON in the response and tell the user the save failed.
+7. Write one short paragraph on a topic unrelated to the samples, using only the profile as guidance. Show it to the user.
+8. Ask the user: "Does this sound like you? What would you adjust?"
+   - The user requests changes: update the profile, save it again, and repeat steps 7 and 8.
+   - The user confirms: stop.

@@ -5,58 +5,21 @@ description: Jeff's software design principles, derived from Ousterhout's A Phil
 
 # Software Design
 
-Principles for structuring code. These are heuristics, not laws — apply them
-with judgement, and prefer the surrounding codebase's conventions when they
-conflict.
+Use this skill when you design, split, or review the structure of code. The end state is a design where each module hides its complexity behind a simple interface. When a rule here conflicts with the surrounding codebase's conventions, follow the codebase.
 
-## Core premises
+Complexity grows with the number of interaction points between modules. Reduce interaction points through encapsulation; keep the essential work.
 
-**Software design is fundamentally about managing complexity.**
-
-Total complexity = Σ(essential complexity × interaction points)
-
-Essential complexity is unavoidable — it's what makes an HTTP client an HTTP
-client. The job is to minimize interaction points through encapsulation, not to
-eliminate the essential work.
-
-**All code has cost.** Every line, every abstraction, every module adds
-cognitive load. The value of any code must significantly exceed its cost. If you
-can't articulate what value a piece of code provides beyond "organization,"
-question whether it should exist.
-
-```
-value >> cost   → keep it
-value ≈ cost    → simplify or remove
-value < cost    → remove it
-```
-
-## Summary heuristics
-
-1. **Ask "value > cost?" for every abstraction.** If you can't articulate the
-   value, remove the abstraction.
-2. **Encapsulate complexity; don't just organize it.** A module that requires
-   reading its implementation has failed.
-3. **Complete functions over fragmented ones.** It's fine if they're longer.
-4. **General interfaces, specialized callers.** Push application-specific
-   behavior outward.
-5. **Define errors out of existence** when possible; handle the rest in few
-   places.
-6. **Comments explain what code cannot.** Write them first.
-7. **Consistency beats local optimality.** Follow existing patterns.
-8. **Invest in design continuously.** Every change is an opportunity to improve
-   structure.
-
-## Going deeper
-
-Read the reference that matches what you're doing — don't load all of them.
-
-- `references/modules.md` — module depth, information hiding, complete
-  functions, and when a layer is a false layer. Read when deciding how to split
-  code up.
-- `references/interfaces.md` — general-purpose interfaces, pulling complexity
-  downward, and defining errors out of existence. Read when designing a
-  signature or API surface.
-- `references/comments-and-naming.md` — what comments should add, precise
-  naming, consistency. Read when writing the code itself.
-- `references/review-rubric.md` — red-flag table and the strategic-vs-tactical
-  test. Use when reviewing a design or deciding how far to refactor.
+1. Read the one reference that matches your task:
+   - Splitting code into modules, functions, or layers: `references/modules.md`.
+   - Designing a signature, API surface, or error behavior: `references/interfaces.md`.
+   - Writing comments and choosing names: `references/comments-and-naming.md`.
+   - Reviewing a design or deciding how far to refactor: `references/review-rubric.md`.
+2. Apply these rules to each design decision:
+   - Name the value each abstraction adds beyond organization. Value clearly above cost: keep it. Value near cost: simplify it. Value below cost, or no value you can name: remove it.
+   - Hide complexity inside the module. A caller who must read the implementation to use it signals a failed module.
+   - Write one complete function per responsibility, even when it grows long.
+   - Make core interfaces general. Put application-specific behavior in the callers.
+   - Redefine operations so errors cannot occur. Handle the remaining errors in few places.
+   - Write comments for what the code cannot say. Write them before the code.
+   - Follow existing patterns over a locally better one.
+   - Improve the structure you touch in every change.

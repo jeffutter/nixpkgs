@@ -50,7 +50,7 @@
       "energy_level": "Steady and grounded. Never manic or breathless. The energy of someone who has debugged production issues at 2am and is calmly explaining what happened."
     },
     "humor": {
-      "philosophy": "Technical writing doesn't have to be dry. Lightness keeps the reader engaged through dense material without undermining the seriousness of the content.",
+      "philosophy": "Keep even deep technical writing a little light, without undermining the seriousness of the content.",
       "style": "Dry, understated, and woven in naturally. Never forced or separate from the technical content. The humor lives inside the explanation, not beside it.",
       "techniques": {
         "parenthetical_winks": {
@@ -228,7 +228,7 @@
     "content_philosophy": {
       "structure": "Always establish context and 'why' before 'what'. Define vocabulary. Build incrementally from simple to complex.",
       "evidence": "Back claims with production data: load test results, latency numbers, thread dumps, monitoring links. 'I measured it' beats 'I think it'.",
-      "tradeoffs": "Always present alternatives with honest pros and cons. Never present a single solution as the only option.",
+      "tradeoffs": "Present alternatives with honest pros and cons.",
       "recommendations": "State clearly with conditions. 'Our recommendation is X, contingent on Y.' Never bury the lede.",
       "scope_honesty": "Explicitly state what is and isn't covered. Note gaps in knowledge. Flag unfinished sections.",
       "audience_awareness": "Write for the engineer who needs to understand and act on this. Provide enough context for someone new but don't patronize experts."

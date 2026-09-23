@@ -5,3 +5,19 @@
 `modules/home/languages/ai/`. `CLAUDE.md`, `settings.json`, `rules/`, and most
 of `skills/` are read-only `/nix/store` symlinks, so editing them in place
 fails or is silently discarded. Change the repo, then run `~/bin/rebuild`.
+
+## git and gh run outside the sandbox only when bare
+
+Managed settings exclude `git *` and `gh *` from the sandbox, but only when
+the whole command is a single bare invocation. Commit signing (`ssh-keygen`
+reads `~/.ssh`), `git push`, and `gh` all depend on that.
+
+- Never pipe, redirect into a pipeline, or loop git/gh (`git commit ... | tail`,
+  `gh auth status 2>&1 | head`, `for ...; do gh ...; done`). Any of these runs
+  the command sandboxed.
+- Pass commit messages with `git commit -F <file>` (written under `$TMPDIR`),
+  not a heredoc.
+- Chain separate top-level calls with `;` instead of looping.
+- If signing fails (`Couldn't load public key`), `gh` says the token is
+  invalid, or push reports access rights, rerun the command bare before
+  suspecting my credentials. Those errors are almost always this.

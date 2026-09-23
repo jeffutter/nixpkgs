@@ -1,35 +1,26 @@
-# Credit Cards in Actual Budget
+# Credit cards
 
-## Core Principle
+Read this file when adding a credit card or recording a card payment.
 
-Credit cards are on-budget accounts with negative balances. When you spend on a card, the card balance goes more negative — reducing your total on-budget funds exactly like spending from checking. You have already "spent" that money from your budget when you categorized the purchase.
+- Create credit cards as on-budget accounts. Off-budget cards leave purchases out of category balances.
+- A card purchase is categorized when it happens. The card balance goes more negative.
+- A card payment is a transfer between two on-budget accounts. Set its category to `null`.
 
-This means: **paying a credit card bill is a transfer between two on-budget accounts** — it doesn't affect your budget totals or categories. The spending already happened when you categorized the original transaction.
+## Paying in full
 
-## Setup
+Pay the statement balance each month with a transfer from checking.
 
-Always add credit cards as **on-budget** accounts. Setting them off-budget breaks the envelope model — purchases won't reduce your category balances, so you'll think you have money you've already spent.
+## Carrying a balance
 
-## Two Strategies
+1. Create a "Credit Card Debt" category.
+2. Each month, budget the planned paydown amount to that category.
+3. Transfer that amount from checking to the card.
 
-**Paying in Full**
-Pay your full statement balance each month. Budget works as: spend from categories → balance goes negative → transfer from checking clears the card.
+## Rules for the user
 
-Never budget more than you have. Check category balances before spending on the card.
-
-**Carrying a Balance (Existing Debt)**
-Track the outstanding balance across months. Each month, allocate some amount to a "Credit Card Debt" category and transfer that to the card. The category tracks how much you've committed to paying down.
-
-## The Golden Rules
-
-1. Only allocate funds you actually have. Never budget against future income.
-2. Check category balance before a purchase — if insufficient, don't spend.
-3. Log every purchase promptly; don't let them pile up.
-4. Address category overspending immediately (reallocate from elsewhere).
-5. Reconcile the card account monthly against the statement.
-6. Pay at least the statement balance before the due date.
-7. Never treat your credit limit as available budget.
-
-## Why This Works
-
-If you never budget money you don't have, and never spend beyond your budget, you'll always have enough in checking to pay the card balance in full. The credit card becomes a payment mechanism, not a source of funds.
+1. Budget only income already received.
+2. Spend on the card only when the category balance covers the purchase.
+3. Cover overspending right away by moving funds from another category.
+4. Reconcile the card account against each monthly statement.
+5. Pay at least the statement balance before the due date.
+6. Count only category balances as available money. The credit limit is not available money.

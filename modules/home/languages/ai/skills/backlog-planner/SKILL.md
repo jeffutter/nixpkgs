@@ -3,323 +3,97 @@ name: backlog-planner
 description: Autonomous planning skill for tickets (backlog). Use when planning implementation for a ticket (TASK-xxx). Spawns research subagents, analyzes dependencies, creates sub-tickets for discrete work, and writes detailed implementation plans.
 ---
 
-# Ticket Autonomous Planner
+# Backlog Planner
 
-Plan a ticket by researching the codebase, analyzing dependencies, and creating actionable implementation plans.
+Use this skill when the user runs `/backlog-planner <ticket_id>` or asks you to plan a backlog ticket. The end state: the ticket carries an implementation plan and the `planned` label, each discrete unit of work is a sub-ticket, and you have printed a summary. Run every step in order without asking the user for confirmation.
 
-## Task Hierarchy
+Hierarchy and dependency rules:
 
-Tickets use a three-level hierarchy:
+- Tickets nest as Epic, then Feature, then Task.
+- Children of an Epic are Features. Label them `-l feature`.
+- Children of a Feature are Tasks. Label them `-l task`.
+- A parent depends on each of its children. Set this with `backlog task edit <parent_id> --dep <child_id>`.
 
-```
-Epic → Feature → Task
-```
+A trivial sub-ticket meets all of these:
 
-- **Epic:** Large initiatives spanning multiple features. When planning an Epic, break it into Features.
-- **Feature:** Discrete, shippable capabilities. When planning a Feature, it may break into Tasks if granularity is discovered during research.
-- **Task:** Atomic units of work. Tasks should be small enough to complete in a focused session.
+- Under 20 changed lines.
+- One file, or one tightly scoped area.
+- One obvious implementation path.
+- No further research needed.
 
-When creating sub-tickets:
-- Epic children are typically Features (use `-l feature`)
-- Feature children are typically Tasks (use `-l task`)
+Any other sub-ticket is non-trivial.
 
-### Dependency Direction
+## Steps
 
-**Children block their parents.** Work flows bottom-up:
+1. Run `backlog task <ticket_id> --plain`. Record its status, Dependencies field, and description.
 
-```
-Task (do first) ──blocks──► Feature ──blocks──► Epic (complete last)
-```
+2. Run `git rev-parse HEAD`. Record the SHA.
 
-- An Epic cannot be started until its Features are planned
-- An Epic cannot be completed until all its Features are done
-- A Feature cannot be started until its Tasks are planned
-- A Feature cannot be completed until all its Tasks are done
+3. Check whether the work already shipped:
+   - Run `git log --oneline -20` and `git log --grep="<ticket_id>" --oneline`.
+   - Grep the code for the files, symbols, and routes the ticket names. Many commits carry the ticket ID only in a trailer.
+   - If the ticket status is Done, or HEAD already contains the deliverable: report ALREADY_SHIPPED with the SHA that landed it, then stop.
 
-When you create a sub-ticket, the **parent depends on the child**:
-```bash
-backlog task edit <parent_id> --dep <child_id>
-```
+4. Run `backlog task list -s "To Do" --plain`. Find tickets that have this ticket as parent and lack the `planned` label.
+   - If any exist: print "Plan these tickets first: <ticket IDs>", then stop.
+   - If none exist: continue.
 
-This ensures leaf tasks surface first as ready work—the actual work to execute.
+5. For each upstream dependency from step 1, run `backlog task <dep_id> --plain`. Record its status and Implementation Plan.
 
-## Invocation
+6. From the step 4 listing, find downstream tickets whose Dependencies include this ticket. Record the sequencing constraints from steps 5 and 6.
 
-```
-/backlog-planner <ticket_id>
-```
+7. Choose research dimensions for the ticket:
+   - Architecture: modules involved, existing patterns for similar features, data flow, interfaces, project conventions.
+   - Implementation: similar existing code, reusable helpers, tests that specify behavior, edge cases.
+   - Data and API surface: data models, schemas, endpoint and payload conventions, validation rules, external services.
+   - Risk: breaking changes to callers, performance, security, tech debt in the affected code.
+   - Add a dimension for any area the ticket hinges on outside this list, such as migration safety, auth, or a specific library.
+   - Merge dimensions that share files or patterns into one agent.
+   - Omit dimensions the ticket does not touch.
 
-Example: `/backlog-planner TASK-42`
+8. Spawn one Explore-type subagent per chosen dimension, all in parallel. Set the subagent type with the field your agent tool's schema declares.
+   - Each prompt names what to investigate and how it informs the ticket.
+   - Each prompt asks for file paths, patterns, and constraints, not prose summaries.
+   - Keep each prompt to one dimension.
+   - Skip subagents only for a one-line fix, a rename, or a config tweak. Research inline instead.
 
-## Process Overview
+9. Wait for every agent to return. Reconcile their findings. If a gap blocks planning, spawn one targeted follow-up agent for that gap.
 
-Execute these phases sequentially. Do not ask for user confirmation between phases.
+10. Split the work into sub-tickets. Make a sub-ticket for a unit that is independently testable, ships without breaking the application, fits one focused session, and has clear acceptance criteria. Keep in the parent plan:
+    - Changes under 20 lines.
+    - Tightly coupled changes that ship together.
+    - Work that only makes sense as part of the whole.
 
-```
-Phase 0: Prerequisites  →  Phase 1: Research  →  Phase 2: Plan  →  Phase 3: Review
-   (check blockers)         (parallel agents)     (create tickets)   (validate)
-```
+11. Create each sub-ticket:
+    - Trivial: `backlog task create "<action-oriented title>" --priority <high|medium|low> -p <ticket_id> -d "<description>" --plan "<implementation plan>" -l planned`
+    - Non-trivial: `backlog task create "<action-oriented title>" --priority <high|medium|low> -p <ticket_id> -d "<description>"`. Leave out the plan and the `planned` label. A later `/backlog-planner` session plans it.
+    - Add the hierarchy label (`-l feature` or `-l task`) to either command.
 
----
+12. For each new sub-ticket, run `backlog task edit <ticket_id> --dep <new_ticket_id>`.
 
-## Phase 0: Prerequisites
+13. Run `git rev-parse HEAD` again. If it changed from step 2, re-read any source you plan to cite and update findings that moved.
 
-**Goal:** Ensure the ticket is ready for planning.
+14. Write the main plan with `backlog task edit <ticket_id> --plan "<plan>"`. The plan contains, in order:
+    - First line: `Planned against <output of git rev-parse --short HEAD>`.
+    - The overall approach.
+    - How the sub-tickets fit together and why the work splits this way.
+    - Integration and verification steps.
+    - Final testing.
+    - Remaining work not covered by a sub-ticket.
 
-1. Fetch ticket details:
-   ```bash
-   backlog task <ticket_id> --plain
-   git rev-parse HEAD
-   ```
+15. Run `backlog task edit <ticket_id> --remove-label needs-plan --add-label planned`.
 
-   Record the SHA. Every session here shares one checkout and main moves underneath it, so re-check
-   `git rev-parse HEAD` before you report anything, and re-read any source you meant to cite if it
-   moved. A survey pinned at an older commit reports the gaps that commit still has open, however
-   carefully it was done  - on 2026-09-16 a research pass found four unresolved contract questions
-   that later commits had already closed, citing prior art throughout.
+16. Review the result by running `backlog task <id> --plain` on the main ticket and each sub-ticket. Check:
+    - Finishing every sub-ticket plus the main plan achieves the ticket's goal, with no gaps between sub-tickets.
+    - Each sub-ticket description states its scope and acceptance criteria on its own.
+    - Each trivial sub-ticket has a plan and the `planned` label.
+    - Each non-trivial sub-ticket has a description only.
+    - The dependencies produce a sensible execution order with none missing.
+    - Fix each problem with `backlog task edit <id>` and the matching flag.
 
-   Then confirm the work is actually outstanding:
-   ```bash
-   git log --oneline -20
-   git log --grep="<ticket_id>" --oneline
-   ```
-
-   Grep for the files, symbols and routes the ticket names, not only its ID  - much of this project
-   landed under a descriptive subject line with the ID solely in a trailer. If the deliverable is
-   already in HEAD, or the ticket's status is already Done, do not plan it. Report ALREADY_SHIPPED
-   with the SHA that landed it and stop. A committed plan that describes merged work as pending is
-   worse than no plan: it reads as a legitimate queue entry indefinitely, and on 2026-09-16 five
-   sessions followed exactly such a document into reimplementing TASK-2.15.3 and TASK-2.15.3.1,
-   because nothing in a plan states which commit it was written against.
-
-2. Check for unplanned child tickets:
-   ```bash
-   backlog task list -s "To Do" --plain
-   ```
-
-   Review the output and cross-reference with the ticket's dependencies. Filter for tickets that:
-   - Have this ticket as a parent (check dependencies)
-   - Do NOT have the `planned` label
-
-3. **If unplanned children exist:**
-   - List them clearly
-   - Exit with message: "Plan these tickets first: [list of ticket IDs]"
-   - Do not proceed
-
-4. **If no blockers:** Continue to Phase 1.
-
----
-
-## Phase 1: Research
-
-**Goal:** Gather the context needed to plan — no more, no less.
-
-### Step 1: Analyze Dependencies Inline
-
-Dependency analysis is metadata lookup, not codebase research — run the CLI directly instead of spawning a subagent:
-
-1. Run `backlog task <ticket_id> --plain` and note the Dependencies field
-2. For each upstream dependency, run `backlog task <dep_id> --plain` and read its Implementation Plan and status
-3. Scan ticket listings for downstream dependents — tickets whose Dependencies reference this one
-4. Record sequencing constraints
-
-### Step 2: Spawn Research Subagents
-
-Delegate codebase research to parallel Explore-type subagents via your agent-dispatch tool. Use whichever field your tool's own schema declares for the subagent's type or role (e.g. `subagent_type` on Claude Code's Task tool, `type` on pi's `subagent` tool) — match the schema, not a literal copied from this line. **Choose the count based on the ticket — no prescribed number.** Spawn exactly as many as the work demands, and no more.
-
-**Default to spawning subagents.** The plan produced here has to hold up during execution, so prefer thorough parallel research over inline shortcuts. Even moderate-sized tickets benefit from dedicated agents per dimension. Skip subagents entirely only when the ticket is truly trivial — planning effort matches implementation effort (e.g. a one-line fix, a rename, a config tweak). For sprawling Epics, several focused agents in parallel return better results than one catch-all.
-
-Base the count and scope on:
-- **Ticket scope** — a focused change may warrant a single agent; a cross-cutting Epic may need several
-- **Which dimensions actually apply** — not every ticket involves data, APIs, architecture, and risk
-- **Topic coupling** — two dimensions that share files or patterns are cheaper investigated by one agent than two
-- **Unique areas** — if the ticket hinges on a concern outside the catalogue below, spawn an agent for it anyway
-
-### Research Dimensions
-
-Non-exhaustive catalogue — mix, combine, or omit based on the ticket, and **add your own dimensions when the ticket demands it**. If the work hinges on an area not listed below (e.g. migration safety, observability, auth, i18n, accessibility, a specific library's behavior), spawn a focused agent for it. When two dimensions share files or patterns, fold them into a single agent rather than spawning two.
-
-**Architecture** — for tickets affecting system structure.
-- Investigate: primary modules and components involved, existing patterns for similar features, data flow and interfaces between them, architectural constraints or conventions in the project
-- Return: key files and their responsibilities, patterns to follow, integration points, recommended architectural approach
-
-**Implementation** — for tickets with clear technical work.
-- Investigate: existing code that does similar work, utility functions/helpers/patterns already available to reuse, relevant tests that specify behavior, edge cases handled in similar code
-- Return: reference implementations, reusable components, test patterns to follow, potential edge cases
-
-**Data / API surface** — for tickets involving data models or external interfaces.
-- Investigate: relevant data models and schemas, existing API patterns (endpoints, payload shapes, error conventions), validation rules and constraints, external service integrations
-- Return: data models involved, API conventions to follow, validation requirements, external dependencies
-
-**Risk & constraints** — for tickets with uncertainty or potential issues.
-- Investigate: potential breaking changes to callers or consumers, performance implications, security considerations, technical debt that may complicate the work
-- Return: breaking change risks, performance concerns, security checklist items, tech debt interactions
-
-### Prompt Construction
-
-Each agent prompt should:
-- State what to investigate and how it informs the ticket
-- Request concrete artifacts (file paths, patterns, constraints) — not prose summaries
-- Stay scoped — broad prompts return shallow answers
-
-### Step 3: Synthesize
-
-Wait for all agents to return. Reconcile their findings into a coherent picture before planning. If a gap blocks planning, spawn a targeted follow-up agent — don't guess.
-
----
-
-## Phase 2: Plan Orchestration
-
-**Goal:** Create actionable plans and sub-tickets for discrete work.
-
-### Step 1: Identify Discrete Units of Work
-
-Review the research findings and identify work that:
-- Can ship independently without breaking the application
-- Represents an incremental improvement
-- Has clear boundaries and acceptance criteria
-
-**Criteria for creating a sub-ticket:**
-- The work is independently testable
-- It produces a meaningful, shippable increment
-- It can be completed in a focused session
-- Other work depends on it completing first
-
-**Do NOT create sub-tickets for:**
-- Trivial changes (under 20 lines)
-- Tightly coupled changes that must ship together
-- Work that only makes sense in the context of the whole
-
-### Step 2: Create Sub-Tickets
-
-For each discrete unit of work:
-
-1. **Create the ticket:**
-   ```bash
-   backlog task create "<clear, action-oriented title>" --priority <high|medium|low> -p <parent_ticket_id> -d "<brief description>"
-   ```
-
-   Optionally label with the hierarchy level:
-   - Planning an Epic → label children as features (`-l feature`)
-   - Planning a Feature → label children as tasks (`-l task`)
-
-2. **Set the dependency** (parent depends on child—parent cannot complete until child is done):
-   ```bash
-   backlog task edit <parent_ticket_id> --dep <new_ticket_id>
-   ```
-
-   This makes the parent depend on the child. The parent Epic/Feature remains blocked until all children are complete.
-
-3. **Decide whether to add a plan:**
-
-   **Add plan and mark planned** if the sub-ticket is trivial:
-   - Under ~20 lines of changes
-   - Single file or tightly scoped
-   - Clear implementation path with no ambiguity
-   - No further research needed
-
-   For trivial sub-tickets, add plan and label when creating:
-   ```bash
-   backlog task create "<title>" --priority <high|medium|low> -p <parent_ticket_id> -d "<brief description>" --plan "<implementation plan>" -l planned
-   ```
-
-   **Leave unplanned** if the sub-ticket requires its own planning session:
-   - Multiple files or components involved
-   - Non-obvious implementation approach
-   - Would benefit from focused research
-   - Any uncertainty about the right approach
-
-   For non-trivial sub-tickets:
-   - Write only a clear description (already done in step 1)
-   - Do NOT add plan or planned label
-   - It will be planned in a dedicated `/backlog-planner` session later
-
-### Step 3: Write Main Ticket Plan
-
-After creating sub-tickets, write the implementation plan for the main ticket:
-
-```bash
-backlog task edit <ticket_id> --plan "<orchestration plan>"
-```
-
-The main ticket's plan should include:
-- A first line naming the revision it was written against: `Planned against <git rev-parse --short
-  HEAD>`. Without it, a plan outlives its own accuracy and the next session cannot tell a stale one
-  from a current one - the trap that sent five sessions to rebuild TASK-2.15.3 on 2026-09-16
-- Overview of the approach
-- How sub-tickets fit together
-- Integration and verification steps
-- Final testing and validation
-- Any remaining work not captured in sub-tickets
-
-### Step 4: Mark Main Ticket as Planned
-
-```bash
-backlog task edit <ticket_id> --remove-label needs-plan --add-label planned
-```
-
----
-
-## Phase 3: Review
-
-**Goal:** Validate the plan is complete and actionable.
-
-### Review Checklist
-
-**For the main ticket:**
-
-1. **Clarity:** Is the orchestration plan clear?
-   - Does it explain how sub-tickets fit together?
-   - Are integration steps documented?
-   - Is the "why" behind the breakdown explained?
-
-2. **Completeness:** When all sub-tickets are done, is the original goal achieved?
-   - Do the sub-tickets cover all identified work?
-   - Are there gaps between tickets?
-   - Is the final integration path clear?
-
-**For sub-tickets:**
-
-1. **Descriptions:** Can someone understand the scope from the description alone?
-   - Is the work clearly bounded?
-   - Are acceptance criteria implied or explicit?
-
-2. **Planning status:** Is each sub-ticket correctly categorized?
-   - Trivial tickets: Have plan AND planned label
-   - Non-trivial tickets: Have description only, NO plan, NO planned label
-
-3. **Dependencies:** Are blocking relationships correct?
-   - Does the execution order make sense?
-   - Are there missing dependencies?
-
-### Make Corrections
-
-If issues are found, use `backlog task edit <ticket_id>` with the appropriate flags to make corrections.
-
-### Final Summary
-
-Output a summary:
-- Main ticket ID, title, and type (Epic/Feature/Task)
-- List of sub-tickets created with their status:
-  - `[planned]` - trivial, ready for execution
-  - `[unplanned]` - requires `/backlog-planner` before execution
-- Recommended execution order
-- Next steps (which tickets need planning, which are ready)
-- Any risks or considerations noted
-
----
-
-## Examples
-
-### Example: Simple Enhancement
-
-Input: `/backlog-planner TASK-42` where TASK-42 is "Add retry logic to API client"
-
-Phase 1:
-- Inline dependency check via `backlog task` commands
-- One Explore agent covering existing retry patterns (Architecture and Implementation collapse into a single scope)
-
-Phase 2:
-- No sub-tickets (single focused change)
-- Writes detailed plan to TASK-42
-
+17. Print a summary:
+    - Main ticket ID, title, and level (Epic, Feature, or Task).
+    - Each sub-ticket, marked `[planned]` (ready to execute) or `[unplanned]` (needs `/backlog-planner`).
+    - The recommended execution order.
+    - Which tickets need planning next and which are ready.
+    - Risks found during research.

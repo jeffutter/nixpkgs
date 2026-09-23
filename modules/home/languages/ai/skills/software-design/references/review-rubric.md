@@ -1,40 +1,19 @@
 # Design Review Rubric
 
-Use this to judge an existing design, or your own change before proposing it.
+Use this rubric to judge an existing design, or your own change before you propose it.
 
-## Red Flags
-
-Watch for these symptoms:
-
-| Red Flag | What It Suggests |
-|----------|------------------|
-| Shallow module | Interface nearly as complex as implementation |
-| Information leakage | Same knowledge in multiple places |
-| Pass-through method | Layer adds no abstraction |
-| Conjoined functions | Can't understand one without the other |
-| Hard to name | Unclear purpose or mixed responsibilities |
-| Hard to describe | Interface isn't clean |
-| Repetition | Missing abstraction |
-| Many special cases | Normal case isn't general enough |
-
-## Strategic vs Tactical
-
-**Tactical:** "What's the smallest change to make this work?"
-
-**Strategic:** "What design would I have built if I'd known about this
-requirement from the start?"
-
-Tactical programming accumulates complexity. Strategic programming invests
-~10-20% extra time in design to pay dividends forever.
-
-When modifying existing code:
-
-1. Don't just patch — consider whether the current design is still appropriate
-2. If not, refactor toward the design you'd build from scratch
-3. Leave the code cleaner than you found it
-
-## Applying the rubric
-
-For each red flag you find, state the symptom, the design decision that caused
-it, and what the strategic version would look like. Don't report a red flag you
-can't tie to a concrete cost — the rubric is a lens, not a checklist to satisfy.
+1. Scan the code for these red flags. Each symptom points to a cause:
+   - Shallow module: the interface is nearly as complex as the implementation.
+   - Information leakage: the same knowledge lives in more than one module.
+   - Pass-through method: the layer adds no abstraction.
+   - Conjoined functions: one cannot be understood without the other.
+   - Hard to name: the purpose is unclear or responsibilities are mixed.
+   - Hard to describe: the interface is not clean.
+   - Repetition: an abstraction is missing.
+   - Many special cases: the normal case is not general enough.
+2. Drop each red flag you cannot tie to a concrete cost.
+3. For each remaining red flag, state the symptom, the design decision that caused it, and the strategic version.
+4. Find the strategic version by asking what design you would build had you known this requirement from the start. The tactical question, what is the smallest change that works, accumulates complexity.
+5. When you modify existing code:
+   - The current design still fits: make the change and leave the code cleaner than you found it.
+   - The current design no longer fits: refactor toward the design you would build from scratch. Budget about 10-20% extra time for it.

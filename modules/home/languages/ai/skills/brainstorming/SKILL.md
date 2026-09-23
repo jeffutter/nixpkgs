@@ -1,50 +1,26 @@
 ---
 name: brainstorming
-description: "You MUST use this before any creative work - creating features, building components, adding functionality, or modifying behavior. Explores user intent, requirements and design before implementation."
+description: "Use before any creative work - creating features, building components, adding functionality, or modifying behavior. Explores user intent, requirements, and design before implementation."
 ---
 
 # Brainstorming Ideas Into Designs
 
-## Overview
+Use this skill before implementing a feature, component, or behavior change. The end state is a design the user approved, written to a file and committed. Write no implementation code during this skill.
 
-Help turn ideas into fully formed designs and specs through natural collaborative dialogue.
-
-Start by understanding the current project context, then ask questions one at a time to refine the idea. Once you understand what you're building, present the design in small sections (200-300 words), checking after each section whether it looks right so far.
-
-## The Process
-
-**Understanding the idea:**
-- Check out the current project state first (files, docs, recent commits)
-- Ask questions one at a time using the AskUserQuestion tool to refine the idea
-- Prefer multiple choice questions when possible, but open-ended is fine too
-- Only one question per message - if a topic needs more exploration, break it into multiple questions
-- Focus on understanding: purpose, constraints, success criteria
-
-**Exploring approaches:**
-- Propose 2-3 different approaches with trade-offs
-- Present options conversationally with your recommendation and reasoning
-- Lead with your recommended option and explain why
-
-**Presenting the design:**
-- Once you believe you understand what you're building, present the design
-- Break it into sections of 200-300 words
-- Ask after each section whether it looks right so far
-- Cover: architecture, components, data flow, error handling, testing
-- Be ready to go back and clarify if something doesn't make sense
-
-## After the Design
-
-**Documentation:**
-- Write the validated design to `docs/plans/YYYY-MM-DD-<topic>-design.md`
-- Use writing-clearly-and-concisely skill if available
-- Commit the design document to git
-
-## Key Principles
-
-- **One question at a time** - Don't overwhelm with multiple questions
-- **Multiple choice preferred** - Easier to answer than open-ended when possible
-- **YAGNI ruthlessly** - Remove unnecessary features from all designs
-- **Explore alternatives** - Always propose 2-3 approaches before settling
-- **Incremental validation** - Present design in sections, validate each
-- **Be flexible** - Go back and clarify when something doesn't make sense
-
+1. Read the project state: README and docs, the files the idea touches, and `git log -n 10`.
+2. Ask the user one question per message with the AskUserQuestion tool.
+   - Offer multiple-choice answers when the options are enumerable. Otherwise ask an open question.
+   - Split a topic that needs more detail into several questions.
+   - Ask until you know the purpose, the constraints, and the success criteria.
+3. Propose 2 or 3 approaches.
+   - Put your recommended approach first, with the reason you recommend it.
+   - State the trade-offs of each approach.
+   - Ask the user to pick one.
+4. Remove every feature from the chosen approach that the stated purpose and success criteria do not require.
+5. Present the design in sections of 200 to 300 words.
+   - Cover architecture, components, data flow, error handling, and testing.
+   - After each section, ask whether it looks right so far.
+   - The user objects or is confused: ask a clarifying question, revise the section, and present it again.
+6. Write the approved design to `docs/plans/YYYY-MM-DD-<topic>-design.md` at the repository root. Use today's date and a short hyphenated topic.
+   - The writing-clearly-and-concisely skill is available: invoke it before writing.
+7. Commit the design file with git.

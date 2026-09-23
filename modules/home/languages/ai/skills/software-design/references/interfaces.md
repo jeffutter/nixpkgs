@@ -1,80 +1,47 @@
 # Interfaces
 
-## General-Purpose Interfaces
+## General-purpose interfaces
 
-**Somewhat general-purpose modules are deeper than specialized ones.**
-
-Design interfaces around fundamental operations, not specific use cases:
+Design interfaces around fundamental operations, not specific use cases. Somewhat general modules are deeper than specialized ones.
 
 ```
-Too specialized:
+Specialized:
   backspace()           // deletes char before cursor
   delete_key()          // deletes char after cursor
   delete_selection()    // deletes highlighted text
 
-General-purpose:
-  delete(start, end)    // deletes range; all above are trivial callers
+General:
+  delete(start, end)    // each call above becomes a trivial caller
 ```
 
-**Questions to ask:**
+Answer these for each interface:
 
-- What's the simplest interface covering all current needs?
-- How many situations will this method be used in? (If one, it's too
-  specialized)
-- Can I reduce the number of methods without adding complex parameters?
+- What is the simplest interface that covers every current need?
+- How many situations will call this method? One situation means it is too specialized.
+- Can you drop methods without adding complex parameters?
 
-**Push specialization to the edges.** Core infrastructure should be general;
-application-specific behavior belongs in the outer layers that call into it.
+Keep core infrastructure general. Put application-specific behavior in the outer layers that call it.
 
-## Pull Complexity Downward
+## Pull complexity downward
 
-**It's better for a module's implementer to suffer than its users.**
-
-When you encounter unavoidable complexity, absorb it in the implementation
-rather than exposing it in the interface. Users of your module are more numerous
-than you.
+Absorb unavoidable complexity in the implementation instead of the interface. A module has more users than implementers.
 
 ```
-Pushing complexity up (bad):
-  // Caller must understand retry policy, timeout configuration, error types
+Pushed up:
   config = RetryConfig(attempts=3, backoff=exponential(base=2))
   result = fetch(url, timeout=30, retry_config=config, on_error=log_and_continue)
 
-Pulling complexity down (better):
-  result = fetch(url)  // sensible defaults internal; rare overrides via separate methods
+Pulled down:
+  result = fetch(url)  // defaults are internal; rare overrides get separate methods
 ```
 
-**Configuration parameters are often a failure to make decisions.** Before
-exposing a parameter, ask: "Will users actually know better than I can compute
-automatically?"
+Before you expose a configuration parameter, ask whether callers know a better value than the module can compute. When they do not, compute it inside the module.
 
-## Define Errors Out of Existence
+## Define errors out of existence
 
-**Reduce the number of places where exceptions must be handled.**
+Reduce the number of places that handle exceptions:
 
-The best error handling is making errors impossible or irrelevant:
-
-```
-Error-prone:
-  unset(variable)  // throws if variable doesn't exist
-
-Error-free:
-  ensure_absent(variable)  // succeeds whether or not variable exists
-```
-
-```
-Error-prone:
-  substring(start, end)  // throws if indices out of bounds
-
-Error-free:
-  substring(start, end)  // returns empty string if no overlap, clips to bounds
-```
-
-**Techniques:**
-
-- Redefine operations so edge cases are normal cases
-- Mask exceptions at low levels when higher levels can't do anything useful
-- Aggregate exception handling — catch many exceptions in one place rather than
-  wrapping every call
-- Let the system crash for truly unrecoverable errors (out of memory, corrupted
-  state)
+- Redefine operations so edge cases become normal cases. Example: `unset(variable)` succeeds when the variable is already absent. Example: `substring(start, end)` clips to bounds and returns an empty string when there is no overlap.
+- Mask an exception at a low level when higher levels cannot act on it.
+- Catch many exceptions in one place instead of wrapping every call.
+- Let the system crash on unrecoverable errors, such as out of memory or corrupted state.
