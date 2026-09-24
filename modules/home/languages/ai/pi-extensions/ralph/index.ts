@@ -100,6 +100,7 @@ import type {
   Theme,
 } from "@earendil-works/pi-coding-agent";
 import { Type } from "@earendil-works/pi-ai";
+import type { Usage } from "@earendil-works/pi-ai";
 import {
   Box,
   Container,
@@ -973,12 +974,23 @@ function largeFileGuidance(): string {
  * they land in the transcript inertly and surface in context only on the next real turn.
  * The prose rules remain for that later turn (and for any session still running on the old
  * `always` default until restarted).
+ *
+ * The "only reply to correct a worker" exception originally lived as a clause inside the
+ * intercom-pings bullet below, where it read as a footnote rather than the actual rule. Moved
+ * to its own leading bullet (2026-09-24) so silence is the stated default and correction is the
+ * named exception, not the other way around.
  */
 const ORCHESTRATOR_ROLE_GUIDANCE = dedent`
   Ralph orchestrator role: an autonomous ralph backlog loop is currently running in this
   session. All real ticket work (research, planning, implementation, review) runs in separate
   headless worker sessions; their intercom messages (from sessions named \`subagent-chat-*\`)
   are progress reports about work those workers own end-to-end — NOT tasks assigned to you.
+  - Default to silence: a worker's ping does not want or need a reply. Never intercom a worker
+    back to acknowledge it, thank it, or ask it to resend something — a reply lands inside the
+    worker's own context mid-task and interrupts it for nothing. The ONLY reason to message a
+    worker is correction: it is duplicating another worker's ticket, working outside its
+    assigned scope, or about to do something destructive. Status, findings, and "I'm done" all
+    get relayed to the user — none of them get answered.
   - Do not perform the workers' work yourself: when a progress report names a ticket, do not
     start researching it, planning it, editing its code, or mutating its backlog record in this
     session. Parallel work duplicates effort and risks conflicting edits; each worker owns its
@@ -986,22 +998,19 @@ const ORCHESTRATOR_ROLE_GUIDANCE = dedent`
   - Your job is to orchestrate and report: track the loop with the ralph_status tool, relay
     worker progress to the user, and surface failures or stalls (loop history under
     ~/.pi/agent/ralph/<project>/history.jsonl; worker transcripts under ~/.pi/agent/sessions/).
-  - Intercom pings are one-way status updates, not conversations — a worker sends them via
-    \`send\`, never \`ask\`, delivery is guaranteed by the broker, and (with pi-intercom's
-    inboundTrigger set to "replies") they don't even trigger a turn here: the user reads them
-    live in the transcript. Never intercom a worker back in response to a ping — a reply lands
-    inside the worker's own context mid-task and interrupts it. Only message a worker back if
-    it's actually going off track (e.g. duplicating another worker's ticket, working outside
-    its assigned scope) and needs to be redirected.
-  - A ping saying a worker is done or "ready to return" its result ends the conversation
-    rather than starting one: the step's deliverable comes back through the loop's captured
-    output and history.jsonl, not intercom. Never ask a worker to send or resend its results
-    by intercom.
+  - Intercom pings are one-way by design — a worker sends them via \`send\`, never \`ask\`,
+    delivery is guaranteed by the broker, and (with pi-intercom's inboundTrigger set to
+    "replies") a routine ping doesn't even trigger a turn here: the user reads it live in the
+    transcript. A ping saying a worker is done or "ready to return" its result still ends the
+    conversation rather than starting one — the step's deliverable comes back through the
+    loop's captured output and history.jsonl, not intercom. Never ask a worker to send or
+    resend its results by intercom.
   - Waiting for a worker's deliverable is not a reason to pre-work the ticket. Do not open,
     read, or "verify" the ticket's source files, tests, or backlog record "while waiting" or
     "to check the worker's findings" — that is performing the worker's work under a different
     name. If you catch yourself about to open a file a worker just reported on, stop: your
-    moves are ralph_status, relaying to the user, and (rarely) redirecting the worker.
+    moves are ralph_status, relaying to the user, and (rarely) correcting a worker that is
+    actually going wrong.
   - Explicit user instructions always override this framing: if the user directly asks you to
     do something, follow them even if it touches a ralph-managed ticket.
 `;
@@ -1025,8 +1034,9 @@ const ORCHESTRATOR_ROLE_GUIDANCE = dedent`
 const PING_REMINDER =
   "[ralph] One-way progress report from a ralph worker; the user already sees it in the " +
   "transcript. Do not research, plan, edit, or mutate anything for the named ticket in this " +
-  "session, and do not message the worker back — its deliverable arrives through the loop's " +
-  "captured output.";
+  "session. Default to silence — do not message the worker back unless it is genuinely going " +
+  "wrong (duplicating work, off scope, destructive) and needs correcting; its deliverable " +
+  "otherwise arrives through the loop's captured output, not a reply.";
 const PING_HEADER_PATTERN = /From subagent-chat-[0-9a-f]{8}-[0-9a-f]{4}/;
 const PING_ID_PATTERN =
   /_id ([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/;
@@ -2536,15 +2546,32 @@ async function showProgressDashboard(
  */
 
 type SessionMessage = SessionContext["messages"][number];
+type SessionModel = SessionContext["model"];
 
-/** Reads a worker's session file fresh off disk and resolves it to the same message list pi's
- * own interactive session builds from — drops the file's leading `session` header entry. */
-function readTranscriptMessages(file: string): SessionMessage[] {
+/** Reads a worker's session file fresh off disk and resolves it to the same message list (and
+ * current model) pi's own interactive session builds from — drops the file's leading `session`
+ * header entry. */
+function readTranscript(
+  file: string,
+): { messages: SessionMessage[]; model: SessionModel } {
   const raw = readFileSync(file, "utf8");
   const entries = parseSessionEntries(raw).filter(
     (entry): entry is SessionEntry => entry.type !== "session",
   );
-  return buildSessionContext(entries).messages;
+  const { messages, model } = buildSessionContext(entries);
+  return { messages, model };
+}
+
+/** `4200` -> `"4.2k"`, `1234567` -> `"1.2M"`. No model-catalog lookup is attempted for a
+ * denominator (a "% of context window" figure) — ralph's workers run under whatever model
+ * alias the user's provider config resolves (frequently a custom litellm route), which isn't
+ * a lookup key any bundled model catalog recognizes, so a computed percentage would be
+ * fabricated for exactly the setups this runs under. Raw token counts from the session's own
+ * reported usage are honest regardless of provider. */
+function formatTokenCount(n: number): string {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
+  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}k`;
+  return String(n);
 }
 
 /** Concatenates the text blocks of a user message's content (mirrors pi's own rendering). */
@@ -2569,6 +2596,10 @@ class RalphTranscriptContent {
   private messageCount = 0;
   private width: number | undefined;
   private rows: readonly string[] | undefined;
+  private model: SessionModel = null;
+  /** The most recent assistant message's token usage, or undefined before any response has
+   * landed — see `usageSummary`. */
+  private lastUsage: Usage | undefined;
 
   constructor(
     private readonly tui: TUI,
@@ -2582,11 +2613,13 @@ class RalphTranscriptContent {
   /** Re-reads the session file; rebuilds and returns true only if its message count changed. */
   refresh(): boolean {
     let messages: SessionMessage[];
+    let model: SessionModel;
     try {
-      messages = readTranscriptMessages(this.file);
+      ({ messages, model } = readTranscript(this.file));
     } catch {
       return false;
     }
+    this.model = model;
     if (messages.length === this.messageCount) return false;
     this.build(messages);
     return true;
@@ -2603,6 +2636,26 @@ class RalphTranscriptContent {
   invalidate(): void {
     this.root.invalidate();
     this.rows = undefined;
+  }
+
+  /**
+   * One line summarizing what this worker is running and how much of its exchange the most
+   * recent turn used — the closest honest equivalent to pi's own context-usage readout that's
+   * available for an arbitrary headless session (see `formatTokenCount` on why this stops at
+   * raw counts rather than a window percentage). Undefined before the first response lands.
+   */
+  usageSummary(): string | undefined {
+    if (!this.lastUsage) return undefined;
+    const modelLabel = this.model
+      ? `${this.model.provider}/${this.model.modelId}`
+      : "unknown model";
+    const promptTokens =
+      this.lastUsage.input + this.lastUsage.cacheRead + this.lastUsage.cacheWrite;
+    return (
+      `${modelLabel} · last turn: ${formatTokenCount(promptTokens)} in` +
+      ` (${formatTokenCount(this.lastUsage.cacheRead)} cached) / ` +
+      `${formatTokenCount(this.lastUsage.output)} out`
+    );
   }
 
   private rendered(width: number): readonly string[] {
@@ -2624,10 +2677,12 @@ class RalphTranscriptContent {
     const root = new Container();
     const pendingTools = new Map<string, ToolExecutionComponent>();
     let hasVisibleContent = false;
+    let lastUsage: Usage | undefined;
 
     for (const message of messages) {
       switch (message.role) {
         case "assistant": {
+          lastUsage = message.usage;
           root.addChild(
             new AssistantMessageComponent(message, false, this.markdownTheme),
           );
@@ -2725,6 +2780,7 @@ class RalphTranscriptContent {
 
     this.root = root;
     this.messageCount = messages.length;
+    this.lastUsage = lastUsage;
     this.rows = undefined;
   }
 }
@@ -2732,7 +2788,8 @@ class RalphTranscriptContent {
 /** How often a still-running step's pane re-reads its worker's session file. Cheap relative
  * to a worker's own pace (pings every few minutes at most), so short polling slack is fine. */
 const TRANSCRIPT_REFRESH_MS = 2_000;
-const TRANSCRIPT_CHROME_LINES = 2;
+/** Non-content rows: top rule, title, usage line, footer, bottom rule — see `render()`. */
+const TRANSCRIPT_CHROME_LINES = 5;
 const TRANSCRIPT_MIN_VIEWPORT = 3;
 const TRANSCRIPT_VIEWPORT_PCT = 70;
 
@@ -2767,6 +2824,15 @@ class RalphTranscriptPane implements Component {
     }
   }
 
+  /**
+   * Plain letter keys are the primary bindings here, not a fallback — pi's own
+   * docs/keybindings.md documents that outside `--tui-mode fullscreen` (this pane's mode:
+   * ralph never sets fullscreen), unmodified `up`/`down`/`pageUp`/`pageDown`/`home`/`end` are
+   * hard-routed to the main input editor's cursor-movement bindings regardless of which
+   * component currently holds focus. Confirmed live: those keys never reach this handler while
+   * the pane is open. The named keys are kept below only because they're harmless if some
+   * terminal/host combination ever does deliver them; j/k/f/b/g/e are what actually works.
+   */
   handleInput(data: string): void {
     if (matchesKey(data, Key.escape) || matchesKey(data, "q")) {
       this.close();
@@ -2779,19 +2845,27 @@ class RalphTranscriptPane implements Component {
     } else if (matchesKey(data, "down") || matchesKey(data, "j")) {
       this.scrollOffset = Math.min(maxScroll, this.scrollOffset + 1);
       this.autoScroll = this.scrollOffset >= maxScroll;
-    } else if (matchesKey(data, "pageUp") || matchesKey(data, "shift+up")) {
+    } else if (
+      matchesKey(data, "pageUp") ||
+      matchesKey(data, "shift+up") ||
+      matchesKey(data, "b")
+    ) {
       this.scrollOffset = Math.max(0, this.scrollOffset - viewportHeight);
       this.autoScroll = false;
-    } else if (matchesKey(data, "pageDown") || matchesKey(data, "shift+down")) {
+    } else if (
+      matchesKey(data, "pageDown") ||
+      matchesKey(data, "shift+down") ||
+      matchesKey(data, "f")
+    ) {
       this.scrollOffset = Math.min(
         maxScroll,
         this.scrollOffset + viewportHeight,
       );
       this.autoScroll = this.scrollOffset >= maxScroll;
-    } else if (matchesKey(data, "home")) {
+    } else if (matchesKey(data, "home") || matchesKey(data, "g")) {
       this.scrollOffset = 0;
       this.autoScroll = false;
-    } else if (matchesKey(data, "end")) {
+    } else if (matchesKey(data, "end") || matchesKey(data, "e")) {
       this.scrollOffset = maxScroll;
       this.autoScroll = true;
     }
@@ -2802,7 +2876,17 @@ class RalphTranscriptPane implements Component {
     const th = this.theme;
     this.renderedWidth = width;
     const fit = (s: string) => truncateToWidth(s, width);
-    const lines: string[] = [fit(th.bold(this.title))];
+    // Top/bottom rules and an accent-colored title, so the pane reads as clearly bounded
+    // against the ordinary conversation above it — a plain title line alone renders in the
+    // same style as an assistant message, which made this pane easy to mistake for a
+    // continuation of the main session rather than a separate worker's transcript.
+    const rule = th.fg("mdHr", "─".repeat(width));
+    const usageLine = this.content.usageSummary() ?? "(waiting for first response)";
+    const lines: string[] = [
+      rule,
+      fit(th.bold(th.fg("accent", this.title))),
+      fit(th.fg("dim", usageLine)),
+    ];
 
     const { totalLines, viewportHeight, maxScroll } = this.scrollBounds(width);
     if (this.autoScroll) this.scrollOffset = maxScroll;
@@ -2818,12 +2902,13 @@ class RalphTranscriptPane implements Component {
       "dim",
       `${totalLines} lines · ${scrollPct}${this.live ? " · live" : ""}`,
     );
-    const footerRight = th.fg("dim", "↑↓ scroll · PgUp/PgDn · Esc close");
+    const footerRight = th.fg("dim", "j/k scroll · f/b page · g/e top/end · q close");
     const gap = Math.max(
       1,
       width - visibleWidth(footerLeft) - visibleWidth(footerRight),
     );
     lines.push(fit(footerLeft + " ".repeat(gap) + footerRight));
+    lines.push(rule);
     return lines;
   }
 
