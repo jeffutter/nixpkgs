@@ -67,29 +67,50 @@
  */
 
 import { randomUUID } from "node:crypto";
-import { existsSync, statSync } from "node:fs";
+import { existsSync, readFileSync, statSync } from "node:fs";
 import {
   appendFile,
   mkdir,
+  readdir,
   readFile,
   rm,
   writeFile,
 } from "node:fs/promises";
 import { homedir } from "node:os";
 import { join, resolve } from "node:path";
-import { defineTool } from "@earendil-works/pi-coding-agent";
+import {
+  AssistantMessageComponent,
+  BashExecutionComponent,
+  BranchSummaryMessageComponent,
+  buildSessionContext,
+  CompactionSummaryMessageComponent,
+  defineTool,
+  getMarkdownTheme,
+  parseSessionEntries,
+  parseSkillBlock,
+  SkillInvocationMessageComponent,
+  ToolExecutionComponent,
+  UserMessageComponent,
+} from "@earendil-works/pi-coding-agent";
 import type {
   ExtensionAPI,
   ExtensionCommandContext,
+  SessionContext,
+  SessionEntry,
+  Theme,
 } from "@earendil-works/pi-coding-agent";
 import { Type } from "@earendil-works/pi-ai";
 import {
   Box,
+  Container,
   Key,
   matchesKey,
+  Spacer,
   Text,
   truncateToWidth,
+  visibleWidth,
 } from "@earendil-works/pi-tui";
+import type { Component, MarkdownTheme, TUI } from "@earendil-works/pi-tui";
 
 // --- Types & constants ---------------------------------------------------
 
@@ -111,6 +132,38 @@ const RALPH_STATE_ROOT = join(homedir(), ".pi", "agent", "ralph");
 
 function stateDirFor(cwd: string): string {
   return join(RALPH_STATE_ROOT, resolve(cwd).replace(/[\\/]/g, "-"));
+}
+
+/**
+ * Where each headless worker's own pi session (its full turn-by-turn transcript, not just
+ * the tail `runHeadless` captures) is stored — see `runHeadless`'s `--session-id`/
+ * `--session-dir` and `/ralph-log`, which reads these files back to render a step's log the
+ * same way an interactive pi session renders. Namespaced under ralph's own state dir rather
+ * than pi's default per-project sessions directory for two reasons: the file is then locatable
+ * deterministically by session id alone (`<timestamp>_<id>.jsonl`, glob for the suffix) without
+ * reverse-engineering pi's own directory-naming scheme, and dozens of a long ralph run's
+ * headless workers don't clutter the project's interactive session list (`pi --resume`).
+ */
+function sessionDirFor(cwd: string): string {
+  return join(stateDirFor(cwd), "sessions");
+}
+
+/** Locates a headless worker's session file by the id `runHeadless` gave it — see
+ * `sessionDirFor`. Returns undefined if the directory or a matching file doesn't exist yet
+ * (a worker's session file is only created after its first assistant response, per pi's own
+ * session-manager, so a step that just started may not have one for a moment). */
+async function resolveSessionFile(
+  cwd: string,
+  sessionId: string,
+): Promise<string | undefined> {
+  let files: string[];
+  try {
+    files = await readdir(sessionDirFor(cwd));
+  } catch {
+    return undefined;
+  }
+  const match = files.find((f) => f.endsWith(`_${sessionId}.jsonl`));
+  return match ? join(sessionDirFor(cwd), match) : undefined;
 }
 
 /** Path assumption: wherever this user's `pi-web-access` package currently
@@ -251,6 +304,11 @@ type RalphHistoryEntry = {
    * for review steps, via a deterministic before/after diff rather than parsing the review
    * agent's free-text summary for ticket mentions. */
   createdTickets?: string[];
+  /** The headless worker session behind this step, if any (bookkeeping entries with no
+   * `runHeadless` call — a cached triage/research reuse, the trivial mark-Dev-Ready path —
+   * leave this unset). Resolved back to a transcript file by `/ralph-log` via
+   * `resolveSessionFile`. */
+  sessionId?: string;
 };
 
 type RalphState = {
@@ -277,6 +335,13 @@ type RalphState = {
   /** How many times the current step's deadline was reset by its worker's intercom activity
    * (see MAX_HEARTBEAT_RESETS). Reset to 0 at each step start. */
   currentStepHeartbeatResets?: number;
+  /** The in-flight step's worker session id, for `/ralph-log` to tail live — set right after
+   * `beginHeartbeatStep` returns its nonce (reused as the pi `--session-id`, see
+   * `runHeadless`) on the four heartbeat-backed steps (execute, research, plan, review).
+   * Cleared at the start of every step by `setCurrentStep`; steps with no heartbeat (triage,
+   * choose) leave it unset, so only a step actually worth tailing live shows as "running" in
+   * `/ralph-log`'s picker. */
+  currentStepSessionId?: string;
   startedAt: string;
   history: RalphHistoryEntry[];
   /** Consecutive failures of the same (kind, ticket) step — see MAX_CONSECUTIVE_FAILURES. */
@@ -353,6 +418,7 @@ function createState(
     currentStepTimeoutMs: undefined,
     currentStepDeadlineAt: undefined,
     currentStepHeartbeatResets: undefined,
+    currentStepSessionId: undefined,
     startedAt: new Date().toISOString(),
     history: [],
     failureStreak: undefined,
@@ -1011,10 +1077,24 @@ async function runHeadless(
   output: string;
   resets: number;
   failure?: FailureClass;
+  /** This call's pi session id — reused from `heartbeatNonce` when the caller passed one
+   * (already a UUID), otherwise generated here. Every headless call gets one, so every step
+   * is viewable via `/ralph-log`, not only the heartbeat-backed ones — see `sessionDirFor`. */
+  sessionId: string;
 }> {
   // No --no-session: pi-intercom needs the headless worker to have a live session identity
-  // to address progress pings back to the orchestrator from.
-  const args = ["-p", "--no-extensions"];
+  // to address progress pings back to the orchestrator from. Explicit --session-id/--session-dir
+  // instead of pi's defaults, so /ralph-log can find this exact run's transcript afterward
+  // without guessing pi's own per-project directory-naming scheme — see sessionDirFor.
+  const sessionId = opts.heartbeatNonce ?? randomUUID();
+  const args = [
+    "-p",
+    "--no-extensions",
+    "--session-id",
+    sessionId,
+    "--session-dir",
+    sessionDirFor(cwd),
+  ];
   // Steps that only read a ticket and make a judgment call (triage, choose) don't need any
   // project or global skill — but headless calls inherit the user's full global skill set by
   // default, and a skill can trigger on trigger words in the prompt that have nothing to do
@@ -1054,6 +1134,7 @@ async function runHeadless(
     output: (result.stdout || result.stderr || "").trim(),
     resets: result.heartbeatResets ?? 0,
     failure: result.failure,
+    sessionId,
   };
 }
 
@@ -1149,6 +1230,7 @@ function setCurrentStep(
   state.currentStepTimeoutMs = timeoutMs;
   state.currentStepDeadlineAt = undefined;
   state.currentStepHeartbeatResets = 0;
+  state.currentStepSessionId = undefined;
   renderWidget(ctx, state);
 }
 
@@ -1399,6 +1481,7 @@ async function doExecute(
     return true;
   }
   const heartbeatNonce = await beginHeartbeatStep(cwd);
+  state.currentStepSessionId = heartbeatNonce;
   const shaBefore = await currentHeadSha(pi, cwd);
   // Screenshot-cap guard: without the subagent tool, visual verification reads every
   // rendered screenshot into the executor's own context and dies at 5 images (vLLM
@@ -1459,6 +1542,7 @@ async function doExecute(
       result.ok && !committed
         ? `claimed success but no commit landed (HEAD still ${shaBefore?.slice(0, 8) ?? "unknown"}) — ${summarize(result, undefined, result.resets)}`
         : summarize(result, undefined, result.resets),
+    sessionId: result.sessionId,
   });
   return ok;
 }
@@ -1500,6 +1584,7 @@ async function classifyTrivial(
     outcome: result.ok ? "ok" : "failed",
     failure: result.failure,
     summary: `triage: ${verdict ?? summarize(result, 80)}`,
+    sessionId: result.sessionId,
   });
   return result.ok && verdict === "TRIVIAL";
 }
@@ -1564,6 +1649,7 @@ async function doPlan(
   } else {
     setCurrentStep(ctx, state, `researching ${ticket.id}`, RESEARCH_TIMEOUT_MS);
     const researchNonce = await beginHeartbeatStep(cwd);
+    state.currentStepSessionId = researchNonce;
     const researchSha = await currentHeadSha(pi, cwd);
     const researchPrompt = dedent`
       Research context to inform planning ticket ${ticket.id} ("${ticket.title}") in this repo.
@@ -1594,6 +1680,7 @@ async function doPlan(
       outcome: research.ok ? "ok" : "failed",
       failure: research.failure,
       summary: `research: ${summarize(research, 120, research.resets)}`,
+      sessionId: research.sessionId,
     });
     researchOutput = research.output;
     state.planCache = {
@@ -1605,6 +1692,7 @@ async function doPlan(
 
   setCurrentStep(ctx, state, `planning ${ticket.id}`, PLAN_TIMEOUT_MS);
   const planNonce = await beginHeartbeatStep(cwd);
+  state.currentStepSessionId = planNonce;
   const planSha = await currentHeadSha(pi, cwd);
   const planPrompt = dedent`
     /backlog-planner ${ticket.id}
@@ -1668,6 +1756,7 @@ async function doPlan(
       (verified
         ? `verified Dev Ready on disk despite subprocess ${plan.killed ? "timeout" : "failure"} — `
         : "") + summarize(plan, undefined, plan.resets),
+    sessionId: plan.sessionId,
   });
   if (ok) state.planCache = undefined;
   return ok;
@@ -1735,6 +1824,7 @@ async function doChoose(
     outcome: ok ? "ok" : "failed",
     failure: ok ? undefined : result.failure,
     summary,
+    sessionId: result.sessionId,
   });
   return ok;
 }
@@ -1753,6 +1843,7 @@ async function doReview(
     REVIEW_TIMEOUT_MS,
   );
   const reviewNonce = await beginHeartbeatStep(cwd);
+  state.currentStepSessionId = reviewNonce;
   const ticketsBefore = await listAllTicketIds(pi, cwd);
   const prompt = dedent`
     You are the review checkpoint for pi's autonomous backlog loop. Use the herdr CLI to have a
@@ -1827,6 +1918,7 @@ async function doReview(
     failure: result.failure,
     summary: summarize(result, 300, result.resets) + cleanupNote,
     createdTickets: createdTickets.length ? createdTickets : undefined,
+    sessionId: result.sessionId,
   });
   // Only clear the trigger counter on success. A failed/timed-out review leaves it at or above
   // reviewEvery, so the next loop iteration retries review immediately instead of silently
@@ -1846,6 +1938,7 @@ function finish(state: RalphState, status: RalphStatus, reason: string): void {
   state.currentStepTimeoutMs = undefined;
   state.currentStepDeadlineAt = undefined;
   state.currentStepHeartbeatResets = undefined;
+  state.currentStepSessionId = undefined;
 }
 
 /** What each observed FailureClass is worth telling the person who has to restart the loop:
@@ -2420,6 +2513,390 @@ async function showProgressDashboard(
   });
 }
 
+// --- Step log viewer -----------------------------------------------------------
+
+/**
+ * `/ralph-log` renders a headless worker's own session file the same way pi renders an
+ * interactive session — the same per-entry components (`AssistantMessageComponent`,
+ * `ToolExecutionComponent`, ...), not a plain-text dump. Modeled on `@gotgenes/pi-subagents`'
+ * `/subagents:sessions` transcript viewer (see that package's
+ * docs/decisions/0007-transcript-viewer-is-not-an-overlay.md), but simpler in one respect: a
+ * ralph worker is a separate `pi -p` subprocess, not an in-process subagent, so there is no
+ * `AgentSession` to subscribe to — only its session file on disk (see `sessionDirFor`). A
+ * still-running step's file is polled and fully re-rendered on each change instead, which is
+ * simple rather than incremental, but a worker session's message count is small enough (tens
+ * to low hundreds) that a full rebuild every couple of seconds is cheap.
+ *
+ * Mounted through `ui.custom`'s non-overlay path for the same reason `/subagents:sessions`
+ * is: pi's regular-mode renderer composites `overlay: true` mounts into the buffer that
+ * becomes terminal scrollback, so an overlay transcript viewer bakes its own chrome into
+ * history once a large-enough render burst carries a row off-screen in one frame. The
+ * non-overlay path (a full-width pane docked above the editor) never composites, so nothing
+ * can be baked in.
+ */
+
+type SessionMessage = SessionContext["messages"][number];
+
+/** Reads a worker's session file fresh off disk and resolves it to the same message list pi's
+ * own interactive session builds from — drops the file's leading `session` header entry. */
+function readTranscriptMessages(file: string): SessionMessage[] {
+  const raw = readFileSync(file, "utf8");
+  const entries = parseSessionEntries(raw).filter(
+    (entry): entry is SessionEntry => entry.type !== "session",
+  );
+  return buildSessionContext(entries).messages;
+}
+
+/** Concatenates the text blocks of a user message's content (mirrors pi's own rendering). */
+function transcriptUserText(
+  content: string | readonly { type: string; text?: string }[],
+): string {
+  if (typeof content === "string") return content;
+  return content
+    .filter((block) => block.type === "text")
+    .map((block) => block.text ?? "")
+    .join("");
+}
+
+/**
+ * A worker session's messages, rendered through pi's own per-entry components into one flat
+ * row list. Rebuilt wholesale from the full message array on every `refresh()` that finds new
+ * messages, rather than incrementally appended — see the file-header note on why that's an
+ * acceptable trade for a file-backed (not live in-process) source.
+ */
+class RalphTranscriptContent {
+  private root = new Container();
+  private messageCount = 0;
+  private width: number | undefined;
+  private rows: readonly string[] | undefined;
+
+  constructor(
+    private readonly tui: TUI,
+    private readonly cwd: string,
+    private readonly markdownTheme: MarkdownTheme,
+    private readonly file: string,
+  ) {
+    this.refresh();
+  }
+
+  /** Re-reads the session file; rebuilds and returns true only if its message count changed. */
+  refresh(): boolean {
+    let messages: SessionMessage[];
+    try {
+      messages = readTranscriptMessages(this.file);
+    } catch {
+      return false;
+    }
+    if (messages.length === this.messageCount) return false;
+    this.build(messages);
+    return true;
+  }
+
+  lineCount(width: number): number {
+    return this.rendered(width).length;
+  }
+
+  slice(width: number, start: number, count: number): string[] {
+    return this.rendered(width).slice(start, start + count);
+  }
+
+  invalidate(): void {
+    this.root.invalidate();
+    this.rows = undefined;
+  }
+
+  private rendered(width: number): readonly string[] {
+    if (this.width !== width) {
+      this.width = width;
+      this.rows = undefined;
+    }
+    if (!this.rows) {
+      this.rows = this.root
+        .render(width)
+        .map((row) => truncateToWidth(row, width));
+    }
+    return this.rows;
+  }
+
+  /** Maps the full message list onto one flat component tree, mirroring pi's own
+   * interactive-mode session-context rendering. */
+  private build(messages: SessionMessage[]): void {
+    const root = new Container();
+    const pendingTools = new Map<string, ToolExecutionComponent>();
+    let hasVisibleContent = false;
+
+    for (const message of messages) {
+      switch (message.role) {
+        case "assistant": {
+          root.addChild(
+            new AssistantMessageComponent(message, false, this.markdownTheme),
+          );
+          for (const content of message.content) {
+            if (content.type !== "toolCall") continue;
+            const tool = new ToolExecutionComponent(
+              content.name,
+              content.id,
+              content.arguments,
+              { showImages: false },
+              undefined,
+              this.tui,
+              this.cwd,
+            );
+            tool.setExpanded(true);
+            root.addChild(tool);
+            pendingTools.set(content.id, tool);
+          }
+          hasVisibleContent = true;
+          break;
+        }
+        case "toolResult": {
+          pendingTools.get(message.toolCallId)?.updateResult(message);
+          pendingTools.delete(message.toolCallId);
+          break;
+        }
+        case "user": {
+          const text = transcriptUserText(message.content);
+          if (!text) break;
+          if (hasVisibleContent) root.addChild(new Spacer(1));
+          const skillBlock = parseSkillBlock(text);
+          if (skillBlock) {
+            const skill = new SkillInvocationMessageComponent(
+              skillBlock,
+              this.markdownTheme,
+            );
+            skill.setExpanded(true);
+            root.addChild(skill);
+            if (skillBlock.userMessage) {
+              root.addChild(new Spacer(1));
+              root.addChild(
+                new UserMessageComponent(
+                  skillBlock.userMessage,
+                  this.markdownTheme,
+                ),
+              );
+            }
+          } else {
+            root.addChild(new UserMessageComponent(text, this.markdownTheme));
+          }
+          hasVisibleContent = true;
+          break;
+        }
+        case "bashExecution": {
+          const bash = new BashExecutionComponent(
+            message.command,
+            this.tui,
+            message.excludeFromContext,
+          );
+          if (message.output) bash.appendOutput(message.output);
+          bash.setComplete(
+            message.exitCode,
+            message.cancelled,
+            undefined,
+            message.fullOutputPath,
+          );
+          root.addChild(bash);
+          hasVisibleContent = true;
+          break;
+        }
+        case "compactionSummary": {
+          root.addChild(new Spacer(1));
+          const summary = new CompactionSummaryMessageComponent(
+            message,
+            this.markdownTheme,
+          );
+          summary.setExpanded(true);
+          root.addChild(summary);
+          hasVisibleContent = true;
+          break;
+        }
+        case "branchSummary": {
+          root.addChild(new Spacer(1));
+          const summary = new BranchSummaryMessageComponent(
+            message,
+            this.markdownTheme,
+          );
+          summary.setExpanded(true);
+          root.addChild(summary);
+          hasVisibleContent = true;
+          break;
+        }
+      }
+    }
+
+    this.root = root;
+    this.messageCount = messages.length;
+    this.rows = undefined;
+  }
+}
+
+/** How often a still-running step's pane re-reads its worker's session file. Cheap relative
+ * to a worker's own pace (pings every few minutes at most), so short polling slack is fine. */
+const TRANSCRIPT_REFRESH_MS = 2_000;
+const TRANSCRIPT_CHROME_LINES = 2;
+const TRANSCRIPT_MIN_VIEWPORT = 3;
+const TRANSCRIPT_VIEWPORT_PCT = 70;
+
+/**
+ * Read-only scrollable pane over a worker session transcript. Structurally the same
+ * scroll/chrome/key-handling shape as `showProgressDashboard`'s dashboard component, with a
+ * polling refresh in place of a plain interval repaint when the underlying step is still
+ * running (`live`) — see the RalphTranscriptContent header for why polling instead of a
+ * subscription.
+ */
+class RalphTranscriptPane implements Component {
+  private scrollOffset = 0;
+  private autoScroll = true;
+  private renderedWidth: number | undefined;
+  private closed = false;
+  private pollTimer: ReturnType<typeof setInterval> | undefined;
+
+  constructor(
+    private readonly tui: TUI,
+    private readonly theme: Theme,
+    private readonly title: string,
+    private readonly content: RalphTranscriptContent,
+    private readonly done: (result: undefined) => void,
+    private readonly live: boolean,
+  ) {
+    if (live) {
+      this.pollTimer = setInterval(() => {
+        if (this.closed) return;
+        if (this.content.refresh()) this.tui.requestRender();
+      }, TRANSCRIPT_REFRESH_MS);
+      this.pollTimer.unref?.();
+    }
+  }
+
+  handleInput(data: string): void {
+    if (matchesKey(data, Key.escape) || matchesKey(data, "q")) {
+      this.close();
+      return;
+    }
+    const { viewportHeight, maxScroll } = this.scrollBounds(this.inputWidth());
+    if (matchesKey(data, "up") || matchesKey(data, "k")) {
+      this.scrollOffset = Math.max(0, this.scrollOffset - 1);
+      this.autoScroll = this.scrollOffset >= maxScroll;
+    } else if (matchesKey(data, "down") || matchesKey(data, "j")) {
+      this.scrollOffset = Math.min(maxScroll, this.scrollOffset + 1);
+      this.autoScroll = this.scrollOffset >= maxScroll;
+    } else if (matchesKey(data, "pageUp") || matchesKey(data, "shift+up")) {
+      this.scrollOffset = Math.max(0, this.scrollOffset - viewportHeight);
+      this.autoScroll = false;
+    } else if (matchesKey(data, "pageDown") || matchesKey(data, "shift+down")) {
+      this.scrollOffset = Math.min(
+        maxScroll,
+        this.scrollOffset + viewportHeight,
+      );
+      this.autoScroll = this.scrollOffset >= maxScroll;
+    } else if (matchesKey(data, "home")) {
+      this.scrollOffset = 0;
+      this.autoScroll = false;
+    } else if (matchesKey(data, "end")) {
+      this.scrollOffset = maxScroll;
+      this.autoScroll = true;
+    }
+  }
+
+  render(width: number): string[] {
+    if (width < 6) return [];
+    const th = this.theme;
+    this.renderedWidth = width;
+    const fit = (s: string) => truncateToWidth(s, width);
+    const lines: string[] = [fit(th.bold(this.title))];
+
+    const { totalLines, viewportHeight, maxScroll } = this.scrollBounds(width);
+    if (this.autoScroll) this.scrollOffset = maxScroll;
+    const visibleStart = Math.min(this.scrollOffset, maxScroll);
+    const visible = this.content.slice(width, visibleStart, viewportHeight);
+    for (let i = 0; i < viewportHeight; i++) lines.push(fit(visible[i] ?? ""));
+
+    const scrollPct =
+      totalLines <= viewportHeight
+        ? "100%"
+        : `${Math.round(((visibleStart + viewportHeight) / totalLines) * 100)}%`;
+    const footerLeft = th.fg(
+      "dim",
+      `${totalLines} lines · ${scrollPct}${this.live ? " · live" : ""}`,
+    );
+    const footerRight = th.fg("dim", "↑↓ scroll · PgUp/PgDn · Esc close");
+    const gap = Math.max(
+      1,
+      width - visibleWidth(footerLeft) - visibleWidth(footerRight),
+    );
+    lines.push(fit(footerLeft + " ".repeat(gap) + footerRight));
+    return lines;
+  }
+
+  invalidate(): void {
+    this.content.invalidate();
+  }
+
+  dispose(): void {
+    this.closed = true;
+    if (this.pollTimer) clearInterval(this.pollTimer);
+  }
+
+  private close(): void {
+    if (this.closed) return;
+    this.dispose();
+    this.done(undefined);
+  }
+
+  private inputWidth(): number {
+    return this.renderedWidth ?? this.tui.terminal.columns;
+  }
+
+  private scrollBounds(width: number): {
+    totalLines: number;
+    viewportHeight: number;
+    maxScroll: number;
+  } {
+    const totalLines = this.content.lineCount(width);
+    const viewportHeight = this.viewportHeight(totalLines);
+    return {
+      totalLines,
+      viewportHeight,
+      maxScroll: Math.max(0, totalLines - viewportHeight),
+    };
+  }
+
+  private viewportHeight(totalLines: number): number {
+    const cap =
+      Math.floor((this.tui.terminal.rows * TRANSCRIPT_VIEWPORT_PCT) / 100) -
+      TRANSCRIPT_CHROME_LINES;
+    return Math.max(TRANSCRIPT_MIN_VIEWPORT, Math.min(totalLines, cap));
+  }
+}
+
+async function showRalphTranscript(
+  ctx: ExtensionCommandContext,
+  file: string,
+  title: string,
+  live: boolean,
+): Promise<void> {
+  const markdownTheme = getMarkdownTheme();
+  await ctx.ui.custom<undefined>(
+    (tui, theme, _keybindings, done) => {
+      const content = new RalphTranscriptContent(
+        tui,
+        ctx.cwd,
+        markdownTheme,
+        file,
+      );
+      return new RalphTranscriptPane(tui, theme, title, content, done, live);
+    },
+    { overlay: false },
+  );
+}
+
+/** One `/ralph-log` picker line for a finished step's history entry. */
+function historyLogLabel(entry: RalphHistoryEntry): string {
+  const marker = entry.outcome === "ok" ? "✓" : "✗";
+  const ticketPart = entry.ticket ? ` ${entry.ticket}` : "";
+  const ago = formatDuration(Date.now() - Date.parse(entry.at));
+  return `${marker} [${entry.kind}]${ticketPart} — ${tailSummary(entry.summary, 70)} (${ago} ago)`;
+}
+
 // --- Commands ----------------------------------------------------------------
 
 function parsePositiveInt(token: string): number | undefined {
@@ -2580,6 +3057,78 @@ export default function (pi: ExtensionAPI) {
           "info",
         );
       }
+    },
+  });
+
+  pi.registerCommand("ralph-log", {
+    description:
+      "View a ralph step's full worker session log, rendered like an interactive pi session",
+    handler: async (_args, ctx) => {
+      if (!activeState) {
+        ctx.ui.notify(
+          "ralph has not been run yet in this session. Use /ralph to start it.",
+          "info",
+        );
+        return;
+      }
+      if (ctx.mode !== "tui") {
+        ctx.ui.notify("ralph-log needs the interactive TUI.", "warn");
+        return;
+      }
+      const state = activeState;
+      const cwd = ctx.cwd;
+
+      type Candidate = { label: string; sessionId: string; live: boolean };
+      const candidates: Candidate[] = [];
+      if (
+        state.currentStepSessionId &&
+        (state.status === "running" || state.status === "stopping")
+      ) {
+        candidates.push({
+          label: `▶ (running) ${state.currentStep ?? "working"}`,
+          sessionId: state.currentStepSessionId,
+          live: true,
+        });
+      }
+      for (const entry of [...state.history].reverse()) {
+        if (!entry.sessionId) continue;
+        candidates.push({
+          label: historyLogLabel(entry),
+          sessionId: entry.sessionId,
+          live: false,
+        });
+      }
+
+      if (candidates.length === 0) {
+        ctx.ui.notify(
+          "No viewable step logs yet — run some ralph steps first.",
+          "info",
+        );
+        return;
+      }
+
+      const choice = await ctx.ui.select(
+        "Ralph step logs",
+        candidates.map((c) => c.label),
+      );
+      const picked = candidates.find((c) => c.label === choice);
+      if (!picked) return;
+
+      const file = await resolveSessionFile(cwd, picked.sessionId);
+      if (!file) {
+        ctx.ui.notify(
+          "That step's session log hasn't been written to disk yet — pi only creates the file " +
+            "after the worker's first response. Try again in a moment.",
+          "warn",
+        );
+        return;
+      }
+      await showRalphTranscript(
+        ctx,
+        file,
+        `Ralph log: ${picked.label}`,
+        picked.live,
+      );
     },
   });
 
