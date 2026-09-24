@@ -541,6 +541,37 @@ in
       ignore = [ "backlog/**" ];
     };
 
+    # pi-intercom: inboundTrigger defaults to "always", meaning every message a
+    # headless ralph worker sends via intercom hands whichever session receives it a
+    # brand-new agent turn -- not an inert transcript entry the orchestrator can read
+    # and move past. Ralph's whole "don't reply to workers" system-prompt guidance
+    # (pi-extensions/ralph/index.ts, ORCHESTRATOR_ROLE_GUIDANCE) assumes the opposite:
+    # a routine ping sits in context for the next real turn and never starts one of
+    # its own. Confirmed live 2026-09-24: with this key missing from
+    # ~/.pi/agent/intercom/config.json (silently falling back to "always"), the
+    # orchestrator was handed a fresh turn on every worker ping and, faced with a
+    # message addressed to it, went and investigated the worker's ticket in parallel
+    # and replied with unsolicited findings -- both of which the system prompt
+    # explicitly says not to do. No amount of prompt wording fixes a model that is
+    # being given a turn expressly because a message just arrived for it; "replies"
+    # stops a routine `send` ping from ever reaching that point. Declared here rather
+    # than left as the hand-edited file it was, so a fresh machine doesn't silently
+    # regress to "always" and reproduce this.
+    #
+    # brokerCommand/brokerArgs: the default broker invocation is `npx --no-install
+    # tsx`, which resolves "tsx" by walking up from the broker process's own working
+    # directory -- but the broker can be spawned from any project's cwd, none of
+    # which have tsx installed (it lives only under ~/.pi/agent/npm/node_modules,
+    # where pi installs each extension's own dependencies). Invoking tsx's cli.mjs
+    # directly by absolute path sidesteps that resolution entirely.
+    home.file.".pi/agent/intercom/config.json".text = builtins.toJSON {
+      brokerCommand = "node";
+      brokerArgs = [
+        "${config.home.homeDirectory}/.pi/agent/npm/node_modules/tsx/dist/cli.mjs"
+      ];
+      inboundTrigger = "replies";
+    };
+
     # pi-continue (and other extensions) declare @earendil-works/pi-coding-agent
     # as a peerDependency, resolved at runtime via `import.meta.resolve` followed
     # by a direct file read of dist/core/compaction/*.js relative to that resolved
