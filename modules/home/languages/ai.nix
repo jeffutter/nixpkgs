@@ -400,6 +400,19 @@ in
     default = false;
   };
 
+  # Claude Code's default effort level. Set here rather than via /effort,
+  # which can't write to the read-only settings.json symlink.
+  options.jeff.claudeEffortLevel = lib.mkOption {
+    type = lib.types.enum [
+      "low"
+      "medium"
+      "high"
+      "xhigh"
+      "max"
+    ];
+    default = "medium";
+  };
+
   config = {
     home.packages =
       with pkgs;
@@ -788,6 +801,9 @@ in
         disableShellIntegration = true;
         disableSymlinks = true;
         disableWorkflows = false;
+        # A top-level effortLevel in user settings is ignored for Opus 5.5,
+        # which only reads its per-model modelSettings entry.
+        effortLevel = config.jeff.claudeEffortLevel;
         enableWorkflows = true;
         env = {
           DISABLE_AUTOUPDATER = 1;
@@ -796,6 +812,7 @@ in
         };
         includeCoAuthoredBy = false;
         installMethod = "manual";
+        modelSettings."claude-opus-5-5".effortLevel = config.jeff.claudeEffortLevel;
         outputStyle = "concise";
         remoteControlAtStartup = false;
         skipInstallOnStartup = true;

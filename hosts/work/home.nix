@@ -160,4 +160,6 @@ in
   jeff.enableApolloSkills = true;
 
   jeff.enableZvecGrep = true;
+
+  jeff.claudeEffortLevel = "high";
 }
