@@ -17,7 +17,8 @@ reads `~/.ssh`), `git push`, and `gh` all depend on that.
   the command sandboxed.
 - Pass commit messages with `git commit -F <file>` (written under `$TMPDIR`),
   not a heredoc.
-- Chain separate top-level calls with `;` instead of looping.
+- Chain separate top-level calls with `;` instead of looping, but only
+  git/gh calls: `gh release view ...; java -version` runs sandboxed too.
 - If signing fails (`Couldn't load public key`), `gh` says the token is
   invalid, or push reports access rights, rerun the command bare before
   suspecting my credentials. Those errors are almost always this.
