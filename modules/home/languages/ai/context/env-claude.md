@@ -6,19 +6,22 @@
 of `skills/` are read-only `/nix/store` symlinks, so editing them in place
 fails or is silently discarded. Change the repo, then run `~/bin/rebuild`.
 
-## git and gh run outside the sandbox only when bare
+## git, gh and acli run outside the sandbox only when bare
 
-Managed settings exclude `git *` and `gh *` from the sandbox, but only when
+Settings exclude `git *`, `gh *` and `acli *` from the sandbox, but only when
 the whole command is a single bare invocation. Commit signing (`ssh-keygen`
-reads `~/.ssh`), `git push`, and `gh` all depend on that.
+reads `~/.ssh`), `git push`, `gh`, and `acli` all depend on that.
 
-- Never pipe, redirect into a pipeline, or loop git/gh (`git commit ... | tail`,
-  `gh auth status 2>&1 | head`, `for ...; do gh ...; done`). Any of these runs
-  the command sandboxed.
+- Never pipe, redirect, or loop git/gh/acli (`git commit ... | tail`,
+  `gh api user > out.json`, `acli jira workitem view KEY > out.json`,
+  `for ...; do gh ...; done`). Any of these runs the command sandboxed, even a
+  lone `>` redirect to a file. Output can only come back as the tool result.
 - Pass commit messages with `git commit -F <file>` (written under `$TMPDIR`),
   not a heredoc.
 - Chain separate top-level calls with `;` instead of looping, but only
-  git/gh calls: `gh release view ...; java -version` runs sandboxed too.
+  git/gh/acli calls: `gh release view ...; java -version` runs sandboxed too.
 - If signing fails (`Couldn't load public key`), `gh` says the token is
-  invalid, or push reports access rights, rerun the command bare before
-  suspecting my credentials. Those errors are almost always this.
+  invalid or fails TLS (`x509: OSStatus -26276`), push reports access rights,
+  or `acli` says `failed to fetch work item details` / `command execution
+  failed`, rerun the command bare before suspecting my credentials. Those
+  errors are almost always this.
