@@ -181,4 +181,6 @@ in
   jeff.enableZvecGrep = true;
 
   jeff.claudeEffortLevel = "high";
+
+  jeff.claudeContextExtra = builtins.readFile ./claude-context.md;
 }

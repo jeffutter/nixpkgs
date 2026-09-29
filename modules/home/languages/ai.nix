@@ -309,7 +309,7 @@ let
   # a shared core (design bias, working preferences) behind an environment
   # preamble naming that harness's own nix-managed paths. Claude Code reads it
   # as ~/.claude/CLAUDE.md, pi as ~/.pi/agent/AGENTS.md.
-  mkAgentContext = env: readAiDoc "context/${env}" + "\n" + readAiDoc "context/core.md";
+  mkAgentContext = preamble: preamble + "\n" + readAiDoc "context/core.md";
 
   # Claude Code hooks `moshi-hook install` would normally write into
   # ~/.claude/settings.json itself. The event/matcher/async shape is read back
@@ -398,6 +398,14 @@ in
   options.jeff.enablePacaAgent = lib.mkOption {
     type = lib.types.bool;
     default = false;
+  };
+
+  # Host-specific Claude Code context, appended to the environment preamble in
+  # ~/.claude/CLAUDE.md. The work machine uses it for how its managed sandbox
+  # treats git/gh/acli, which doesn't apply anywhere else.
+  options.jeff.claudeContextExtra = lib.mkOption {
+    type = lib.types.lines;
+    default = "";
   };
 
   # Claude Code's default effort level. Set here rather than via /effort,
@@ -654,7 +662,7 @@ in
       };
     };
 
-    home.file.".pi/agent/AGENTS.md".text = mkAgentContext "env-pi.md";
+    home.file.".pi/agent/AGENTS.md".text = mkAgentContext (readAiDoc "context/env-pi.md");
 
     home.file.".pi/agent/settings.json".text = builtins.toJSON {
       defaultProvider = "litellm-home";
@@ -1059,7 +1067,10 @@ in
         };
       };
 
-      context = mkAgentContext "env-claude.md";
+      context = mkAgentContext (
+        readAiDoc "context/env-claude.md"
+        + lib.optionalString (config.jeff.claudeContextExtra != "") ("\n" + config.jeff.claudeContextExtra)
+      );
 
       agents = {
       };
