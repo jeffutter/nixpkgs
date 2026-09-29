@@ -82,6 +82,10 @@ in
         name = "buo/cask-upgrade";
         trusted = true;
       }
+      {
+        name = "abue-ammar/tinycast";
+        trusted = true;
+      }
     ];
 
     brews = [
@@ -112,6 +116,7 @@ in
       "soundsource"
       "stats"
       "switchresx"
+      "tinycast"
       "visual-studio-code"
       "voiceink"
       "wireshark-app"
