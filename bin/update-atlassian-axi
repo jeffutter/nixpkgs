@@ -1,0 +1,90 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+FLAKE_DIR="${HOME}/.config/home-manager"
+
+# jira-axi and confluence-axi come out of the same upstream monorepo
+# (emilchristensen/atlassian-axi) and are packaged identically from their npm
+# tarballs, so one script refreshes both. Each still has its own version since
+# release-please tags them independently.
+PACKAGES=(jira-axi confluence-axi)
+
+# --force regenerates the lockfile and hashes even when the pinned version is
+# already current, to repair a package whose hashes are wrong rather than stale.
+FORCE=0
+for ARG in "$@"; do
+  case "$ARG" in
+    --force) FORCE=1 ;;
+    *)
+      echo "usage: ${0##*/} [--force]" >&2
+      exit 1
+      ;;
+  esac
+done
+
+WORK="$(mktemp -d "${TMPDIR:-/tmp}/atlassian-axi.XXXXXX")"
+trap 'rm -rf "$WORK"' EXIT
+
+for NAME in "${PACKAGES[@]}"; do
+  PKG_DIR="${FLAKE_DIR}/pkgs/${NAME}"
+  PKG="${PKG_DIR}/default.nix"
+
+  echo "Fetching latest ${NAME} version..."
+  LATEST=$(curl -sf "https://registry.npmjs.org/${NAME}/latest" | jq -r '.version')
+
+  if [[ -z "$LATEST" || "$LATEST" == "null" ]]; then
+    echo "error: failed to fetch latest ${NAME} version from npm" >&2
+    exit 1
+  fi
+
+  CURRENT=$(grep 'version = ' "$PKG" | head -1 | sed 's/.*"\(.*\)".*/\1/')
+
+  echo "Current: $CURRENT  Latest: $LATEST"
+
+  if [[ "$LATEST" == "$CURRENT" && "$FORCE" != "1" ]]; then
+    echo "Already at latest version, nothing to do."
+    continue
+  fi
+
+  # One download yields both the fetchurl hash and the store path to unpack.
+  PREFETCH=$(nix store prefetch-file --json --hash-type sha256 \
+    "https://registry.npmjs.org/${NAME}/-/${NAME}-${LATEST}.tgz")
+  SRC_HASH=$(jq -r '.hash' <<<"$PREFETCH")
+  TARBALL=$(jq -r '.storePath' <<<"$PREFETCH")
+
+  # Mirror the derivation's postPatch (drop the pnpm `workspace:*`
+  # devDependencies) so the lockfile matches the package.json npm ci sees.
+  SRC="${WORK}/${NAME}"
+  mkdir -p "$SRC"
+  tar -xzf "$TARBALL" -C "$SRC" --strip-components=1
+  jq 'del(.devDependencies)' "${SRC}/package.json" >"${SRC}/package.json.tmp"
+  mv "${SRC}/package.json.tmp" "${SRC}/package.json"
+  (cd "$SRC" && npm install --package-lock-only --ignore-scripts --no-audit --no-fund >/dev/null)
+  cp "${SRC}/package-lock.json" "${PKG_DIR}/package-lock.json"
+
+  DEPS_HASH=$(nix run --inputs-from "$FLAKE_DIR" nixpkgs#prefetch-npm-deps -- "${PKG_DIR}/package-lock.json")
+
+  for HASH in "$SRC_HASH" "$DEPS_HASH"; do
+    if [[ ! "$HASH" =~ ^sha256-[A-Za-z0-9+/=]+$ ]]; then
+      echo "error: could not compute ${NAME} hashes (got '${HASH}')" >&2
+      exit 1
+    fi
+  done
+
+  echo "Updating pkgs/${NAME}/default.nix..."
+  perl -pi -e "s|version = \"[^\"]+\"|version = \"${LATEST}\"|" "$PKG"
+  # Anchor on the tarball URL so the src hash can't be confused with
+  # npmDepsHash.
+  perl -0777 -pi -e "s|(\.tgz\";\s*\n\s*hash = )[^;]+|\${1}\"${SRC_HASH}\"|s" "$PKG"
+  perl -pi -e "s|npmDepsHash = [^;]+|npmDepsHash = \"${DEPS_HASH}\"|" "$PKG"
+
+  # A perl s||| that matches nothing exits 0, so confirm each value landed.
+  for EXPECTED in "version = \"${LATEST}\"" "hash = \"${SRC_HASH}\"" "npmDepsHash = \"${DEPS_HASH}\""; do
+    if ! grep -qF "$EXPECTED" "$PKG"; then
+      echo "error: failed to write '${EXPECTED}' into ${PKG}" >&2
+      exit 1
+    fi
+  done
+
+  echo "Updated ${NAME}: $CURRENT -> $LATEST"
+done
