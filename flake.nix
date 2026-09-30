@@ -39,7 +39,7 @@
     };
 
     graphql-document-utils = {
-      url = "github:jeffutter/graphql-document-utils/v0.1.1";
+      url = "github:jeffutter/graphql-document-utils/v0.3.0";
     };
 
     meethook = {
