@@ -505,6 +505,12 @@ in
     # and is edited in place in this repo going forward.
     home.file.".pi/agent/extensions/clear-alias.ts".source = ./ai/pi-extensions/clear-alias.ts;
 
+    # thinking-router: picks the thinking level per prompt with the Jev
+    # classifier (decider-4b), restoring pi's level after each run. Metrics go
+    # to ~/.pi/agent/thinking-router/decisions.jsonl and optional overrides are
+    # read from ~/.pi/agent/thinking-router.json, both outside this store path.
+    home.file.".pi/agent/extensions/thinking-router.ts".source = ./ai/pi-extensions/thinking-router.ts;
+
     # command-history: cross-session command history for pi's editor (up/down
     # arrow recall across sessions), mirroring Claude Code's behavior. Same
     # "promoted to load globally" situation as ralph above -- source lives at

@@ -40,8 +40,9 @@
  * re-confirmed 2026-08-28 with the subagent parallelism in place — TASK-050's
  * Explore phase alone consumed the full 45-min budget on every attempt, with
  * every worker transcript verified alive up to the kill moment, so
- * PLAN_TIMEOUT_MS was doubled to 90 min). All of
- * these knowingly pay the hang-risk tax above — accepted because the existing
+ * PLAN_TIMEOUT_MS was doubled to 90 min). The execute/research/plan/review steps
+ * also load the global `thinking-router` extension (see THINKING_ROUTER_EXTENSION).
+ * All of these knowingly pay the hang-risk tax above — accepted because the existing
  * `execCapture` watchdog already turns a hung subprocess into "runs its full
  * timeout instead of returning promptly," not a stuck loop, which was judged
  * an acceptable price for live progress visibility and delegated work.
@@ -235,6 +236,15 @@ const PI_SUBAGENTS_EXTENSION = join(
   homedir(),
   ".pi/agent/npm/node_modules/@gotgenes/pi-subagents/src/index.ts",
 );
+
+/** The global thinking-router extension (deployed by ai.nix). It reclassifies each worker
+ * model turn with Jev and may move the step's `thinking` level up or down by one rung, so the
+ * per-step levels below remain the anchor rather than a fixed setting. Loaded only by the
+ * reasoning-model steps with a heartbeat watchdog (execute, research, plan, review). Triage and
+ * choose run on chat-fast, which has no reasoning, so the router would do nothing there but add
+ * hang risk. Subagents spawned by any worker pick the router up on their own via global discovery,
+ * whether or not the worker loads it. */
+const THINKING_ROUTER_EXTENSION = join(homedir(), ".pi/agent/extensions/thinking-router.ts");
 
 const DEFAULT_ITERATIONS = 16;
 const DEFAULT_REVIEW_EVERY = 3;
@@ -1523,6 +1533,7 @@ async function doExecute(
     timeout: EXECUTE_TIMEOUT_MS,
     extensions: [
       PI_INTERCOM_EXTENSION,
+      THINKING_ROUTER_EXTENSION,
       ...(hasSubagents ? [PI_SUBAGENTS_EXTENSION] : []),
     ],
     heartbeatNonce,
@@ -1675,7 +1686,7 @@ async function doPlan(
       timeout: RESEARCH_TIMEOUT_MS,
       model: "research",
       thinking: "medium",
-      extensions: [PI_WEB_ACCESS_EXTENSION, PI_INTERCOM_EXTENSION],
+      extensions: [PI_WEB_ACCESS_EXTENSION, PI_INTERCOM_EXTENSION, THINKING_ROUTER_EXTENSION],
       heartbeatNonce: researchNonce,
       onHeartbeatReset: trackHeartbeatReset(
         ctx,
@@ -1743,7 +1754,7 @@ async function doPlan(
     timeout: PLAN_TIMEOUT_MS,
     model: "planning",
     thinking: "xhigh",
-    extensions: [PI_INTERCOM_EXTENSION, PI_SUBAGENTS_EXTENSION],
+    extensions: [PI_INTERCOM_EXTENSION, THINKING_ROUTER_EXTENSION, PI_SUBAGENTS_EXTENSION],
     heartbeatNonce: planNonce,
     onHeartbeatReset: trackHeartbeatReset(ctx, state, PLAN_TIMEOUT_MS),
   });
@@ -1895,7 +1906,7 @@ async function doReview(
     noSkills: true,
     model: "orchestrator",
     thinking: "medium",
-    extensions: [PI_INTERCOM_EXTENSION],
+    extensions: [PI_INTERCOM_EXTENSION, THINKING_ROUTER_EXTENSION],
     heartbeatNonce: reviewNonce,
     onHeartbeatReset: trackHeartbeatReset(ctx, state, REVIEW_TIMEOUT_MS),
   });
