@@ -696,6 +696,14 @@ in
       ];
       skills = [
         "~/.claude/skills"
+        # The `synced/` tree is Claude Desktop's skill sync bucket, not ours.
+        # Its 13 entries describe MCP tool namespaces that don't exist in pi
+        # (mcp__computer-use__*, mcp__Claude_Browser__*, Google Workspace
+        # connectors), so they only cost context: ~3.1k tokens on every request.
+        #
+        # Must stay absolute: pi expands `~` in plain resource entries but not
+        # in glob patterns, so `!~/...` silently matches nothing.
+        "!${config.home.homeDirectory}/.claude/skills/synced/**"
       ];
       compaction = {
         enabled = true;
