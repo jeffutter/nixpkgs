@@ -14,6 +14,8 @@ let
     inputs.graphql-document-utils.packages.${pkgs.stdenv.hostPlatform.system}.default;
   meethook = inputs.meethook.packages.${pkgs.stdenv.hostPlatform.system}.default;
   pup = pkgs.callPackage ../../pkgs/datadog-pup { };
+  jira-axi = pkgs.callPackage ../../pkgs/jira-axi { };
+  confluence-axi = pkgs.callPackage ../../pkgs/confluence-axi { };
 
   # pup captures its embedded Datadog skills (skills/<name>/SKILL.md) and domain
   # subagents (agents/<name>.md) into pup.skills at build time. Wiring the whole
@@ -54,8 +56,10 @@ in
     acli
     # argocd
     colima
+    confluence-axi
     graphql-document-utils
     grpcurl
+    jira-axi
     llvmPackages.bintools
     meethook
     my_google-cloud-sdk
@@ -140,12 +144,27 @@ in
   programs.claude-code.settings.model = "opus";
 
   programs.claude-code.skills = {
+    # Each npm tarball ships its own SKILL.md, versioned with the binary.
+    confluence-axi = "${confluence-axi}/lib/node_modules/confluence-axi/skills/confluence-axi";
+    jira-axi = "${jira-axi}/lib/node_modules/jira-axi/skills/jira-axi";
     screenpipe-api = "${screenpipe.skills}/screenpipe-api";
     screenpipe-cli = "${screenpipe.skills}/screenpipe-cli";
   }
   // pupSkills;
 
   programs.claude-code.agents = pupAgents;
+
+  # jira-axi shells out to acli and confluence-axi keeps its API token in the
+  # keychain; neither works sandboxed.
+  programs.claude-code.settings.sandbox.excludedCommands = [
+    "confluence-axi *"
+    "jira-axi *"
+  ];
+
+  programs.claude-code.settings.permissions.allow = [
+    "Bash(confluence-axi *)"
+    "Bash(jira-axi *)"
+  ];
 
   programs.claude-code.settings.sandbox.filesystem.allowWrite = [
     "~/theScore/*/.git/**"
@@ -162,4 +181,6 @@ in
   jeff.enableZvecGrep = true;
 
   jeff.claudeEffortLevel = "high";
+
+  jeff.claudeContextExtra = builtins.readFile ./claude-context.md;
 }
