@@ -8,30 +8,8 @@
 
 let
   agent-browser = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.agent-browser;
-  paca-acp-bridge = pkgs.callPackage ../../../pkgs/paca-acp-bridge { };
   pi-acp = pkgs.callPackage ../../../pkgs/pi-acp { };
   claude-agent-acp = pkgs.callPackage ../../../pkgs/claude-agent-acp { };
-  paca-mcp = pkgs.callPackage ../../../pkgs/paca-mcp { };
-  # Not a Nix store path like every other skill below — Paca's own skills
-  # (bundled + plugin-contributed) live in a running Paca instance's
-  # database, not this repo, and change independently of any rebuild here.
-  # A build-time fetch would either go stale or need re-pinning by hand on
-  # every Paca skill change, so this is a home.activation script instead —
-  # a reduced, Claude-only port of Paca-AI/paca's own
-  # scripts/install-paca-skills.sh (upstream also targets Gemini/Cursor/
-  # AGENTS.md, none of which apply here; pi picks skills up from
-  # ~/.claude/skills itself, so one target covers both). See that script
-  # for the parts intentionally dropped: interactive PACA_API_URL/API_KEY
-  # prompting (hardcoded below — both endpoints are unauthenticated on
-  # this deployment, confirmed 2026-09-04) and the multi-platform writes.
-  pacaSkillsInstallScript = pkgs.writeShellApplication {
-    name = "install-paca-skills";
-    runtimeInputs = [
-      pkgs.curl
-      pkgs.jq
-    ];
-    text = builtins.readFile ./ai/paca-skills-install.sh;
-  };
   backlog-md-upstream = inputs.backlog-md.packages.${pkgs.stdenv.hostPlatform.system}.default;
   backlog-md =
     # The upstream flake overlays `bun` on x86_64-linux with a prebuilt
@@ -407,14 +385,6 @@ in
     default = false;
   };
 
-  # paca-acp-bridge, pi-acp, claude-agent-acp, paca-mcp, and a home-manager-activation-time
-  # skills install (see pacaSkillsInstallScript above) — only wanted on
-  # hosts actually used to run a Paca ACP-type agent.
-  options.jeff.enablePacaAgent = lib.mkOption {
-    type = lib.types.bool;
-    default = false;
-  };
-
   # Host-specific Claude Code context, appended to the environment preamble in
   # ~/.claude/CLAUDE.md. The work machine uses it for how its managed sandbox
   # treats git/gh/acli, which doesn't apply anywhere else.
@@ -442,29 +412,19 @@ in
       [
         agent-browser
         backlog-md
+        claude-agent-acp
         claude-tail
         herdr
         moshi-hook
         pi
+        pi-acp
         rtk
         (llm.withPlugins {
           llm-cmd = true;
           llm-jq = true;
         })
       ]
-      ++ lib.optional config.jeff.enableZvecGrep zvec-grep
-      ++ lib.optionals config.jeff.enablePacaAgent [
-        paca-acp-bridge
-        pi-acp
-        claude-agent-acp
-        paca-mcp
-      ];
-
-    home.activation.installPacaSkills = lib.mkIf config.jeff.enablePacaAgent (
-      lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-        $DRY_RUN_CMD ${pacaSkillsInstallScript}/bin/install-paca-skills || true
-      ''
-    );
+      ++ lib.optional config.jeff.enableZvecGrep zvec-grep;
 
     home.file.".claude/plugins/marketplaces/superpowers".source = superpowers;
 
@@ -668,9 +628,6 @@ in
             "get_task_execution_guide"
             "get_task_finalization_guide"
           ];
-        };
-        paca = {
-          command = "paca-mcp";
         };
       }
       // lib.optionalAttrs config.jeff.enableZvecGrep {
