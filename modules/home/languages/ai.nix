@@ -225,7 +225,22 @@ let
     ${herdr}/bin/herdr --skill > $out/SKILL.md
   '';
   rtk = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.rtk;
-  basePi = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.pi;
+  # llm-agents.nix's bun build only embeds image-resize-worker.ts, but pi
+  # 0.99's codemode loads its QuickJS worker by the embedded path
+  # `./src/extensions/codemode/worker.ts`, so it fails with "Cannot find module"
+  # unless that is also a compile entrypoint (upstream's build:binary does this).
+  # Drop this override once llm-agents.nix adds it.
+  basePi = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.pi.overrideAttrs (old: {
+    preInstall = ''
+      mkdir -p src/extensions/codemode
+      echo 'import "../../../dist/extensions/codemode/worker.js";' > src/extensions/codemode/worker.ts
+    ''
+    +
+      builtins.replaceStrings
+        [ "./src/utils/image-resize-worker.ts --outfile" ]
+        [ "./src/utils/image-resize-worker.ts ./src/extensions/codemode/worker.ts --outfile" ]
+        old.preInstall;
+  });
   pi = pkgs.symlinkJoin {
     name = "pi";
     buildInputs = [ pkgs.makeWrapper ];
@@ -668,6 +683,30 @@ in
       };
     };
 
+    # pi's built-in MCP support reads ~/.pi/agent/mcp.json (not the XDG file
+    # above). Derived from programs.mcp.servers so there is one server list.
+    # The shared entries carry pi-mcp-adapter-only keys: `directTools` becomes
+    # pi's `exposure = "hidden"` + per-tool `toolExposure = "direct"`, and
+    # `protocolVersion` is dropped.
+    home.file.".pi/agent/mcp.json".text = builtins.toJSON {
+      mcpServers = lib.mapAttrs (
+        _: server:
+        let
+          direct = server.directTools or [ ];
+        in
+        lib.filterAttrs (_: v: v != null && v != { }) (
+          removeAttrs server [
+            "directTools"
+            "protocolVersion"
+          ]
+        )
+        // lib.optionalAttrs (direct != [ ]) {
+          exposure = "hidden";
+          toolExposure = lib.genAttrs direct (_: "direct");
+        }
+      ) config.programs.mcp.servers;
+    };
+
     home.file.".pi/agent/AGENTS.md".text = mkAgentContext (readAiDoc "context/env-pi.md");
 
     home.file.".pi/agent/settings.json".text = builtins.toJSON {
@@ -693,7 +732,6 @@ in
         "npm:pi-context"
         "npm:pi-intercom"
         "npm:pi-lens"
-        "npm:pi-mcp-adapter"
         "npm:pi-rtk-optimizer"
         "npm:pi-simplify"
         "npm:pi-tool-display"

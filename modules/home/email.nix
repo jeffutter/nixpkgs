@@ -17,12 +17,14 @@
         port = 993;
         host = "imap.fastmail.com";
         tls.enable = true;
+        authentication = "plain";
       };
       smtp = {
         port = 587;
         host = "smtp.fastmail.com";
         tls.enable = true;
         tls.useStartTls = true;
+        authentication = "plain";
       };
       userName = "jeffutter@sadclown.net";
       passwordCommand = [
