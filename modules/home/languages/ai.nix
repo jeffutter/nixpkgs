@@ -1157,6 +1157,7 @@ in
         diagram-design = "${diagram-design-skill}/skills/diagram-design";
         elixir = ./ai/skills/elixir;
         excalidraw-diagram = "${excalidraw-diagram-skill-wrapped}";
+        explain-diff-html = ./ai/skills/explain-diff-html;
         herdr = "${herdr-skill}";
         humanizer = "${humanizer}";
         kami = "${kami}/skills/kami";
