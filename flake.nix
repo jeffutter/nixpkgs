@@ -104,11 +104,6 @@
       flake = false;
     };
 
-    superpowers = {
-      url = "github:obra/superpowers";
-      flake = false;
-    };
-
     apollo_skills = {
       url = "github:apollographql/skills";
       flake = false;
