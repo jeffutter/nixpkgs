@@ -9,7 +9,6 @@ let
     pkgs.google-cloud-sdk.components.gke-gcloud-auth-plugin
   ];
   thaw = pkgs.callPackage ../../pkgs/thaw { };
-  screenpipe = pkgs.callPackage ../../pkgs/screenpipe { src = inputs.screenpipe-src; };
   graphql-document-utils =
     inputs.graphql-document-utils.packages.${pkgs.stdenv.hostPlatform.system}.default;
   meethook = inputs.meethook.packages.${pkgs.stdenv.hostPlatform.system}.default;
@@ -49,7 +48,6 @@ in
     ../../modules/home/languages/javascript.nix
     ../../modules/home/languages/java.nix
     ../../modules/home/languages/ai.nix
-    # ../../pkgs/screenpipe/home-module.nix
   ];
 
   home.packages = with pkgs; [
@@ -64,7 +62,6 @@ in
     meethook
     my_google-cloud-sdk
     pup
-    # screenpipe
     thaw
   ];
 
@@ -127,28 +124,12 @@ in
 
   programs.keychain.keys = [ "id_ed25519" ];
 
-  # services.screenpipe = {
-  #   enable = true;
-  #   package = screenpipe;
-  #   extraArgs = [
-  #     "-l"
-  #     "english"
-  #     "--use-system-default-audio"
-  #     "-i"
-  #     "System Audio (output)"
-  #     "--experimental-coreaudio-system-audio"
-  #     "--filter-music"
-  #   ];
-  # };
-
   programs.claude-code.settings.model = "opus";
 
   programs.claude-code.skills = {
     # Each npm tarball ships its own SKILL.md, versioned with the binary.
     confluence-axi = "${confluence-axi}/lib/node_modules/confluence-axi/skills/confluence-axi";
     jira-axi = "${jira-axi}/lib/node_modules/jira-axi/skills/jira-axi";
-    screenpipe-api = "${screenpipe.skills}/screenpipe-api";
-    screenpipe-cli = "${screenpipe.skills}/screenpipe-cli";
   }
   // pupSkills;
 

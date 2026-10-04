@@ -13,7 +13,6 @@ nix flake update
 bin/update-thaw
 bin/update-claude-code
 bin/update-colgrep
-bin/update-screenpipe
 bin/update-datadog-pup
 bin/update-moshi-hook
 bin/update-herdr

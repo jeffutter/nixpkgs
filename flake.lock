@@ -1119,7 +1119,6 @@
         "nixos-hardware": "nixos-hardware",
         "nixpkgs": "nixpkgs_10",
         "nixvim": "nixvim",
-        "screenpipe-src": "screenpipe-src",
         "stop-slop": "stop-slop",
         "stylix": "stylix",
         "the-elements-of-style": "the-elements-of-style",
@@ -1230,22 +1229,6 @@
       "original": {
         "owner": "oxalica",
         "repo": "rust-overlay",
-        "type": "github"
-      }
-    },
-    "screenpipe-src": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1790819115,
-        "narHash": "sha256-6W8GUxdOEpSk8qX6nt5xGZ2rguzddoc+oechTfwWa6w=",
-        "owner": "screenpipe",
-        "repo": "screenpipe",
-        "rev": "c41a2ff131d23652cbe93a7ce45bf5fd8a6f1403",
-        "type": "github"
-      },
-      "original": {
-        "owner": "screenpipe",
-        "repo": "screenpipe",
         "type": "github"
       }
     },
