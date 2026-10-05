@@ -1,11 +1,11 @@
 /**
- * thinking-router: picks the thinking level for every model turn with a Jev classifier.
+ * thinking-router: picks the thinking level for every model turn with a System One classifier.
  *
- * When a prompt arrives, the recent conversation and the prompt go to a Jev
- * `choice` question. After each turn that ends in tool calls, the question is
+ * When a prompt arrives, the recent conversation and the prompt go to a
+ * `choice` classifier question. After each turn that ends in tool calls, the question is
  * asked again with the fresh tool results, so reading test output or a grep hit
  * gets its own level instead of inheriting the prompt's. Once the run settles,
- * the level the session had before (what pi "asked for") comes back. If Jev is
+ * the level the session had before (what pi "asked for") comes back. If the classifier is
  * slow or failing, that turn uses pi's level.
  *
  * The configured `levels` form a ladder, minus any rung the current model marks
@@ -21,8 +21,13 @@
  * to the session as a custom entry, so `/thinking-router stats` can compare what
  * pi asked for against what was actually sent.
  *
+ * The classifier is pi's first-party classifier API (`ctx.modelRegistry.classify`).
+ * models.json cannot declare classifier models, so this extension overlays pi's
+ * built-in `typesafe` provider with our own endpoint and decider model; pi's
+ * `typesafe-system-one` API posts to `<baseUrl>/systemone`.
+ *
  * Optional overrides live in ~/.pi/agent/thinking-router.json; any subset of:
- *   { "url", "model", "timeoutMs", "maxStateTokens", "instructions", "turnInstructions",
+ *   { "baseUrl", "model", "timeoutMs", "maxStateTokens", "instructions", "turnInstructions",
  *     "levels": [{ "level": "xhigh", "description": "..." }, ...] }
  * `levels` is ordered from most to least reasoning and is the only set of levels
  * the router will ever send. "none" is accepted as an alias for pi's "off".
@@ -36,6 +41,9 @@ import { join } from "node:path";
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { getAgentDir } from "@earendil-works/pi-coding-agent";
 
+/** Built-in provider whose `typesafe-system-one` classifier API we reuse against our own endpoint. */
+const CLASSIFIER_PROVIDER = "typesafe";
+
 type ThinkingLevel = "off" | "minimal" | "low" | "medium" | "high" | "xhigh" | "max";
 const THINKING_LEVELS: readonly string[] = ["off", "minimal", "low", "medium", "high", "xhigh", "max"];
 
@@ -45,10 +53,11 @@ interface LevelOption {
 }
 
 interface Config {
-	url: string;
+	/** Base URL of the System One service; pi appends `/systemone`. */
+	baseUrl: string;
 	model: string;
 	timeoutMs: number;
-	/** Budget for the `state` payload. Jev rejects decider-4b state over 1536 tokens, and latency grows with size. */
+	/** Budget for the `state` payload. the service rejects decider-4b state over 1536 tokens, and latency grows with size. */
 	maxStateTokens: number;
 	/** Question for a new user prompt. */
 	instructions: string;
@@ -58,10 +67,10 @@ interface Config {
 }
 
 const DEFAULT_CONFIG: Config = {
-	url: "https://llama.home.jeffutter.com/v1/systemone",
+	baseUrl: "https://llama.home.jeffutter.com/v1",
 	model: "decider-4b",
 	timeoutMs: 2000,
-	// ~1000 chars. Jev latency scales with total input at ~1.9ms/token, and the uncached
+	// ~1000 chars. Classifier latency scales with total input at ~1.9ms/token, and the uncached
 	// instructions alone are ~285 tokens (~0.66s). At 1000 tokens almost every mid-run turn
 	// in a long session hit the 2s timeout. At 500, the densest tool output measured
 	// (hashes/paths, ~1.3 chars/token) takes ~1.8s, and typical output ~1.3-1.5s.
@@ -108,8 +117,8 @@ const DEFAULT_CONFIG: Config = {
 /**
  * Rough chars-per-token for the state JSON. Prose measures ~3.3 against decider-4b,
  * but real tool output (hashes, paths, JSON) came in near 2: at 3.2, full-budget
- * states were 1543-1745 tokens and Jev rejected them with HTTP 422. The budget is
- * sized so even ~1.3 chars/token output stays well under Jev's 1536-token cap.
+ * states were 1543-1745 tokens and the service rejected them with HTTP 422. The budget is
+ * sized so even ~1.3 chars/token output stays well under the 1536-token cap.
  */
 const CHARS_PER_TOKEN = 2;
 
@@ -149,7 +158,7 @@ interface Decision {
 	/** The prompt that started the run, also for "turn" decisions. */
 	prompt: string;
 	/**
-	 * A peek at the state sent to Jev: its size, and the last few history lines
+	 * A peek at the state sent to the classifier: its size, and the last few history lines
 	 * flattened and clipped. For a "turn" decision those are the tool calls and
 	 * the start of their output, which is what the classifier is reacting to.
 	 */
@@ -246,7 +255,7 @@ function buildState(ctx: ExtensionContext, trigger: Trigger, prompt: string, max
 /**
  * The configured levels this model can actually run, still most-reasoning first.
  * A model's thinkingLevelMap marks unsupported levels with null; offering those
- * to Jev would only produce picks that pi silently clamps to something else.
+ * to the classifier would only produce picks that pi silently clamps to something else.
  */
 function ladderFor(config: Config, model: ExtensionContext["model"]): LevelOption[] {
 	const map = (model as { thinkingLevelMap?: Record<string, string | null> } | undefined)?.thinkingLevelMap;
@@ -268,20 +277,21 @@ function rungFor(ladder: LevelOption[], level: ThinkingLevel): number {
 }
 
 async function classify(
+	ctx: ExtensionContext,
 	config: Config,
 	levels: LevelOption[],
 	trigger: Trigger,
 	state: unknown,
 	signal: AbortSignal | undefined,
 ): Promise<{ chosen: ThinkingLevel; probabilities: Record<string, number>; confidence: number; inputTokens?: number }> {
+	const model = ctx.modelRegistry.findOfType("classifier", CLASSIFIER_PROVIDER, config.model);
+	if (!model) throw new Error(`classifier ${CLASSIFIER_PROVIDER}/${config.model} is not registered`);
 	const criteria = Object.fromEntries(levels.map((l) => [l.level, l.description]));
 	const timeout = AbortSignal.timeout(config.timeoutMs);
-	const res = await fetch(config.url, {
-		method: "POST",
-		headers: { "content-type": "application/json" },
-		body: JSON.stringify({
-			model: config.model,
-			state,
+	const result = await ctx.modelRegistry.classify(
+		model,
+		{
+			state: state as Record<string, unknown>,
 			questions: {
 				effort: {
 					type: "choice",
@@ -289,15 +299,18 @@ async function classify(
 					criteria,
 				},
 			},
-		}),
-		// Tied to the run's signal so pressing Esc mid-run doesn't wait on Jev.
-		signal: signal ? AbortSignal.any([timeout, signal]) : timeout,
-	});
-	if (!res.ok) throw new Error(`HTTP ${res.status}: ${(await res.text()).slice(0, 200)}`);
-	const body = (await res.json()) as any;
-	const answer = body?.answers?.effort;
-	const probabilities: Record<string, number> | undefined = answer?.probabilities;
-	if (!probabilities) throw new Error(`unexpected response: ${JSON.stringify(body).slice(0, 200)}`);
+		},
+		// Tied to the run's signal so pressing Esc mid-run doesn't wait on the classifier.
+		{ signal: signal ? AbortSignal.any([timeout, signal]) : timeout },
+	);
+	if (result.stopReason !== "stop") {
+		// pi reports aborts as a result rather than throwing; keep the timeout/error split the caller logs.
+		if (timeout.aborted) throw timeout.reason;
+		throw new Error(result.errorMessage ?? result.stopReason);
+	}
+	const answer = result.answers.effort;
+	if (answer?.type !== "choice") throw new Error(`unexpected answer: ${JSON.stringify(answer).slice(0, 200)}`);
+	const probabilities = answer.probabilities;
 
 	// Most likely level, ties going to more reasoning. An earlier cumulative rule that leaned
 	// toward more thinking turned mid-run answers like low .54 / medium .28 / xhigh .17 into
@@ -306,7 +319,7 @@ async function classify(
 	for (const { level } of levels) {
 		if ((probabilities[level] ?? 0) > (probabilities[chosen] ?? 0)) chosen = level;
 	}
-	return { chosen, probabilities, confidence: answer.confidence, inputTokens: body?.usage?.input_tokens };
+	return { chosen, probabilities, confidence: answer.confidence, inputTokens: result.usage?.input };
 }
 
 function logPath(): string {
@@ -367,6 +380,25 @@ function summarize(label: string, decisions: Decision[]): string {
 }
 
 export default function thinkingRouter(pi: ExtensionAPI) {
+	// Replaces the built-in typesafe catalog (jev-latest) with our decider; the built-in
+	// `typesafe-system-one` implementation still serves it. No key is needed on the LAN.
+	const { baseUrl, model: classifierId } = loadConfig();
+	pi.registerProvider(CLASSIFIER_PROVIDER, {
+		apiKey: "unused",
+		models: [
+			{
+				type: "classifier",
+				id: classifierId,
+				name: classifierId,
+				api: "typesafe-system-one",
+				baseUrl,
+				input: ["text"],
+				cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+				contextWindow: 8192,
+			},
+		],
+	});
+
 	let enabled = true;
 	/**
 	 * The run being routed. `requested` is pi's level when the run started and is
@@ -426,9 +458,9 @@ export default function thinkingRouter(pi: ExtensionAPI) {
 				chars: JSON.stringify(state).length,
 				tail: state.history.slice(-SENT_TAIL_ITEMS).map((h) => `${h.role}: ${clip(h.text.replace(/\s+/g, " "), 100)}`),
 			};
-			// Jev sees the whole ladder so its pick stays comparable across requested
+			// The classifier sees the whole ladder so its pick stays comparable across requested
 			// levels in the log; the window only bounds what gets applied.
-			const result = await classify(config, ladder, trigger, state, ctx.signal);
+			const result = await classify(ctx, config, ladder, trigger, state, ctx.signal);
 			const pick = ladder.findIndex((l) => l.level === result.chosen);
 			level = ladder[Math.min(hi, Math.max(lo, pick))].level;
 			decision = {
@@ -455,7 +487,7 @@ export default function thinkingRouter(pi: ExtensionAPI) {
 				sent,
 			};
 		}
-		// The run may have ended or been taken over by a hand change while Jev was answering.
+		// The run may have ended or been taken over by a hand change while the classifier was answering.
 		if (run !== current) return;
 
 		pi.setThinkingLevel(level);
