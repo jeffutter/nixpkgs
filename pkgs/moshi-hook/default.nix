@@ -9,7 +9,7 @@
 }:
 
 let
-  version = "0.4.10";
+  version = "0.4.17";
 
   # Moshi does not publish moshi-hook in nixpkgs, so we repackage the upstream
   # prebuilt release binaries (same artifacts the rjyo/homebrew-moshi tap
@@ -19,19 +19,19 @@ let
   sources = {
     "aarch64-darwin" = {
       url = "https://cdn.getmoshi.app/hook/v${version}/moshi-hook_Darwin_arm64.tar.gz";
-      hash = "sha256-uja5VRHYJwz0PAim+kDrGhu4ih0zaEpMed8lpPK6S1U=";
+      hash = "sha256-mWWOORhmRhr7EfNZ3XfKQorZpoiGSqTGoDS0MFW27Hs=";
     };
     "x86_64-darwin" = {
       url = "https://cdn.getmoshi.app/hook/v${version}/moshi-hook_Darwin_x86_64.tar.gz";
-      hash = "sha256-N3XWaoQ6Q4D6n8+LC/sWElan+YMLiKO0Rf0xFT1DmDg=";
+      hash = "sha256-+Mu/YR9Z0UIUS1R7oJL84z+KyRvESLhvhLIG2yCzFKc=";
     };
     "aarch64-linux" = {
       url = "https://cdn.getmoshi.app/hook/v${version}/moshi-hook_Linux_arm64.tar.gz";
-      hash = "sha256-ZlpXZmKHkNhV2jQlQentUK5S+4m5ydIV4Ofki+Yv564=";
+      hash = "sha256-Mmd6GV0I8wlRm5FYXt7kPRgkNwyD+itXp1krp4sz/YE=";
     };
     "x86_64-linux" = {
       url = "https://cdn.getmoshi.app/hook/v${version}/moshi-hook_Linux_x86_64.tar.gz";
-      hash = "sha256-/GPBPf0CxJrUGeFgd0+nClrwpsxNCLcrmLH5latka+I=";
+      hash = "sha256-EMZXrS6E7ahWMt+jyMhbAKUUXjEsYHwDuAgt7j7O5hQ=";
     };
   };
 in
