@@ -32,7 +32,8 @@ Any other sub-ticket is non-trivial.
 3. Check whether the work already shipped:
    - Run `git log --oneline -20` and `git log --grep="<ticket_id>" --oneline`.
    - Grep the code for the files, symbols, and routes the ticket names. Many commits carry the ticket ID only in a trailer.
-   - If the ticket status is Done, or HEAD already contains the deliverable: report ALREADY_SHIPPED with the SHA that landed it, then stop.
+   - If the ticket status is Done: report ALREADY_SHIPPED with the SHA that landed it, then stop.
+   - If HEAD already contains the deliverable and the ticket is not Done, the record is stale and closing it is your deliverable: tick each acceptance criterion the shipped code meets with `backlog task edit <ticket_id> --check-ac <n>`, run `backlog task edit <ticket_id> --final-summary "SHIPPED by <full sha> - <what shipped where>"`, then `backlog task edit <ticket_id> -s Done`. Report ALREADY_SHIPPED with the SHA, then stop. Never leave an unshipped-status ticket at Needs Plan after confirming the work is in HEAD - the next planning pass re-runs on it forever.
 
 4. Run `backlog task list -s "To Do" --plain`. Find tickets that have this ticket as parent and lack the `planned` label.
    - If any exist: print "Plan these tickets first: <ticket IDs>", then stop.
