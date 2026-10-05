@@ -104,11 +104,6 @@
       flake = false;
     };
 
-    superpowers = {
-      url = "github:obra/superpowers";
-      flake = false;
-    };
-
     apollo_skills = {
       url = "github:apollographql/skills";
       flake = false;
@@ -156,11 +151,6 @@
 
     kami = {
       url = "github:tw93/kami";
-      flake = false;
-    };
-
-    screenpipe-src = {
-      url = "github:screenpipe/screenpipe";
       flake = false;
     };
 
@@ -374,7 +364,6 @@
 
       packages = forAllSystems (system: {
         actual-cli = (pkgsFor system).callPackage ./pkgs/actual-cli { };
-        screenpipe = (pkgsFor system).callPackage ./pkgs/screenpipe { src = inputs.screenpipe-src; };
         colgrep = (pkgsFor system).callPackage ./pkgs/colgrep { };
         datadog-pup = (pkgsFor system).callPackage ./pkgs/datadog-pup { };
         moshi-hook = (pkgsFor system).callPackage ./pkgs/moshi-hook { };

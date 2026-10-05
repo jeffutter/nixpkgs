@@ -1119,10 +1119,8 @@
         "nixos-hardware": "nixos-hardware",
         "nixpkgs": "nixpkgs_10",
         "nixvim": "nixvim",
-        "screenpipe-src": "screenpipe-src",
         "stop-slop": "stop-slop",
         "stylix": "stylix",
-        "superpowers": "superpowers",
         "the-elements-of-style": "the-elements-of-style",
         "tinted-theming-schemes": "tinted-theming-schemes",
         "vale-alex": "vale-alex",
@@ -1234,22 +1232,6 @@
         "type": "github"
       }
     },
-    "screenpipe-src": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1790819115,
-        "narHash": "sha256-6W8GUxdOEpSk8qX6nt5xGZ2rguzddoc+oechTfwWa6w=",
-        "owner": "screenpipe",
-        "repo": "screenpipe",
-        "rev": "c41a2ff131d23652cbe93a7ce45bf5fd8a6f1403",
-        "type": "github"
-      },
-      "original": {
-        "owner": "screenpipe",
-        "repo": "screenpipe",
-        "type": "github"
-      }
-    },
     "stop-slop": {
       "flake": false,
       "locked": {
@@ -1296,22 +1278,6 @@
       "original": {
         "owner": "nix-community",
         "repo": "stylix",
-        "type": "github"
-      }
-    },
-    "superpowers": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1790359587,
-        "narHash": "sha256-BWPiXoXV+jePP+wn/Z+Af4iehIL7oei00plaWaTzq8s=",
-        "owner": "obra",
-        "repo": "superpowers",
-        "rev": "8ca22dba9a94f28898bbce59f2537ff4d87c747d",
-        "type": "github"
-      },
-      "original": {
-        "owner": "obra",
-        "repo": "superpowers",
         "type": "github"
       }
     },

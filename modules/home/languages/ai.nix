@@ -30,7 +30,6 @@ let
       backlog-md-upstream;
   stop-slop = inputs.stop-slop;
   humanizer = inputs.humanizer;
-  superpowers = inputs.superpowers;
   kami = inputs.kami;
   apollo_skills = inputs.apollo_skills;
   # apollo_skills ships client SDKs (apollo-client/ios/kotlin), agent tooling
@@ -425,8 +424,6 @@ in
         })
       ]
       ++ lib.optional config.jeff.enableZvecGrep zvec-grep;
-
-    home.file.".claude/plugins/marketplaces/superpowers".source = superpowers;
 
     xdg.configFile."kami/brand.md".source = config.jeff.kamiSkillBrand;
 
@@ -930,7 +927,6 @@ in
         enabledPlugins = {
           "context7@claude-plugins-official" = true;
           "rust-analyzer-lsp@claude-plugins-official" = true;
-          "superpowers@superpowers" = true;
         };
         disabledMcpjsonServers = [ "context7:context7" ];
         hooks = {
