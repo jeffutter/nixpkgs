@@ -17,3 +17,4 @@ bin/update-datadog-pup
 bin/update-moshi-hook
 bin/update-herdr
 bin/update-atlassian-axi
+bin/update-windmill-cli

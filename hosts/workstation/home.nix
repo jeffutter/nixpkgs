@@ -17,6 +17,7 @@
     _1password-cli
     perl
     (callPackage ../../pkgs/actual-cli { })
+    (callPackage ../../pkgs/windmill-cli { })
     todoist-cli
   ];
 

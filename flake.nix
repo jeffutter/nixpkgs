@@ -368,6 +368,7 @@
         datadog-pup = (pkgsFor system).callPackage ./pkgs/datadog-pup { };
         moshi-hook = (pkgsFor system).callPackage ./pkgs/moshi-hook { };
         zvec-grep = (pkgsFor system).callPackage ./pkgs/zvec-grep { };
+        windmill-cli = (pkgsFor system).callPackage ./pkgs/windmill-cli { };
       });
 
       homeConfigurations = {
