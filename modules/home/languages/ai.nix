@@ -707,7 +707,7 @@ in
                 "text"
                 "image"
               ];
-              contextWindow = 131072;
+              contextWindow = 196608;
             }
             {
               id = "chat-fast";
@@ -716,7 +716,7 @@ in
                 "text"
                 "image"
               ];
-              contextWindow = 131072;
+              contextWindow = 196608;
             }
             {
               id = "coding";
@@ -726,7 +726,7 @@ in
                 "text"
                 "image"
               ];
-              contextWindow = 131072;
+              contextWindow = 196608;
             }
             {
               id = "instruct";
@@ -735,7 +735,7 @@ in
                 "text"
                 "image"
               ];
-              contextWindow = 131072;
+              contextWindow = 196608;
             }
             {
               id = "instruct-reasoning";
@@ -744,7 +744,7 @@ in
                 "text"
                 "image"
               ];
-              contextWindow = 131072;
+              contextWindow = 196608;
             }
             {
               id = "orchestrator";
@@ -754,7 +754,7 @@ in
                 "text"
                 "image"
               ];
-              contextWindow = 131072;
+              contextWindow = 196608;
             }
             {
               id = "planning";
@@ -764,7 +764,7 @@ in
                 "text"
                 "image"
               ];
-              contextWindow = 131072;
+              contextWindow = 196608;
             }
             {
               id = "research";
@@ -774,7 +774,7 @@ in
                 "text"
                 "image"
               ];
-              contextWindow = 131072;
+              contextWindow = 196608;
             }
           ];
         };
