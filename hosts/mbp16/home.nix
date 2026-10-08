@@ -5,6 +5,9 @@
   ...
 }:
 
+let
+  meethook = inputs.meethook.packages.${pkgs.stdenv.hostPlatform.system}.default;
+in
 {
   imports = [
     ../../modules/home/languages/elixir.nix
@@ -24,6 +27,8 @@
   };
 
   programs.ssh.extraOptionOverrides.identityFile = "~/.ssh/id_rsa";
+
+  home.packages = [ meethook ];
 
   programs.claude-code.settings.model = "sonnet";
 
