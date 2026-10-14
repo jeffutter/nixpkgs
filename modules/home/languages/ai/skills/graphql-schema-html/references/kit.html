@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>graphql-schema-html kit</title>
+<!--
+  KIT. Copy the <style> block verbatim into every page. Copy the <script> block only when a
+  neighborhood-cards figure (.graph) is present. Each section below is one figure pattern;
+  copy its markup and replace the names. Type names here are placeholders from a toy SDUI
+  schema (Page, ListSection, Container, Component, Card, Cta) and carry no meaning.
+-->
+<style>
+:root { --ink:#1d1d1f; --muted:#6b6b70; --line:#cfd3dc; --card:#fff; --bg:#f7f6f2;
+  --accent:#1b6ef3; --green:#1d8a4b; --green-soft:#eaf7ee; --amber:#c47d0a; --amber-soft:#fff6e3;
+  --red:#c6322b; --red-soft:#fdeceb; --violet:#6b3fd1; --violet-soft:#f1ecfb; }
+body { margin:0; background:var(--bg); color:var(--ink); font:17px/1.6 Georgia, "Times New Roman", serif; }
+main { max-width:980px; margin:0 auto; padding:32px 20px 80px; }
+h1 { font-size:2rem; margin:0 0 .2em; } h2 { margin-top:2.6em; border-bottom:2px solid var(--line); padding-bottom:.2em; }
+.sans { font-family:-apple-system, Helvetica, Arial, sans-serif; }
+code, pre { font:13.5px/1.5 "SF Mono", Menlo, monospace; }
+pre { background:#fff; border:1px solid var(--line); border-radius:8px; padding:12px 14px; white-space:pre-wrap; overflow:auto; }
+figure { margin:22px 0; } figcaption { font:13.5px/1.5 -apple-system, Helvetica, Arial, sans-serif; color:var(--muted); margin-top:8px; }
+.callout { border-left:4px solid var(--accent); background:#fff; padding:10px 14px; margin:14px 0; font:15px/1.5 -apple-system, Helvetica, Arial, sans-serif; }
+
+/* legend */
+.keys { display:flex; gap:12px; flex-wrap:wrap; font:12.5px -apple-system, Helvetica, Arial, sans-serif; color:var(--muted); margin:8px 0 18px; }
+.keys span { display:inline-flex; align-items:center; gap:5px; }
+.keys i { width:14px; height:14px; border-radius:4px; border:1.5px solid var(--line); background:#fff; }
+.keys i.p { border-color:var(--accent); background:#f3f6fe; } .keys i.s { border-color:#7b8bb5; } .keys i.c { border-color:#9aa7c7; background:#fafbff; }
+.keys i.v { border-color:var(--green); background:var(--green-soft); } .keys i.i { border-color:var(--violet); background:var(--violet-soft); border-style:dashed; }
+.keys i.f { border-color:var(--amber); background:var(--amber-soft); }
+
+/* containment tree */
+.box { border:1.5px solid var(--line); border-radius:8px; padding:8px 10px 10px; margin:6px 0; background:var(--card);
+  font:13.5px/1.4 -apple-system, Helvetica, Arial, sans-serif; }
+.box > .lbl { font-weight:600; font-size:12.5px; display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap; }
+.box > .lbl .id { font:11.5px "SF Mono", Menlo, monospace; color:var(--muted); font-weight:normal; }
+.box > .lbl .kind { font:10.5px -apple-system, Helvetica, sans-serif; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); font-weight:500; }
+.box.p { border-color:var(--accent); background:#f3f6fe; }      /* root / page */
+.box.s { border-color:#7b8bb5; }                                 /* section */
+.box.c { border-color:#9aa7c7; background:#fafbff; }             /* container */
+.box.v { border-color:var(--green); background:var(--green-soft); } /* component / rendering leaf */
+.box.i { border-color:var(--violet); background:var(--violet-soft); border-style:dashed; } /* interface */
+.box.f { border-color:var(--amber); background:var(--amber-soft); } /* value type */
+.box.dim { opacity:.55; border-style:dashed; }                   /* collapsed or already-drawn */
+.fields { list-style:none; margin:6px 0 0; padding:0; font:12.5px/1.55 "SF Mono", Menlo, monospace; }
+.fields li { display:flex; gap:8px; } .fields .fn { color:var(--ink); } .fields .ft { color:var(--muted); }
+.fields .nn { color:var(--red); font-weight:600; } .fields .list { color:var(--accent); }
+.slot { display:flex; align-items:center; gap:8px; font:12px -apple-system, Helvetica, sans-serif; color:var(--muted); margin:6px 0 2px; }
+.slot::before, .slot::after { content:""; flex:1; border-top:1px dashed var(--line); }
+.row { display:flex; gap:10px; flex-wrap:wrap; } .row > .box { flex:1 1 200px; margin:0; }
+.badge { display:inline-block; font:10.5px/1 "SF Mono", Menlo, monospace; padding:3px 6px; border-radius:5px; background:#eef0f5; color:#444; border:1px solid #dde1ea; margin-left:4px; }
+.badge.dir { background:var(--violet-soft); border-color:#cdb9f2; color:var(--violet); }
+.badge.add { background:var(--green-soft); border-color:#9fd8b3; color:var(--green); }
+.badge.del { background:var(--red-soft); border-color:#f0b2ad; color:var(--red); }
+.badge.chg { background:var(--amber-soft); border-color:#f1d08a; color:var(--amber); }
+
+/* diff mode */
+.fields li.add { background:var(--green-soft); border-radius:4px; padding:0 4px; margin:0 -4px; }
+.fields li.del { background:var(--red-soft); border-radius:4px; padding:0 4px; margin:0 -4px; text-decoration:line-through; color:var(--muted); }
+.fields li.chg { background:var(--amber-soft); border-radius:4px; padding:0 4px; margin:0 -4px; }
+.box.add { border-color:var(--green); box-shadow:0 0 0 3px var(--green-soft); }
+.box.del { border-color:var(--red); border-style:dashed; opacity:.7; }
+
+/* neighborhood cards */
+.graph { position:relative; display:grid; grid-template-columns:repeat(3, 1fr); gap:28px 40px; align-items:start; }
+.graph svg.edges { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; overflow:visible; }
+.tcard { background:var(--card); border:1.5px solid var(--line); border-radius:10px; font:12.5px/1.5 -apple-system, Helvetica, Arial, sans-serif; position:relative; z-index:1; }
+.tcard header { padding:6px 10px; border-bottom:1px solid var(--line); font-weight:600; display:flex; justify-content:space-between; gap:6px; align-items:center; }
+.tcard header .kind { font-weight:500; font-size:10.5px; text-transform:uppercase; color:var(--muted); letter-spacing:.04em; }
+.tcard.obj header { background:#f3f6fe; }
+.tcard.iface header { background:var(--violet-soft); } .tcard.iface { border-color:#cdb9f2; }
+.tcard.comp header { background:var(--green-soft); } .tcard.comp { border-color:#9fd8b3; }
+.tcard.union header { background:var(--amber-soft); } .tcard.union { border-color:#f1d08a; }
+.tcard ul { list-style:none; margin:0; padding:4px 10px 6px; font:12px/1.6 "SF Mono", Menlo, monospace; }
+.tcard li { display:flex; justify-content:space-between; gap:10px; } .tcard li .ft { color:var(--muted); }
+.tcard li.ref .ft { color:var(--accent); }
+.legend { display:flex; gap:14px; flex-wrap:wrap; font:12.5px -apple-system, Helvetica, Arial, sans-serif; color:var(--muted); margin-top:10px; }
+.legend span::before { content:""; display:inline-block; width:22px; border-top:2px solid var(--accent); vertical-align:middle; margin-right:6px; }
+.legend .impl::before { border-top-style:dashed; border-color:var(--violet); }
+.legend .mem::before { border-top-style:dotted; border-color:var(--amber); }
+
+/* annotated wireframe */
+.anno { display:flex; gap:28px; align-items:flex-start; flex-wrap:wrap; justify-content:center; }
+.phone { width:250px; border:9px solid #222; border-radius:30px; background:#f2f2f4; position:relative; height:470px;
+  font:12.5px/1.35 -apple-system, Helvetica, Arial, sans-serif; }
+.phone .bar { height:22px; background:#222; border-radius:20px 20px 0 0; }
+.phone .scr { padding:10px; position:relative; }
+.phone .ttl { font-weight:700; font-size:16px; margin:4px 0 8px; }
+.phone .tabs { display:flex; gap:6px; margin-bottom:10px; } .phone .tabs span { padding:3px 9px; border-radius:12px; background:#fff; border:1px solid var(--line); font-size:11px; }
+.phone .tabs span.on { background:var(--accent); color:#fff; border-color:var(--accent); }
+.phone .card { background:#fff; border:1px solid var(--line); border-radius:10px; padding:8px; margin-bottom:8px; }
+.phone .card .img { height:40px; background:linear-gradient(135deg,#dfe7ff,#c9d7ff); border-radius:6px; margin-bottom:6px; }
+.phone .card b { display:block; font-size:12.5px; } .phone .card small { color:var(--muted); }
+.phone .btn { display:inline-block; margin-top:6px; background:var(--accent); color:#fff; padding:3px 10px; border-radius:6px; font-size:11px; }
+.pin { position:absolute; width:20px; height:20px; border-radius:50%; background:var(--red); color:#fff; font:700 11px/20px -apple-system, Helvetica, sans-serif; text-align:center; box-shadow:0 1px 4px rgba(0,0,0,.3); z-index:2; }
+.pinlist { list-style:none; margin:0; padding:0; font:13px/1.5 -apple-system, Helvetica, Arial, sans-serif; min-width:300px; max-width:420px; }
+.pinlist li { display:grid; grid-template-columns:24px 1fr; gap:8px; margin-bottom:8px; align-items:start; }
+.pinlist .pin { position:static; } .pinlist code { font-size:12px; }
+.pinlist .path { color:var(--muted); font-size:11.5px; display:block; }
+
+/* capability matrix */
+table.matrix { border-collapse:collapse; font:12.5px/1.4 -apple-system, Helvetica, Arial, sans-serif; background:#fff; width:100%; }
+table.matrix th, table.matrix td { border:1px solid var(--line); padding:5px 8px; text-align:center; }
+table.matrix th { background:#f3f6fe; font-weight:600; }
+table.matrix th.rot { height:120px; vertical-align:bottom; padding:4px; }
+table.matrix th.rot div { writing-mode:vertical-rl; transform:rotate(180deg); white-space:nowrap; font:11.5px "SF Mono", Menlo, monospace; font-weight:500; }
+table.matrix td.row { text-align:left; font-family:"SF Mono", Menlo, monospace; font-size:12px; background:#fafbff; }
+table.matrix td.y { background:var(--green-soft); color:var(--green); font-weight:700; }
+table.matrix td.n { color:#ccc; }
+table.matrix td.new { background:var(--amber-soft); color:var(--amber); font-weight:700; }
+
+@media (max-width:760px) { .graph { grid-template-columns:1fr; } .graph svg.edges { display:none; } }
+</style>
+</head>
+<body><main>
+<h1>graphql-schema-html kit</h1>
+<p class="sans">One pattern per figure. Replace the placeholder names with real ones from the SDL.</p>
+
+<div class="keys"><span><i class="p"></i>root / page</span><span><i class="s"></i>section</span><span><i class="c"></i>container</span><span><i class="v"></i>component</span><span><i class="i"></i>interface</span><span><i class="f"></i>value type</span><span><b style="color:var(--red)">!</b> non-null</span><span><b style="color:var(--accent)">[ ]</b> list</span></div>
+
+<!-- ================================================================ -->
+<h2 id="containment-tree">Containment tree</h2>
+<figure>
+<div class="box p"><div class="lbl"><span>Page <span class="kind">type</span></span><span class="id">Query.page(path) <span class="badge dir">@generateQuery</span></span></div>
+  <ul class="fields">
+    <li><span class="fn">id</span><span class="ft">ID<span class="nn">!</span></span></li>
+    <li><span class="fn">title</span><span class="ft">String</span></li>
+    <li><span class="fn">sections</span><span class="ft"><span class="list">[</span>SectionStub<span class="nn">!</span><span class="list">]</span><span class="nn">!</span></span></li>
+    <li><span class="fn">openSection</span><span class="ft">Section</span></li>
+  </ul>
+  <div class="slot">openSection: one Section</div>
+  <div class="box i"><div class="lbl"><span>Section <span class="kind">interface</span></span><span class="id">implemented by ListSection, ComponentSection</span></div>
+    <div class="box s"><div class="lbl"><span>ListSection</span><span class="id">children: [Container!]!</span></div>
+      <div class="slot">children: many Container</div>
+      <div class="box c"><div class="lbl"><span>StaticContainer</span><span class="id">children: [Component!]!</span></div>
+        <div class="slot">children: many Component</div>
+        <div class="row">
+          <div class="box v"><div class="lbl"><span>PromoCard</span><span class="badge dir">@component</span></div>
+            <ul class="fields">
+              <li><span class="fn">title</span><span class="ft">String<span class="nn">!</span></span></li>
+              <li><span class="fn">image</span><span class="ft">String</span></li>
+              <li><span class="fn">cta</span><span class="ft">Cta</span></li>
+            </ul>
+          </div>
+          <div class="box v"><div class="lbl"><span>RewardCard</span><span class="badge dir">@component</span></div>
+            <ul class="fields">
+              <li><span class="fn">title</span><span class="ft">String<span class="nn">!</span></span></li>
+              <li><span class="fn">isNew</span><span class="ft">Boolean<span class="nn">!</span></span></li>
+            </ul>
+          </div>
+          <div class="box v dim"><div class="lbl"><span>… 7 more @component types</span></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<figcaption>Figure 1. What a Page response holds. The dashed slot rule names the field that opens the next level.</figcaption>
+</figure>
+
+<!-- ================================================================ -->
+<h2 id="diff-mode">Containment tree, diff mode</h2>
+<figure>
+<div class="box p"><div class="lbl"><span>Page</span><span class="id"><span class="badge add">+1 field</span></span></div>
+  <ul class="fields">
+    <li><span class="fn">id</span><span class="ft">ID<span class="nn">!</span></span></li>
+    <li><span class="fn">openSection</span><span class="ft">Section</span></li>
+    <li class="add"><span class="fn">footer</span><span class="ft">Footer</span><span class="badge add">added</span></li>
+  </ul>
+  <div class="box s dim"><div class="lbl"><span>ListSection → StaticContainer</span><span class="id">unchanged</span></div>
+    <div class="box v"><div class="lbl"><span>PromoCard</span><span class="id"><span class="badge chg">1 changed</span></span></div>
+      <ul class="fields">
+        <li class="chg"><span class="fn">image</span><span class="ft">String → String<span class="nn">!</span></span><span class="badge chg">now non-null</span></li>
+      </ul>
+      <div class="box f"><div class="lbl"><span>Cta</span><span class="id"><span class="badge add">+1</span> <span class="badge del">1 deprecated</span></span></div>
+        <ul class="fields">
+          <li><span class="fn">label</span><span class="ft">String<span class="nn">!</span></span></li>
+          <li class="add"><span class="fn">interaction</span><span class="ft">Interaction<span class="nn">!</span></span><span class="badge add">added</span></li>
+          <li class="del"><span class="fn">action</span><span class="ft">CtaActionType</span><span class="badge del">@deprecated TICKET-1</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="box s add"><div class="lbl"><span>Footer <span class="kind">new type</span></span><span class="id">via Page.footer</span></div>
+    <ul class="fields"><li><span class="fn">links</span><span class="ft"><span class="list">[</span>Link<span class="nn">!</span><span class="list">]</span><span class="nn">!</span></span></li></ul>
+  </div>
+</div>
+<figcaption>Figure 2. What the change does. Green added, red struck removed or deprecated, amber retyped. Unchanged subtrees collapse to one dimmed label.</figcaption>
+</figure>
+
+<!-- ================================================================ -->
+<h2 id="neighborhood-cards">Neighborhood cards</h2>
+<figure>
+<div class="graph" id="g1">
+  <svg class="edges"></svg>
+  <div class="tcard obj" data-id="Page"><header>Page <span class="kind">type</span></header><ul>
+    <li><span>id</span><span class="ft">ID!</span></li><li class="ref"><span>openSection</span><span class="ft">Section</span></li></ul></div>
+  <div class="tcard iface" data-id="Section"><header>Section <span class="kind">interface</span></header><ul>
+    <li><span>id</span><span class="ft">ID!</span></li></ul></div>
+  <div class="tcard obj" data-id="ListSection"><header>ListSection <span class="kind">type</span></header><ul>
+    <li class="ref"><span>children</span><span class="ft">[Container!]!</span></li></ul></div>
+  <div class="tcard iface" data-id="Container"><header>Container <span class="kind">interface</span></header><ul>
+    <li class="ref"><span>children</span><span class="ft">[Component!]!</span></li></ul></div>
+  <div class="tcard iface" data-id="Component"><header>Component <span class="kind">interface</span></header><ul>
+    <li><span>id</span><span class="ft">ID!</span></li></ul></div>
+  <div class="tcard comp" data-id="PromoCard"><header>PromoCard <span class="kind">@component</span></header><ul>
+    <li><span>title</span><span class="ft">String!</span></li><li class="ref"><span>cta</span><span class="ft">Cta</span></li></ul></div>
+</div>
+<div class="legend"><span>field reference</span><span class="impl">implements</span><span class="mem">union member</span></div>
+<figcaption>Figure 3. Neighborhood of Page at depth 2. Blue field types have an outgoing edge.</figcaption>
+</figure>
+
+<!-- ================================================================ -->
+<h2 id="annotated-wireframe">Annotated wireframe</h2>
+<figure>
+<div class="anno">
+  <div class="phone"><div class="bar"></div><div class="scr">
+    <div class="ttl">Rewards</div><span class="pin" style="top:8px;left:84px">1</span>
+    <div class="tabs"><span class="on">Promos</span><span>History</span></div><span class="pin" style="top:38px;left:150px">2</span>
+    <div class="card"><div class="img"></div><b>Bet $20, get $50</b><small>Ends in 2d 4h</small><br><span class="btn">Opt in</span></div>
+    <span class="pin" style="top:70px;left:-10px">3</span>
+    <span class="pin" style="top:168px;left:52px">4</span>
+  </div></div>
+  <ol class="pinlist">
+    <li><span class="pin">1</span><div><code>Page.title: String</code><span class="path">page(path: "/rewards")</span></div></li>
+    <li><span class="pin">2</span><div><code>Page.sections: [SectionStub!]!</code><span class="path">label · tapping loads <code>section(id)</code></span></div></li>
+    <li><span class="pin">3</span><div><code>PromoCard</code> inside <code>StaticContainer</code><span class="path">openSection.children[0].children[0]</span></div></li>
+    <li><span class="pin">4</span><div><code>Cta.label</code> and <code>Cta.interaction: Interaction!</code><span class="path">…children[0].cta</span></div></li>
+  </ol>
+</div>
+<figcaption>Figure 4. Which field draws which part of the screen. The legend carries the dot path from the root query.</figcaption>
+</figure>
+
+<!-- ================================================================ -->
+<h2 id="capability-matrix">Capability matrix</h2>
+<figure>
+<table class="matrix">
+<thead><tr><th>Component</th>
+<th class="rot"><div>LinkInteraction</div></th><th class="rot"><div>DeepLinkInteraction</div></th><th class="rot"><div>OptInInteraction</div></th><th class="rot"><div>LoadMoreInteraction</div></th></tr></thead>
+<tbody>
+<tr><td class="row">PromoCard</td><td class="y">●</td><td class="y">●</td><td class="y">●</td><td class="n">·</td></tr>
+<tr><td class="row">RewardCard</td><td class="y">●</td><td class="y">●</td><td class="n">·</td><td class="new">●</td></tr>
+<tr><td class="row">MarketCard</td><td class="n">·</td><td class="y">●</td><td class="n">·</td><td class="n">·</td></tr>
+</tbody></table>
+<figcaption>Figure 5. Components × interactions. Green supported today, amber added by this change. Cells come from the SDL and the resolver code.</figcaption>
+</figure>
+
+<script>
+// Neighborhood-card edges. One entry per edge: [fromTypeName, toTypeName, kind]. kind: ref | impl | mem.
+const edges = [
+  ['Page','Section','ref'], ['Section','ListSection','impl'], ['ListSection','Container','ref'],
+  ['Container','Component','ref'], ['Component','PromoCard','impl'],
+];
+const colors = { ref:'#1b6ef3', impl:'#6b3fd1', mem:'#c47d0a' };
+const dash = { ref:'', impl:'6 4', mem:'2 4' };
+function drawEdges(){
+  const g = document.getElementById('g1'); if (!g) return;
+  const svg = g.querySelector('svg.edges'); const gb = g.getBoundingClientRect();
+  svg.innerHTML = '<defs><marker id="arr" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#888"/></marker></defs>';
+  const clip = (r,cx,cy,tx,ty)=>{ const dx=tx-cx, dy=ty-cy; const s=Math.min((r.width/2)/Math.abs(dx||1e-9),(r.height/2)/Math.abs(dy||1e-9)); return [cx+dx*s, cy+dy*s]; };
+  for (const [a,b,k] of edges){
+    const A = g.querySelector(`[data-id="${a}"]`), B = g.querySelector(`[data-id="${b}"]`); if (!A || !B) continue;
+    const ra = A.getBoundingClientRect(), rb = B.getBoundingClientRect();
+    const ax = ra.left+ra.width/2-gb.left, ay = ra.top+ra.height/2-gb.top, bx = rb.left+rb.width/2-gb.left, by = rb.top+rb.height/2-gb.top;
+    const [x1,y1] = clip(ra,ax,ay,bx,by), [x2,y2] = clip(rb,bx,by,ax,ay);
+    const p = document.createElementNS('http://www.w3.org/2000/svg','line');
+    p.setAttribute('x1',x1); p.setAttribute('y1',y1); p.setAttribute('x2',x2); p.setAttribute('y2',y2);
+    p.setAttribute('stroke',colors[k]); p.setAttribute('stroke-width','1.8'); if (dash[k]) p.setAttribute('stroke-dasharray',dash[k]);
+    p.setAttribute('marker-end','url(#arr)'); svg.appendChild(p);
+  }
+}
+drawEdges(); addEventListener('resize', drawEdges);
+</script>
+</main></body></html>

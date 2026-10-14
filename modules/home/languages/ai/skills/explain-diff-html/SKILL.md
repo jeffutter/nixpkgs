@@ -21,6 +21,7 @@ Format:
 - Some tips on diagrams. Ideally, you should pick a small number of diagram families that can be reused throughout the explanation to explain various cases. Some useful kinds of diagrams:
   - A very simplified version of the UI that the user sees in the app, to explain UI changes.
   - A system diagram showing data flow or communication between components. Make sure to include example data here!
+  - If the change touches GraphQL SDL, use the `graphql-schema-html` skill in figures-only mode for the schema figures (containment tree, diff mode, annotated wireframe) and paste its `<style>` block once.
 - Don't use ASCII diagrams. Always use simple HTML designs for your diagrams, HTML lists for lists of things, etc.
   - For code blocks, always use `<pre>` tags. If you use a custom styled div instead, it **must** have
     `white-space: pre-wrap` in its CSS, or the browser will collapse all newlines into a single line.

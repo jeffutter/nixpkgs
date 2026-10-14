@@ -1132,6 +1132,7 @@ in
         elixir = ./ai/skills/elixir;
         excalidraw-diagram = "${excalidraw-diagram-skill-wrapped}";
         explain-diff-html = ./ai/skills/explain-diff-html;
+        graphql-schema-html = ./ai/skills/graphql-schema-html;
         herdr = "${herdr-skill}";
         humanizer = "${humanizer}";
         kami = "${kami}/skills/kami";
