@@ -3,11 +3,11 @@
     "apollo_skills": {
       "flake": false,
       "locked": {
-        "lastModified": 1791394365,
-        "narHash": "sha256-A1t8iX5DcBhFcMLD/a0V1mfSMNs+GOEwrJOvA/GAWxs=",
+        "lastModified": 1791913575,
+        "narHash": "sha256-UzLzbqQXU50aD3Bx6rARrn5EuvKne+I0f+/teDMYVOs=",
         "owner": "apollographql",
         "repo": "skills",
-        "rev": "5f02fcfcebec678e2e55777b639e32346622a963",
+        "rev": "aafc8944365a766d48cc519ce8b8575f93f953a4",
         "type": "github"
       },
       "original": {
@@ -39,11 +39,11 @@
         "nixpkgs": "nixpkgs"
       },
       "locked": {
-        "lastModified": 1791785047,
-        "narHash": "sha256-JKoY8xJozTsgS42nORmnikg/zQ+kRq025TrUN59FtLQ=",
+        "lastModified": 1791920196,
+        "narHash": "sha256-w+T6S7qoci7NL8BQC+GbMGCDBs9ol2zYeNBMLGPZf3E=",
         "owner": "MrLesk",
         "repo": "Backlog.md",
-        "rev": "92c79f84de5e8f1f6844ec5316f7b663da9fd4b9",
+        "rev": "7b7f9287e271bc1d98ab54ad95102afd33c3b3c1",
         "type": "github"
       },
       "original": {
@@ -273,11 +273,11 @@
     "diagram-design-skill": {
       "flake": false,
       "locked": {
-        "lastModified": 1791851879,
-        "narHash": "sha256-7pcLhu6aMmEJEierG+b8QOd6iDeRT2NX92PUDgv4z+Q=",
+        "lastModified": 1791927256,
+        "narHash": "sha256-jT/I/PLg9z6hG/kZ7LWFRpCsJFCty+N2xD79gv2AdY0=",
         "owner": "cathrynlavery",
         "repo": "diagram-design",
-        "rev": "ed9e1356e53866786c6a1986e2b1931528d07364",
+        "rev": "11b08eade8049c441ed3df1895e3b527c26c0fbe",
         "type": "github"
       },
       "original": {
@@ -309,11 +309,11 @@
         "nixpkgs": "nixpkgs_3"
       },
       "locked": {
-        "lastModified": 1791572633,
-        "narHash": "sha256-kQYoShxhQCNW7b2HkLlh4M8JQkZWbXsEeom/ERSVIcA=",
+        "lastModified": 1791929249,
+        "narHash": "sha256-tuKxigzw1ACUStB2cD/9+YYTuvvoJ1CBxIgaTOeIqso=",
         "owner": "elixir-lang",
         "repo": "expert",
-        "rev": "439328e0c631845400e8688bd42f7e843c448227",
+        "rev": "e2874ca36f3bcf28e3cb67ab952eecb2196c5935",
         "type": "github"
       },
       "original": {
@@ -644,16 +644,16 @@
         "rust-overlay": "rust-overlay_3"
       },
       "locked": {
-        "lastModified": 1790708764,
-        "narHash": "sha256-uu452Xe23pSvFk7w7fKPjiaqY5QenUIljao2SFAxpc0=",
+        "lastModified": 1791905414,
+        "narHash": "sha256-tbOVXxQCA/suZ+My71B5laNZhEpK46YLYUs7H8tdysY=",
         "owner": "ogulcancelik",
         "repo": "herdr",
-        "rev": "7b116c05bfda646af39d2524c54e70c751f57ee8",
+        "rev": "7e26bad94044eba205033111a0ce8033ede7e24f",
         "type": "github"
       },
       "original": {
         "owner": "ogulcancelik",
-        "ref": "v0.9.3",
+        "ref": "v0.9.4",
         "repo": "herdr",
         "type": "github"
       }
@@ -764,11 +764,11 @@
         "treefmt-nix": "treefmt-nix_2"
       },
       "locked": {
-        "lastModified": 1791851933,
-        "narHash": "sha256-0BfmPGsUBRL9ALlVcgPkR3Cf5hA0YhBxKnwaG9byXVU=",
+        "lastModified": 1791914952,
+        "narHash": "sha256-qNRooeA8qSVoSgGNlCkoS9Lwa9xKoUXjOO+4mNf72Jw=",
         "owner": "numtide",
         "repo": "llm-agents.nix",
-        "rev": "98500bff1a6336a4b5fe4998230b393914a0ed30",
+        "rev": "d058453d8128aaeaba2c02275bac259913a0dd3e",
         "type": "github"
       },
       "original": {
@@ -1545,11 +1545,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1791490544,
-        "narHash": "sha256-qScE7Wz6Zg7eg8ItUpnkmKgst8weWschGe0E8jM4rj4=",
+        "lastModified": 1791885023,
+        "narHash": "sha256-C3alQ2MEt0zVrUSho5NUDo3jmhbff72++bfwoqT9Omo=",
         "owner": "numtide",
         "repo": "treefmt-nix",
-        "rev": "4cfe8d7065cc8ca91c0a50361b6dd74920eeb1f5",
+        "rev": "0d6d739a833ba9a9c93034862e4a7b061a062a1c",
         "type": "github"
       },
       "original": {
@@ -1612,11 +1612,11 @@
     "worktrunk-plugin": {
       "flake": false,
       "locked": {
-        "lastModified": 1791827462,
-        "narHash": "sha256-mzx4lFafl21ePii9MthLSnG9RqxS4anpp2ZcxUNtVgA=",
+        "lastModified": 1791922828,
+        "narHash": "sha256-J/vOCpEdFPOmY8NevkK9M+OZh6SJTLbbvnsQLANo7Ms=",
         "owner": "max-sixty",
         "repo": "worktrunk",
-        "rev": "f98bd11816e040c8782502141bd7b0328083a877",
+        "rev": "bf1d348c422e966246b97dc5f7caa7764f32d958",
         "type": "github"
       },
       "original": {
