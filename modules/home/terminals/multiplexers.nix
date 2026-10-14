@@ -112,11 +112,6 @@ in
     enableFishIntegration = false;
   };
 
-  programs.sesh = {
-    enable = true;
-    enableTmuxIntegration = true;
-  };
-
   programs.fzf.tmux.enableShellIntegration = true;
 
   programs.tmux = {

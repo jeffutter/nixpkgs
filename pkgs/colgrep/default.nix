@@ -12,7 +12,7 @@
 }:
 
 let
-  version = "1.7.0";
+  version = "1.8.5";
 
   # Prebuilt release tarballs from the next-plaid GitHub releases (same artifacts
   # the upstream Homebrew tap installs). Each archive contains a single `colgrep`
@@ -21,11 +21,11 @@ let
   sources = {
     "aarch64-darwin" = {
       url = "${baseUrl}/colgrep-aarch64-apple-darwin.tar.xz";
-      hash = "sha256-Rv4h5YJHaSwrQxxp3MwUzGxUlVgPALaA4FXjjMOo5H4=";
+      hash = "sha256-LNATyCCmup1AZsWM5+a3XqYU3XepoYqIg24AXx7xJrw=";
     };
     "x86_64-linux" = {
       url = "${baseUrl}/colgrep-x86_64-unknown-linux-gnu.tar.xz";
-      hash = "sha256-8VIuLdQ+XquJZovfbPvgmW0a2pq6ddnY3hopAsqysCI=";
+      hash = "sha256-Uy4dpzn2tdSJza79IMWRj6G7D/n0VsiQmOtJpjea4gU=";
     };
   };
 
