@@ -274,7 +274,7 @@
             date_format = "%Y/Daily/%m/%Y-%m-%d";
             workdays_only = false;
           };
-          picker.name = "snacks.pick";
+          picker.name = "snacks.picker";
           legacy_commands = false;
         };
       };

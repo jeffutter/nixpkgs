@@ -514,6 +514,8 @@ export default function thinkingRouter(pi: ExtensionAPI) {
 	pi.on("before_agent_start", async (event, ctx) => {
 		// A previous run that never settled (crash, abort path) must not leak its level into this one.
 		endRun(ctx);
+		// Custom-message runs (pi.sendMessage with triggerTurn) carry no prompt to classify.
+		if (event.messageType !== "user") return;
 		if (!enabled || !ctx.model?.reasoning) return;
 		const requested = pi.getThinkingLevel() as ThinkingLevel;
 		run = { prompt: event.prompt, requested, applied: requested };
