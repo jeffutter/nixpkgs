@@ -382,6 +382,7 @@ function summarize(label: string, decisions: Decision[]): string {
 export default function thinkingRouter(pi: ExtensionAPI) {
 	// Replaces the built-in typesafe catalog (jev-latest) with our decider; the built-in
 	// `typesafe-system-one` implementation still serves it. No key is needed on the LAN.
+	// TODO: llama-swap >= v264 lists decision models natively; drop this overlay once we run it.
 	const { baseUrl, model: classifierId } = loadConfig();
 	pi.registerProvider(CLASSIFIER_PROVIDER, {
 		apiKey: "unused",
