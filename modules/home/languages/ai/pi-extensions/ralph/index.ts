@@ -326,7 +326,14 @@ type FailureClass =
 
 type RalphStatus = "running" | "stopping" | "stopped" | "done";
 
-type StepKind = "execute" | "plan" | "choose" | "review" | "promote" | "squash";
+type StepKind =
+  | "execute"
+  | "plan"
+  | "choose"
+  | "review"
+  | "promote"
+  | "squash"
+  | "gate";
 
 type RalphHistoryEntry = {
   at: string;
@@ -1000,6 +1007,191 @@ async function setTicketStatus(
     },
   );
   return ok;
+}
+
+// --- Execute-stage gate -------------------------------------------------------
+
+/** The closed vocabulary `unblocked-todo.sh --explain` prints. Never extended here: the
+ * eligibility rules live in the script and only there. */
+type GateReason =
+  | "eligible"
+  | "dependencies-unresolved"
+  | "container-children-open"
+  | "assignee-human";
+
+type ActivePick =
+  | { kind: "ticket"; ticket: Ticket }
+  | { kind: "empty" }
+  | { kind: "filter-failed"; detail: string };
+
+/** Upper bound on Dev Ready -> Blocked corrections in one pass, so a board that is
+ * unreadable in some way the script did not flag cannot be mass-Blocked in one go. Leftovers
+ * stay Dev Ready and are seen on the next iteration. */
+const MAX_CORRECTIONS_PER_PASS = 5;
+
+/** The one comment appended when a wrongly-Dev-Ready ticket is corrected. `%REASON%` is the
+ * machine-readable token. The sentence is fixed so a re-run can detect it and not append twice. */
+function gateCorrectionSentence(reason: GateReason): string {
+  return (
+    `ralph: planning marked this Dev Ready, but it fails the eligibility check (reason: ${reason}), ` +
+    "so it was forced to Blocked so Execute never receives it. It should be re-checked once that clears."
+  );
+}
+
+/**
+ * Runs `unblocked-todo.sh <status> --explain` and returns a verdict per task. Unlike
+ * `listUnblockedByStatus`, which reads a failed or timed-out script as "nothing eligible", this
+ * reports the failure: a filter that could not run must never look like an empty pool.
+ */
+async function gateVerdicts(
+  pi: ExtensionAPI,
+  cwd: string,
+  status: string,
+): Promise<
+  { ok: true; verdicts: Map<string, GateReason> } | { ok: false; detail: string }
+> {
+  const res = await execCapture(
+    pi,
+    UNBLOCKED_TODO_SCRIPT,
+    [status, "--assignee", "all", "--explain"],
+    { cwd, timeout: 30_000 },
+  );
+  if (!res.ok || res.killed) {
+    const why = res.failure ?? (res.killed ? "timeout" : "exit");
+    return {
+      ok: false,
+      detail: `unblocked-todo.sh ${status} --explain failed (${why}): ${res.stderr.trim().slice(0, 300) || "no stderr"}`,
+    };
+  }
+  const known: GateReason[] = [
+    "eligible",
+    "dependencies-unresolved",
+    "container-children-open",
+    "assignee-human",
+  ];
+  const verdicts = new Map<string, GateReason>();
+  for (const line of res.stdout.split("\n")) {
+    const m = line.match(/^(\S+)\|(\S+)\s*$/);
+    if (!m) continue;
+    if (!known.includes(m[2] as GateReason)) {
+      return {
+        ok: false,
+        detail: `unblocked-todo.sh --explain printed unknown reason '${m[2]}' for ${m[1]}`,
+      };
+    }
+    verdicts.set(m[1], m[2] as GateReason);
+  }
+  return { ok: true, verdicts };
+}
+
+/** Forces `id` to Blocked and appends the correction comment exactly once. Idempotent: the
+ * exact sentence already present in `task view` means no second append; a ticket already
+ * Blocked is not re-set. `-s` touches nothing else, so its dependency list is preserved. */
+async function forceTicketToBlockedWithNote(
+  pi: ExtensionAPI,
+  cwd: string,
+  id: string,
+  reason: GateReason,
+): Promise<boolean> {
+  const view = await execCapture(pi, "backlog", ["task", "view", id, "--plain"], {
+    cwd,
+    timeout: 15_000,
+  });
+  if (!view.ok) return false;
+  const sentence = gateCorrectionSentence(reason);
+  if (!/^\s*Status:\s*\S*\s*Blocked\s*$/m.test(view.stdout)) {
+    if (!(await setTicketStatus(pi, cwd, id, "Blocked"))) return false;
+  }
+  if (view.stdout.includes(sentence)) return true;
+  const res = await execCapture(
+    pi,
+    "backlog",
+    ["task", "edit", id, "--comment", sentence],
+    { cwd, timeout: 15_000 },
+  );
+  return res.ok;
+}
+
+/**
+ * The whole decision of which active-pool ticket Execute may run: In Progress first, then Dev
+ * Ready, each gated by the deployed `unblocked-todo.sh --explain`.
+ *
+ * Why this exists: the no-unfinished-child, dependencies-Done and assignee rules were enforced
+ * only when Choose picked a To Do ticket, and trusted from then on. Execute took the first row
+ * of a bare `backlog task list`, so a planner that wrongly set Dev Ready (TASK-059, an @human
+ * container with two open children) put an unexecutable ticket in front of an executor - the
+ * failure CLAUDE.md records for TASK-004, ending in the failure-streak guard halting the run.
+ * No rule is reimplemented here; the script's verdict is the only authority.
+ *
+ * Order: candidates come from the raw `backlog task list` order (priority grouping), intersected
+ * with the eligible set - not the script's filename order, which would change which ticket runs.
+ *
+ * Actions on ineligible candidates:
+ *  - Dev Ready + dependencies-unresolved / container-children-open: planning was wrong. Force to
+ *    Blocked with one comment (promoteUnblockedBlockedTickets self-heals it later), capped at
+ *    MAX_CORRECTIONS_PER_PASS.
+ *  - Dev Ready + assignee-human: a person put it there. Skip, do not mutate.
+ *  - In Progress + anything: work may be live in another session. Skip, never mutate.
+ *  - Filter failure: mutate nothing, execute nothing, report `filter-failed` so the caller
+ *    feeds the failure-streak guard instead of declaring the board drained.
+ * Every skip and correction is recorded as a `gate` history entry.
+ */
+async function pickExecutableTicket(
+  pi: ExtensionAPI,
+  cwd: string,
+  state: RalphState,
+): Promise<ActivePick> {
+  let corrections = 0;
+  for (const status of ["In Progress", "Dev Ready"]) {
+    const list = await execCapture(
+      pi,
+      "backlog",
+      ["task", "list", "-s", status, "--plain"],
+      { cwd, timeout: 15_000 },
+    );
+    if (!list.ok) {
+      return {
+        kind: "filter-failed",
+        detail: `backlog task list -s "${status}" failed: ${list.stderr.trim().slice(0, 300) || "no stderr"}`,
+      };
+    }
+    const candidates = parsePlainTaskList(list.stdout);
+    if (candidates.length === 0) continue;
+
+    const gate = await gateVerdicts(pi, cwd, status);
+    if (!gate.ok) return { kind: "filter-failed", detail: gate.detail };
+
+    for (const ticket of candidates) {
+      // A task absent from the explain output (e.g. archived mid-pass) is not provably eligible.
+      const reason = gate.verdicts.get(ticket.id);
+      if (reason === "eligible") return { kind: "ticket", ticket };
+
+      const correctable =
+        status === "Dev Ready" &&
+        (reason === "dependencies-unresolved" ||
+          reason === "container-children-open");
+      if (correctable && corrections < MAX_CORRECTIONS_PER_PASS) {
+        corrections += 1;
+        const ok = await forceTicketToBlockedWithNote(pi, cwd, ticket.id, reason);
+        await recordHistory(cwd, state, {
+          kind: "gate",
+          ticket: ticket.id,
+          outcome: ok ? "ok" : "failed",
+          summary: ok
+            ? `corrected: ${ticket.id} -> Blocked (${reason})`
+            : `corrected: failed to move ${ticket.id} to Blocked (${reason})`,
+        });
+      } else {
+        await recordHistory(cwd, state, {
+          kind: "gate",
+          ticket: ticket.id,
+          outcome: "ok",
+          summary: `held: ${ticket.id} (${reason ?? "not-in-explain-output"}, status unchanged)`,
+        });
+      }
+    }
+  }
+  return { kind: "empty" };
 }
 
 // --- Headless pi worker calls -----------------------------------------------
@@ -2424,6 +2616,19 @@ async function buildFinalSummary(
     (id) => !executed.includes(id),
   );
   const promoted = distinctTickets("promote", "ok");
+  const gateCorrected = distinctTickets("gate", "ok").filter((id) =>
+    thisRun.some(
+      (e) => e.kind === "gate" && e.ticket === id && e.summary.startsWith("corrected:"),
+    ),
+  );
+  const gateHeld = distinctTickets("gate", "ok").filter((id) =>
+    thisRun.some(
+      (e) => e.kind === "gate" && e.ticket === id && e.summary.startsWith("held:"),
+    ),
+  );
+  const gateFailures = thisRun.filter(
+    (e) => e.kind === "gate" && e.outcome === "failed" && !e.ticket,
+  ).length;
   const reviews = thisRun.filter((e) => e.kind === "review");
   const elapsed = formatDuration(Date.now() - Date.parse(state.startedAt));
 
@@ -2445,6 +2650,13 @@ async function buildFinalSummary(
     lines.push(
       `Promoted from Blocked to To Do (${promoted.length}): ${promoted.join(", ")}`,
     );
+  if (gateCorrected.length)
+    lines.push(
+      `Gate corrected Dev Ready -> Blocked (${gateCorrected.length}): ${gateCorrected.join(", ")}`,
+    );
+  if (gateHeld.length)
+    lines.push(`Gate skipped, status unchanged (${gateHeld.length}): ${gateHeld.join(", ")}`);
+  if (gateFailures) lines.push(`Gate filter failures: ${gateFailures}`);
   if (executeFailed.length)
     lines.push(`Failed to execute: ${executeFailed.join(", ")}`);
   lines.push(
@@ -2543,10 +2755,23 @@ async function runLoop(
 
       state.loopCount += 1;
 
-      const active =
-        (await findFirstByStatus(pi, cwd, "In Progress")) ??
-        (await findFirstByStatus(pi, cwd, "Dev Ready"));
-      if (active) {
+      const pick = await pickExecutableTicket(pi, cwd, state);
+      if (pick.kind === "filter-failed") {
+        // Fail closed: never fall through to Needs Plan / Choose or the "drained" finish off a
+        // board the filter could not read.
+        await recordHistory(cwd, state, {
+          kind: "gate",
+          outcome: "failed",
+          summary: `filter-failed: ${pick.detail}`,
+          failure: "exit",
+        });
+        await persist(cwd, state);
+        renderWidget(ctx, state);
+        if (stoppedByFailureStreak(cwd, state, "gate", false)) break;
+        continue;
+      }
+      if (pick.kind === "ticket") {
+        const active = pick.ticket;
         const ok = await doExecute(pi, ctx, cwd, state, active);
         await persist(cwd, state);
         renderWidget(ctx, state);
@@ -2555,6 +2780,10 @@ async function runLoop(
         continue;
       }
 
+      // Deliberately unfiltered, unlike the execute pick above: planning an @human container is
+      // how TASK-059 got its three children, so filtering by assignee here would stop that.
+      // This deviates on purpose from .claude/workflows/ralph-backlog-loop.js, which filters
+      // humanOnly out of every branch.
       const needsPlan = await findFirstByStatus(pi, cwd, "Needs Plan");
       if (needsPlan) {
         const ok = await doPlan(pi, ctx, cwd, state, needsPlan);
