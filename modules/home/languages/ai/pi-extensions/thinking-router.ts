@@ -12,7 +12,9 @@
  * unsupported in its thinkingLevelMap. The router moves at most one rung from
  * pi's level, so a level chosen on purpose (by hand, `--thinking`, a subagent's
  * `thinking` parameter) still anchors the run. With the default ladder, xhigh
- * can become medium, medium can become xhigh or low, and so on.
+ * can become medium, medium can become xhigh or low, and so on. Exceptions: a new prompt
+ * may drop straight to the bottom rung ("off") when the classifier ranks it first, and
+ * follow-up turns never fall more than one rung below the level the prompt got.
  *
  * Changing the thinking level by hand mid-run stops routing for the rest of that
  * run, and the hand-picked level is kept.
@@ -121,6 +123,13 @@ const DEFAULT_CONFIG: Config = {
  * sized so even ~1.3 chars/token output stays well under the 1536-token cap.
  */
 const CHARS_PER_TOKEN = 2;
+
+/**
+ * A level is eligible if its probability is at least this fraction of the top level's.
+ * Replayed over the logged decisions: 1.0 (argmax) gave xhigh 21% of prompts / 5% of turns,
+ * 0.7 gives 45% / 18%, 0.5 gives 61% / 43%.
+ */
+const BIAS_FRACTION = 0.7;
 
 /** History lines copied into each logged decision's `sent.tail`. */
 const SENT_TAIL_ITEMS = 4;
@@ -312,13 +321,12 @@ async function classify(
 	if (answer?.type !== "choice") throw new Error(`unexpected answer: ${JSON.stringify(answer).slice(0, 200)}`);
 	const probabilities = answer.probabilities;
 
-	// Most likely level, ties going to more reasoning. An earlier cumulative rule that leaned
-	// toward more thinking turned mid-run answers like low .54 / medium .28 / xhigh .17 into
-	// medium, hiding most "low" calls; the +/-1 window around pi's level is the guard now.
-	let chosen = levels[0].level;
-	for (const { level } of levels) {
-		if ((probabilities[level] ?? 0) > (probabilities[chosen] ?? 0)) chosen = level;
-	}
+	// The most-reasoning level whose probability is within BIAS_FRACTION of the top one. Plain
+	// argmax picked "low" for 71% of prompts even though the average split was low .42 / xhigh .31 /
+	// medium .26, which made "when unsure, choose the higher one" in the instructions a no-op.
+	// (An even earlier cumulative rule overshot: low .54 / medium .28 / xhigh .17 became medium.)
+	const top = Math.max(...levels.map((l) => probabilities[l.level] ?? 0));
+	const chosen = levels.find((l) => (probabilities[l.level] ?? 0) >= BIAS_FRACTION * top)?.level ?? levels[0].level;
 	return { chosen, probabilities, confidence: answer.confidence, inputTokens: result.usage?.input };
 }
 
@@ -406,7 +414,9 @@ export default function thinkingRouter(pi: ExtensionAPI) {
 	 * what comes back at the end; `applied` is what the router last set, used to
 	 * notice a hand change (the level no longer matches what we set).
 	 */
-	let run: { prompt: string; requested: ThinkingLevel; applied: ThinkingLevel } | undefined;
+	let run:
+		| { prompt: string; requested: ThinkingLevel; applied: ThinkingLevel; promptLevel?: ThinkingLevel }
+		| undefined;
 
 	function endRun(ctx: ExtensionContext) {
 		if (!run) return;
@@ -434,7 +444,12 @@ export default function thinkingRouter(pi: ExtensionAPI) {
 		if (ladder.length < 2) return;
 		const rung = rungFor(ladder, current.requested);
 		const lo = Math.max(0, rung - 1);
-		const hi = Math.min(ladder.length - 1, rung + 1);
+		const last = ladder.length - 1;
+		let hi = Math.min(last, rung + 1);
+		// Follow-up turns may not fall more than one rung below what the prompt got: tool output
+		// usually looks routine, so a hard task would otherwise spend most of its run at "low".
+		const promptRung = current.promptLevel ? ladder.findIndex((l) => l.level === current.promptLevel) : -1;
+		if (trigger === "turn" && promptRung >= 0) hi = Math.min(hi, promptRung + 1);
 		const allowed = ladder.slice(lo, hi + 1).map((l) => l.level);
 		const base = {
 			ts: new Date().toISOString(),
@@ -463,7 +478,11 @@ export default function thinkingRouter(pi: ExtensionAPI) {
 			// levels in the log; the window only bounds what gets applied.
 			const result = await classify(ctx, config, ladder, trigger, state, ctx.signal);
 			const pick = ladder.findIndex((l) => l.level === result.chosen);
-			level = ladder[Math.min(hi, Math.max(lo, pick))].level;
+			// The bottom rung ("off") is out of the +/-1 window from a typical level, so a new prompt
+			// may reach it directly, but only when the classifier itself ranks it on top.
+			const reachOff = trigger === "prompt" && pick === last && result.chosen === ladder[last].level;
+			level = ladder[reachOff ? last : Math.min(hi, Math.max(lo, pick))].level;
+			if (reachOff) allowed.push(level);
 			decision = {
 				...base,
 				outcome: "routed",
@@ -493,6 +512,7 @@ export default function thinkingRouter(pi: ExtensionAPI) {
 
 		pi.setThinkingLevel(level);
 		current.applied = pi.getThinkingLevel() as ThinkingLevel;
+		if (trigger === "prompt") current.promptLevel = current.applied;
 		decision.applied = current.applied;
 		const note =
 			decision.outcome === "routed" ? (current.applied === current.requested ? "" : ` (pi ${current.requested})`)
