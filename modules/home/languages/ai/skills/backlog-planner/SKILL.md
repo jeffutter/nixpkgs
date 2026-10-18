@@ -1,11 +1,11 @@
 ---
 name: backlog-planner
-description: Autonomous planning skill for tickets (backlog). Use when planning implementation for a ticket (TASK-xxx). Spawns research subagents, analyzes dependencies, creates sub-tickets for discrete work, and writes detailed implementation plans.
+description: Autonomous planning skill for tickets (backlog). Use when planning implementation for a ticket (TASK-xxx). Spawns research subagents, analyzes dependencies, creates sub-tickets only when the ticket is definitely too big for one session, and writes detailed implementation plans.
 ---
 
 # Backlog Planner
 
-Use this skill when the user runs `/backlog-planner <ticket_id>` or asks you to plan a backlog ticket. The end state: the ticket carries an implementation plan and the `planned` label, each discrete unit of work is a sub-ticket, and you have printed a summary. Run every step in order without asking the user for confirmation.
+Use this skill when the user runs `/backlog-planner <ticket_id>` or asks you to plan a backlog ticket. The end state: the ticket carries an implementation plan and the `planned` label, any sub-tickets exist only if step 10 required them, and you have printed a summary. Run every step in order without asking the user for confirmation.
 
 Hierarchy and dependency rules:
 
@@ -43,48 +43,60 @@ Any other sub-ticket is non-trivial.
 
 6. From the step 4 listing, find downstream tickets whose Dependencies include this ticket. Record the sequencing constraints from steps 5 and 6.
 
-7. Choose research dimensions for the ticket:
+7. Consider these dimensions yourself, whether or not you spawn agents. They are a checklist for the plan, not a list of agents to spawn:
    - Architecture: modules involved, existing patterns for similar features, data flow, interfaces, project conventions.
    - Implementation: similar existing code, reusable helpers, tests that specify behavior, edge cases.
    - Data and API surface: data models, schemas, endpoint and payload conventions, validation rules, external services.
    - Risk: breaking changes to callers, performance, security, tech debt in the affected code.
-   - Add a dimension for any area the ticket hinges on outside this list, such as migration safety, auth, or a specific library.
-   - Merge dimensions that share files or patterns into one agent.
-   - Omit dimensions the ticket does not touch.
+   - Add any area the ticket hinges on outside this list, such as migration safety, auth, or a specific library.
+   - Skip dimensions the ticket does not touch.
 
-8. Spawn one Explore-type subagent per chosen dimension, all in parallel. Set the subagent type with the field your agent tool's schema declares.
-   - Each prompt names what to investigate and how it informs the ticket.
-   - Each prompt asks for file paths, patterns, and constraints, not prose summaries.
-   - Keep each prompt to one dimension.
-   - Skip subagents only for a one-line fix, a rename, or a config tweak. Research inline instead.
+8. Pick a research tier from the ticket's size. When unsure between two tiers, pick the smaller one.
+   - Small: one area, an obvious path, a handful of files you can name from the ticket. Spawn no subagents. Research inline with grep and reads, covering the dimensions from step 7 as you go.
+   - Medium: touches several areas or you cannot yet name the files. Spawn one or two Explore-type subagents, each covering the dimensions that share files or patterns.
+   - Large: cross-cutting, high-risk, or hinges on an unfamiliar library, schema, or migration. Spawn up to 4 Explore-type subagents in parallel, one per group of dimensions that do not share files. Set the subagent type with the field your agent tool's schema declares.
 
-9. Wait for every agent to return. Reconcile their findings. If a gap blocks planning, spawn one targeted follow-up agent for that gap.
+   For every subagent prompt:
+   - List 2 to 4 specific questions drawn from the ticket and its acceptance criteria, not "investigate the architecture".
+   - Pass along what step 3 already found so the agent does not rediscover it.
+   - Ask for file paths with line references, patterns, and constraints, not prose tours.
+   - Cap the reply at about 100 lines.
 
-10. Split the work into sub-tickets. Make a sub-ticket for a unit that is independently testable, ships without breaking the application, fits one focused session, and has clear acceptance criteria. Keep in the parent plan:
-    - Changes under 20 lines.
-    - Tightly coupled changes that ship together.
-    - Work that only makes sense as part of the whole.
+9. Wait for every agent to return. Reconcile their findings. Spawn a follow-up agent only for a gap that blocks planning. Record any other gap as an open question or risk in the plan and continue.
 
-11. Create each sub-ticket:
+10. Decide whether to split. The default is NO split: write the whole plan on the ticket itself and skip to step 13. Planning is slow, and every sub-ticket adds a planning pass, so a split must pay for itself. Split only when BOTH hold:
+    - The ticket is definitely too big for one focused execution session. Doubt means it is not too big.
+    - You can name at least two sub-units that are each independently shippable (testable, leaves the application working, clear acceptance criteria) without the other sub-units.
+
+    Never split because:
+    - The work touches several files or has several steps. Steps belong in the plan, not in tickets.
+    - The ticket is a Task, or a Feature you could finish in one session.
+    - Pieces are tightly coupled or only make sense together.
+    - A piece is under 20 lines.
+    - A piece is only "research", "tests", or "docs" for the main change. These stay in the plan.
+
+    If you split, create the fewest sub-tickets that satisfy the rule above, and fold small or coupled pieces back into the parent plan.
+
+11. Create each sub-ticket (only if step 10 chose to split):
     - Trivial: `backlog task create "<action-oriented title>" --priority <high|medium|low> -p <ticket_id> -d "<description>" --plan "<implementation plan>" -l planned`
     - Non-trivial: `backlog task create "<action-oriented title>" --priority <high|medium|low> -p <ticket_id> -d "<description>"`. Leave out the plan and the `planned` label. A later `/backlog-planner` session plans it.
     - Add the hierarchy label (`-l feature` or `-l task`) to either command.
 
-12. For each new sub-ticket, run `backlog task edit <ticket_id> --dep <new_ticket_id>`.
+12. For each new sub-ticket (none if not split), run `backlog task edit <ticket_id> --dep <new_ticket_id>`.
 
 13. Run `git rev-parse HEAD` again. If it changed from step 2, re-read any source you plan to cite and update findings that moved.
 
 14. Write the main plan with `backlog task edit <ticket_id> --plan "<plan>"`. The plan contains, in order:
     - First line: `Planned against <output of git rev-parse --short HEAD>`.
     - The overall approach.
-    - How the sub-tickets fit together and why the work splits this way.
+    - If split: how the sub-tickets fit together and why the work is too big for one session. If not split: the concrete ordered steps, with file paths.
     - Integration and verification steps.
     - Final testing.
     - Remaining work not covered by a sub-ticket.
 
 15. Run `backlog task edit <ticket_id> --remove-label needs-plan --add-label planned`.
 
-16. Review the result by running `backlog task <id> --plain` on the main ticket and each sub-ticket. Check:
+16. Review the result by running `backlog task <id> --plain` on the main ticket and each sub-ticket (if any). Check:
     - Finishing every sub-ticket plus the main plan achieves the ticket's goal, with no gaps between sub-tickets.
     - Each sub-ticket description states its scope and acceptance criteria on its own.
     - Each trivial sub-ticket has a plan and the `planned` label.
