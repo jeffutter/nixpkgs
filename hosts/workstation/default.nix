@@ -44,7 +44,7 @@
   };
   networking = {
     dhcpcd.enable = false;
-    useDHCP = true;
+    useDHCP = false; # eth0 is managed by systemd-networkd below
     useHostResolvConf = false;
   };
 

@@ -35,4 +35,8 @@
   # drop the dead definitions and silence the warning.
   nixpkgs.config = lib.mkForce null;
   nixpkgs.overlays = lib.mkForce null;
+
+  # Stylix's rofi target still sets the renamed `programs.rofi.font`, which
+  # warns on every eval. We don't use rofi, so turn the target off.
+  stylix.targets.rofi.enable = false;
 }
