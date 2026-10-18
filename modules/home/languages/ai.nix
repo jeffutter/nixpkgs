@@ -201,7 +201,6 @@ let
     mkdir -p $out
     ${herdr}/bin/herdr --skill > $out/SKILL.md
   '';
-  rtk = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.rtk;
   basePi = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.pi;
   pi = pkgs.symlinkJoin {
     name = "pi";
@@ -338,13 +337,6 @@ in
     default = ./ai/kami/brand.md;
   };
 
-  # rtk rewrites Bash commands via a PreToolUse hook. Disabled on hosts where
-  # rtk's command rewriting is unwanted (e.g. the work machine).
-  options.jeff.enableRtkHooks = lib.mkOption {
-    type = lib.types.bool;
-    default = true;
-  };
-
   # Claude Code voice mode. Enabled only on hosts with physical access (local
   # laptops/desktops); left off on remote/headless machines where audio is
   # unwanted.
@@ -402,7 +394,6 @@ in
         moshi-hook
         pi
         pi-acp
-        rtk
         (llm.withPlugins {
           llm-cmd = true;
           llm-jq = true;
@@ -664,7 +655,6 @@ in
         "npm:pi-context"
         "npm:pi-intercom"
         "npm:pi-lens"
-        "npm:pi-rtk-optimizer"
         "npm:pi-simplify"
         "npm:pi-tool-display"
         "npm:pi-web-access"
@@ -816,9 +806,9 @@ in
             "mkdir *"
             "nix build *"
             "nix eval *"
-            "rtk cargo *"
-            "rtk gh *"
-            "rtk git *"
+            "cargo *"
+            "gh *"
+            "git *"
           ];
           filesystem = {
             allowWrite = [
@@ -861,8 +851,14 @@ in
             "Bash(cargo test *)"
             "Bash(cargo tree *)"
             "Bash(claude agents *)"
+            "Bash(curl *)"
             "Bash(echo \"exit=$?\")"
+            "Bash(find *)"
+            "Bash(gh *)"
+            "Bash(git *)"
+            "Bash(grep *)"
             "Bash(lefthook *)"
+            "Bash(ls *)"
             "Bash(mix compile *)"
             "Bash(mix credo *)"
             "Bash(mix deps.clean *)"
@@ -879,19 +875,13 @@ in
             "Bash(nix flake check *)"
             "Bash(nix flake metadata *)"
             "Bash(nix fmt *)"
+            "Bash(ps *)"
             "Bash(pup auth *)"
             "Bash(pup events *)"
             "Bash(pup on-call *)"
+            "Bash(read *)"
             "Bash(rover supergraph compose *)"
-            "Bash(rtk curl *)"
-            "Bash(rtk find *)"
-            "Bash(rtk gh *)"
-            "Bash(rtk git *)"
-            "Bash(rtk grep *)"
-            "Bash(rtk ls *)"
-            "Bash(rtk ps *)"
-            "Bash(rtk read *)"
-            "Bash(rtk wc *)"
+            "Bash(wc *)"
             "Read(/private/tmp/claude-*/**)"
             "Read(/tmp/claude-*/**)"
             "Read(~/.claude/skills/**)"
@@ -915,37 +905,27 @@ in
         };
         disabledMcpjsonServers = [ "context7:context7" ];
         hooks = {
-          PreToolUse =
-            (lib.optional config.jeff.enableRtkHooks {
-              matcher = "Bash";
+          PreToolUse = [
+            {
+              matcher = "Bash(git commit *)";
               hooks = [
                 {
                   type = "command";
-                  command = "${rtk}/libexec/rtk/hooks/claude/rtk-rewrite.sh";
+                  command = "cat ${./ai/shared/git-commit-guidelines.md}";
                 }
               ];
-            })
-            ++ [
-              {
-                matcher = "Bash(git commit *)";
-                hooks = [
-                  {
-                    type = "command";
-                    command = "cat ${./ai/shared/git-commit-guidelines.md}";
-                  }
-                ];
-              }
-              {
-                matcher = "AskUserQuestion";
-                hooks = [
-                  {
-                    type = "command";
-                    command = worktrunkMarkerCommand "💬";
-                  }
-                ];
-              }
-            ]
-            ++ (moshiClaudeHooks.PreToolUse or [ ]);
+            }
+            {
+              matcher = "AskUserQuestion";
+              hooks = [
+                {
+                  type = "command";
+                  command = worktrunkMarkerCommand "💬";
+                }
+              ];
+            }
+          ]
+          ++ (moshiClaudeHooks.PreToolUse or [ ]);
           PermissionRequest = [
             {
               matcher = "";
