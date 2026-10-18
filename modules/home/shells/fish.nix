@@ -64,7 +64,7 @@
       fish_add_path -p "$HOME/bin"
       fish_add_path -a /usr/local/bin
 
-      ${lib.optionalString pkgs.stdenv.isDarwin ''
+      ${lib.optionalString pkgs.stdenv.hostPlatform.isDarwin ''
         # /etc/paths.d/homebrew only reaches shells that run path_helper
         # (/etc/zprofile, /etc/profile). fish doesn't, so add the prefix here.
         # The prefix varies by install: /opt/homebrew is the ARM default (and

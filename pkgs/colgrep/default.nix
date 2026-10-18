@@ -42,12 +42,12 @@ stdenvNoCC.mkDerivation {
   # The tarball wraps the binary in a single colgrep-<triple>/ directory; let
   # the default unpacker auto-detect it as the source root.
 
-  nativeBuildInputs =[ makeBinaryWrapper ] ++ lib.optionals stdenv.isLinux [ autoPatchelfHook ];
+  nativeBuildInputs =[ makeBinaryWrapper ] ++ lib.optionals stdenv.hostPlatform.isLinux [ autoPatchelfHook ];
 
   # autoPatchelfHook rewrites the interpreter/RPATH of the prebuilt ELF so it
   # resolves against the Nix store instead of FHS paths. Only needed on Linux;
   # the darwin Mach-O binary links system libs at fixed paths and runs as-is.
-  buildInputs = lib.optionals stdenv.isLinux [
+  buildInputs = lib.optionals stdenv.hostPlatform.isLinux [
     stdenv.cc.cc.lib
     onnxruntime
     openssl
@@ -66,13 +66,13 @@ stdenvNoCC.mkDerivation {
     ''
     # On darwin the binary downloads a compatible ONNX Runtime to ~/.cache on
     # first use (exactly as the Homebrew install does), so no wrapping is needed.
-    + lib.optionalString stdenv.isDarwin ''
+    + lib.optionalString stdenv.hostPlatform.isDarwin ''
       install -Dm755 colgrep $out/bin/colgrep
     ''
     # On Linux the runtime ONNX auto-download is a generic build that won't link
     # on NixOS, so point ORT at the (properly linked) nixpkgs onnxruntime and
     # skip the download. ORT_DYLIB_PATH takes precedence over every other lookup.
-    + lib.optionalString stdenv.isLinux ''
+    + lib.optionalString stdenv.hostPlatform.isLinux ''
       install -Dm755 colgrep $out/libexec/colgrep/colgrep
       makeWrapper $out/libexec/colgrep/colgrep $out/bin/colgrep \
         --set-default ORT_DYLIB_PATH ${onnxruntime}/lib/libonnxruntime.so \
