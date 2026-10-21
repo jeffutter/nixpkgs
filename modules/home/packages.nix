@@ -21,7 +21,7 @@ let
       "--with-bzip2=pbzip2"
       "--with-zstd=pzstd"
     ]
-    ++ optionals pkgs.stdenv.isDarwin [
+    ++ optionals pkgs.stdenv.hostPlatform.isDarwin [
       "gt_cv_func_CFPreferencesCopyAppValue=no"
       "gt_cv_func_CFLocaleCopyCurrent=no"
       "gt_cv_func_CFLocaleCopyPreferredLanguages=no"

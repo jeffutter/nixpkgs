@@ -884,6 +884,7 @@ in
             "Bash(wc *)"
             "Read(/private/tmp/claude-*/**)"
             "Read(/tmp/claude-*/**)"
+            "mcp__backlog"
             "Read(~/.claude/skills/**)"
             "Skill(humanizer)"
             "Skill(skill-creator)"

@@ -8,7 +8,7 @@ let
   # Pin Apple's ssh on macOS: the Nix restic wrapper prepends its own OpenSSH
   # build to PATH, which gets EHOSTUNREACH on the LAN and ignores UseKeychain.
   # Elsewhere restic's own ssh is fine, so pass no override.
-  sftpOpts = lib.optionalString pkgs.stdenv.isDarwin ''-o "sftp.command=/usr/bin/ssh $SFTP_HOST -s sftp"'';
+  sftpOpts = lib.optionalString pkgs.stdenv.hostPlatform.isDarwin ''-o "sftp.command=/usr/bin/ssh $SFTP_HOST -s sftp"'';
 
   backup = pkgs.writeShellApplication {
     name = "backup";
