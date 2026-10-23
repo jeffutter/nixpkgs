@@ -1,5 +1,6 @@
 ---
 description: Fetch and address unresolved PR review comments for the current branch
+model: opus
 ---
 
 Fetch unresolved review comments for the current branch's PR, fix them, then commit, push, and resolve the threads.
