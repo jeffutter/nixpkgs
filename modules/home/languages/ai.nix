@@ -99,6 +99,20 @@ let
                   '# Preinstalled via Nix (home-manager) — no setup required.
         # references/render bundles Python, Playwright, and a matching Chromium.'
       '';
+  # YuE2 song generation via audio.cpp on the dgx-spark. --set-default keeps them
+  # overridable from the environment if a model moves.
+  yue2SongPython = pkgs.python3.withPackages (ps: [ ps.numpy ]);
+  yue2SongSkill = pkgs.runCommand "yue2-song-skill" { nativeBuildInputs = [ pkgs.makeWrapper ]; } ''
+    cp -r ${./ai/skills/yue2-song} $out
+    chmod -R u+w $out
+    makeWrapper ${yue2SongPython}/bin/python3 $out/scripts/yue2 \
+      --prefix PATH : ${lib.makeBinPath [ pkgs.ffmpeg-headless ]} \
+      --set-default YUE2_API http://192.168.10.14:8000 \
+      --set-default YUE2_MODEL audio-cpp/Yue2-3B-GGUF \
+      --set-default STT_API http://192.168.10.4:8089 \
+      --set-default STT_MODEL whisper-large-v3-turbo \
+      --add-flags $out/scripts/yue2.py
+  '';
   the-elements-of-style = inputs.the-elements-of-style;
   # nixpkgs' todoist-cli ships only the `td` binary, not a static skill file;
   # v1.75.2+ generates SKILL.md on demand from bundled content. Call the
@@ -1128,6 +1142,7 @@ in
         worktrunk = "${worktrunkPluginRoot}/skills/worktrunk";
         writing-clearly-and-concisely = "${the-elements-of-style}/skills/writing-clearly-and-concisely";
         wt-switch-create = "${worktrunkPluginRoot}/skills/wt-switch-create";
+        yue2-song = "${yue2SongSkill}";
       }
       // lib.optionalAttrs config.jeff.enableApolloSkills (
         builtins.listToAttrs (
