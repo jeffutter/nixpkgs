@@ -229,6 +229,15 @@
               url = "${claudeCodeBaseUrl}/${claudeCodeVersion}/${platformKey}/claude.zst";
               hash = claudeCodeChecksums.${platformKey};
             };
+            # NixOS/nixpkgs#579204: Bun's "system" store on darwin omits Apple's root CAs.
+            installPhase =
+              if final.stdenv.hostPlatform.isDarwin then
+                builtins.replaceStrings
+                  [ "CLAUDE_CODE_CERT_STORE system" ]
+                  [ "CLAUDE_CODE_CERT_STORE bundled,system" ]
+                  oldAttrs.installPhase
+              else
+                oldAttrs.installPhase;
           });
         };
 
