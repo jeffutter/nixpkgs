@@ -48,6 +48,9 @@ in
       ];
       RunAtLoad = true;
       KeepAlive = true;
+      EnvironmentVariables = {
+        ZVEC_GREP_EMBEDDING = config.home.sessionVariables.ZVEC_GREP_EMBEDDING;
+      };
       StandardOutPath = "${config.home.homeDirectory}/Library/Logs/zvec-grep.log";
       StandardErrorPath = "${config.home.homeDirectory}/Library/Logs/zvec-grep.err.log";
     };

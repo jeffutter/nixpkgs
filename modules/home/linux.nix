@@ -38,6 +38,7 @@ in
     };
     Service = {
       ExecStart = "${zvec-grep}/bin/zg server run";
+      Environment = [ "ZVEC_GREP_EMBEDDING=${config.home.sessionVariables.ZVEC_GREP_EMBEDDING}" ];
       Restart = "on-failure";
     };
     Install.WantedBy = [ "default.target" ];

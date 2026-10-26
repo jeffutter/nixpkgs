@@ -299,7 +299,12 @@ let
   # a shared core (design bias, working preferences) behind an environment
   # preamble naming that harness's own nix-managed paths. Claude Code reads it
   # as ~/.claude/CLAUDE.md, pi as ~/.pi/agent/AGENTS.md.
-  mkAgentContext = preamble: preamble + "\n" + readAiDoc "context/core.md";
+  mkAgentContext =
+    preamble:
+    preamble
+    + "\n"
+    + readAiDoc "context/core.md"
+    + lib.optionalString config.jeff.enableZvecGrep ("\n" + readAiDoc "context/code-search.md");
 
   # Claude Code hooks `moshi-hook install` would normally write into
   # ~/.claude/settings.json itself. The event/matcher/async shape is read back
@@ -414,6 +419,15 @@ in
         })
       ]
       ++ lib.optional config.jeff.enableZvecGrep zvec-grep;
+
+    # Model for every new zg index. The daemon (darwin.nix / linux.nix) reads
+    # the same value. jina-v2-base-code is code-trained; zg's default
+    # potion-code-16m-v2 is a static model2vec embedding that ranked the right
+    # function first for 1 of 10 concept queries on blueprint, jina for 8.
+    # An existing index keeps the model it was built with.
+    home.sessionVariables = lib.optionalAttrs config.jeff.enableZvecGrep {
+      ZVEC_GREP_EMBEDDING = "local/jina-embeddings-v2-base-code";
+    };
 
     xdg.configFile."kami/brand.md".source = config.jeff.kamiSkillBrand;
 
@@ -1143,6 +1157,9 @@ in
         writing-clearly-and-concisely = "${the-elements-of-style}/skills/writing-clearly-and-concisely";
         wt-switch-create = "${worktrunkPluginRoot}/skills/wt-switch-create";
         yue2-song = "${yue2SongSkill}";
+      }
+      // lib.optionalAttrs config.jeff.enableZvecGrep {
+        zg = ./ai/skills/zg;
       }
       // lib.optionalAttrs config.jeff.enableApolloSkills (
         builtins.listToAttrs (
