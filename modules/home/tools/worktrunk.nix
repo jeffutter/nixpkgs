@@ -18,6 +18,19 @@ let
       if command -v direnv >/dev/null; then direnv allow; fi
     fi
   '';
+
+  # A fresh worktree has no node_modules and no gitignored CLAUDE.local.md, so
+  # every agent session in it first fails a build, then installs. Both guarded
+  # so repos without a pnpm lockfile or a local rules file are untouched.
+  # CI=1 keeps pnpm from running `lefthook install` into the shared .git.
+  postStartSetup = ''
+    if test -f pnpm-lock.yaml && ! test -d node_modules; then
+      CI=1 pnpm install --frozen-lockfile
+    fi
+    if test -f "{{ primary_worktree_path }}/CLAUDE.local.md" && ! test -e CLAUDE.local.md; then
+      cp "{{ primary_worktree_path }}/CLAUDE.local.md" CLAUDE.local.md
+    fi
+  '';
 in
 {
   # Worktrunk itself comes from modules/home/packages.nix.
@@ -25,5 +38,6 @@ in
     (pkgs.formats.toml { }).generate "worktrunk-config.toml"
       {
         pre-start.direnv = direnvEnvrc;
+        post-start.setup = postStartSetup;
       };
 }

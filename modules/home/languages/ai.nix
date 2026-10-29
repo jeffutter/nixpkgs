@@ -831,6 +831,8 @@ in
           DISABLE_AUTOUPDATER = 1;
           DISABLE_INSTALLATION_CHECKS = 1;
           ENABLE_TOOL_SEARCH = true;
+          # lefthook and friends colour their output; escape codes bloat tool results.
+          NO_COLOR = "1";
         };
         includeCoAuthoredBy = false;
         installMethod = "manual";
