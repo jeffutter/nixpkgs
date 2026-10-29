@@ -69,8 +69,10 @@ interface Config {
 }
 
 const DEFAULT_CONFIG: Config = {
-	baseUrl: "https://llama.home.jeffutter.com/v1",
-	model: "decider-4b",
+	// Through litellm (its `decider` route, backed by h2o-lightning-4b on llama-swap), authenticated
+	// with pi's own LITELLM_KEY.
+	baseUrl: "https://litellm.home.jeffutter.com/v1",
+	model: "decider",
 	timeoutMs: 2000,
 	// ~1000 chars. Classifier latency scales with total input at ~1.9ms/token, and the uncached
 	// instructions alone are ~285 tokens (~0.66s). At 1000 tokens almost every mid-run turn
@@ -389,11 +391,11 @@ function summarize(label: string, decisions: Decision[]): string {
 
 export default function thinkingRouter(pi: ExtensionAPI) {
 	// Replaces the built-in typesafe catalog (jev-latest) with our decider; the built-in
-	// `typesafe-system-one` implementation still serves it. No key is needed on the LAN.
+	// `typesafe-system-one` implementation still serves it. litellm needs pi's key (LITELLM_KEY).
 	// TODO: llama-swap >= v264 lists decision models natively; drop this overlay once we run it.
 	const { baseUrl, model: classifierId } = loadConfig();
 	pi.registerProvider(CLASSIFIER_PROVIDER, {
-		apiKey: "unused",
+		apiKey: process.env.LITELLM_KEY ?? "unused",
 		models: [
 			{
 				type: "classifier",
