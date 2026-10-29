@@ -1171,6 +1171,7 @@ in
         humanizer = "${humanizer}";
         kami = "${kami}/skills/kami";
         pi-authoring = "${pi-authoring-skill}";
+        pr-preflight = ./ai/skills/pr-preflight;
         review-pi-work = ./ai/skills/review-pi-work;
         skill-critic = ./ai/skills/skill-critic;
         software-design = ./ai/skills/software-design;
