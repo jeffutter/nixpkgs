@@ -1,6 +1,6 @@
 ---
 name: zg
-description: Search code with zg (zvec-grep) - semantic search for a behaviour you can describe but cannot name, exhaustive ripgrep that reports the enclosing function, and creating or repairing a repo's zg index with generated code excluded. Use before repeated grep guesses, and whenever `zg status` reports no index or results include generated files.
+description: Search code with zg (zvec-grep) - semantic search for a behaviour you can describe but cannot name, exhaustive ripgrep that reports the enclosing function, and creating or repairing a repo's zg index with generated code excluded. Use when asked where or how something happens and you do not know the identifier, when a grep for a concept finds nothing useful, before spawning an Explore agent only to locate code, and whenever `zg status` reports no index or results include generated files. Skip it when you already know the name or file.
 ---
 
 Use the zg CLI, not its MCP server. The daemon it talks to runs as a login service (launchd on macOS, systemd user service on Linux); `zg server status` confirms it is up.

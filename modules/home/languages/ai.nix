@@ -205,6 +205,18 @@ let
   };
   moshi-hook = pkgs.callPackage ../../../pkgs/moshi-hook { };
   zvec-grep = pkgs.callPackage ../../../pkgs/zvec-grep { };
+  zgHintHook = pkgs.writeShellApplication {
+    name = "zg-hint-hook";
+    runtimeInputs = [
+      pkgs.jq
+      pkgs.git
+      pkgs.gnugrep
+      pkgs.findutils
+      pkgs.coreutils
+      zvec-grep
+    ];
+    text = builtins.readFile ./ai/hooks/zg-hint.sh;
+  };
   # `herdr --skill` prints herdr's bundled agent skill file and is the
   # documented extraction point for this (see `herdr --help`); prefer it over
   # reading the skill file out of the source tree directly, since that
@@ -819,6 +831,8 @@ in
           DISABLE_AUTOUPDATER = 1;
           DISABLE_INSTALLATION_CHECKS = 1;
           ENABLE_TOOL_SEARCH = true;
+          # lefthook and friends colour their output; escape codes bloat tool results.
+          NO_COLOR = "1";
         };
         includeCoAuthoredBy = false;
         installMethod = "manual";
@@ -968,6 +982,17 @@ in
           ]
           ++ (moshiClaudeHooks.PermissionRequest or [ ]);
           PostToolUse = moshiClaudeHooks.PostToolUse or [ ];
+          PostToolUseFailure =
+            lib.optional config.jeff.enableZvecGrep {
+              matcher = "Bash";
+              hooks = [
+                {
+                  type = "command";
+                  command = "${zgHintHook}/bin/zg-hint-hook";
+                }
+              ];
+            }
+            ++ (moshiClaudeHooks.PostToolUseFailure or [ ]);
           UserPromptSubmit = [
             {
               hooks = [
@@ -1146,6 +1171,7 @@ in
         humanizer = "${humanizer}";
         kami = "${kami}/skills/kami";
         pi-authoring = "${pi-authoring-skill}";
+        pr-preflight = ./ai/skills/pr-preflight;
         review-pi-work = ./ai/skills/review-pi-work;
         skill-critic = ./ai/skills/skill-critic;
         software-design = ./ai/skills/software-design;

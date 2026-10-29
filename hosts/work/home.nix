@@ -1,4 +1,6 @@
 {
+  config,
+  lib,
   pkgs,
   inputs,
   ...
@@ -161,5 +163,19 @@ in
 
   jeff.claudeEffortLevel = "high";
 
-  jeff.claudeContextExtra = builtins.readFile ./claude-context.md;
+  # The excluded-command list in the context is generated from the same nix
+  # setting that feeds settings.json, so the two cannot drift. Managed-policy
+  # exclusions are named by hand in the markdown.
+  jeff.claudeContextExtra =
+    let
+      excluded = map (c: "`" + lib.removeSuffix " *" c + "`") (
+        lib.naturalSort config.programs.claude-code.settings.sandbox.excludedCommands
+      );
+    in
+    builtins.replaceStrings [ "@EXCLUDED@" ] [ (lib.concatStringsSep ", " excluded) ] (
+      builtins.readFile ./claude-context.md
+    );
+
+  # Managed settings pin Sonnet; the CLI flag overrides the pin.
+  programs.fish.shellAliases.claude = "command claude --model opus";
 }
