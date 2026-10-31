@@ -371,13 +371,15 @@
         };
       };
 
-      packages = forAllSystems (system: {
+      packages = forAllSystems (system: rec {
         actual-cli = (pkgsFor system).callPackage ./pkgs/actual-cli { };
         colgrep = (pkgsFor system).callPackage ./pkgs/colgrep { };
         datadog-pup = (pkgsFor system).callPackage ./pkgs/datadog-pup { };
         moshi-hook = (pkgsFor system).callPackage ./pkgs/moshi-hook { };
         zvec-grep = (pkgsFor system).callPackage ./pkgs/zvec-grep { };
         windmill-cli = (pkgsFor system).callPackage ./pkgs/windmill-cli { };
+        yue2-song-skill = (pkgsFor system).callPackage ./pkgs/yue2-song-skill { };
+        hermes-skills = (pkgsFor system).callPackage ./pkgs/hermes-skills { inherit yue2-song-skill; };
       });
 
       homeConfigurations = {
