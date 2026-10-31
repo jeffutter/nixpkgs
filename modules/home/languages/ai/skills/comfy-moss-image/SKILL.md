@@ -8,7 +8,7 @@ Use this skill for MOSS-Image SFT text-to-image. Read the `comfyui-spark` skill 
 Fixed values:
 - Template: `~/colmena/.claude/skills/comfy-moss-image/workflow.json`. Defaults: 1024x1024, 25 steps, CFG 2.5, `er_sde`, `simple`.
 - Run: `comfy gen ~/colmena/.claude/skills/comfy-moss-image/workflow.json --prompt "..." --seed 1 --out x.png`.
-- A 1 MP image takes about 3s once loaded, about 30s after a model switch.
+- A 1 MP image at the default 25 steps takes about 24s once loaded, about 28s after a model switch. An identical repeat (same seed, prompt and settings) returns instantly from ComfyUI's cache, so change the seed when timing.
 - Resolution: 1, 1.5 or 2 megapixels. Width and height must be multiples of 16. The model extrapolates from 0.25 MP to 4 MP.
 - It does use the negative prompt (CFG 2.5). The default is `nsfw, worst quality, bad anatomy, watermark, jpeg artifact`. Add to it, do not replace it.
 - It takes prompts up to about 4000 tokens. English is the best-trained language. Chinese text renders well.

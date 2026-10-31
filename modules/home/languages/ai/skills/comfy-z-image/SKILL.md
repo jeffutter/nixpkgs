@@ -8,7 +8,7 @@ Use this skill for Z-Image Turbo text-to-image. Read the `comfyui-spark` skill f
 Fixed values:
 - Template: `~/colmena/.claude/skills/comfy-z-image/workflow.json`. Defaults: 1024x1024, 4 steps, CFG 1, `res_2s`, `bong_tangent`, shift 7. These match the user's saved workflow `Comfy.json`.
 - Run: `comfy gen ~/colmena/.claude/skills/comfy-z-image/workflow.json --prompt "..." --seed 1 --out x.png`.
-- A 1 MP image takes about 15s including the model switch. This is the fastest model.
+- A 1 MP image takes about 10s once loaded, about 16s after a model switch. This is the fastest model. An identical repeat (same seed, prompt and settings) returns instantly from ComfyUI's cache.
 - Text encoder: Qwen3-4B (CLIP type `lumina2`). VAE: `ae.safetensors`.
 - CFG is 1, so the negative prompt has no effect. Do not write one.
 - `shift` is a template param: `--param shift=5`. `res_2s` and `bong_tangent` come from the RES4LYF node pack. `euler` with `simple` is the plain fallback.
