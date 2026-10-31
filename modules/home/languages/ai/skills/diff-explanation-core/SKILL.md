@@ -20,12 +20,6 @@ The rules that every explanation of a code change shares, whatever the output me
 - Use concrete examples with toy data. Define each term you introduce, in plain words, at first use.
 - Use figures liberally.
 
-## Code section
-
-- A high-level walkthrough, not a line-by-line tour.
-- Group changes by role (primitives, registry, generator, validation, pages, docs), and order them so each group builds on the one before.
-- Name the file for each group. Say what was removed as well as what was added.
-
 ## Voice
 
 - Write with the clarity and flow of Martin Kleppmann: engaging, classic style, smooth transitions between sections.
@@ -42,8 +36,3 @@ The rules that every explanation of a code change shares, whatever the output me
 - Never draw ASCII diagrams. Build every diagram in simple HTML and CSS, and use HTML lists for lists.
 - Code in a diagram uses `<pre>`. A styled `div` in place of `<pre>` must set `white-space: pre-wrap`, or the browser collapses newlines. Before you save, check every code block for `white-space: pre` or `pre-wrap`.
 - Color carries meaning: green for passes or the new behavior, red for fails or the removed behavior, grey for neutral. Keep each figure under about 900px wide.
-
-## Before you finish
-
-- List every code identifier, signature and flow the explanation claims. Confirm each against source.
-- Read the rendered result, not only the source of it.

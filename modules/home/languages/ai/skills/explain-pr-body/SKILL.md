@@ -1,6 +1,6 @@
 ---
 name: explain-pr-body
-description: Use when asked to revamp, rewrite or enrich a GitHub PR description so it explains the change with intuition, figures and a code walkthrough. Renders figures to PNG and uploads them to the PR with gh. Skips background and quiz.
+description: Use when asked to revamp, rewrite or enrich a GitHub PR description so it explains the change with intuition and figures. Renders figures to PNG and uploads them to the PR with gh. Skips background and quiz.
 model: opus
 ---
 
@@ -8,7 +8,7 @@ model: opus
 
 Rewrite the PR body so a reviewer understands the change from the PR page alone. The output is a Markdown body with embedded images, not an HTML page. For a standalone HTML explanation, use `explain-diff-html`.
 
-First load the `diff-explanation-core` skill. Follow its rules for research, the Intuition and Code sections, voice and diagrams. Skip Background and Quiz unless the user asks for them.
+First load the `diff-explanation-core` skill. Follow its rules for research, the Intuition section, voice and diagrams. Skip Background, Code walkthrough and Quiz unless the user asks for them.
 
 ## Steps
 
@@ -32,7 +32,6 @@ Keep the repo's PR template sections, and keep facts the old body already states
 
 - **Summary**: the user-visible effect first, then the mechanism, in a few sentences.
 - **Intuition**: the figures and the prose that carries them. State the before and the after.
-- **Code walkthrough**: grouped by role, with file names.
 - **Tests**, **Docs**, **Assumptions**, **Checklist**, **Notes for reviewers**: as the old body had them.
 
 Do not state commit counts, hashes or test counts. They go stale.
