@@ -1,0 +1,169 @@
+{
+  "description": "Z-Image Turbo Q8_0 text-to-image",
+  "params": {
+    "prompt": [
+      "4.inputs.text"
+    ],
+    "negative": [
+      "5.inputs.text"
+    ],
+    "seed": [
+      "7.inputs.seed"
+    ],
+    "width": [
+      "6.inputs.width"
+    ],
+    "height": [
+      "6.inputs.height"
+    ],
+    "batch": [
+      "6.inputs.batch_size"
+    ],
+    "steps": [
+      "7.inputs.steps"
+    ],
+    "cfg": [
+      "7.inputs.cfg"
+    ],
+    "sampler": [
+      "7.inputs.sampler_name"
+    ],
+    "scheduler": [
+      "7.inputs.scheduler"
+    ],
+    "shift": [
+      "10.inputs.shift"
+    ]
+  },
+  "defaults": {
+    "width": 1024,
+    "height": 1024,
+    "steps": 4,
+    "cfg": 1,
+    "sampler": "res_2s",
+    "scheduler": "bong_tangent",
+    "shift": 7,
+    "negative": ""
+  },
+  "graph": {
+    "1": {
+      "class_type": "UnetLoaderGGUF",
+      "inputs": {
+        "unet_name": "z-image-turbo-Q8_0.gguf"
+      }
+    },
+    "2": {
+      "class_type": "CLIPLoader",
+      "inputs": {
+        "clip_name": "qwen_3_4b_fp8_mixed.safetensors",
+        "type": "lumina2",
+        "device": "default"
+      }
+    },
+    "3": {
+      "class_type": "VAELoader",
+      "inputs": {
+        "vae_name": "ae.safetensors"
+      }
+    },
+    "4": {
+      "class_type": "CLIPTextEncode",
+      "inputs": {
+        "clip": [
+          "2",
+          0
+        ],
+        "text": ""
+      }
+    },
+    "5": {
+      "class_type": "CLIPTextEncode",
+      "inputs": {
+        "clip": [
+          "2",
+          0
+        ],
+        "text": ""
+      }
+    },
+    "6": {
+      "class_type": "EmptySD3LatentImage",
+      "inputs": {
+        "width": 1024,
+        "height": 1024,
+        "batch_size": 1
+      }
+    },
+    "7": {
+      "class_type": "KSampler",
+      "inputs": {
+        "model": [
+          "10",
+          0
+        ],
+        "positive": [
+          "4",
+          0
+        ],
+        "negative": [
+          "5",
+          0
+        ],
+        "latent_image": [
+          "6",
+          0
+        ],
+        "seed": 0,
+        "steps": 4,
+        "cfg": 1,
+        "sampler_name": "res_2s",
+        "scheduler": "bong_tangent",
+        "denoise": 1
+      }
+    },
+    "8": {
+      "class_type": "VAEDecode",
+      "inputs": {
+        "samples": [
+          "7",
+          0
+        ],
+        "vae": [
+          "3",
+          0
+        ]
+      }
+    },
+    "9": {
+      "class_type": "SaveImage",
+      "inputs": {
+        "images": [
+          "8",
+          0
+        ],
+        "filename_prefix": "claude"
+      }
+    },
+    "20": {
+      "class_type": "LoraLoaderModelOnly",
+      "inputs": {
+        "model": [
+          "1",
+          0
+        ],
+        "lora_name": "",
+        "strength_model": 0.8
+      }
+    },
+    "10": {
+      "class_type": "ModelSamplingAuraFlow",
+      "inputs": {
+        "model": [
+          "1",
+          0
+        ],
+        "shift": 7
+      }
+    }
+  }
+}

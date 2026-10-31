@@ -379,7 +379,8 @@
         zvec-grep = (pkgsFor system).callPackage ./pkgs/zvec-grep { };
         windmill-cli = (pkgsFor system).callPackage ./pkgs/windmill-cli { };
         yue2-song-skill = (pkgsFor system).callPackage ./pkgs/yue2-song-skill { };
-        hermes-skills = (pkgsFor system).callPackage ./pkgs/hermes-skills { inherit yue2-song-skill; };
+        comfyui-skills = (pkgsFor system).callPackage ./pkgs/comfyui-skills { };
+        hermes-skills = (pkgsFor system).callPackage ./pkgs/hermes-skills { inherit yue2-song-skill comfyui-skills; };
       });
 
       homeConfigurations = {

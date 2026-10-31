@@ -100,6 +100,7 @@ let
         # references/render bundles Python, Playwright, and a matching Chromium.'
       '';
   yue2SongSkill = pkgs.callPackage ../../../pkgs/yue2-song-skill { };
+  comfyuiSkills = pkgs.callPackage ../../../pkgs/comfyui-skills { };
   the-elements-of-style = inputs.the-elements-of-style;
   # nixpkgs' todoist-cli ships only the `td` binary, not a static skill file;
   # v1.75.2+ generates SKILL.md on demand from bundled content. Call the
@@ -1174,6 +1175,11 @@ in
         writing-clearly-and-concisely = "${the-elements-of-style}/skills/writing-clearly-and-concisely";
         wt-switch-create = "${worktrunkPluginRoot}/skills/wt-switch-create";
         yue2-song = "${yue2SongSkill}";
+        comfyui = "${comfyuiSkills}/comfyui";
+        comfy-moss-image = "${comfyuiSkills}/comfy-moss-image";
+        comfy-z-image = "${comfyuiSkills}/comfy-z-image";
+        comfy-krea-2 = "${comfyuiSkills}/comfy-krea-2";
+        comfy-flux2-klein = "${comfyuiSkills}/comfy-flux2-klein";
       }
       // lib.optionalAttrs config.jeff.enableZvecGrep {
         zg = ./ai/skills/zg;

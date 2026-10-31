@@ -1,0 +1,169 @@
+{
+  "description": "MOSS-Image SFT (NVFP4) text-to-image",
+  "params": {
+    "prompt": [
+      "4.inputs.text"
+    ],
+    "negative": [
+      "5.inputs.text"
+    ],
+    "seed": [
+      "7.inputs.seed"
+    ],
+    "width": [
+      "6.inputs.width"
+    ],
+    "height": [
+      "6.inputs.height"
+    ],
+    "batch": [
+      "6.inputs.batch_size"
+    ],
+    "steps": [
+      "7.inputs.steps"
+    ],
+    "cfg": [
+      "7.inputs.cfg"
+    ],
+    "sampler": [
+      "7.inputs.sampler_name"
+    ],
+    "scheduler": [
+      "7.inputs.scheduler"
+    ]
+  },
+  "defaults": {
+    "width": 1024,
+    "height": 1024,
+    "steps": 25,
+    "cfg": 2.5,
+    "sampler": "er_sde",
+    "scheduler": "simple",
+    "negative": "nsfw, worst quality, bad anatomy, watermark, jpeg artifact"
+  },
+  "graph": {
+    "1": {
+      "class_type": "UNETLoader",
+      "inputs": {
+        "unet_name": "moss_image_sft_nvfp4.safetensors",
+        "weight_dtype": "default"
+      }
+    },
+    "2": {
+      "class_type": "CLIPLoader",
+      "inputs": {
+        "clip_name": "qwen3.5_9b_w4a8_gptq.safetensors",
+        "type": "moss_image",
+        "device": "default"
+      }
+    },
+    "3": {
+      "class_type": "VAELoader",
+      "inputs": {
+        "vae_name": "flux2-vae_small.safetensors"
+      }
+    },
+    "4": {
+      "class_type": "CLIPTextEncode",
+      "inputs": {
+        "clip": [
+          "2",
+          0
+        ],
+        "text": ""
+      }
+    },
+    "5": {
+      "class_type": "CLIPTextEncode",
+      "inputs": {
+        "clip": [
+          "2",
+          0
+        ],
+        "text": "nsfw, worst quality, bad anatomy, watermark, jpeg artifact"
+      }
+    },
+    "6": {
+      "class_type": "EmptyFlux2LatentImage",
+      "inputs": {
+        "width": 1024,
+        "height": 1024,
+        "batch_size": 1
+      }
+    },
+    "7": {
+      "class_type": "KSampler",
+      "inputs": {
+        "model": [
+          "1",
+          0
+        ],
+        "positive": [
+          "4",
+          0
+        ],
+        "negative": [
+          "5",
+          0
+        ],
+        "latent_image": [
+          "6",
+          0
+        ],
+        "seed": 0,
+        "steps": 25,
+        "cfg": 2.5,
+        "sampler_name": "er_sde",
+        "scheduler": "simple",
+        "denoise": 1
+      }
+    },
+    "8": {
+      "class_type": "VAEDecode",
+      "inputs": {
+        "samples": [
+          "7",
+          0
+        ],
+        "vae": [
+          "3",
+          0
+        ]
+      }
+    },
+    "9": {
+      "class_type": "SaveImage",
+      "inputs": {
+        "images": [
+          "8",
+          0
+        ],
+        "filename_prefix": "claude"
+      }
+    },
+    "20": {
+      "class_type": "LoraLoaderModelOnly",
+      "inputs": {
+        "model": [
+          "1",
+          0
+        ],
+        "lora_name": "",
+        "strength_model": 0.8
+      }
+    },
+    "15": {
+      "class_type": "SkipLayerGuidanceDiTSimple",
+      "inputs": {
+        "model": [
+          "1",
+          0
+        ],
+        "double_layers": "",
+        "single_layers": "22",
+        "start_percent": 0,
+        "end_percent": 0.5
+      }
+    }
+  }
+}

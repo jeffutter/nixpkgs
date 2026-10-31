@@ -1,4 +1,8 @@
-{ linkFarm, yue2-song-skill }:
+{
+  linkFarm,
+  yue2-song-skill,
+  comfyui-skills,
+}:
 
 # Skills shared with Hermes (the colmena repo's hermes VM), as a single
 # directory for its read-only `skills.external_dirs`. Hermes' own
@@ -12,5 +16,25 @@ linkFarm "hermes-skills" [
   {
     name = "yue2-song";
     path = yue2-song-skill;
+  }
+  {
+    name = "comfyui";
+    path = "${comfyui-skills}/comfyui";
+  }
+  {
+    name = "comfy-moss-image";
+    path = "${comfyui-skills}/comfy-moss-image";
+  }
+  {
+    name = "comfy-z-image";
+    path = "${comfyui-skills}/comfy-z-image";
+  }
+  {
+    name = "comfy-krea-2";
+    path = "${comfyui-skills}/comfy-krea-2";
+  }
+  {
+    name = "comfy-flux2-klein";
+    path = "${comfyui-skills}/comfy-flux2-klein";
   }
 ]
