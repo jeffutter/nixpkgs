@@ -1,12 +1,12 @@
 ---
-name: comfyui
+name: comfyui-spark
 description: Shared instructions for generating or editing images with the dgx-spark ComfyUI through the `comfy` CLI. Load this with any model skill (comfy-moss-image, comfy-z-image, comfy-krea-2, comfy-flux2-klein), or alone when the user wants a custom ComfyUI graph, a LoRA, img2img, or a model comparison.
 ---
 
 Use this skill whenever an image is generated on the dgx-spark. The end state is PNG files in the directory the user named (default: the current directory), checked by you and reported with the seed and settings.
 
 Fixed values:
-- Tool: `~/colmena/.claude/skills/comfyui/scripts/comfy`. Make every ComfyUI call through it. `comfy` in the commands below means this path. Default host: the dgx-spark, `http://192.168.10.14:8000/upstream/comfyui` (llama-swap).
+- Tool: `~/colmena/.claude/skills/comfyui-spark/scripts/comfy`. Make every ComfyUI call through it. `comfy` in the commands below means this path. Default host: the dgx-spark, `http://192.168.10.14:8000/upstream/comfyui` (llama-swap).
 - Host: `comfy --host HOST gen ...` or the `COMFY_HOST` environment variable. `--host` goes before the subcommand. HOST is a bare host (`gx10.local`), `host:8000`, or a full URL. Those on port 8000 or with no port are reached through llama-swap's `/upstream/comfyui`. Any other explicit port (`192.168.10.14:8014`) is treated as ComfyUI itself. Use `--host` only when the user names another machine.
 - `comfy gen TEMPLATE --prompt P [--negative N] [--seed S] [--width W] [--height H] [--steps N] [--cfg C] [--sampler X] [--scheduler X] [--batch N] [--param NAME=VALUE]... [--set NODE.inputs.FIELD=VALUE]... [--out F.png] [--dry-run]` generates and downloads. It prints the file path, then `seed=` and `time=` on stderr. A random seed is used unless `--seed` is given.
 - `comfy models` lists the diffusion, text encoder, VAE and LoRA files ComfyUI sees, plus CLIP types, samplers and schedulers. Run it before naming any file.

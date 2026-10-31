@@ -3,7 +3,7 @@ name: comfy-krea-2
 description: Generate images with Krea-2-Turbo (Q6_K GGUF, 4 steps) on the dgx-spark ComfyUI. Use for fast drafts and variations when the user names Krea or Krea-2. Load the comfyui skill first.
 ---
 
-Use this skill for Krea-2-Turbo text-to-image. Read the `comfyui` skill first for the CLI, the steps, and how to adapt a workflow.
+Use this skill for Krea-2-Turbo text-to-image. Read the `comfyui-spark` skill first for the CLI, the steps, and how to adapt a workflow.
 
 Fixed values:
 - Template: `~/colmena/.claude/skills/comfy-krea-2/workflow.json`. Defaults: 1024x1024, 4 steps, CFG 1, `euler`, `simple`, shift 3. These match the user's saved workflow `Comfy (Krea).json`.
@@ -19,4 +19,4 @@ Prompting:
 - Write natural-language sentences describing the finished picture: subject, action, setting, light, framing, medium. One to three short paragraphs.
 - Keep text in the image short and quoted. Check the spelling in the PNG.
 - Not tested for long prompts or for how it differs in style from the other models. Compare with the same seed on the other models before claiming a strength.
-- LoRAs for this model live in `loras/krea2-turbo/` (see `comfy models`). Node `20`, see the `comfyui` skill. Ask the user before choosing one.
+- LoRAs for this model live in `loras/krea2-turbo/` (see `comfy models`). Node `20`, see the `comfyui-spark` skill. Ask the user before choosing one.

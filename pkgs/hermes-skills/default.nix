@@ -18,8 +18,8 @@ linkFarm "hermes-skills" [
     path = yue2-song-skill;
   }
   {
-    name = "comfyui";
-    path = "${comfyui-skills}/comfyui";
+    name = "comfyui-spark";
+    path = "${comfyui-skills}/comfyui-spark";
   }
   {
     name = "comfy-moss-image";

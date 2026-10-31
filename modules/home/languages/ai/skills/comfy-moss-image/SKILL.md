@@ -3,7 +3,7 @@ name: comfy-moss-image
 description: Generate images with MOSS-Image SFT (5B, NVFP4) on the dgx-spark ComfyUI. Use for long detailed prompts, accurate English or Chinese text in the image, posters, signs, or layouts, or when the user names MOSS. Load the comfyui skill first.
 ---
 
-Use this skill for MOSS-Image SFT text-to-image. Read the `comfyui` skill first for the CLI, the steps, and how to adapt a workflow.
+Use this skill for MOSS-Image SFT text-to-image. Read the `comfyui-spark` skill first for the CLI, the steps, and how to adapt a workflow.
 
 Fixed values:
 - Template: `~/colmena/.claude/skills/comfy-moss-image/workflow.json`. Defaults: 1024x1024, 25 steps, CFG 2.5, `er_sde`, `simple`.
@@ -28,5 +28,5 @@ Options:
 - Closer to the official quality: `--steps 50 --cfg 3 --sampler euler`.
 - Short prompt and a flat result: raise `--cfg` to 3-6.
 - Skip-layer guidance (node `15`, layer 22), off by default. Turn it on with `--set '7.inputs.model=["15",0]'`. It adds detail and can overblow anime styles. Layers 24 and 26 also work: `--set 15.inputs.single_layers=24`.
-- LoRA: node `20`, see the `comfyui` skill. MOSS-Image Base is the checkpoint made for community LoRAs. This install has only the SFT file.
+- LoRA: node `20`, see the `comfyui-spark` skill. MOSS-Image Base is the checkpoint made for community LoRAs. This install has only the SFT file.
 - The model's native seeds do not reproduce the OpenMOSS pipeline's images, only this ComfyUI's own.

@@ -1175,7 +1175,7 @@ in
         writing-clearly-and-concisely = "${the-elements-of-style}/skills/writing-clearly-and-concisely";
         wt-switch-create = "${worktrunkPluginRoot}/skills/wt-switch-create";
         yue2-song = "${yue2SongSkill}";
-        comfyui = "${comfyuiSkills}/comfyui";
+        comfyui-spark = "${comfyuiSkills}/comfyui-spark";
         comfy-moss-image = "${comfyuiSkills}/comfy-moss-image";
         comfy-z-image = "${comfyuiSkills}/comfy-z-image";
         comfy-krea-2 = "${comfyuiSkills}/comfy-krea-2";
