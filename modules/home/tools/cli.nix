@@ -38,7 +38,6 @@
   programs.atuin = {
     enable = true;
     # The e2e_capture pty test times out in the darwin build sandbox.
-    package = pkgs.atuin.overrideAttrs { doCheck = false; };
     enableBashIntegration = true;
     enableFishIntegration = true;
     flags = [ "--disable-up-arrow" ];
