@@ -304,6 +304,7 @@ let
     preamble
     + "\n"
     + readAiDoc "context/core.md"
+    + lib.optionalString pkgs.stdenv.hostPlatform.isDarwin (readAiDoc "context/macos.md")
     + lib.optionalString config.jeff.enableZvecGrep ("\n" + readAiDoc "context/code-search.md");
 
   # Claude Code hooks `moshi-hook install` would normally write into
