@@ -71,6 +71,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     export CLAUDE_CONFIG_DIR="$out"
     ${lib.getExe finalAttrs.finalPackage} --no-agent skills install claude --type skill --yes
     ${lib.getExe finalAttrs.finalPackage} --no-agent skills install claude --type agent --yes
+    cat ${./gotchas.md} >> "$out/skills/dd-pup/SKILL.md"
   '';
 
   meta = {
