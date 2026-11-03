@@ -100,6 +100,8 @@ let
         # references/render bundles Python, Playwright, and a matching Chromium.'
       '';
   yue2SongSkill = pkgs.callPackage ../../../pkgs/yue2-song-skill { };
+  ttsSpeechSkill = pkgs.callPackage ../../../pkgs/tts-speech-skill { };
+  sttTranscribeSkill = pkgs.callPackage ../../../pkgs/stt-transcribe-skill { };
   comfyuiSkills = pkgs.callPackage ../../../pkgs/comfyui-skills { };
   the-elements-of-style = inputs.the-elements-of-style;
   # nixpkgs' todoist-cli ships only the `td` binary, not a static skill file;
@@ -1175,6 +1177,8 @@ in
         writing-clearly-and-concisely = "${the-elements-of-style}/skills/writing-clearly-and-concisely";
         wt-switch-create = "${worktrunkPluginRoot}/skills/wt-switch-create";
         yue2-song = "${yue2SongSkill}";
+        tts-speech = "${ttsSpeechSkill}";
+        stt-transcribe = "${sttTranscribeSkill}";
         comfyui-spark = "${comfyuiSkills}/comfyui-spark";
         comfy-moss-image = "${comfyuiSkills}/comfy-moss-image";
         comfy-z-image = "${comfyuiSkills}/comfy-z-image";

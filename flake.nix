@@ -379,6 +379,8 @@
         zvec-grep = (pkgsFor system).callPackage ./pkgs/zvec-grep { };
         windmill-cli = (pkgsFor system).callPackage ./pkgs/windmill-cli { };
         yue2-song-skill = (pkgsFor system).callPackage ./pkgs/yue2-song-skill { };
+        tts-speech-skill = (pkgsFor system).callPackage ./pkgs/tts-speech-skill { };
+        stt-transcribe-skill = (pkgsFor system).callPackage ./pkgs/stt-transcribe-skill { };
         comfyui-skills = (pkgsFor system).callPackage ./pkgs/comfyui-skills { };
         hermes-skills = (pkgsFor system).callPackage ./pkgs/hermes-skills { inherit yue2-song-skill comfyui-skills; };
       });
