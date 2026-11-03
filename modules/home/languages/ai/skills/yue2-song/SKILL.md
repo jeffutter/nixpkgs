@@ -6,7 +6,7 @@ description: Generate full songs with vocals using YuE2 (audio.cpp on the dgx-sp
 Use this skill when the user asks for a song with vocals or a revision of a YuE2 take. The end state is MP3 takes in the user's directory, reported with check results, revised until the user stops asking.
 
 Fixed values:
-- Tool: `~/.claude/skills/yue2-song/scripts/yue2`. Make every YuE2 call through it. It holds the endpoints, model ids, Python and ffmpeg.
+- Tool: `@yue2@`. Make every YuE2 call through it. It holds the endpoints, model ids, Python and ffmpeg.
 - `yue2 render --lyrics F --style S --seed N --out X.mp3 [--plan P.abc] [--bpm N]` renders one MP3, embeds its recipe, then runs `check`.
 - `yue2 plan --lyrics F --style S --seeds 101-124 --dir D` writes `D/plan-<seed>.abc` per seed, about 25s each. It ranks plans whose `M:` matches the meter in the style string first, then by `beat_fit`. `beat_fit` is the share of vocal notes on the beats of the plan's own meter.
 - `yue2 check X.mp3... [--bpm N]` prints a pulse verdict and a Whisper lyric check. It reads the BPM and meter that `render` stored.

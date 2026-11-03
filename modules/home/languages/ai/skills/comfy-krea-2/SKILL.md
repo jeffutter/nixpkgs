@@ -6,8 +6,8 @@ description: Generate images with Krea-2-Turbo (Q6_K GGUF, 4 steps) on the dgx-s
 Use this skill for Krea-2-Turbo text-to-image. Read the `comfyui-spark` skill first for the CLI, the steps, and how to adapt a workflow.
 
 Fixed values:
-- Template: `~/colmena/.claude/skills/comfy-krea-2/workflow.json`. Defaults: 1024x1024, 4 steps, CFG 1, `euler`, `simple`, shift 3. These match the user's saved workflow `Comfy (Krea).json`.
-- Run: `comfy gen ~/colmena/.claude/skills/comfy-krea-2/workflow.json --prompt "..." --seed 1 --out x.png`.
+- Template: `@skills@/comfy-krea-2/workflow.json`. Defaults: 1024x1024, 4 steps, CFG 1, `euler`, `simple`, shift 3. These match the user's saved workflow `Comfy (Krea).json`.
+- Run: `comfy gen @skills@/comfy-krea-2/workflow.json --prompt "..." --seed 1 --out x.png`.
 - A 1 MP image takes about 20s including the model switch.
 - Text encoder: Qwen3-VL 4B (CLIP type `krea2`). VAE: `qwen_image_vae.safetensors`.
 - The GGUF loader for this model is the RealRebelAI fork of ComfyUI-GGUF, which the user accepted on trust grounds. Do not reinstall or replace it.

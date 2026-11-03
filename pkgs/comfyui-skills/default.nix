@@ -14,11 +14,9 @@
 # The CLI is stdlib-only Python. COMFY_HOST is --set-default so `--host` or the
 # environment can point it at another machine.
 #
-# The SKILL.md files name the tool and templates by the ~/colmena/.claude/skills
-# path they were written against; that path only exists for Claude Code, so it
-# is rewritten to this derivation's own store path. That works for every
-# consumer (Claude Code, Hermes) without caring where the skill directory is
-# mounted.
+# The SKILL.md files refer to the tool and templates as @skills@/<skill>/..., filled
+# in with this derivation's own store path, so the sources name no agent's skill
+# directory and the same build works for every consumer (Claude Code, Pi, Hermes).
 runCommand "comfyui-skills" { nativeBuildInputs = [ makeWrapper ]; } ''
   mkdir $out
   for s in comfyui-spark comfy-moss-image comfy-z-image comfy-krea-2 comfy-flux2-klein; do
@@ -26,7 +24,7 @@ runCommand "comfyui-skills" { nativeBuildInputs = [ makeWrapper ]; } ''
   done
   chmod -R u+w $out
   for s in $out/*/SKILL.md; do
-    substituteInPlace $s --replace-quiet '~/colmena/.claude/skills/' "$out/"
+    substituteInPlace $s --replace-fail '@skills@/' "$out/"
   done
   makeWrapper ${python3}/bin/python3 $out/comfyui-spark/scripts/comfy \
     --set-default COMFY_HOST http://192.168.10.14:8000/upstream/comfyui \

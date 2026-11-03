@@ -6,7 +6,7 @@ description: Transcribe audio files (voice memos, recordings, MP3/M4A/WAV) to te
 Use this skill when the user wants text from audio. The end state is the transcript, reported with the model used and any words you doubt.
 
 Fixed values:
-- Tool: `~/.claude/skills/stt-transcribe/scripts/stt`. Make every call through it. `stt` below means this path.
+- Tool: `@stt@`. Make every call through it. `stt` below means this path.
 - Endpoint: llama-swap on the homelab, `https://llama.home.jeffutter.com/v1`. Point at another machine with `stt --api URL ...` or the `STT_API` environment variable. `--api` goes before the subcommand. Use it only when the user names another machine.
 - `stt transcribe FILE... [--model M] [--language L] [--json]` prints each transcript to stdout and the model and timing to stderr. With several files, each transcript follows a `== path` line. `--json` prints the full response.
 - `stt models` lists the speech-to-text models the endpoint serves. Run it when a model name fails.

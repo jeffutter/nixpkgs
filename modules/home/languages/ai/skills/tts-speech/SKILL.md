@@ -6,7 +6,7 @@ description: Turn text into spoken audio (MP3/WAV) with the homelab text-to-spee
 Use this skill when the user wants spoken audio from text. The end state is an audio file in the directory the user named (default: the current directory), reported with the model, voice, and what to listen for.
 
 Fixed values:
-- Tool: `~/.claude/skills/tts-speech/scripts/tts`. Make every call through it. `tts` below means this path.
+- Tool: `@tts@`. Make every call through it. `tts` below means this path.
 - Endpoint: llama-swap on the homelab, `https://llama.home.jeffutter.com/v1`. Point at another machine with `tts --api URL ...` or the `TTS_API` environment variable. `--api` goes before the subcommand. URL is a base URL, `host:port`, or a bare host. Use it only when the user names another machine.
 - `tts say "TEXT" [--model M] [--voice V] [--format mp3|wav|opus|aac|flac|pcm] [--option KEY=VALUE]... [--file F|-] [--out F]` writes one file and prints its path. Defaults: model `breeze`, voice `jeff`, format `mp3`.
 - `tts models` lists the TTS models the endpoint serves right now. Run it when a model name fails.
