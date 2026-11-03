@@ -135,6 +135,8 @@ in
     confluence-axi = "${confluence-axi}/lib/node_modules/confluence-axi/skills/confluence-axi";
     jira-axi = "${jira-axi}/lib/node_modules/jira-axi/skills/jira-axi";
     dlp-session-repair = ./skills/dlp-session-repair;
+    # Generic, but it drives graphql-document-utils, which only this host installs.
+    graphql-query-plan-analysis = ../../modules/home/languages/ai/skills/graphql-query-plan-analysis;
   }
   // pupSkills;
 
