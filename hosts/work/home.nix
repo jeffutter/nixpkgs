@@ -17,6 +17,7 @@ let
   pup = pkgs.callPackage ../../pkgs/datadog-pup { };
   jira-axi = pkgs.callPackage ../../pkgs/jira-axi { };
   confluence-axi = pkgs.callPackage ../../pkgs/confluence-axi { };
+  agent-slack = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.agent-slack;
 
   # pup captures its embedded Datadog skills (skills/<name>/SKILL.md) and domain
   # subagents (agents/<name>.md) into pup.skills at build time. Wiring the whole
@@ -65,6 +66,7 @@ in
     my_google-cloud-sdk
     pup
     thaw
+    agent-slack
   ];
 
   home.file.".ssh/allowed_signers".text = ''
@@ -132,6 +134,9 @@ in
     # Each npm tarball ships its own SKILL.md, versioned with the binary.
     confluence-axi = "${confluence-axi}/lib/node_modules/confluence-axi/skills/confluence-axi";
     jira-axi = "${jira-axi}/lib/node_modules/jira-axi/skills/jira-axi";
+    dlp-session-repair = ./skills/dlp-session-repair;
+    # Generic, but it drives graphql-document-utils, which only this host installs.
+    graphql-query-plan-analysis = ../../modules/home/languages/ai/skills/graphql-query-plan-analysis;
   }
   // pupSkills;
 

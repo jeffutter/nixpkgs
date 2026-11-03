@@ -306,6 +306,7 @@ let
     preamble
     + "\n"
     + readAiDoc "context/core.md"
+    + lib.optionalString pkgs.stdenv.hostPlatform.isDarwin (readAiDoc "context/macos.md")
     + lib.optionalString config.jeff.enableZvecGrep ("\n" + readAiDoc "context/code-search.md");
 
   # Claude Code hooks `moshi-hook install` would normally write into
@@ -800,6 +801,11 @@ in
         };
       };
     };
+
+    # `command` skips any `claude` alias, such as the work host's default-model one.
+    home.shellAliases = lib.genAttrs [ "opus" "sonnet" "haiku" "fable" ] (
+      model: "command claude --model ${model}"
+    );
 
     programs.claude-code = {
       enable = true;

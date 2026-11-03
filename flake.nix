@@ -39,7 +39,7 @@
     };
 
     graphql-document-utils = {
-      url = "github:jeffutter/graphql-document-utils/v0.3.0";
+      url = "github:jeffutter/graphql-document-utils/v0.3.1";
     };
 
     meethook = {
@@ -382,7 +382,9 @@
         tts-speech-skill = (pkgsFor system).callPackage ./pkgs/tts-speech-skill { };
         stt-transcribe-skill = (pkgsFor system).callPackage ./pkgs/stt-transcribe-skill { };
         comfyui-skills = (pkgsFor system).callPackage ./pkgs/comfyui-skills { };
-        hermes-skills = (pkgsFor system).callPackage ./pkgs/hermes-skills { inherit yue2-song-skill comfyui-skills; };
+        hermes-skills = (pkgsFor system).callPackage ./pkgs/hermes-skills {
+          inherit yue2-song-skill comfyui-skills;
+        };
       });
 
       homeConfigurations = {
