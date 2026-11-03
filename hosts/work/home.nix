@@ -134,6 +134,7 @@ in
     # Each npm tarball ships its own SKILL.md, versioned with the binary.
     confluence-axi = "${confluence-axi}/lib/node_modules/confluence-axi/skills/confluence-axi";
     jira-axi = "${jira-axi}/lib/node_modules/jira-axi/skills/jira-axi";
+    dlp-session-repair = ./skills/dlp-session-repair;
   }
   // pupSkills;
 
