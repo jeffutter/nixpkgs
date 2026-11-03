@@ -102,6 +102,7 @@ let
   yue2SongSkill = pkgs.callPackage ../../../pkgs/yue2-song-skill { };
   ttsSpeechSkill = pkgs.callPackage ../../../pkgs/tts-speech-skill { };
   sttTranscribeSkill = pkgs.callPackage ../../../pkgs/stt-transcribe-skill { };
+  narratedVideoSkill = pkgs.callPackage ../../../pkgs/narrated-video-skill { };
   comfyuiSkills = pkgs.callPackage ../../../pkgs/comfyui-skills { };
   the-elements-of-style = inputs.the-elements-of-style;
   # nixpkgs' todoist-cli ships only the `td` binary, not a static skill file;
@@ -1185,6 +1186,7 @@ in
         yue2-song = "${yue2SongSkill}";
         tts-speech = "${ttsSpeechSkill}";
         stt-transcribe = "${sttTranscribeSkill}";
+        narrated-video = "${narratedVideoSkill}";
         comfyui-spark = "${comfyuiSkills}/comfyui-spark";
         comfy-moss-image = "${comfyuiSkills}/comfy-moss-image";
         comfy-z-image = "${comfyuiSkills}/comfy-z-image";

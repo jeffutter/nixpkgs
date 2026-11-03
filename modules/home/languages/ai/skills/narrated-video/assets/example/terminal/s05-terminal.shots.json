@@ -1,0 +1,23 @@
+{
+  "title": "jeff@pilot: ~/schrocache",
+  "cols": 84,
+  "rows": 17,
+  "font_size": 30,
+  "end": 26.0,
+  "shots": [
+    {"at": 0.9, "cmd": "schrocache get user:42", "out": [
+      [0.05, "state: {blue}superposition{reset} (hit ⊕ miss)\nvalue: {muted}<unobserved>{reset}\n"]
+    ]},
+    {"at": 5.2, "cmd": "schrocache observe user:42", "out": [
+      [0.05, "{muted}collapsing wavefunction... {reset}"],
+      [0.8, "{green}done{reset}\nstate: {green}{bold}HIT{reset}   latency: 0.3ms   value: {\"name\": \"Ada\"}\n"]
+    ]},
+    {"at": 11.6, "cmd": "schrocache observe user:42", "out": [
+      [0.05, "{muted}collapsing wavefunction... {reset}"],
+      [0.8, "{green}done{reset}\nstate: {pink}{bold}MISS{reset}  latency: 412ms   {muted}(observation changed the outcome){reset}\n"]
+    ]},
+    {"at": 18.8, "cmd": "schrocache stats", "out": [
+      [0.05, "observations: 2   hits: 1   misses: 1   uncertainty: {amber}{bold}±100%{reset}\n"]
+    ]}
+  ]
+}

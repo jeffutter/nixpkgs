@@ -1,0 +1,8 @@
+...@arch-base
+
+cache.label: "entry: user:42\nhit ⊕ miss"
+cache.style.font-color: "#7aa2f7"
+# Hidden, not removed, so stage 2 reuses the same layout.
+observer.style.opacity: 0
+(observer -> cache)[0].style.opacity: 0
+(cache -> origin)[0].label: "maybe"

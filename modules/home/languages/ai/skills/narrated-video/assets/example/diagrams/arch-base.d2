@@ -1,0 +1,74 @@
+# Shared layout for s03-arch-a and s04-arch-b.
+# A grid pins every cell, so both stages keep identical node positions.
+direction: right
+style.fill: "#0f1220"
+
+classes: {
+  node: {
+    width: 330
+    height: 190
+    style: {
+      fill: "#1a1e33"
+      stroke: "#8b90a8"
+      stroke-width: 3
+      font-color: "#e6e6f0"
+      font-size: 42
+      border-radius: 14
+    }
+  }
+  ghost: {
+    width: 330
+    height: 150
+    label: ""
+    style: {
+      opacity: 0
+    }
+  }
+}
+
+grid-rows: 2
+grid-columns: 3
+horizontal-gap: 330
+vertical-gap: 170
+
+g1: {class: ghost}
+observer: "👁 Observer" {
+  class: node
+  shape: oval
+  height: 150
+  style: {
+    stroke: "#e0af68"
+    stroke-width: 5
+    font-color: "#e0af68"
+    bold: true
+  }
+}
+g2: {class: ghost}
+
+client: "Client" {class: node; style.bold: true}
+cache: {
+  class: node
+  width: 400
+  height: 220
+  style: {
+    stroke: "#7aa2f7"
+    stroke-width: 5
+    stroke-dash: 6
+    fill: "#1c2340"
+  }
+}
+origin: "Origin DB" {
+  class: node
+  shape: cylinder
+  style.bold: true
+}
+
+client -> cache: "get(user:42)" {
+  style: {stroke: "#e6e6f0"; stroke-width: 4; font-color: "#e6e6f0"; font-size: 36}
+}
+cache -> origin: {
+  style: {stroke: "#e6e6f0"; stroke-width: 4; font-color: "#e6e6f0"; font-size: 36}
+}
+observer -> cache: "observe()" {
+  style: {stroke: "#e0af68"; stroke-width: 4; font-color: "#e0af68"; font-size: 36}
+}

@@ -1,0 +1,24 @@
+{
+  "scenes": [
+    {"id": "s01-title", "visual": "slides/slide-01.png",
+     "caption": "Hi, I'm Jeff. Today I want to walk you through a caching strategy that our team definitely did not invent at two in the morning. It's called Schrödinger's Cache.",
+     "say": "Hi, I'm Jeff. Today I want to walk you through a caching strategy that our team definitely did not invent at two in the morning. It's called Shroh-dinger's Cache."},
+    {"id": "s02-problem", "visual": "slides/slide-02.png", "transition": "fade",
+     "caption": "Every cache lookup has to make a decision. Is this a hit, or is this a miss? And deciding is expensive. So we asked the obvious question. What if we just, didn't decide?"},
+    {"id": "s03-arch-a", "visual": "diagrams/s03-arch-a.png", "transition": "wipeleft",
+     "caption": "Here's the architecture. A client asks for a key. The cache holds every entry in a superposition. It is a hit and a miss at the same time, and the client gets back, well, a maybe."},
+    {"id": "s04-arch-b", "visual": "diagrams/s04-arch-b.png", "transition": "fade",
+     "caption": "Things only get real when an observer shows up. The moment anyone looks at the entry, it collapses into a definite state. Today, it collapsed into a hit, and we never touched the database."},
+    {"id": "s05-terminal", "visual": "terminal/s05-terminal.mp4", "transition": "circleopen",
+     "caption": "Let's try it. A plain get returns a superposition, and no value at all. Now we observe the key. It collapses, and it's a hit, in a third of a millisecond. Let's observe it again. And, it's a miss. Four hundred milliseconds. Observing the cache changed the outcome. The stats are honest, at least. Plus or minus one hundred percent."},
+    {"id": "s06-sequence", "visual": "diagrams/s06-sequence.png", "transition": "fade",
+     "caption": "Here's the full request flow. The client gets a maybe. Then, the observer forces a collapse. On a hit, we answer right away. On a miss, we go to the origin like any normal cache, just with more existential dread."},
+    {"id": "s07-chart", "visual": "diagrams/s07-chart.png", "transition": "slideleft",
+     "caption": "We benchmarked it. With zero observers, the hit rate is a perfect one hundred percent. Every observer you add drags it down. By thirty two observers, we're under ten percent. We call this the Heisenberg penalty."},
+    {"id": "s08-tradeoffs", "visual": "slides/slide-03.png", "transition": "fade",
+     "caption": "So, should you use it? It's great for benchmarks nobody reads, demos with the monitor turned off, and staging. It's terrible for production, because someone is always watching. Especially your on-call rotation."},
+    {"id": "s09-close", "visual": "slides/slide-04.png", "transition": "fadeblack",
+     "caption": "That's Schrödinger's Cache. Any questions? Don't worry, they'll collapse into answers once someone observes them. Thanks.",
+     "say": "That's Shroh-dinger's Cache. Any questions? Don't worry, they'll collapse into answers once someone observes them. Thanks."}
+  ]
+}

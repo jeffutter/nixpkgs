@@ -1,0 +1,67 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v6.json",
+  "width": 1560,
+  "height": 640,
+  "padding": {"left": 20, "right": 40, "top": 30, "bottom": 10},
+  "background": "#0f1220",
+  "data": {
+    "values": [
+      {"observers": 0, "hit": 100},
+      {"observers": 1, "hit": 50},
+      {"observers": 2, "hit": 38},
+      {"observers": 4, "hit": 27},
+      {"observers": 8, "hit": 19},
+      {"observers": 16, "hit": 13},
+      {"observers": 32, "hit": 9}
+    ]
+  },
+  "encoding": {
+    "x": {
+      "field": "observers",
+      "type": "ordinal",
+      "sort": null,
+      "scale": {"type": "point", "padding": 0.4},
+      "axis": {"title": "Observers", "labelAngle": 0}
+    },
+    "y": {
+      "field": "hit",
+      "type": "quantitative",
+      "scale": {"domain": [0, 110], "nice": false},
+      "axis": {"title": "Hit rate (%)", "values": [0, 25, 50, 75, 100], "grid": true}
+    }
+  },
+  "layer": [
+    {"mark": {"type": "line", "color": "#f7768e", "strokeWidth": 6, "strokeCap": "round", "strokeJoin": "round"}},
+    {"mark": {"type": "point", "filled": true, "color": "#f7768e", "size": 700, "opacity": 1, "stroke": "#0f1220", "strokeWidth": 4}},
+    {
+      "mark": {"type": "text", "dy": -34, "fontSize": 28, "color": "#e6e6f0", "fontWeight": "bold"},
+      "encoding": {"text": {"field": "hit", "type": "quantitative", "format": "d"}}
+    },
+    {
+      "mark": {"type": "text", "align": "left", "dx": 34, "dy": 8, "fontSize": 34, "color": "#e0af68", "fontWeight": "bold"},
+      "transform": [{"filter": "datum.observers == 0"}],
+      "encoding": {"text": {"value": "nobody watching: perfect"}}
+    }
+  ],
+  "config": {
+    "font": "Inter",
+    "view": {"stroke": null},
+    "axis": {
+      "labelColor": "#e6e6f0",
+      "titleColor": "#8b90a8",
+      "labelFontSize": 30,
+      "titleFontSize": 30,
+      "titleFontWeight": "normal",
+      "titlePadding": 22,
+      "labelPadding": 12,
+      "domainColor": "#8b90a8",
+      "domainWidth": 2,
+      "tickColor": "#8b90a8",
+      "tickWidth": 2,
+      "tickSize": 8,
+      "gridColor": "#2a2f4a",
+      "gridWidth": 1.5
+    },
+    "axisX": {"grid": false}
+  }
+}

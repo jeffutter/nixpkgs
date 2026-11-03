@@ -24,6 +24,7 @@ import mimetypes
 import os
 import random
 import struct
+import subprocess
 import sys
 import time
 import urllib.error
@@ -80,6 +81,30 @@ def http(method, path, body=None, headers=None, retries=3):
         # The first request after a ComfyUI upgrade or a cold start can 500 once.
         time.sleep(5)
     sys.exit(f"ComfyUI unreachable at {BASE} after {retries} tries: {last}")
+
+
+def download(url, dest, tries=4):
+    """Fetch url into dest with curl and retry until it is a whole PNG.
+
+    urllib reads through the sandbox egress proxy are truncated most of the time
+    (curl is not). A PNG ends with IEND, so a missing trailer means a short body.
+    """
+    last = "no attempt"
+    for _ in range(tries):
+        if os.path.exists(dest):
+            os.remove(dest)
+        r = subprocess.run(["curl", "-sS", "--fail", "-o", dest, url], capture_output=True, text=True)
+        if r.returncode == 0:
+            with open(dest, "rb") as f:
+                data = f.read()
+            if data.startswith(b"\x89PNG\r\n\x1a\n") and data.endswith(b"IEND\xaeB`\x82"):
+                return
+            last = f"{len(data)} bytes, not a whole PNG"
+            os.remove(dest)
+        else:
+            last = r.stderr.strip()[:300]
+        time.sleep(2)
+    sys.exit(f"download of {url} failed after {tries} tries: {last}")
 
 
 def format_error(text):
@@ -200,8 +225,7 @@ def cmd_gen(a):
     for n, img in enumerate(images, 1):
         q = urllib.parse.urlencode({"filename": img["filename"], "subfolder": img["subfolder"], "type": img["type"]})
         dest = stem if len(images) == 1 else f"{base}-{n}{ext or '.png'}"
-        with open(dest, "wb") as f:
-            f.write(http("GET", "/view?" + q))
+        download(BASE + "/view?" + q, dest)
         print(dest)
     print(f"seed={seed} time={time.time() - started:.1f}s", file=sys.stderr)
 
