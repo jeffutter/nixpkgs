@@ -49,8 +49,6 @@ These are common instructions for Jeff's agents across all scenarios.
 
 ## Git on feature branches
 
-- On any branch other than main, commit each finished, passing change without
-  asking. One commit per logical change.
 - If the branch already has an upstream or an open PR, push after you commit,
   and update the PR description when the change makes it stale. PR bodies state
   no commit counts, hashes, or test counts; they go stale.
