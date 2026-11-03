@@ -800,6 +800,11 @@ in
       };
     };
 
+    # `command` skips any `claude` alias, such as the work host's default-model one.
+    home.shellAliases = lib.genAttrs [ "opus" "sonnet" "haiku" "fable" ] (
+      model: "command claude --model ${model}"
+    );
+
     programs.claude-code = {
       enable = true;
       package = pkgs.claude-code;
