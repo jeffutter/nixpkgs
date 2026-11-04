@@ -8,6 +8,7 @@
 
 let
   agent-browser = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.agent-browser;
+  agent-slack = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.agent-slack;
   pi-acp = pkgs.callPackage ../../../pkgs/pi-acp { };
   claude-agent-acp = pkgs.callPackage ../../../pkgs/claude-agent-acp { };
   backlog-md-upstream = inputs.backlog-md.packages.${pkgs.stdenv.hostPlatform.system}.default;
@@ -1156,6 +1157,7 @@ in
         acli = ./ai/skills/acli;
         actual-cli = ./ai/skills/actual-cli;
         agent-browser = "${agent-browser}/share/agent-browser/skills/agent-browser";
+        agent-slack = "${agent-slack}/share/skills/agent-slack/agent-slack";
         ast-grep = "${ast-grep-skill}/ast-grep/skills/ast-grep";
         backlog-execute = ./ai/skills/backlog-execute;
         backlog-planner = ./ai/skills/backlog-planner;
