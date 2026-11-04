@@ -42,6 +42,22 @@ The exclusion holds only when the whole Bash call is one bare invocation:
 - Do not run `git worktree add`; it cannot lock `.git/config` here. Use the
   `spawn-worktree` skill or ask.
 
+### The sandbox write-deny list covers Bash only
+
+The sandbox config in your system prompt lists `.claude/skills`, `.claude/hooks`,
+`~/.claude/*` and others under `denyWithinAllow`. That list applies only to
+Bash commands. The Write and Edit tools do not run in the sandbox and can
+write there.
+
+- To create or change a file under a project's `.claude/skills` or
+  `.claude/hooks`, call Write or Edit. Do not skip the write, and do not tell
+  me it is blocked, until a Write or Edit call returns an error.
+- `cp`, `mv`, `rm`, `sed -i` and redirects into those paths fail in Bash with
+  `Operation not permitted`. To move or delete a file there, Read it and Write
+  the new copy, then ask me to remove the old one.
+- `~/.claude/skills` and the other `~/.claude` paths that nix manages are
+  `/nix/store` symlinks. Change them in this repo instead (see Environment).
+
 ### Subagents and git
 
 A subagent's cwd resets before every Bash call, so it cannot run a bare git or
