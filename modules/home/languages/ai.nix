@@ -218,6 +218,26 @@ let
     ];
     text = builtins.readFile ./ai/statusline.sh;
   };
+  # Per-session spoken replies: `/talk` toggles it, a UserPromptSubmit hook
+  # adds listening rules, and a Stop hook reads the reply aloud.
+  voiceMode = pkgs.writeShellApplication {
+    name = "voice-mode";
+    runtimeInputs = [
+      pkgs.jq
+      pkgs.gawk
+      pkgs.gnused
+      pkgs.coreutils
+    ];
+    text = ''
+      VOICE_TTS=${ttsSpeechSkill}/scripts/tts
+    ''
+    + builtins.readFile ./ai/hooks/voice-mode.sh;
+  };
+  talkSkill = pkgs.runCommand "talk-skill" { } ''
+    mkdir -p $out
+    substitute ${./ai/skills/talk/SKILL.md} $out/SKILL.md \
+      --replace-fail '@voice-mode@' '${voiceMode}/bin/voice-mode'
+  '';
   # `herdr --skill` prints herdr's bundled agent skill file and is the
   # documented extraction point for this (see `herdr --help`); prefer it over
   # reading the skill file out of the source tree directly, since that
@@ -845,13 +865,13 @@ in
         installMethod = "manual";
         modelSettings."claude-opus-5-5".effortLevel = config.jeff.claudeEffortLevel;
         outputStyle = "concise";
+        remoteControlAtStartup = false;
         statusLine = {
           type = "command";
           command = "${claudeStatusline}/bin/claude-statusline";
           # Keeps the cache countdown moving while the session sits idle.
           refreshInterval = 30;
         };
-        remoteControlAtStartup = false;
         skipInstallOnStartup = true;
         skipWorkflowUsageWarning = true;
         sandbox = {
@@ -1014,6 +1034,10 @@ in
                   type = "command";
                   command = worktrunkMarkerCommand "🤖";
                 }
+                {
+                  type = "command";
+                  command = "${voiceMode}/bin/voice-mode inject";
+                }
               ];
             }
           ]
@@ -1035,6 +1059,10 @@ in
                 {
                   type = "command";
                   command = worktrunkMarkerCommand "💬";
+                }
+                {
+                  type = "command";
+                  command = "${voiceMode}/bin/voice-mode speak";
                 }
               ];
             }
@@ -1202,6 +1230,7 @@ in
         wt-switch-create = "${worktrunkPluginRoot}/skills/wt-switch-create";
         yue2-song = "${yue2SongSkill}";
         tts-speech = "${ttsSpeechSkill}";
+        talk = "${talkSkill}";
         stt-transcribe = "${sttTranscribeSkill}";
         narrated-video = "${narratedVideoSkill}";
         comfyui-spark = "${comfyuiSkills}/comfyui-spark";
