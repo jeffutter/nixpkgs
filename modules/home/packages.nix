@@ -70,6 +70,7 @@ in
     gnupg
     gnused
     htop
+    hunk
     hyperfine
     ijq
     imagemagick
