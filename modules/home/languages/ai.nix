@@ -132,6 +132,8 @@ let
 
   claude-tail = inputs.claude-tail.packages.${pkgs.stdenv.hostPlatform.system}.default;
   herdr = inputs.herdr.packages.${pkgs.stdenv.hostPlatform.system}.default;
+  herdr-core = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.herdr-core;
+  herdr-app = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.herdr-app;
   herdrConfig = {
     onboarding = false;
     theme = {
@@ -139,7 +141,7 @@ let
       auto_switch = false;
     };
     ui = {
-      agent_panel_sort = "spaces";
+      agent_panel_sort = "priority";
       show_agent_labels_on_pane_borders = true;
       toast.delivery = "herdr";
     };
@@ -147,8 +149,9 @@ let
       prefix = "ctrl+a";
       # open_worktree = "prefix+shift+o";
       # remove_worktree = "prefix+alt+d";
-      focus_agent = "prefix+alt+1..9";
-      previous_agent = "prefix+P";
+      focus_agent = "prefix+shift+1..9";
+      previous_agent = "prefix+<";
+      next_agent = "prefix+>";
       next_workspace = "prefix+]";
       previous_workspace = "prefix+[";
       focus_pane_left = "prefix+left";
@@ -205,6 +208,245 @@ let
         }
       ];
     };
+  };
+
+  # herdr-app (the desktop app) reads ~/.config/herdr-app, not herdr's config.toml.
+  # An action is { command, args }, { overlay } (opened with the space and folder), or { keys }.
+  herdrAppCommand = command: args: { inherit command args; };
+  # Sizes match the shipped new-menu and menu mods' worktree dialogs.
+  herdrAppWorktree = action: width: height: {
+    overlay = {
+      mod = "worktree";
+      kind = "dialog";
+      inherit width height;
+      props = { inherit action; };
+    };
+  };
+  # Keys outside the prefix whose command needs more than one argument open a one-shot action mod.
+  herdrAppActions = {
+    key-hunk = herdrAppCommand "pane.split" {
+      direction = "right";
+      argv = [
+        "hunk"
+        "diff"
+      ];
+    };
+  };
+  # What ctrl-a then <key> does, keyed by the typed character or, for keys that type none, the
+  # keystroke. Old herdr's built-in prefix defaults with a herdr-app command, then config.toml binds.
+  # `section` and `label` feed the ctrl-a ? panel in list order; one row per `group` or label.
+  herdrAppPrefixList =
+    let
+      c = herdrAppCommand;
+      bind =
+        section: key: label: action:
+        action // { inherit section key label; };
+      tab = bind "Tabs";
+      space = bind "Spaces";
+      pane = bind "Panes";
+      agent = bind "Agents";
+      work = bind "Files and worktrees";
+      app = bind "App";
+      go = key: direction: pane key "Focus pane ${direction}" (c "pane.go" { inherit direction; });
+    in
+    [
+      (tab "c" "New tab" (c "tab.new" { }))
+      (tab "n" "Next tab" (c "tab.next" { }))
+      (tab "p" "Previous tab" (c "tab.prev" { }))
+    ]
+    ++ map (
+      n: tab (toString n) "Select tab by number" (c "tab.select" { index = n; }) // { group = "1-9"; }
+    ) (lib.range 1 9)
+    ++ [
+      (tab "T" "Rename tab" (c "tab.rename" { }))
+      (tab "X" "Close tab" (c "tab.close" { }))
+      (space "N" "New space" (c "space.new" { }))
+      (space "]" "Next space" (c "space.next" { }))
+      (space "[" "Previous space" (c "space.prev" { }))
+      (space "w" "Pick a space or tab" (c "mod.open" { name = "picker"; }))
+      (space "W" "Rename space" (c "space.rename" { }))
+      (space "D" "Close space" (c "space.close" { }))
+      (go "h" "left")
+      (go "left" "left")
+      (go "j" "down")
+      (go "down" "down")
+      (go "k" "up")
+      (go "up" "up")
+      (go "l" "right")
+      (go "right" "right")
+      (pane "v" "Split right" (c "pane.split" { direction = "right"; }))
+      (pane "-" "Split down" (c "pane.split" { direction = "down"; }))
+      (pane "z" "Zoom pane" (c "pane.zoom" { }))
+      (pane "x" "Close pane" (c "pane.close" { }))
+      (agent ">" "Next agent" (c "agent.next" { }))
+      (agent "<" "Previous agent" (c "agent.prev" { }))
+      (work "f" "Files beside this pane" (
+        c "pane.split" {
+          direction = "right";
+          mod = "files";
+        }
+      ))
+      (work "F" "Files in a new tab" (
+        c "tab.new" {
+          name = "files";
+          mod = "files";
+        }
+      ))
+      (work "G" "Open worktree" (herdrAppWorktree "open" 560 480))
+      (work "O" "Open worktree" (herdrAppWorktree "open" 560 480))
+      (work "C" "New worktree from this branch" (herdrAppWorktree "new" 460 280))
+      (work "E" "Remove worktree" (herdrAppWorktree "remove" 440 260))
+      (app "b" "Toggle sidebar" (c "layout.toggle" { id = "sidebar"; }))
+      (app "s" "Settings" (c "app.settings" { }))
+      (app "?" "These keys" (c "mod.open" { name = "prefix-help"; }))
+      (app "ctrl-a" "Send ctrl-a to the terminal" { keys = "ctrl+a"; })
+    ];
+  herdrAppPrefixMod =
+    source:
+    pkgs.replaceVars source {
+      prefixLib = builtins.replaceStrings [ "@bindings@" ] [ (builtins.toJSON herdrAppPrefixList) ] (
+        builtins.readFile ./ai/herdr-app/prefix-lib.js
+      );
+    };
+  herdrAppModFiles =
+    lib.concatMapAttrs (name: action: {
+      "herdr-app/mods/${name}/main.js".source = pkgs.replaceVars ./ai/herdr-app/action.js {
+        action = builtins.toJSON action;
+      };
+      "herdr-app/mods/${name}/mod.json".text = builtins.toJSON {
+        place = "none";
+        overlay = {
+          kind = "popup";
+          width = 1;
+          height = 1;
+          frame = "none";
+        };
+      };
+    }) herdrAppActions
+    // {
+      "herdr-app/mods/prefix/main.js".source = herdrAppPrefixMod ./ai/herdr-app/prefix.js;
+      "herdr-app/mods/prefix/mod.json".text = builtins.toJSON {
+        place = "none";
+        overlay = {
+          kind = "popup";
+          at = "top";
+          offset = 40;
+          width = 340;
+          height = 40;
+        };
+      };
+      "herdr-app/mods/prefix-help/main.js".source = herdrAppPrefixMod ./ai/herdr-app/prefix-help.js;
+      "herdr-app/mods/prefix-help/mod.json".text = builtins.toJSON {
+        place = "none";
+        overlay = {
+          kind = "dialog";
+          width = 720;
+          height = 560;
+        };
+      };
+    };
+  herdrAppPrefixKeys = {
+    "cmd-r" = "mod.open:key-hunk";
+  };
+  # A user keys.json replaces herdr-app's whole default map, so the defaults are repeated here.
+  herdrAppKeys =
+    let
+      # Nix strings have no \u escapes; decode the JSON escape instead.
+      send = escape: "send:" + builtins.fromJSON ''"${escape}"'';
+    in
+    {
+      global = {
+        "cmd-q" = "app.quit";
+        "cmd-h" = "app.hide";
+        "cmd-alt-h" = "app.hide_others";
+        "cmd-t" = "tab.new";
+        "cmd-w" = "tab.close";
+        "ctrl-tab" = "tab.next";
+        "ctrl-shift-tab" = "tab.prev";
+        "cmd-shift-]" = "tab.next";
+        "cmd-shift-[" = "tab.prev";
+        "cmd-alt-]" = "space.next";
+        "cmd-alt-[" = "space.prev";
+        "cmd-]" = "agent.next";
+        "cmd-[" = "agent.prev";
+        "cmd-shift-l" = "layout.switch";
+        "cmd-n" = "space.new";
+        "cmd-p" = "mod.open:picker";
+        "cmd-shift-p" = "app.palette";
+        "cmd-," = "app.settings";
+        "cmd-d" = "pane.split:right";
+        "cmd-shift-d" = "pane.split:down";
+        "cmd-shift-w" = "pane.close";
+        "cmd-shift-enter" = "pane.zoom";
+        "cmd-alt-left" = "pane.go:left";
+        "cmd-alt-right" = "pane.go:right";
+        "cmd-alt-up" = "pane.go:up";
+        "cmd-alt-down" = "pane.go:down";
+        "cmd-alt-shift-left" = "pane.swap:left";
+        "cmd-alt-shift-right" = "pane.swap:right";
+        "cmd-alt-shift-up" = "pane.swap:up";
+        "cmd-alt-shift-down" = "pane.swap:down";
+        "f2" = "tab.rename";
+        "shift-f2" = "space.rename";
+        "cmd-/" = "app.help";
+        "cmd-shift-/" = "app.help";
+        "cmd-b" = "layout.toggle:sidebar";
+        "cmd-=" = "app.zoom_in";
+        "cmd-+" = "app.zoom_in";
+        "cmd--" = "app.zoom_out";
+        "cmd-0" = "app.zoom_reset";
+      }
+      // lib.listToAttrs (
+        lib.concatMap (
+          n:
+          let
+            i = toString n;
+          in
+          [
+            (lib.nameValuePair "cmd-${i}" "tab.select:${i}")
+            (lib.nameValuePair "ctrl-${i}" "space.select:${i}")
+          ]
+        ) (lib.range 1 9)
+      )
+      // herdrAppPrefixKeys;
+      terminal = {
+        "cmd-c" = "terminal.copy";
+        "cmd-v" = "terminal.paste";
+        "ctrl-v" = "terminal.paste_image";
+        "alt-left" = send ''\u001bb'';
+        "alt-right" = send ''\u001bf'';
+        "alt-backspace" = send ''\u0017'';
+        "cmd-left" = send ''\u0001'';
+        "cmd-right" = send ''\u0005'';
+        "cmd-backspace" = send ''\u0015'';
+        # Terminal only: a global ctrl-a fires too, and mod.open toggles the popup shut again.
+        "ctrl-a" = "mod.open:prefix";
+      };
+    };
+  # Same slot mapping as Stylix's Ghostty target, so herdr-app terminals match Ghostty.
+  herdrAppTheme = with config.lib.stylix.colors.withHashtag; {
+    background = base00;
+    foreground = base05;
+    cursor = base05;
+    selection = base02;
+    ansi = [
+      base00
+      base08
+      base0B
+      base0A
+      base0D
+      base0E
+      base0C
+      base05
+      base03
+      base08
+      base0B
+      base0A
+      base0D
+      base0E
+      base0C
+      base07
+    ];
   };
   moshi-hook = pkgs.callPackage ../../../pkgs/moshi-hook { };
   zvec-grep = pkgs.callPackage ../../../pkgs/zvec-grep { };
@@ -455,6 +697,8 @@ in
         claude-agent-acp
         claude-tail
         herdr
+        herdr-app
+        herdr-core
         moshi-hook
         pi
         pi-acp
@@ -474,11 +718,31 @@ in
       ZVEC_GREP_EMBEDDING = "local/jina-embeddings-v2-base-code";
     };
 
-    xdg.configFile."kami/brand.md".source = config.jeff.kamiSkillBrand;
+    # Per-file links keep the herdr-app mod folders writable; it writes jsconfig.json and .d.ts there.
+    xdg.configFile = herdrAppModFiles // {
+      "kami/brand.md".source = config.jeff.kamiSkillBrand;
 
-    xdg.configFile."herdr/config.toml".source =
-      (pkgs.formats.toml { }).generate "herdr-config.toml"
-        herdrConfig;
+      "herdr/config.toml".source = (pkgs.formats.toml { }).generate "herdr-config.toml" herdrConfig;
+
+      "herdr-app/keys.json" = {
+        text = builtins.toJSON herdrAppKeys;
+        force = true;
+      };
+      "herdr-app/themes/stylix.json".text = builtins.toJSON herdrAppTheme;
+    };
+
+    # herdr-app rewrites settings.json (zoom, Settings screen), so merge only theme, font and ui_font into it.
+    home.activation.herdrAppSettings = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      settings="${config.xdg.configHome}/herdr-app/settings.json"
+      run mkdir -p "$(dirname "$settings")"
+      [ -s "$settings" ] || run sh -c 'echo "{}" > "$1"' _ "$settings"
+      tmp="$(mktemp)"
+      ${pkgs.jq}/bin/jq --arg font ${lib.escapeShellArg config.stylix.fonts.monospace.name} \
+        '.theme = "stylix" | .font = $font | .ui_font = $font' "$settings" > "$tmp"
+      # cp onto the existing file keeps its owner and mode; mv would leave mktemp's 0600.
+      run cp "$tmp" "$settings"
+      rm -f "$tmp"
+    '';
 
     # `herdr integration install pi`/`claude` would normally drop these files
     # itself and (for claude) rewrite settings.json to add the SessionStart
@@ -889,13 +1153,15 @@ in
           excludedCommands = [
             "acli *"
             "backlog *"
-            "herdr *"
-            "mkdir *"
-            "nix build *"
-            "nix eval *"
             "cargo *"
             "gh *"
             "git *"
+            "hc *"
+            "herdr *"
+            "herdr-app *"
+            "mkdir *"
+            "nix build *"
+            "nix eval *"
           ];
           filesystem = {
             allowWrite = [
@@ -911,7 +1177,10 @@ in
               "[::1]"
             ];
             allowLocalBinding = true;
-            allowUnixSockets = [ "~/.config/herdr/herdr.sock" ];
+            allowUnixSockets = [
+              "~/.config/herdr/herdr.sock"
+              "~/.local/state/herdr-core/default/default.sock"
+            ];
           };
         };
         tui = "fullscreen";
@@ -1225,6 +1494,7 @@ in
         explain-diff-video = ./ai/skills/explain-diff-video;
         graphql-schema-html = ./ai/skills/graphql-schema-html;
         herdr = "${herdr-skill}";
+        herdr-core = "${herdr-core}/share/skills/herdr-core/herdr-core";
         humanizer = "${humanizer}";
         kami = "${kami}/skills/kami";
         pi-authoring = "${pi-authoring-skill}";
