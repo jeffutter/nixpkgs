@@ -148,8 +148,13 @@ let
       # open_worktree = "prefix+shift+o";
       # remove_worktree = "prefix+alt+d";
       focus_agent = "prefix+alt+1..9";
-      next_agent = "prefix+N";
       previous_agent = "prefix+P";
+      next_workspace = "prefix+]";
+      previous_workspace = "prefix+[";
+      focus_pane_left = "prefix+left";
+      focus_pane_down = "prefix+down";
+      focus_pane_up = "prefix+up";
+      focus_pane_right = "prefix+right";
       command = [
         {
           # open in a split beside your work
@@ -166,11 +171,11 @@ let
           description = "File Vewer: Open Tab";
         }
         {
-          # <plugin_id>.<action_id> -- note the id, not the name
+          # temporary pane; closes when hunk exits
           key = "cmd+r";
-          type = "plugin_action";
-          command = "persiyanov.reviewr.toggle";
-          description = "Reviewer: Toggle";
+          type = "pane";
+          command = "hunk diff";
+          description = "Hunk: review working tree changes";
         }
         {
           # override herdr's built-in "new worktree" key with worktrunk's
@@ -181,13 +186,19 @@ let
           description = "Worktree: switch / create from default branch";
         }
         {
+          key = "prefix+shift+o";
+          type = "plugin_action";
+          command = "worktrunk.open";
+          description = "Worktree: open existing or create from default branch";
+        }
+        {
           key = "prefix+shift+c";
           type = "plugin_action";
           command = "worktrunk.open-current";
           description = "Worktree: switch / create from current branch";
         }
         {
-          key = "prefix+shift+d";
+          key = "prefix+shift+e";
           type = "plugin_action";
           command = "worktrunk.remove";
           description = "Worktree: remove";
