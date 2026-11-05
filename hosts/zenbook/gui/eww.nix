@@ -336,7 +336,7 @@ in
     $r: 8px;
 
     * {
-      font-family: "MonaspiceNe Nerd Font", "Font Awesome 6 Free Solid";
+      font-family: "Maple Mono NF", "Font Awesome 6 Free Solid";
       font-size: 11px;
       color: $fg;
       border: none;

@@ -13,7 +13,7 @@ Fixed values:
 - You cannot hear audio. The user judges voice likeness, pacing, and emotion by ear.
 
 Models:
-- `breeze` (Breeze TTS 2, 3.5B, English/Chinese): the default for Jeff's voice. Calm, even delivery is preset on the `jeff` voice. About 12s for a short line. Weights are non-commercial. Voice design through `--option instruct="Speak in a ..."` is configured on the server but unchecked through this tool.
+- `breeze` (Breeze TTS 2, 3.5B, English/Chinese): the default for Jeff's voice. Calm, even delivery is preset on the `jeff` voice. About 12s for a short line. Weights are non-commercial. Style is set with `--option instruct="..."` plus `--option guidance_scale=N` (see Expressiveness).
 - `higgs` (Higgs Audio v3 TTS 4B, 100+ languages): use for non-English text or when the user wants to compare against Breeze. Same `jeff` voice, stock sampling. About 14s for a short line.
 - `kokoro` (Kokoro 82M, aliases `tts-1`, `tts`): fast (about 1.5s) and has 54 stock voices, but no cloning. Use for drafts, long text, or when the user wants a voice that is not Jeff's. The default voice is `af_heart`. Voice ids start with `af_`/`am_` (American) or `bf_`/`bm_` (British), female then male. OpenAI voice names (`alloy`, `coral`) are mapped to Kokoro voices by a shim.
 
@@ -37,7 +37,19 @@ Steps:
 
 5. Report the path, model, voice, and approximate length. Ask the user to judge the qualities you cannot hear: likeness, pacing, mispronounced words. Name the words most likely to be wrong (names, acronyms).
 
-6. Iterate on one variable per round: text wording, then voice, then model. Repeat calls are not seeded, so two takes of the same text differ slightly.
+6. Iterate on one variable per round: text wording, then voice, then model. Without `--option seed=N`, two takes of the same text differ slightly. With a seed, the same request gives the same audio on `breeze` and `higgs`. Opus files still differ in bytes, because of a random Ogg stream serial.
+
+Expressiveness (verified through this tool):
+- Defaults for Jeff's voice, in order:
+  1. `breeze` with `--option instruct="Speak in a relaxed, friendly, conversational tone, like explaining something interesting to a colleague." --option guidance_scale=2`. Use this unless told otherwise.
+  2. Backup: `higgs` with `<|prosody:expressive_high|>` at the start of the text.
+  3. `higgs` with `<|emotion:enthusiasm|>` at the start only for a really enthusiastic read.
+- Breeze `guidance_scale` defaults to 1.0, which turns guidance off. Then `instruct` barely changes the audio. 2 is the chosen middle. 4 is over the top and can sound less like Jeff.
+- Higgs ignores `instruct`. It takes inline tags in the text, `<|category:tag|>`: `<|emotion:...|>`, `<|prosody:expressive_high|>`, `<|prosody:pause|>`, `<|sfx:laughter|>Haha`. Emotion and prosody tags go at the start of a sentence.
+- Breeze card lists `(laugh)`, `(cough)`, `(sigh)` as text tags. The sound is unchecked by ear.
+- `--option seed=N` makes a take repeatable. Use one seed to compare settings.
+- `exaggeration` is ignored. `speed` returns HTTP 500 on `breeze`.
+- Sandbox: `tts` downloads with curl and retries a short body. Urllib got truncated audio through the egress proxy. Observed, cause unknown.
 
 When something fails:
 - Timeout or a slow first call: the model is loading, or the user's chat model and TTS are evicting each other. Wait, then rerun. Ask the user whether they are chatting if it repeats.

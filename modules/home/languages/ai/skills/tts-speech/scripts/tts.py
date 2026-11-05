@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """Text-to-speech through an OpenAI-compatible /v1/audio/speech endpoint.
 
-Stdlib only. The endpoint is a base URL (llama-swap by default); --api or the
+Stdlib plus curl on PATH. The endpoint is a base URL (llama-swap by default); --api or the
 TTS_API environment variable points it elsewhere.
 """
 import argparse
 import json
 import os
+import subprocess
 import sys
-import urllib.error
 import urllib.request
 
 DEFAULT_API = os.environ.get("TTS_API", "https://llama.home.jeffutter.com/v1")
@@ -51,21 +51,42 @@ def cmd_say(args):
         except ValueError:
             pass
         body[key] = val
-    req = urllib.request.Request(
-        base_url(args.api) + "/audio/speech",
-        data=json.dumps(body).encode(),
-        headers={"Content-Type": "application/json"},
-    )
-    try:
-        with urllib.request.urlopen(req, timeout=args.timeout) as r:
-            audio = r.read()
-    except urllib.error.HTTPError as e:
-        sys.exit(f"HTTP {e.code}: {e.read().decode(errors='replace')[:500]}")
     out = args.out or f"speech-{args.model}-{args.voice}.{args.format}"
-    with open(out, "wb") as f:
-        f.write(audio)
+    audio = fetch(base_url(args.api) + "/audio/speech", json.dumps(body), args.timeout, out)
     print(out)
-    print(f"model={args.model} voice={args.voice} bytes={len(audio)}", file=sys.stderr)
+    print(f"model={args.model} voice={args.voice} bytes={audio}", file=sys.stderr)
+
+
+# Exit codes where curl saw a short or reset body: retry. HTTP errors (22) are final.
+RETRY_EXIT = {18, 52, 55, 56, 92}
+
+
+def fetch(url: str, payload: str, timeout: int, out: str, attempts: int = 3) -> int:
+    """POST with curl and write OUT only after curl reports a complete body.
+
+    The sandbox egress proxy truncates urllib reads of this endpoint; curl does not, and
+    exits 18 on a short body.
+    """
+    tmp = out + ".part"
+    for attempt in range(1, attempts + 1):
+        proc = subprocess.run(
+            ["curl", "-sS", "--fail-with-body", "--max-time", str(timeout), "-X", "POST",
+             "-H", "Content-Type: application/json", "--data-binary", "@-", "-o", tmp, url],
+            input=payload.encode(), capture_output=True,
+        )
+        if proc.returncode == 0 and os.path.getsize(tmp) > 0:
+            os.replace(tmp, out)
+            return os.path.getsize(out)
+        if proc.returncode == 22:
+            msg = open(tmp, encoding="utf-8", errors="replace").read()[:500] if os.path.exists(tmp) else ""
+            os.path.exists(tmp) and os.remove(tmp)
+            sys.exit(f"HTTP error: {msg or proc.stderr.decode(errors='replace')[:500]}")
+        print(f"attempt {attempt}/{attempts} failed (curl exit {proc.returncode})", file=sys.stderr)
+        if proc.returncode not in RETRY_EXIT and proc.returncode != 0:
+            break
+    if os.path.exists(tmp):
+        os.remove(tmp)
+    sys.exit(f"download failed: {proc.stderr.decode(errors='replace')[:300]}")
 
 
 def main():

@@ -1,6 +1,6 @@
 ---
 name: diff-explanation-core
-description: Shared rules for explaining a code change with intuition, toy examples and diagrams. Loaded by explain-diff-html and explain-pr-body. Do not use directly.
+description: Shared rules for explaining a code change with intuition, toy examples and diagrams. Loaded by explain-diff-html, explain-pr-body and explain-diff-video. Do not use directly.
 ---
 
 # Diff explanation core
@@ -33,6 +33,6 @@ The rules that every explanation of a code change shares, whatever the output me
   - A before/after pair, with the same layout on both sides.
   - Pass and fail examples side by side, for a rule or validation.
 - If the change touches GraphQL SDL, use the `graphql-schema-html` skill in figures-only mode (containment tree, diff mode, annotated wireframe). Paste its `<style>` block once.
-- Never draw ASCII diagrams. Build every diagram in simple HTML and CSS, and use HTML lists for lists.
+- Never draw ASCII diagrams. Build every diagram in simple HTML and CSS, and use HTML lists for lists, unless the calling skill names other renderers.
 - Code in a diagram uses `<pre>`. A styled `div` in place of `<pre>` must set `white-space: pre-wrap`, or the browser collapses newlines. Before you save, check every code block for `white-space: pre` or `pre-wrap`.
 - Color carries meaning: green for passes or the new behavior, red for fails or the removed behavior, grey for neutral. Keep each figure under about 900px wide.

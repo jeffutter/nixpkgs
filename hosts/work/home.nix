@@ -142,20 +142,28 @@ in
 
   programs.claude-code.agents = pupAgents;
 
-  # jira-axi shells out to acli and confluence-axi keeps its API token in the
-  # keychain; neither works sandboxed.
+  # jira-axi shells out to acli; confluence-axi and agent-slack keep their tokens
+  # in the keychain. None of them work sandboxed.
   programs.claude-code.settings.sandbox.excludedCommands = [
+    "agent-slack *"
     "confluence-axi *"
     "jira-axi *"
   ];
 
   programs.claude-code.settings.permissions.allow = [
+    "Bash(agent-slack *)"
     "Bash(confluence-axi *)"
     "Bash(jira-axi *)"
   ];
 
   programs.claude-code.settings.sandbox.filesystem.allowWrite = [
     "~/theScore/*/.git/**"
+  ];
+
+  programs.claude-code.settings.sandbox.network.allowedDomains = [
+    "slack.com"
+    "*.slack.com"
+    "*.slack-edge.com"
   ];
 
   jeff.kamiSkillBrand = ./kami/brand.md;

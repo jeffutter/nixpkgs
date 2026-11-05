@@ -14,6 +14,7 @@
     nerd-fonts.hasklug
     nerd-fonts.iosevka
     nerd-fonts.jetbrains-mono
+    maple-mono.NF
     nerd-fonts.monaspace
     nerd-fonts.monoid
     nerd-fonts.sauce-code-pro

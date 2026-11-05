@@ -1,0 +1,15 @@
+sequenceDiagram
+  participant C as Client
+  participant S as SchrödiCache
+  participant O as Observer
+  participant D as Origin DB
+  C->>S: get(user:42)
+  S-->>C: maybe
+  O->>S: observe(user:42)
+  alt collapses to HIT
+    S-->>O: value (0.3ms)
+  else collapses to MISS
+    S->>D: fetch(user:42)
+    D-->>S: value
+    S-->>O: value (412ms)
+  end

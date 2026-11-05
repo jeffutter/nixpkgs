@@ -3,6 +3,7 @@
   runCommand,
   makeWrapper,
   python3,
+  curl,
 }:
 
 # ComfyUI image generation on the dgx-spark (named comfyui-spark because Hermes
@@ -27,6 +28,7 @@ runCommand "comfyui-skills" { nativeBuildInputs = [ makeWrapper ]; } ''
     substituteInPlace $s --replace-fail '@skills@/' "$out/"
   done
   makeWrapper ${python3}/bin/python3 $out/comfyui-spark/scripts/comfy \
+    --prefix PATH : ${lib.makeBinPath [ curl ]} \
     --set-default COMFY_HOST http://192.168.10.14:8000/upstream/comfyui \
     --add-flags $out/comfyui-spark/scripts/comfy.py
 ''

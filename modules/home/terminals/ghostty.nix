@@ -4,10 +4,7 @@
   programs.ghostty = {
     settings = {
       shell-integration-features = "no-cursor";
-      # Stylix handles: font-family (Neon), font-size, theme/colors
-      # Use Radon for italic variants
-      font-family-italic = "MonaspiceRn Nerd Font";
-      font-family-bold-italic = "MonaspiceRn Nerd Font";
+      # Stylix handles: font-family, font-size, theme/colors
       font-thicken = false;
       font-feature = [
         "ss01"
@@ -18,7 +15,6 @@
         "ss06"
         "ss07"
         "ss08"
-        "ss09"
         "calt"
         "liga"
       ];
