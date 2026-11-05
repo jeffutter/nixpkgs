@@ -25,6 +25,6 @@ runCommand "yue2-song-skill" { nativeBuildInputs = [ makeWrapper ]; } ''
     --set-default YUE2_API http://192.168.10.14:8000 \
     --set-default YUE2_MODEL audio-cpp/Yue2-3B-GGUF \
     --set-default STT_API http://192.168.10.4:8089 \
-    --set-default STT_MODEL whisper-large-v3-turbo \
+    --set-default STT_MODEL whisper-1 \
     --add-flags $out/scripts/yue2.py
 ''
