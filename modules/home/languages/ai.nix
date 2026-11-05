@@ -1211,6 +1211,7 @@ in
         excalidraw-diagram = "${excalidraw-diagram-skill-wrapped}";
         explain-diff-html = ./ai/skills/explain-diff-html;
         explain-pr-body = ./ai/skills/explain-pr-body;
+        explain-diff-video = ./ai/skills/explain-diff-video;
         graphql-schema-html = ./ai/skills/graphql-schema-html;
         herdr = "${herdr-skill}";
         humanizer = "${humanizer}";
