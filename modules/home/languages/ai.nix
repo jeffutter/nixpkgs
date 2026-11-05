@@ -209,6 +209,15 @@ let
     ];
     text = builtins.readFile ./ai/hooks/zg-hint.sh;
   };
+  claudeStatusline = pkgs.writeShellApplication {
+    name = "claude-statusline";
+    runtimeInputs = [
+      pkgs.jq
+      pkgs.git
+      pkgs.coreutils
+    ];
+    text = builtins.readFile ./ai/statusline.sh;
+  };
   # `herdr --skill` prints herdr's bundled agent skill file and is the
   # documented extraction point for this (see `herdr --help`); prefer it over
   # reading the skill file out of the source tree directly, since that
@@ -836,6 +845,12 @@ in
         installMethod = "manual";
         modelSettings."claude-opus-5-5".effortLevel = config.jeff.claudeEffortLevel;
         outputStyle = "concise";
+        statusLine = {
+          type = "command";
+          command = "${claudeStatusline}/bin/claude-statusline";
+          # Keeps the cache countdown moving while the session sits idle.
+          refreshInterval = 30;
+        };
         remoteControlAtStartup = false;
         skipInstallOnStartup = true;
         skipWorkflowUsageWarning = true;
