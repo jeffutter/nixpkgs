@@ -236,7 +236,7 @@ let
   # Sizes match the shipped new-menu and menu mods' worktree dialogs.
   herdrAppWorktree = action: width: height: {
     overlay = {
-      mod = "worktree";
+      mod = "my-worktree";
       kind = "dialog";
       inherit width height;
       props = { inherit action; };
@@ -370,6 +370,73 @@ let
   herdrAppPrefixKeys = {
     "cmd-r" = "mod.open:key-hunk";
   };
+  # herdr-app's shipped mods exist only inside its binary, which writes them to its home on
+  # start. Run it once against a scratch home, copy each mod this config changes to my-<name>,
+  # and apply ai/herdr-app/patches/<name>.patch with no fuzz: a herdr-app update that moves
+  # the patched lines fails this build instead of leaving a stale clone.
+  # Logic lives in whole files under ai/herdr-app/mod-files/<name>/, appended to the patched
+  # main.js (herdr-app rejects a sibling import that is a symlink into the store), so a patch is
+  # only a few call sites. my-worktree runs worktrunk instead of git (worktrunk.js); my-agents
+  # draws each agent's space avatar (space-mark.js); my-menu, my-new-menu, my-spaces and my-tabs
+  # only open the my-* mods. `herdr-app check` then fails the build on a name the appended code
+  # needs from main.js's imports and no longer finds.
+  herdrAppCloneFileNames = {
+    agents = [ ];
+    worktree = [ ];
+    menu = [ ];
+    new-menu = [ ];
+    spaces = [ ];
+    tabs = [
+      "win-close.svg"
+      "win-max.svg"
+      "win-min.svg"
+      "win-restore.svg"
+    ];
+  };
+  herdrAppClones = pkgs.runCommand "herdr-app-clones" { nativeBuildInputs = [ pkgs.coreutils ]; } ''
+    export HOME="$TMPDIR" HERDR_APP_HOME="$TMPDIR/herdr-app-home"
+    mkdir -p "$HERDR_APP_HOME"
+    ${herdr-app}/bin/herdr-app >"$TMPDIR/herdr-app.log" 2>&1 &
+    pid=$!
+    # It seeds its mods on start, before it needs a window; stop it once they are written.
+    for _ in $(seq 150); do
+      [ -f "$HERDR_APP_HOME/installed.json" ] && [ -f "$HERDR_APP_HOME/mods/worktree/main.js" ] && break
+      sleep 0.2
+    done
+    sleep 1
+    kill "$pid" 2>/dev/null || true
+    [ -f "$HERDR_APP_HOME/mods/worktree/main.js" ] || { cat "$TMPDIR/herdr-app.log"; echo "herdr-app wrote no mods"; exit 1; }
+    mkdir -p "$out"
+    ${lib.concatMapStrings (name: ''
+      cp -r --no-preserve=mode "$HERDR_APP_HOME/mods/${name}" "$out/my-${name}"
+      patch --fuzz=0 -p1 -d "$out/my-${name}" < ${./ai/herdr-app/patches + "/${name}.patch"}
+      ${
+        lib.optionalString (builtins.pathExists (./ai/herdr-app/mod-files + "/${name}")) ''
+          cat ${./ai/herdr-app/mod-files + "/${name}"}/*.js >> "$out/my-${name}/main.js"
+        ''
+      }${herdr-app}/bin/herdr-app check "$out/my-${name}"
+    '') (builtins.attrNames herdrAppCloneFileNames)}
+  '';
+  herdrAppCloneFiles = lib.concatMapAttrs (
+    name: extra:
+    lib.listToAttrs (
+      map
+        (file: {
+          name = "herdr-app/mods/my-${name}/${file}";
+          value = {
+            source = "${herdrAppClones}/my-${name}/${file}";
+            force = true;
+          };
+        })
+        (
+          [
+            "main.js"
+            "mod.json"
+          ]
+          ++ extra
+        )
+    )
+  ) herdrAppCloneFileNames;
   # A user keys.json replaces herdr-app's whole default map, so the defaults are repeated here.
   herdrAppKeys =
     let
@@ -742,17 +809,26 @@ in
     };
 
     # Per-file links keep the herdr-app mod folders writable; it writes jsconfig.json and .d.ts there.
-    xdg.configFile = herdrAppModFiles // {
-      "kami/brand.md".source = config.jeff.kamiSkillBrand;
+    xdg.configFile =
+      herdrAppModFiles
+      // herdrAppCloneFiles
+      // {
+        "kami/brand.md".source = config.jeff.kamiSkillBrand;
 
-      "herdr/config.toml".source = (pkgs.formats.toml { }).generate "herdr-config.toml" herdrConfig;
+        "herdr/config.toml".source = (pkgs.formats.toml { }).generate "herdr-config.toml" herdrConfig;
 
-      "herdr-app/keys.json" = {
-        text = builtins.toJSON herdrAppKeys;
-        force = true;
+        "herdr-app/keys.json" = {
+          text = builtins.toJSON herdrAppKeys;
+          force = true;
+        };
+        "herdr-app/themes/stylix.json".text = builtins.toJSON herdrAppTheme;
+
+        # force: replaces the files `herdr-app do layout.clone` first wrote.
+        "herdr-app/layouts/my-layout.json" = {
+          source = ./ai/herdr-app/my-layout.json;
+          force = true;
+        };
       };
-      "herdr-app/themes/stylix.json".text = builtins.toJSON herdrAppTheme;
-    };
 
     # herdr-app rewrites settings.json (zoom, Settings screen), so merge only theme, font and ui_font into it.
     home.activation.herdrAppSettings = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
@@ -1203,6 +1279,7 @@ in
             allowUnixSockets = [
               "~/.config/herdr/herdr.sock"
               "~/.local/state/herdr-core/default/default.sock"
+              "~/.config/herdr-app/herdr-app.sock"
             ];
           };
         };

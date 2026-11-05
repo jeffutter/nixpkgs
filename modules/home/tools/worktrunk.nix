@@ -37,6 +37,8 @@ in
   xdg.configFile."worktrunk/config.toml".source =
     (pkgs.formats.toml { }).generate "worktrunk-config.toml"
       {
+        # Where Herdr's worktrees have always lived; the agent sandbox may write here.
+        worktree-path = "~/.herdr/worktrees/{{ repo }}/{{ branch | sanitize }}";
         pre-start.direnv = direnvEnvrc;
         post-start.setup = postStartSetup;
       };

@@ -1,0 +1,44 @@
+--- a/main.js
++++ b/main.js
+@@ -4,7 +4,6 @@
+ import { View, div } from "gpui-kit";
+ import { v_flex, h_flex, InputState, Input, Scrollbar } from "gpui-base";
+ import { run, props, closeOverlay, theme, spaces, panes, exec, home } from "herdr";
+-
+ // Where a space is now: its first terminal's live folder, else where it was made.
+ function place(s) {
+   if (!s) return null;
+@@ -145,7 +144,7 @@
+           this.dirty = (await git(repo.top, ["--no-optional-locks", "-c", "core.fsmonitor=false", "status", "--porcelain"], this.on)).out !== "";
+           this.unpushed = (await submodules(repo.top, this.on)).unpushed;
+         }
+-        if (repo && this.opening) this.list = await checkouts(repo, this.on);
++        if (repo && this.opening) this.list = await wtCheckouts(repo, this.on);
+         this.repo = repo;
+         cx.notify();
+         if (props().branch) await this.work(cx);
+@@ -182,11 +181,9 @@
+   async create() {
+     const branch = this.text.trim();
+     if (!branch) return "Type a branch name.";
+-    const path = `${ROOT(this.userHome)}/${this.repo.name}/${slug(branch)}`;
+-    const exists = (await git(this.repo.main, ["show-ref", "--verify", "--quiet", `refs/heads/${branch}`], this.on)).ok;
+-    const add = exists ? ["worktree", "add", path, branch] : ["worktree", "add", "-b", branch, path, "HEAD"];
+-    const r = await git(this.repo.top, add, this.on);
+-    if (!r.ok) return r.err || "git worktree add failed.";
++    const made = await wtCreate(this.repo, branch, this.on);
++    if (made.error) return made.error;
++    const path = made.path;
+     const p = props();
+     // Leave spaces unnamed so they follow the checkout folder and nest under the repo.
+     run("space.new", { folder: path, machine: this.on, tab: p.tab, argv: p.argv });
+@@ -221,8 +218,7 @@
+     // Terminals first: a shell sitting in the folder keeps it busy on Windows.
+     run("space.close", { id: s.id, confirmed: true });
+     const force = this.dirty || mods.length > 0;
+-    const r = await git(this.repo.main, ["worktree", "remove", ...(force ? ["--force"] : []), this.repo.top], this.on);
+-    return r.ok ? "" : r.err || "git worktree remove failed.";
++    return wtRemove(this.repo, force, this.on);
+   }
+ 
+   key(e, cx) {
