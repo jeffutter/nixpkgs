@@ -1,6 +1,50 @@
-{ pkgs, inputs, ... }:
-
 {
+  pkgs,
+  inputs,
+  config,
+  ...
+}:
+
+let
+  c = config.lib.stylix.colors.withHashtag;
+  hunkConfig = (pkgs.formats.toml { }).generate "hunk-config.toml" {
+    theme = "stylix";
+    # Diff tints stay on the tokyo-night base; the Stylix palette has no tint slots.
+    themes.stylix = {
+      base = "tokyo-night";
+      background = c.base00;
+      contextBg = c.base00;
+      contextContentBg = c.base00;
+      panel = c.base10;
+      panelAlt = c.base11;
+      border = c.base03;
+      accent = c.base0D;
+      accentMuted = c.base02;
+      text = c.base05;
+      muted = c.base04;
+      addedSignColor = c.base0B;
+      removedSignColor = c.base0F;
+      badgeAdded = c.base0B;
+      badgeRemoved = c.base0F;
+      badgeNeutral = c.base0A;
+      fileNew = c.base0B;
+      fileDeleted = c.base0F;
+      fileRenamed = c.base0E;
+      fileModified = c.base0D;
+      fileUntracked = c.base0C;
+      lineNumberBg = c.base00;
+      lineNumberFg = c.base03;
+      selectedHunk = c.base0A;
+      noteBorder = c.base0D;
+      noteBackground = c.base10;
+      noteTitleBackground = c.base02;
+      noteTitleText = c.base05;
+    };
+  };
+in
+{
+  xdg.configFile."hunk/config.toml".source = hunkConfig;
+
   # Use native tokyonight for richer highlight groups (Stylix base16 is disabled)
   programs.nixvim.colorschemes.tokyonight = {
     enable = true;
