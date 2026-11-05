@@ -101,6 +101,7 @@ let
         # references/render bundles Python, Playwright, and a matching Chromium.'
       '';
   yue2SongSkill = pkgs.callPackage ../../../pkgs/yue2-song-skill { };
+  songCoverSkill = pkgs.callPackage ../../../pkgs/song-cover-skill { yue2-song-skill = yue2SongSkill; };
   ttsSpeechSkill = pkgs.callPackage ../../../pkgs/tts-speech-skill { };
   sttTranscribeSkill = pkgs.callPackage ../../../pkgs/stt-transcribe-skill { };
   narratedVideoSkill = pkgs.callPackage ../../../pkgs/narrated-video-skill { };
@@ -1611,6 +1612,7 @@ in
         writing-clearly-and-concisely = "${the-elements-of-style}/skills/writing-clearly-and-concisely";
         wt-switch-create = "${worktrunkPluginRoot}/skills/wt-switch-create";
         yue2-song = "${yue2SongSkill}";
+        song-cover = "${songCoverSkill}";
         tts-speech = "${ttsSpeechSkill}";
         talk = "${talkSkill}";
         stt-transcribe = "${sttTranscribeSkill}";
