@@ -2,7 +2,11 @@
 // mods. herdr-app refuses imports that symlink outside a mod folder, which every Nix file does.
 // Uses focused, hc, openOverlay and run, which the including mod imports from "herdr".
 
-// [{ key, section, label, group?, command, args } | { ..., overlay } | { ..., keys }] in display order.
+// How long the prefix popup stays open for another press of a `repeat` entry.
+const REPEAT_MS = 500;
+
+// [{ key, section, label, group?, repeat?, command, args } | { ..., overlay } | { ..., keys }]
+// in display order.
 const BINDINGS = @bindings@;
 
 const BY_KEY = new Map(BINDINGS.map((b) => [b.key, b]));

@@ -134,6 +134,26 @@ let
   herdr = inputs.herdr.packages.${pkgs.stdenv.hostPlatform.system}.default;
   herdr-core = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.herdr-core;
   herdr-app = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.herdr-app;
+  # The package ships only bin/herdr-app, so darwin.nix has no .app to link into ~/Applications.
+  herdrAppBundle = pkgs.runCommandLocal "herdr-app-bundle" { } ''
+    app="$out/Applications/Herdr.app/Contents"
+    mkdir -p "$app/MacOS"
+    ln -s ${herdr-app}/bin/herdr-app "$app/MacOS/herdr-app"
+    cat > "$app/Info.plist" <<EOF
+    <?xml version="1.0" encoding="UTF-8"?>
+    <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+    <plist version="1.0">
+    <dict>
+      <key>CFBundleName</key><string>Herdr</string>
+      <key>CFBundleIdentifier</key><string>dev.herdr.app</string>
+      <key>CFBundleExecutable</key><string>herdr-app</string>
+      <key>CFBundlePackageType</key><string>APPL</string>
+      <key>CFBundleVersion</key><string>${herdr-app.version}</string>
+      <key>NSHighResolutionCapable</key><true/>
+    </dict>
+    </plist>
+    EOF
+  '';
   herdrConfig = {
     onboarding = false;
     theme = {
@@ -247,12 +267,14 @@ let
       agent = bind "Agents";
       work = bind "Files and worktrees";
       app = bind "App";
-      go = key: direction: pane key "Focus pane ${direction}" (c "pane.go" { inherit direction; });
+      # Navigation entries keep the prefix popup open for a repeat window.
+      rep = action: action // { repeat = true; };
+      go = key: direction: pane key "Focus pane ${direction}" (rep (c "pane.go" { inherit direction; }));
     in
     [
       (tab "c" "New tab" (c "tab.new" { }))
-      (tab "n" "Next tab" (c "tab.next" { }))
-      (tab "p" "Previous tab" (c "tab.prev" { }))
+      (tab "n" "Next tab" (rep (c "tab.next" { })))
+      (tab "p" "Previous tab" (rep (c "tab.prev" { })))
     ]
     ++ map (
       n: tab (toString n) "Select tab by number" (c "tab.select" { index = n; }) // { group = "1-9"; }
@@ -261,8 +283,8 @@ let
       (tab "T" "Rename tab" (c "tab.rename" { }))
       (tab "X" "Close tab" (c "tab.close" { }))
       (space "N" "New space" (c "space.new" { }))
-      (space "]" "Next space" (c "space.next" { }))
-      (space "[" "Previous space" (c "space.prev" { }))
+      (space "]" "Next space" (rep (c "space.next" { })))
+      (space "[" "Previous space" (rep (c "space.prev" { })))
       (space "w" "Pick a space or tab" (c "mod.open" { name = "picker"; }))
       (space "W" "Rename space" (c "space.rename" { }))
       (space "D" "Close space" (c "space.close" { }))
@@ -278,8 +300,8 @@ let
       (pane "-" "Split down" (c "pane.split" { direction = "down"; }))
       (pane "z" "Zoom pane" (c "pane.zoom" { }))
       (pane "x" "Close pane" (c "pane.close" { }))
-      (agent ">" "Next agent" (c "agent.next" { }))
-      (agent "<" "Previous agent" (c "agent.prev" { }))
+      (agent ">" "Next agent" (rep (c "agent.next" { })))
+      (agent "<" "Previous agent" (rep (c "agent.prev" { })))
       (work "f" "Files beside this pane" (
         c "pane.split" {
           direction = "right";
@@ -707,6 +729,7 @@ in
           llm-jq = true;
         })
       ]
+      ++ lib.optional pkgs.stdenv.hostPlatform.isDarwin herdrAppBundle
       ++ lib.optional config.jeff.enableZvecGrep zvec-grep;
 
     # Model for every new zg index. The daemon (darwin.nix / linux.nix) reads
