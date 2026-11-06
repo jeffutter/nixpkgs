@@ -57,6 +57,7 @@ in
     curl
     difftastic
     docker
+    (pkgs.callPackage ../../pkgs/osewa { })
     duckdb
     duf
     dust

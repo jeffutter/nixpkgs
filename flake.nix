@@ -376,6 +376,7 @@
         colgrep = (pkgsFor system).callPackage ./pkgs/colgrep { };
         datadog-pup = (pkgsFor system).callPackage ./pkgs/datadog-pup { };
         moshi-hook = (pkgsFor system).callPackage ./pkgs/moshi-hook { };
+        osewa = (pkgsFor system).callPackage ./pkgs/osewa { };
         zvec-grep = (pkgsFor system).callPackage ./pkgs/zvec-grep { };
         windmill-cli = (pkgsFor system).callPackage ./pkgs/windmill-cli { };
         yue2-song-skill = (pkgsFor system).callPackage ./pkgs/yue2-song-skill { };

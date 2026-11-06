@@ -8,6 +8,7 @@
 let
   moshi-hook = pkgs.callPackage ../../pkgs/moshi-hook { };
   zvec-grep = pkgs.callPackage ../../pkgs/zvec-grep { };
+  osewa = pkgs.callPackage ../../pkgs/osewa { };
 in
 {
   home.packages = with pkgs; [
@@ -32,6 +33,22 @@ in
       StandardOutPath = "${config.home.homeDirectory}/Library/Logs/moshi-hook.log";
       StandardErrorPath = "${config.home.homeDirectory}/Library/Logs/moshi-hook.err.log";
     };
+  };
+
+  # The plist comes from `osewa service install`, run at build time (see pkgs/osewa). We fill
+  # in the binary path and log paths; launchd does not create the CLI's default log directory.
+  launchd.agents.osewa = {
+    enable = true;
+    config =
+      let
+        agent = lib.importJSON osewa.launchdAgent;
+      in
+      agent
+      // {
+        ProgramArguments = [ "${osewa}/bin/osewa" ] ++ lib.tail agent.ProgramArguments;
+        StandardOutPath = "${config.home.homeDirectory}/Library/Logs/osewa.log";
+        StandardErrorPath = "${config.home.homeDirectory}/Library/Logs/osewa.log";
+      };
   };
 
   # Keeps the zvec-grep MCP daemon (`zg server run`) running so agents can
