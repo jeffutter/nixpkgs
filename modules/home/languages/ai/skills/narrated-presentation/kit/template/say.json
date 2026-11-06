@@ -1,0 +1,16 @@
+{
+  "replace": [
+    ["$schema", "dollar schema"],
+    ["I/O", "I O"],
+    ["pnpm", "p n p m"],
+    ["CMS", "C M S"],
+    ["URL", "U R L"]
+  ],
+  "regex": [
+    ["\\bUI\\b", "you eye"],
+    ["\\bIds\\b", "Eye dees"],
+    ["\\bids\\b", "eye dees"],
+    ["\\bId\\b", "Eye dee"],
+    ["\\bid\\b", "eye dee"]
+  ]
+}

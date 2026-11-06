@@ -1,0 +1,11 @@
+{
+  "take": "music/take.mp3",
+  "bpm": 120,
+  "gain_window": [28.0, 46.0],
+  "music_lufs": -22.0,
+  "cuts": {
+    "A00-title": {"start": 28.0, "length": 20.0},
+    "B00-bumper": {"start": 16.0, "bars": 4},
+    "Z99-outro": {"start": 60.0, "to_end": true, "fade_out": 3.0}
+  }
+}

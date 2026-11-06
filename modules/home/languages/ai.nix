@@ -106,6 +106,10 @@ let
   flashheadVideoSkill = pkgs.callPackage ../../../pkgs/flashhead-video-skill { };
   sttTranscribeSkill = pkgs.callPackage ../../../pkgs/stt-transcribe-skill { };
   narratedVideoSkill = pkgs.callPackage ../../../pkgs/narrated-video-skill { };
+  narratedPresentationSkill = pkgs.callPackage ../../../pkgs/narrated-presentation-skill {
+    narrated-video-skill = narratedVideoSkill;
+    stt-transcribe-skill = sttTranscribeSkill;
+  };
   comfyuiSkills = pkgs.callPackage ../../../pkgs/comfyui-skills { };
   the-elements-of-style = inputs.the-elements-of-style;
   # nixpkgs' todoist-cli ships only the `td` binary, not a static skill file;
@@ -1621,6 +1625,7 @@ in
         talk = "${talkSkill}";
         stt-transcribe = "${sttTranscribeSkill}";
         narrated-video = "${narratedVideoSkill}";
+        narrated-presentation = "${narratedPresentationSkill}";
         comfyui-spark = "${comfyuiSkills}/comfyui-spark";
         comfy-moss-image = "${comfyuiSkills}/comfy-moss-image";
         comfy-z-image = "${comfyuiSkills}/comfy-z-image";
