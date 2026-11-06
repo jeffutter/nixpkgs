@@ -79,7 +79,7 @@ Seams and limits:
 - The fade blends two heads whose pose and blink can differ, so a brief ghost at each seam is possible. A longer fade (0.3-0.4 s) trades that for a softer look. Use the same seed and model for idle and speech so the likeness matches.
 - If a seam looks bad, shorten the gap by moving the clip, or render the speech-gap-speech stretch as one WAV with silence for that stretch only.
 - A round or masked head overlay needs a mask filter before step 5; not tried.
-- Estimate Pro time from the speech seconds only (x 33), plus one idle clip.
+- Estimate Pro time from the speech seconds only (rates in step 3 of the main steps), plus one idle clip. Use `--size 384` for the idle clip and speech alike only if the whole track uses it; mixed sizes will not overlay cleanly.
 
 When something fails:
 - `HTTP 404 no router for requested model`: the call reached the homelab llama-swap instead of the spark. Check `FLASHHEAD_API`.
