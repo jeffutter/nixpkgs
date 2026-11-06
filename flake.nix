@@ -382,6 +382,7 @@
         yue2-song-skill = (pkgsFor system).callPackage ./pkgs/yue2-song-skill { };
         song-cover-skill = (pkgsFor system).callPackage ./pkgs/song-cover-skill { inherit yue2-song-skill; };
         tts-speech-skill = (pkgsFor system).callPackage ./pkgs/tts-speech-skill { };
+        flashhead-video-skill = (pkgsFor system).callPackage ./pkgs/flashhead-video-skill { };
         stt-transcribe-skill = (pkgsFor system).callPackage ./pkgs/stt-transcribe-skill { };
         comfyui-skills = (pkgsFor system).callPackage ./pkgs/comfyui-skills { };
         hermes-skills = (pkgsFor system).callPackage ./pkgs/hermes-skills {

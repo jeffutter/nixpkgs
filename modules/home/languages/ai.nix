@@ -103,6 +103,7 @@ let
   yue2SongSkill = pkgs.callPackage ../../../pkgs/yue2-song-skill { };
   songCoverSkill = pkgs.callPackage ../../../pkgs/song-cover-skill { yue2-song-skill = yue2SongSkill; };
   ttsSpeechSkill = pkgs.callPackage ../../../pkgs/tts-speech-skill { };
+  flashheadVideoSkill = pkgs.callPackage ../../../pkgs/flashhead-video-skill { };
   sttTranscribeSkill = pkgs.callPackage ../../../pkgs/stt-transcribe-skill { };
   narratedVideoSkill = pkgs.callPackage ../../../pkgs/narrated-video-skill { };
   comfyuiSkills = pkgs.callPackage ../../../pkgs/comfyui-skills { };
@@ -1614,6 +1615,7 @@ in
         yue2-song = "${yue2SongSkill}";
         song-cover = "${songCoverSkill}";
         tts-speech = "${ttsSpeechSkill}";
+        flashhead-video = "${flashheadVideoSkill}";
         talk = "${talkSkill}";
         stt-transcribe = "${sttTranscribeSkill}";
         narrated-video = "${narratedVideoSkill}";
