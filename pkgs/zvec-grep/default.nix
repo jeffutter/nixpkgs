@@ -61,7 +61,9 @@ stdenvNoCC.mkDerivation {
   installPhase = ''
     runHook preInstall
     mkdir -p $out/lib/zvec-grep $out/bin
-    cp -r bin lib plugins.json $out/lib/zvec-grep/
+    cp -r bin lib $out/lib/zvec-grep/
+    # The darwin tarball ships no plugins.json.
+    if [ -e plugins.json ]; then cp plugins.json $out/lib/zvec-grep/; fi
     ln -s $out/lib/zvec-grep/bin/zg $out/bin/zg
     runHook postInstall
   '';
