@@ -1,0 +1,7 @@
+audio/
+visuals/
+out/
+music/*.mp3
+music/*.wav
+backup-*/
+__pycache__/
