@@ -20,7 +20,7 @@ Fixed values:
 
 Models (measured 2026-11-06 on the 42 s demo clip, 512x512):
 - `lite` (Q8 GGUF): about 2.4x clip time of compute, about 3x end to end including a cold model load. Use for drafts and checking a portrait.
-- `pro` (Wan VAE): about 16x clip time of compute, about 33x end to end (23 minutes for 42 s). A 10 s clip took 3m12s end to end (about 19x) including a cold load, so short clips cost less per second than that; treat 33x as the planning upper bound. Run from a locally normalized checkpoint, not a packaged GGUF. Use for the final render. The user asked for Pro whenever it works.
+- `pro` (Wan VAE): about 16x clip time of compute, about 33x end to end (23 minutes for 42 s). Size trades time for quality (Pro, 10 s clip, warm, GPU otherwise idle, 2026-11-06): `--size 512` 170 s (17x), `--size 384` 84 s (8.4x), `--size 256` 33 s (3.3x). Jeff's verdict by eye: 512 is clearly best, 384 is passable. 256 was timed but not rated. Default to 512 for finals; offer 384 when time matters or for a long timeline. A cold model load adds minutes on the first call after a swap. The 42 s demo took 33x at 512, which likely included a cold load; use about 17x warm and 33x as the cautious upper bound. Run from a locally normalized checkpoint, not a packaged GGUF. Use for the final render. The user asked for Pro whenever it works.
 - Each model swap costs a load. llama-swap evicts other spark models to make room, so a render can stall if the user is chatting.
 
 Steps:
@@ -29,7 +29,7 @@ Steps:
 
 2. Render a short draft first when the clip is over about 20 seconds or the portrait is new: cut a 10 second piece with ffmpeg and run it with `--model lite`. Ask the user whether the portrait and motion look right.
 
-3. Render the final with `--model pro`, in the background. Estimate the time up front: clip seconds x 33 (Pro) or x 3 (Lite). Tell the user the estimate.
+3. Render the final with `--model pro` at `--size 512`, in the background. Estimate the time up front: clip seconds x 17 warm, x 33 cautious (Pro 512); x 8.4 at `--size 384`; x 3 (Lite 512). Tell the user the estimate. Check that nothing else is using the spark first (`curl -s http://192.168.10.14:8000/running`, `nvidia-smi`): a concurrent job inflated one run by 50%.
 
 4. Name files `<subject>-<model>.mp4`. Leave videos out of git.
 
