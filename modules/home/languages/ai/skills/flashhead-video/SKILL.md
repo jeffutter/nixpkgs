@@ -20,7 +20,7 @@ Fixed values:
 
 Models (measured 2026-11-06 on the 42 s demo clip, 512x512):
 - `lite` (Q8 GGUF): about 2.4x clip time of compute, about 3x end to end including a cold model load. Use for drafts and checking a portrait.
-- `pro` (Wan VAE): about 16x clip time of compute, about 33x end to end (23 minutes for 42 s). Run from a locally normalized checkpoint, not a packaged GGUF. Use for the final render. The user asked for Pro whenever it works.
+- `pro` (Wan VAE): about 16x clip time of compute, about 33x end to end (23 minutes for 42 s). A 10 s clip took 3m12s end to end (about 19x) including a cold load, so short clips cost less per second than that; treat 33x as the planning upper bound. Run from a locally normalized checkpoint, not a packaged GGUF. Use for the final render. The user asked for Pro whenever it works.
 - Each model swap costs a load. llama-swap evicts other spark models to make room, so a render can stall if the user is chatting.
 
 Steps:
@@ -72,7 +72,8 @@ Each clip starts from the same portrait, so clips differ only in motion. Do not 
 Motion control (asked 2026-11-06: "head too still, mouth moves too much"):
 - FlashHead v0.9.4 has no prompt, pose or motion option. The request options are `reference_image_file`, `width`, `height`, `num_inference_steps`, `seed`, `color_correction_strength` and `audio_guidance_scale`. The last is ignored by the distilled Lite and Pro checkpoints, and color correction only matches colors.
 - Measured on a 10 s Lite clip (jeff-desk): forehead/hair frame-to-frame change was about 0.4x the mouth's, and seed 7 (0.42), 2 steps (0.44) and 8 steps (0.37) against 0.41 at the default did not move it. Crude metric, not a judgement of how it looks. Do not tell the user a seed or step count will fix stillness.
-- Untested levers: a reference portrait with a more expressive or turned pose, speech with more varied prosody, and Pro instead of Lite. Post-processing the head track with a slow ffmpeg sway (a few degrees of `rotate`, a slight scale and shift) is cheap but adds fake motion, not lip-synced motion.
+- Pro moves the head noticeably better than Lite (Jeff's judgement by eye, 2026-11-06, same 10 s clip and jeff-desk portrait; not measured). Use Pro for anything where head motion matters, and do not judge motion from a Lite draft. Lite drafts are for checking the portrait crop and lip sync only.
+- Untested levers: a reference portrait with a more expressive or turned pose, and speech with more varied prosody. Post-processing the head track with a slow ffmpeg sway (a few degrees of `rotate`, a slight scale and shift) is cheap but adds fake motion, not lip-synced motion.
 
 Seams and limits:
 - The fade blends two heads whose pose and blink can differ, so a brief ghost at each seam is possible. A longer fade (0.3-0.4 s) trades that for a softer look. Use the same seed and model for idle and speech so the likeness matches.
