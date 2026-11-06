@@ -7,10 +7,13 @@ Use this skill when the user wants a still portrait to talk. The end state is an
 
 Fixed values:
 - Tool: `@flashhead@`. Make every call through it. It holds the endpoint, ssh target, Python and ffmpeg.
-- `flashhead PORTRAIT AUDIO OUT.mp4 [--model lite|pro] [--seed N] [--size N]` renders one MP4 and prints its path. Defaults: model `pro`, seed 42, size 512 (square, divisible by 32).
+- `flashhead PORTRAIT AUDIO OUT.mp4 [--model lite|pro] [--seed N] [--size N]` renders one MP4 and prints its path. `PORTRAIT` is `preset:NAME` or a local image file.
+- `flashhead portraits` lists the presets (`preset:jeff-desk`, `preset:demo`). Use a preset by default for Jeff: `preset:jeff-desk`. Defaults: model `pro`, seed 42, size 512 (square, divisible by 32).
 - Input audio can be any format ffmpeg reads. The tool converts it to 16 kHz mono WAV first. The MP4 carries that audio.
 - Endpoint: audio.cpp behind the dgx-spark's llama-swap, `http://192.168.10.14:8000`, path `/audioapi/v1/tasks/run`. Override with `FLASHHEAD_API`. Model ids: `audio-cpp/SoulX-FlashHead-Lite`, `audio-cpp/SoulX-FlashHead-Pro`.
-- audio.cpp reads only server-local paths, so the tool copies the portrait and the WAV over ssh to `~/audiocpp/io` on the spark (mounted read-only as `/io` in the container). The ssh target is `jeffutter@192.168.10.14`, override with `FLASHHEAD_SSH`. Files stay there under `<out-stem>.wav` and `<out-stem>.<image ext>`, so reusing an output name overwrites them.
+- The speech goes to the server inline over HTTP (`audio_base64`), so audio needs no ssh. The portrait cannot: audio.cpp's `reference_image_file` is a server-local path only (a `data:` URI fails with HTTP 500, checked 2026-11-06 on v0.9.4).
+- Presets are PNGs baked into the spark's container at `/portraits/<name>.png`, built from the `portraits/` directory of the colmena repo (`audioCppPortraits` in `home/dgx-spark.nix`). To add one: put `<name>.png` (square, a clear front-facing head and shoulders) in `portraits/`, commit, and deploy the spark. PNG only; the build fails on anything else.
+- A local image file is copied over ssh to `~/audiocpp/io` on the spark (mounted read-only as `/io`) as `<out-stem>.<ext>`, so reusing an output name overwrites it. The ssh target is `jeffutter@192.168.10.14`, override with `FLASHHEAD_SSH`. `flashhead portraits` also uses ssh.
 - The response is raw RGB frames in base64, about 1.1 GB for 42 s of video. The call is one blocking HTTP request, so run it in the background.
 - Output is 25 fps, generated in 24-frame blocks. A partial last block is padded with silence upstream.
 - You cannot see or hear the result. The user judges likeness, lip sync, and motion.
@@ -66,6 +69,11 @@ Each clip starts from the same portrait, so clips differ only in motion. Do not 
 
    Use the screen recording's own audio only if the user wants it mixed in; the command above uses the narration alone.
 
+Motion control (asked 2026-11-06: "head too still, mouth moves too much"):
+- FlashHead v0.9.4 has no prompt, pose or motion option. The request options are `reference_image_file`, `width`, `height`, `num_inference_steps`, `seed`, `color_correction_strength` and `audio_guidance_scale`. The last is ignored by the distilled Lite and Pro checkpoints, and color correction only matches colors.
+- Measured on a 10 s Lite clip (jeff-desk): forehead/hair frame-to-frame change was about 0.4x the mouth's, and seed 7 (0.42), 2 steps (0.44) and 8 steps (0.37) against 0.41 at the default did not move it. Crude metric, not a judgement of how it looks. Do not tell the user a seed or step count will fix stillness.
+- Untested levers: a reference portrait with a more expressive or turned pose, speech with more varied prosody, and Pro instead of Lite. Post-processing the head track with a slow ffmpeg sway (a few degrees of `rotate`, a slight scale and shift) is cheap but adds fake motion, not lip-synced motion.
+
 Seams and limits:
 - The fade blends two heads whose pose and blink can differ, so a brief ghost at each seam is possible. A longer fade (0.3-0.4 s) trades that for a softer look. Use the same seed and model for idle and speech so the likeness matches.
 - If a seam looks bad, shorten the gap by moving the clip, or render the speech-gap-speech stretch as one WAV with silence for that stretch only.
@@ -75,5 +83,5 @@ Seams and limits:
 When something fails:
 - `HTTP 404 no router for requested model`: the call reached the homelab llama-swap instead of the spark. Check `FLASHHEAD_API`.
 - Timeout or no response for minutes on a first call: the model is loading or the spark is busy. Pro legitimately takes tens of minutes. Check `ssh jeffutter@192.168.10.14 'docker logs --tail 5 audiocpp'` and `nvidia-smi`; high GPU use means it is working.
-- ssh or scp errors: the machine running the tool needs ssh access to the spark.
-- No video artifacts in the response: the portrait path was not found in the container. The tool copies it to `/io`; confirm `~/audiocpp/io` on the spark has the file.
+- ssh or scp errors: only local image files and `flashhead portraits` use ssh; the machine running the tool needs ssh access to the spark for those. `preset:` renders do not.
+- HTTP 500 `Cannot read FlashHead portrait`: the portrait path is not in the container. For a preset, run `flashhead portraits` and check the name (a new preset needs a spark deploy). For a local file, confirm `~/audiocpp/io` on the spark has it.

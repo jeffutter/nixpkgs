@@ -1,26 +1,31 @@
 #!/usr/bin/env python3
-"""Make a talking-head MP4 from a portrait image and a speech clip using
+"""Make a talking-head MP4 from a portrait and a speech clip using
 SoulX-FlashHead on the dgx-spark (audio.cpp behind llama-swap).
 
+    flashhead preset:jeff-desk speech.wav out.mp4 [--model lite|pro]
     flashhead portrait.png speech.wav out.mp4 [--model lite|pro]
+    flashhead portraits
 
-audio.cpp only reads server-local paths, so both inputs are copied to
-~/audiocpp/io on the spark over ssh (mounted read-only as /io in the
-container). The speech is converted to 16 kHz mono WAV first, which is what
-FlashHead consumes. Needs ffmpeg and ssh/scp access to the spark.
+The speech goes to the server inline over HTTP (16 kHz mono WAV, which is what
+FlashHead consumes). The portrait cannot: audio.cpp reads it from a
+server-local path only. `preset:NAME` uses /portraits/NAME.png, baked into the
+spark's container from the portraits/ directory of the colmena repo, so no
+copy is needed. A local image file is copied to ~/audiocpp/io on the spark
+over ssh instead (mounted read-only as /io). `portraits` lists the presets over
+ssh. Needs ffmpeg; ssh/scp access to the spark only for local image files and
+for `portraits`.
 """
 
 import argparse
 import base64
 import json
+import os
 import subprocess
 import sys
 import tempfile
 import urllib.error
 import urllib.request
 from pathlib import Path
-
-import os
 
 SPARK_SSH = os.environ["FLASHHEAD_SSH"]
 API = os.environ["FLASHHEAD_API"].rstrip("/") + "/audioapi/v1/tasks/run"
@@ -30,9 +35,20 @@ MODELS = {
 }
 
 
+def list_portraits():
+    out = subprocess.run(
+        ["ssh", SPARK_SSH, "ls ~/audiocpp/portraits"], check=True, capture_output=True, text=True
+    ).stdout
+    for name in out.split():
+        print("preset:" + name.removesuffix(".png"))
+
+
 def main():
+    if sys.argv[1:] == ["portraits"]:
+        return list_portraits()
+
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
-    ap.add_argument("portrait", type=Path)
+    ap.add_argument("portrait", help="preset:NAME or a local image file")
     ap.add_argument("audio", type=Path)
     ap.add_argument("output", type=Path)
     ap.add_argument("--model", choices=MODELS, default="pro")
@@ -46,22 +62,26 @@ def main():
             ["ffmpeg", "-v", "error", "-y", "-i", str(args.audio), "-ar", "16000", "-ac", "1", str(wav)],
             check=True,
         )
-        stem = args.output.stem
-        suffix = args.portrait.suffix
-        remote_wav, remote_img = f"{stem}.wav", f"{stem}{suffix}"
-        subprocess.run(["ssh", SPARK_SSH, "mkdir -p ~/audiocpp/io"], check=True)
-        subprocess.run(
-            ["scp", "-q", str(wav), f"{SPARK_SSH}:audiocpp/io/{remote_wav}"], check=True
-        )
-        subprocess.run(
-            ["scp", "-q", str(args.portrait), f"{SPARK_SSH}:audiocpp/io/{remote_img}"], check=True
-        )
+
+        if args.portrait.startswith("preset:"):
+            name = args.portrait.removeprefix("preset:")
+            if "/" in name or not name:
+                sys.exit(f"bad preset name: {name!r}")
+            remote_img = f"/portraits/{name}.png"
+        else:
+            local = Path(args.portrait)
+            if not local.is_file():
+                sys.exit(f"portrait not found: {local} (use preset:NAME for a preset)")
+            staged = f"{args.output.stem}{local.suffix}"
+            subprocess.run(["ssh", SPARK_SSH, "mkdir -p ~/audiocpp/io"], check=True)
+            subprocess.run(["scp", "-q", str(local), f"{SPARK_SSH}:audiocpp/io/{staged}"], check=True)
+            remote_img = f"/io/{staged}"
 
         body = {
             "model": MODELS[args.model],
-            "audio": f"/io/{remote_wav}",
+            "audio_base64": base64.b64encode(wav.read_bytes()).decode(),
             "options": {
-                "reference_image_file": f"/io/{remote_img}",
+                "reference_image_file": remote_img,
                 "width": args.size,
                 "height": args.size,
                 "seed": args.seed,
