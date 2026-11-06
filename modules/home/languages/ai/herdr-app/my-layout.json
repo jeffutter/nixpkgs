@@ -160,7 +160,7 @@
           "id": "status",
           "type": "block",
           "content": {
-            "mod": "workspace-status"
+            "mod": "my-workspace-status"
           },
           "size": {
             "px": 28
