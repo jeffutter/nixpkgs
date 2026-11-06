@@ -34,6 +34,44 @@ Steps:
 
 6. Iterate one variable per round: `--seed` (untested here: expect it to change the generation), then `--size`, then the portrait.
 
+Narration timeline (several clips with gaps, head on screen the whole time):
+
+Each clip starts from the same portrait, so clips differ only in motion. Do not render the gaps as part of one long audio file: that costs Pro time on silence and makes one line impossible to redo. Render the speech clips and one idle clip, then composite. Steps 1-4 were run end to end with `lite` on 2026-11-06 and gave a head track exactly as long as the timeline. Whether the seams look good was not judged by eye, so show the user the result.
+
+1. Fix the timeline: each narration clip's start time `S` (seconds) and length `D`, and the total length `T`. Get `D` with `ffprobe -v error -show_entries format=duration -of csv=p=0 clip.mp4`.
+
+2. Render every speech clip with the same `--model`, `--seed`, `--size` and portrait. Render the idle clip the same way from a silent WAV at least as long as the longest gap, and at least a few seconds: `ffmpeg -f lavfi -i anullsrc=r=16000:cl=mono -t 8 silence.wav`, then `flashhead portrait.png silence.wav idle.mp4`. Silent audio does not freeze the head (measured frame-to-frame motion 0.37 against 1.47 for speech), so it gives idle motion.
+
+3. Build the idle loop for the whole timeline. Playing it forward and backward avoids a jump at the loop point. `loop` size is the frame count of one forward-and-back pass (25 fps x idle seconds x 2):
+
+   `ffmpeg -i idle.mp4 -filter_complex "[0:v]split[a][b];[b]reverse[r];[a][r]concat=n=2:v=1:a=0,loop=loop=-1:size=300:start=0,trim=duration=$T,setpts=PTS-STARTPTS,fps=25[v]" -map "[v]" -an idleloop.mp4`
+
+4. Lay each speech clip over the idle loop at its start time with a short alpha fade at both ends (0.2 s), and place the narration audio at the same offsets. One chain per clip, `st` of the fade-out is `D - 0.2`, the offset is `S`:
+
+   ```
+   ffmpeg -i idleloop.mp4 -i clip1.mp4 -i clip2.mp4 -i clip1.wav -i clip2.wav -filter_complex "
+   [1:v]format=yuva420p,fade=t=in:st=0:d=0.2:alpha=1,fade=t=out:st=3.8:d=0.2:alpha=1,setpts=PTS-STARTPTS+S1/TB[c1];
+   [2:v]format=yuva420p,fade=t=in:st=0:d=0.2:alpha=1,fade=t=out:st=3.8:d=0.2:alpha=1,setpts=PTS-STARTPTS+S2/TB[c2];
+   [0:v][c1]overlay=eof_action=pass[v1];
+   [v1][c2]overlay=eof_action=pass,format=yuv420p[v];
+   [3:a]adelay=S1ms|S1ms[a1];[4:a]adelay=S2ms|S2ms[a2];
+   [a1][a2]amix=inputs=2:normalize=0:duration=longest,apad,atrim=duration=$T[a]" \
+    -map "[v]" -map "[a]" -c:v libx264 -crf 18 -c:a aac -t $T head-track.mp4
+   ```
+   Replace `S1`, `S2` with seconds in `setpts` and with milliseconds in `adelay`; add one `[N:v]...[cN]` chain, one overlay step and one `adelay` per extra clip. Use the original WAVs for the audio inputs.
+
+5. Composite the head track over the screen recording. Scale it and place it in a corner. Use `enable` to hide the head during full-screen sections (here 8.5 s to 10.5 s). For several sections, join the `between()` terms with `+` inside `not(...)`:
+
+   `ffmpeg -i screen.mp4 -i head-track.mp4 -filter_complex "[1:v]scale=240:240[h];[0:v][h]overlay=W-w-24:H-h-24:enable='not(between(t,8.5,10.5))'[v]" -map "[v]" -map 1:a -c:v libx264 -crf 20 -pix_fmt yuv420p -c:a copy out.mp4`
+
+   Use the screen recording's own audio only if the user wants it mixed in; the command above uses the narration alone.
+
+Seams and limits:
+- The fade blends two heads whose pose and blink can differ, so a brief ghost at each seam is possible. A longer fade (0.3-0.4 s) trades that for a softer look. Use the same seed and model for idle and speech so the likeness matches.
+- If a seam looks bad, shorten the gap by moving the clip, or render the speech-gap-speech stretch as one WAV with silence for that stretch only.
+- A round or masked head overlay needs a mask filter before step 5; not tried.
+- Estimate Pro time from the speech seconds only (x 33), plus one idle clip.
+
 When something fails:
 - `HTTP 404 no router for requested model`: the call reached the homelab llama-swap instead of the spark. Check `FLASHHEAD_API`.
 - Timeout or no response for minutes on a first call: the model is loading or the spark is busy. Pro legitimately takes tens of minutes. Check `ssh jeffutter@192.168.10.14 'docker logs --tail 5 audiocpp'` and `nvidia-smi`; high GPU use means it is working.
