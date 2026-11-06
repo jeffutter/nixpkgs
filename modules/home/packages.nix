@@ -7,6 +7,8 @@
 let
   inherit (pkgs.lib) optionals;
 
+  osewa = pkgs.callPackage ../../pkgs/osewa { };
+
   ssh-copy-id = pkgs.runCommand "ssh-copy-id" { } ''
     mkdir -p $out/bin
     ln -s ${pkgs.openssh}/bin/ssh-copy-id $out/bin/ssh-copy-id
@@ -40,6 +42,12 @@ let
 in
 
 {
+  # `osewa login` runs the remote binary at the hardcoded path ~/.local/bin/osewa (enroll,
+  # server --daemon, service restart), and skips its own install when it finds an identical
+  # osewa on PATH - as the Nix one is. Without this link, logging in to a host fails with
+  # exit 127.
+  home.file.".local/bin/osewa".source = "${osewa}/bin/osewa";
+
   home.packages = with pkgs; [
     inputs.nix-options-search.packages.${pkgs.stdenv.hostPlatform.system}.default
     ast-grep
@@ -57,7 +65,7 @@ in
     curl
     difftastic
     docker
-    (pkgs.callPackage ../../pkgs/osewa { })
+    osewa
     duckdb
     duf
     dust
