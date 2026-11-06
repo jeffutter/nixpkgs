@@ -8,6 +8,7 @@
 let
   moshi-hook = pkgs.callPackage ../../pkgs/moshi-hook { };
   zvec-grep = pkgs.callPackage ../../pkgs/zvec-grep { };
+  osewa = pkgs.callPackage ../../pkgs/osewa { };
 in
 {
   home.packages = with pkgs; [
@@ -24,6 +25,22 @@ in
     Service = {
       ExecStart = "${moshi-hook}/bin/moshi-hook serve";
       Restart = "on-failure";
+    };
+    Install.WantedBy = [ "default.target" ];
+  };
+
+  # Mirrors the unit `osewa service install` writes. KillMode=process matters: the server
+  # spawns each terminal session as a child, and the default (control-group) would kill
+  # every session whenever the service restarts.
+  systemd.user.services.osewa = {
+    Unit = {
+      Description = "osewa server (persistent terminals)";
+    };
+    Service = {
+      ExecStart = "${osewa}/bin/osewa server";
+      KillMode = "process";
+      Restart = "on-failure";
+      RestartSec = 2;
     };
     Install.WantedBy = [ "default.target" ];
   };
