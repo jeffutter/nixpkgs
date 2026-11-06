@@ -51,16 +51,16 @@ in
       };
   };
 
-  # Keeps the zvec-grep MCP daemon (`zg server run`) running so agents can
+  # Keeps the zvec-grep MCP daemon (`zg --server run`) running so agents can
   # reach it at http://127.0.0.1:7999/mcp (registered in ai.nix's
-  # programs.mcp.servers). `zg server run` is the foreground form meant for
-  # process supervisors, as opposed to `zg server on`, which self-daemonizes.
+  # programs.mcp.servers). `zg --server run` is the foreground form meant for
+  # process supervisors, as opposed to `zg --server on`, which self-daemonizes.
   launchd.agents.zvec-grep = lib.mkIf config.jeff.enableZvecGrep {
     enable = true;
     config = {
       ProgramArguments = [
         "${zvec-grep}/bin/zg"
-        "server"
+        "--server"
         "run"
       ];
       RunAtLoad = true;

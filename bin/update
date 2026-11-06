@@ -19,3 +19,4 @@ bin/update-herdr
 bin/update-atlassian-axi
 bin/update-windmill-cli
 bin/update-osewa
+bin/update-zvec-grep

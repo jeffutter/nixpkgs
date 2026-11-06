@@ -10,7 +10,7 @@ service. Pick the tool by what you know:
 - A code shape (every default export, every call with a given argument): the
   `ast-grep` skill.
 - A behaviour you can describe but cannot name: run
-  `zg query --vector "<one sentence describing the behaviour>" --limit 5`,
+  `zg --vector "<one sentence describing the behaviour>" --limit 5`,
   then read the top hit's line range before citing it.
 
 Run the semantic query, before any grep, when:
@@ -21,5 +21,5 @@ Run the semantic query, before any grep, when:
 - You are about to spawn an Explore agent only to find where something lives.
 
 Skip it when you already know the name or the file. Rephrase once at most,
-then fall back to rg or ast-grep. Load the `zg` skill when `zg status` reports
+then fall back to rg or ast-grep. Load the `zg` skill when `zg --status` reports
 no index, results include generated files, or you need its `--rg` mode.
