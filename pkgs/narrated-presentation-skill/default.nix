@@ -16,6 +16,7 @@
   jetbrains-mono,
   narrated-video-skill,
   stt-transcribe-skill,
+  flashhead-video-skill,
 }:
 
 # Long-form narrated presentation skill. One `present` CLI (kit/present.py) runs the kit's tools
@@ -49,6 +50,7 @@ runCommand "narrated-presentation-skill" { nativeBuildInputs = [ makeWrapper ]; 
     --set NARRATED_VIDEO_DIR ${narrated-video-skill}/scripts \
     --set PELE_JS ${narrated-video-skill}/vendor/pele/dist/pele.js \
     --set STT_TOOL ${stt-transcribe-skill}/scripts/stt \
+    --set FLASHHEAD ${flashhead-video-skill}/scripts/flashhead \
     --set VIDEO_FONT_DIRS ${inter}/share/fonts:${jetbrains-mono}/share/fonts \
     --set VIDEO_MONO_FONT ${jetbrains-mono}/share/fonts/truetype/JetBrainsMono-Regular.ttf \
     --add-flags "-I $out/kit/present.py"

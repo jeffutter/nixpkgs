@@ -4,4 +4,6 @@ out/
 music/*.mp3
 music/*.wav
 backup-*/
+talking-head/*
+!talking-head/placement.json
 __pycache__/

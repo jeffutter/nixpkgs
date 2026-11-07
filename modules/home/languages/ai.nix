@@ -109,6 +109,7 @@ let
   narratedPresentationSkill = pkgs.callPackage ../../../pkgs/narrated-presentation-skill {
     narrated-video-skill = narratedVideoSkill;
     stt-transcribe-skill = sttTranscribeSkill;
+    flashhead-video-skill = flashheadVideoSkill;
   };
   comfyuiSkills = pkgs.callPackage ../../../pkgs/comfyui-skills { };
   the-elements-of-style = inputs.the-elements-of-style;

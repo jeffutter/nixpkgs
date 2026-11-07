@@ -11,6 +11,7 @@
   present audio-stats [file ...] loudness and band balance per clip
   present ab-speech <id>         raw versus processed narration for one scene
   present prosody <file ...>     rough pitch and loudness spread per clip
+  present head <cmd> ...         optional talking head: timeline, render, progress, place, sheet, build
 """
 
 import os
@@ -22,7 +23,7 @@ from pathlib import Path
 KIT = Path(__file__).resolve().parent
 TOOLS = {"scenes": "build_scenes.py", "render-all": "render_all.py", "music": "cut_music.py",
          "music-scan": "music_scan.py", "stt-check": "stt_check.py", "audio-stats": "audio_stats.py",
-         "ab-speech": "ab_speech.py", "prosody": "prosody.py", "video": "video.py"}
+         "ab-speech": "ab_speech.py", "prosody": "prosody.py", "video": "video.py", "head": "head.py"}
 
 
 def run_file(path, args):

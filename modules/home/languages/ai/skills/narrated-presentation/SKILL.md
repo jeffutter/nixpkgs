@@ -9,7 +9,8 @@ Fixed values:
 - Tool: `@present@`. `present` below means this path. Run it from the project root. `present --help` lists its commands. It pins the renderers, fonts, and the TTS and STT endpoints; run nothing through `nix shell`.
 - `present video ...` is a fork of the narrated-video tool with per-scene voice styles, per-clip speech EQ and loudness, music scenes and music beds. Its `slides`, `diagram`, `terminal`, `frame` and `check` subcommands behave as in the narrated-video skill.
 - Project template: `present init <dir>` writes `script.md`, `say.json`, `music.json`, `.gitignore`, `README.md` and `visuals-src/` (`_bumper.py` and example scenes).
-- References, read when a step names them: `references/script-format.md`, `references/writing-and-voice.md`, `references/visuals.md`, `references/music.md`.
+- References, read when a step names them: `references/script-format.md`, `references/writing-and-voice.md`, `references/visuals.md`, `references/music.md`, `references/talking-head.md`.
+- Talking head: off by default. Add one only when Jeff asks, after step 9, following `references/talking-head.md`.
 - Skills this process uses, by name: `narrated-video` (output spec, slides, diagrams, terminal), `tts-speech` (voice controls), `stt-transcribe`, `yue2-song` (the jingle), `voice-dna`, `humanizer`, `writing-clearly-and-concisely`. Load each when its step comes.
 - You cannot hear audio or watch video. Jeff judges voice, pacing, music and sync. You check frames, levels and transcripts.
 
@@ -33,7 +34,9 @@ Steps:
 
 9. Report. Start with a status line: length, loudness, commit state. Say how to open it (`! open <path>`). Then what changed, the source corrections from step 2, and a "Needs your ear" list: voice styles, doubtful words, music windows, beat sync, and length against the target with ranked cuts and the seconds each saves. Commit the sources (script, plans, research, visuals-src, say.json, music.json, README) when Jeff asks; media stays untracked.
 
-10. Iterate. Before each round of changes: confirm the sources are committed (offer a commit if not), and copy `out/`, `audio/`, `visuals/` and `music/*.wav` to `backup-v<N>/`. Narration edits re-voice only the changed scenes. After any re-voice, run `present render-all`, because every cue time moves. Then repeat steps 8 and 9.
+10. Talking head, only when Jeff asks: follow `references/talking-head.md`. It writes `out/<name>-head.mp4` beside the original.
+
+11. Iterate. Before each round of changes: confirm the sources are committed (offer a commit if not), and copy `out/`, `audio/`, `visuals/` and `music/*.wav` to `backup-v<N>/`. Narration edits re-voice only the changed scenes. After any re-voice, run `present render-all`, because every cue time moves. Then repeat steps 8 and 9.
 
 When something fails:
 - `scene_cues` asserts that a mark is not in the caption: the narration changed. Update the mark to a phrase in the new caption; never replace it with a number.
