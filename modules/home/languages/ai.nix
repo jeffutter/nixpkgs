@@ -1605,6 +1605,7 @@ in
         herdr = "${herdr-skill}";
         herdr-core = "${herdr-core}/share/skills/herdr-core/herdr-core";
         humanizer = "${humanizer}";
+        hunk-review = "${pkgs.hunk}/skills/hunk-review";
         kami = "${kami}/skills/kami";
         pi-authoring = "${pi-authoring-skill}";
         pr-preflight = ./ai/skills/pr-preflight;
