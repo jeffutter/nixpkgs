@@ -20,7 +20,7 @@ Fixed values:
 
 Models (measured 2026-11-06 on the 42 s demo clip, 512x512):
 - `lite` (Q8 GGUF): about 2.4x clip time of compute, about 3x end to end including a cold model load. Use for drafts and checking a portrait.
-- `pro` (Wan VAE): about 16x clip time of compute, about 33x end to end (23 minutes for 42 s). Run from a locally normalized checkpoint, not a packaged GGUF. Use for the final render. The user asked for Pro whenever it works.
+- `pro` (Wan VAE): about 16x clip time of compute, about 33x end to end (23 minutes for 42 s). Size trades time for quality (Pro, 10 s clip, warm, GPU otherwise idle, 2026-11-06): `--size 512` 170 s (17x), `--size 384` 84 s (8.4x), `--size 256` 33 s (3.3x). Jeff's verdict by eye: 512 is clearly best, 384 is passable. 256 was timed but not rated. Default to 512 for finals; offer 384 when time matters or for a long timeline. A cold model load adds minutes on the first call after a swap. The 42 s demo took 33x at 512, which likely included a cold load; use about 17x warm and 33x as the cautious upper bound. Run from a locally normalized checkpoint, not a packaged GGUF. Use for the final render. The user asked for Pro whenever it works.
 - Each model swap costs a load. llama-swap evicts other spark models to make room, so a render can stall if the user is chatting.
 
 Steps:
@@ -29,7 +29,7 @@ Steps:
 
 2. Render a short draft first when the clip is over about 20 seconds or the portrait is new: cut a 10 second piece with ffmpeg and run it with `--model lite`. Ask the user whether the portrait and motion look right.
 
-3. Render the final with `--model pro`, in the background. Estimate the time up front: clip seconds x 33 (Pro) or x 3 (Lite). Tell the user the estimate.
+3. Render the final with `--model pro` at `--size 512`, in the background. Estimate the time up front: clip seconds x 17 warm, x 33 cautious (Pro 512); x 8.4 at `--size 384`; x 3 (Lite 512). Tell the user the estimate. Check that nothing else is using the spark first (`curl -s http://192.168.10.14:8000/running`, `nvidia-smi`): a concurrent job inflated one run by 50%.
 
 4. Name files `<subject>-<model>.mp4`. Leave videos out of git.
 
@@ -72,13 +72,14 @@ Each clip starts from the same portrait, so clips differ only in motion. Do not 
 Motion control (asked 2026-11-06: "head too still, mouth moves too much"):
 - FlashHead v0.9.4 has no prompt, pose or motion option. The request options are `reference_image_file`, `width`, `height`, `num_inference_steps`, `seed`, `color_correction_strength` and `audio_guidance_scale`. The last is ignored by the distilled Lite and Pro checkpoints, and color correction only matches colors.
 - Measured on a 10 s Lite clip (jeff-desk): forehead/hair frame-to-frame change was about 0.4x the mouth's, and seed 7 (0.42), 2 steps (0.44) and 8 steps (0.37) against 0.41 at the default did not move it. Crude metric, not a judgement of how it looks. Do not tell the user a seed or step count will fix stillness.
-- Untested levers: a reference portrait with a more expressive or turned pose, speech with more varied prosody, and Pro instead of Lite. Post-processing the head track with a slow ffmpeg sway (a few degrees of `rotate`, a slight scale and shift) is cheap but adds fake motion, not lip-synced motion.
+- Pro moves the head noticeably better than Lite (Jeff's judgement by eye, 2026-11-06, same 10 s clip and jeff-desk portrait; not measured). Use Pro for anything where head motion matters, and do not judge motion from a Lite draft. Lite drafts are for checking the portrait crop and lip sync only.
+- Untested levers: a reference portrait with a more expressive or turned pose, and speech with more varied prosody. Post-processing the head track with a slow ffmpeg sway (a few degrees of `rotate`, a slight scale and shift) is cheap but adds fake motion, not lip-synced motion.
 
 Seams and limits:
 - The fade blends two heads whose pose and blink can differ, so a brief ghost at each seam is possible. A longer fade (0.3-0.4 s) trades that for a softer look. Use the same seed and model for idle and speech so the likeness matches.
 - If a seam looks bad, shorten the gap by moving the clip, or render the speech-gap-speech stretch as one WAV with silence for that stretch only.
 - A round or masked head overlay needs a mask filter before step 5; not tried.
-- Estimate Pro time from the speech seconds only (x 33), plus one idle clip.
+- Estimate Pro time from the speech seconds only (rates in step 3 of the main steps), plus one idle clip. Use `--size 384` for the idle clip and speech alike only if the whole track uses it; mixed sizes will not overlay cleanly.
 
 When something fails:
 - `HTTP 404 no router for requested model`: the call reached the homelab llama-swap instead of the spark. Check `FLASHHEAD_API`.
