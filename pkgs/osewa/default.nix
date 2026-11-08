@@ -8,26 +8,26 @@
 }:
 
 let
-  version = "0.1.1";
+  version = "0.1.2";
 
   # Upstream ships gzipped static binaries (https://osewa.dev/install.sh).
   # `bin/update-osewa` refreshes the version and these hashes.
   sources = {
     "aarch64-darwin" = {
       url = "https://github.com/rjyo/osewa/releases/download/v${version}/osewa-darwin-arm64.gz";
-      hash = "sha256-wghxY4u9S965DvK7xnuWTB+6heK6UdDQk5UWFdh5jCE=";
+      hash = "sha256-ixepHsXrYAyFxH6mcP96svHXLbxrkSGVtKLS6zIkIJM=";
     };
     "x86_64-darwin" = {
       url = "https://github.com/rjyo/osewa/releases/download/v${version}/osewa-darwin-amd64.gz";
-      hash = "sha256-PqGqaoQegpnZ2XyPU8eNEzAbrKYPyxM6NJAl6YJ0Nbo=";
+      hash = "sha256-yvENHsWsUzAbdwNvhEdU+XvJwXNVRol4iL8ZuEReZWQ=";
     };
     "aarch64-linux" = {
       url = "https://github.com/rjyo/osewa/releases/download/v${version}/osewa-linux-arm64.gz";
-      hash = "sha256-r2+enwuCI2zKmSqA9ABdSxWnlEooK1Zd8oplhX0x7Dc=";
+      hash = "sha256-Hi5QO1n4O8ARFlTZG4KR3RRtS96pBPqBAYQmht81YLw=";
     };
     "x86_64-linux" = {
       url = "https://github.com/rjyo/osewa/releases/download/v${version}/osewa-linux-amd64.gz";
-      hash = "sha256-yKSdRCKd5chN7qqz43veUjqCD5a+6OHv0DkdzGGrwBA=";
+      hash = "sha256-kNoTOkcAW7nri/ikGyb3xXMi9rkp3oGbldGks5kluac=";
     };
   };
 in
