@@ -6,7 +6,7 @@
  import { run, props, closeOverlay, theme, spaces, panes, exec, home } from "herdr";
 -
  // Where a space is now: its first terminal's live folder, else where it was made.
- function place(s) {
+ function place(s, all = panes()) {
    if (!s) return null;
 @@ -145,7 +144,7 @@
            this.dirty = (await git(repo.top, ["--no-optional-locks", "-c", "core.fsmonitor=false", "status", "--porcelain"], this.on)).out !== "";

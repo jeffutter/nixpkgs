@@ -16,7 +16,7 @@
 +    this.marks = new SpaceMarks();
      // Each agent's last state and when it changed (ms), kept across restarts.
      this.changed = JSON.parse(localStorage.getItem("changed") ?? "{}");
-     this.pins = JSON.parse(localStorage.getItem("pins") ?? "[]");
+     this.pendingPins = JSON.parse(localStorage.getItem("pins") ?? "[]");
 @@ -277,6 +278,7 @@
        if (detail.get(a.address) == null && seen[`${a.space_name}\u0000`] > 1) detail.set(a.address, label(a));
      }
