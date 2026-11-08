@@ -56,7 +56,7 @@ Steps:
 
 9. Finish. Tell the user the LoRA path and which checks you did. Ask before `fizgig down` if the user may start another run soon. Restore a chat model only when the user says they are done: any request to it loads it.
 
-Two people in one image: not part of the default flow. Only if the user asks, read `two-person.md` in this skill's directory. It holds the tested recipe (neutral base, SAM masks, per-person repaint) and what failed.
+Two people in one image: not part of the default flow. Only if the user asks, read `two-person.md` in this skill's directory. It holds the tested recipe (neutral base, SAM masks, per-person repaint) and what failed. `lora-isolation.md` is an untried plan for one LoRA of both people.
 
 Known limits:
 - A trait present in most photos and not named in captions (glasses) is rendered in every image, even with "no glasses" in the prompt. Seen again with the second person: only the under-trained epoch 20 rendered without. Whether other traits (beard length) can be prompted was not tested.

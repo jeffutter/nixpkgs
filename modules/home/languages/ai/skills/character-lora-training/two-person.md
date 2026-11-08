@@ -35,5 +35,5 @@ Saved workflow: "MOSS-Image + Two Character LoRAs + SAM Repaint" (generic, from 
 
 - Weakest person varies by seed; the user saw one of the two "fairly far off" in most images.
 - The scores measure faces, not bodies. Judge bodies by eye and say so.
-- A LoRA trained on photos that contain both people is the stronger fix; it needs such photos and another training run (about an hour).
+- A single LoRA trained on both people is the stronger fix. Fizgig has a mode for it (LoRA Isolation); the untried plan is in `lora-isolation.md`.
 - If the pair share a trait folded into both triggers (both wear glasses), the repaint cannot remove it.
