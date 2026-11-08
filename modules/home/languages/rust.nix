@@ -4,6 +4,14 @@
   ...
 }:
 
+let
+  # Current nixpkgs leaves -lsqlite3 unresolved for crates that link libsqlite3-sys. Drop once fixed.
+  withSqlite =
+    pkg:
+    pkg.overrideAttrs (old: {
+      buildInputs = (old.buildInputs or [ ]) ++ [ pkgs.sqlite ];
+    });
+in
 {
   home.packages = with pkgs; [
     cargo
@@ -14,7 +22,7 @@
     cargo-flamegraph
     cargo-generate
     cargo-llvm-lines
-    cargo-outdated
+    (withSqlite cargo-outdated)
     cargo-watch
     cargo-workspaces
     cargo-udeps
@@ -22,7 +30,7 @@
     rust-analyzer
     rustc
     rustfmt
-    sqlx-cli
+    (withSqlite sqlx-cli)
   ];
 
   programs.nixvim = {

@@ -49,7 +49,11 @@ in
   home.file.".local/bin/osewa".source = "${osewa}/bin/osewa";
 
   home.packages = with pkgs; [
-    inputs.nix-options-search.packages.${pkgs.stdenv.hostPlatform.system}.default
+    # The input's package no longer finds zstd via pkg-config against current nixpkgs.
+    (inputs.nix-options-search.packages.${pkgs.stdenv.hostPlatform.system}.default.overrideAttrs (old: {
+      nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ pkgs.pkg-config ];
+      buildInputs = (old.buildInputs or [ ]) ++ [ pkgs.zstd ];
+    }))
     ast-grep
     autoconf
     bandwhich
@@ -123,7 +127,9 @@ in
     gnutar
     unzip
     unixtools.watch
-    viddy
+    (viddy.overrideAttrs (old: {
+      buildInputs = (old.buildInputs or [ ]) ++ [ pkgs.sqlite ];
+    }))
     wget
     worktrunk
     xz
