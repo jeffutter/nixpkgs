@@ -11,7 +11,7 @@ Fixed values:
 - Everything runs on the dgx-spark: `ssh jeffutter@192.168.10.14`. The `fizgig` command there is the only entry point to the trainer: `fizgig up | down | status | password | tool SCRIPT.py ARGS | sh CMD`. Its source is `home/dgx-spark.nix` and `home/fizgig/` in the colmena repo.
 - Workspace: `~/fizgig/workspace` on the spark (`/workspace` in the container): `datasets/NAME/`, `output_loras/NAME/`, `models/`, `user_data/runs.json`, `tools/`. Container-written files are root-owned: delete them with `fizgig sh rm -rf /workspace/...`.
 - Web UI: `http://192.168.10.14:8081`, password from `fizgig password`.
-- Tools (`fizgig tool X.py`, docs at the top of each file): `face_prep.py` (face crops), `sam_masks.py` (person masks), `fizgig_run.py` (start a run), `arcface_score.py` (likeness score).
+- Tools (`fizgig tool X.py`, docs at the top of each file): `face_prep.py` (face crops), `sam_masks.py` (person masks), `sam_people.py` (one mask per person in a picture), `fizgig_run.py` (start a run), `arcface_score.py` (likeness score).
 - Model: MOSS-Image Base, Standard preset, rank 32, Muon. Measured: 2.65 s/step at 1 MP on 26 images; 3.6 s/step at 1.5 MP on 47 images (40 epochs, 1880 steps, 1 h 50 min). Measure before you estimate: a guess of 8 s/step was 3x too high.
 - Render with the `comfyui-spark` and `comfy-moss-image` skills. ComfyUI runs MOSS-Image SFT NVFP4; Fizgig trains on Base. The LoRA transfers, strength 1.0.
 - ComfyUI workflows (Workflows sidebar, key `w`): "MOSS-Image + Character LoRA" and "... + Face Detail". In each, set the LoRA in `LoraLoaderModelOnly` and start the prompt with the trigger word. The face-detail one upscales 2x, repaints only the face at denoise 0.4, and takes about 140 s.
@@ -40,13 +40,15 @@ Steps:
    - You are the captioner. Write them yourself from the images or use the description model, and read every caption once.
 
 5. Train. First time ever: make one run in the web UI with the Standard preset so `runs.json` has a base. Then `fizgig tool fizgig_run.py --base-run PREV --name NAME --folder /workspace/datasets/NAME --trigger TRIGGER --epochs 40 --megapixels 1.5 --masked --plan` to check, then without `--plan`. Poll the log in `user_data/logs/` (a `tail -c 400 | tr '\r' '\n'` shows the progress bar). Report progress on the cadence the user asked for.
-   - Likeness is learned early: a 26-image run had plateaued by epoch 22 (ArcFace, one image per epoch, so noisy). In the 47-image run the user judged the final file at least as good as epochs 30 and 36. Use the final file unless the user compares epochs. Keep the final only: delete the per-epoch files and `-state` folders when the user has picked (`fizgig sh rm -rf /workspace/output_loras/NAME/NAME-0000*`).
+   - Likeness is learned early: a 26-image run had plateaued by epoch 22 (ArcFace, one image per epoch, so noisy). In the 47-image run the user judged the final file at least as good as epochs 30 and 36. Use the final file unless the user compares epochs.
+   - Second person, 29 images (22 photos plus 7 face crops), 1.5 MP, masked, 40 epochs, 1160 steps, 65 min: ArcFace to the training photos was e20 0.38, e28 0.46, e34 0.49, final 0.49, so e20 is under-trained and e28 to final plateau. By eye the user found e28 better on beard length and glasses and the final better on the face details that make it them, and chose the final, then prompts for the traits. Keep the per-epoch files until the user has picked. Keep the final only: delete the per-epoch files and `-state` folders when the user has picked (`fizgig sh rm -rf /workspace/output_loras/NAME/NAME-0000*`).
    - Copy the chosen file to `~/comfyui/models/loras/NAME/NAME-final.safetensors`.
 
 6. Render a fixed test set: the same 5-7 prompts and seeds for every run you compare (a full-body, a portrait, a seated shot, a candid, an unusual style). Use the trigger first, then the same caption style as the training set. Write prompts for a new LoRA in the new caption style; do not feed a retrained LoRA the old run's prompts, or you compare prompts. Look at every image yourself.
 
 7. Score. `fizgig tool arcface_score.py --train DATASET --refs REFS --samples DIR`.
    - REFS are photos of the person that are not in the training set. The tool drops any whose best similarity to a training image is 0.75 or more; with fewer than 3 survivors, ask the user for more photos.
+   - If every photo went into training there are no held-out refs. Either hold back 3 distinct photos before training, or ask the user for 3 more, or report the score as a sanity check only (pass `--leak 1.1` and say so). The second person's run had to do the last.
    - ArcFace measures the face only, not the body. At one seed and 3 references, a gap under 0.05 is noise. A no-LoRA control scores about 0.02-0.14; a good LoRA scores 0.5-0.65 on close-ups; a same-person ceiling is about 0.7.
    - Never report a score as "looks more like her". Say what the number is and what you saw.
 
@@ -54,7 +56,10 @@ Steps:
 
 9. Finish. Tell the user the LoRA path and which checks you did. Ask before `fizgig down` if the user may start another run soon. Restore a chat model only when the user says they are done: any request to it loads it.
 
+Two people in one image: not part of the default flow. Only if the user asks, read `two-person.md` in this skill's directory. It holds the tested recipe (neutral base, SAM masks, per-person repaint) and what failed.
+
 Known limits:
+- A trait present in most photos and not named in captions (glasses) is rendered in every image, even with "no glasses" in the prompt. Seen again with the second person: only the under-trained epoch 20 rendered without. Whether other traits (beard length) can be prompted was not tested.
 - Single seed per prompt in every comparison so far. More seeds cost about 30 minutes for 21 renders.
 - Full-body framing can drift farther from the camera after a retrain with many full-body captions; that shrinks the face and lowers the score without the face being worse. Compare crops, not whole-frame scores.
 - Backflips and other unusual poses scored about 0 for every run.
