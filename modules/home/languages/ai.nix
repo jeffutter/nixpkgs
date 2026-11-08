@@ -1594,6 +1594,7 @@ in
         backlog-execute = ./ai/skills/backlog-execute;
         backlog-planner = ./ai/skills/backlog-planner;
         brainstorming = ./ai/skills/brainstorming;
+        character-lora-training = ./ai/skills/character-lora-training;
         diagram-design = "${diagram-design-skill}/skills/diagram-design";
         diff-explanation-core = ./ai/skills/diff-explanation-core;
         elixir = ./ai/skills/elixir;
