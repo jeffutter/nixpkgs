@@ -7,7 +7,9 @@
     ["URL", "U R L"]
   ],
   "regex": [
+    ["\\b([a-z]+)UI\\b", "\\1-you-eye"],
     ["\\bUI\\b", "you eye"],
+    ["\\bdot json\\b", "dot jason"],
     ["\\bIds\\b", "Eye dees"],
     ["\\bids\\b", "eye dees"],
     ["\\bId\\b", "Eye dee"],

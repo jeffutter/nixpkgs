@@ -24,11 +24,13 @@ audio/<style>/<id>.opus  narration, with <id>.request.json stamps
 out/<name>.mp4, out/<name>.srt
 ```
 
-`scenes.json`: `{"scenes": [{"id", "visual", "caption", "say"?, "transition"?, "audio"?}]}`.
+`scenes.json`: `{"scenes": [{"id", "visual", "caption", "say"?, "transition"?, "audio"?, "seed"?, "hold"?}]}`.
 - `caption`: the narration as it should read on screen, spelled properly.
 - `say`: the same text spelled for the TTS when a word is misread ("Shroh-dinger's"). It defaults to `caption`. Keep the two identical apart from spelling, or the captions drift from the audio.
 - `transition`: how the scene enters. Allowed: fade, fadeblack, fadewhite, dissolve, wipeleft/right/up/down, slideleft/right/up/down, circleopen, circleclose, radial, pixelize, zoomin, smoothleft, smoothright, hblur, distance. The default is fade. Use fade for most joins and save the others for a change of medium.
-- `visual`: a PNG (held for the narration) or a video (frozen on its last frame if shorter than the narration).
+- `visual`: a PNG (held for the narration) or a video (frozen on its last frame if shorter than the narration). A video more than 1 s longer than lead + narration + tail stops `assemble`: it was made for an older, longer narration and would hold in silence. Re-render it after every re-voice.
+- `seed`: a TTS seed for this scene only. Use it when one take changes tone partway through (close-mic'd or another room from one sentence on). Render two or three seeds and let Jeff pick.
+- `hold`: seconds the visual may run past the narration and tail, for a beat meant to stay up after the words end.
 
 Steps:
 
@@ -38,8 +40,9 @@ Steps:
    - Write for the ear. Spell out numbers, units and symbols ("one hundred percent", "thirty two").
    - Use commas for pauses.
    - Never split sentences to work around TTS problems. Jeff finds it choppy.
+   - Known `say` spellings for Breeze: "id" as "eye dee", "UI" as "you eye", and a camelCase name like "pageUI" hyphenated as "page-you-eye" (with spaces it gets a gap). Write "json" as "jason"; alone it is read as "jotson".
 
-3. Render the narration first, because its length sets every scene's length: `video voice scenes.json`. A scene renders again only when its text, model, style or seed changed, so rerun freely. Use `--only <id>...` for one scene. Then run the `stt-transcribe` skill on each clip and compare it word by word with `say`. Flag names and acronyms for Jeff's ear rather than re-rendering on a mishearing. Parakeet writes "cache" as "cash" and drops "ö".
+3. Render the narration first, because its length sets every scene's length: `video voice scenes.json`. A scene renders again only when its text, model, style or seed changed, so rerun freely. Use `--only <id>...` for one scene. The server splits text over 600 characters (Breeze) into chunks generated independently, so the tone jumps at the join; `video voice` sends longer text as one chunk (`options.text_chunk_size`). Then run the `stt-transcribe` skill on each clip and compare it word by word with `say`. Flag names and acronyms for Jeff's ear rather than re-rendering on a mishearing. Parakeet writes "cache" as "cash" and drops "ö".
 
 4. Make the visuals. Each parallel area (slides, diagrams, terminal) can go to its own subagent with this skill's path, the storyboard and the theme. Each subagent logs problems to `problems-<area>.md`.
    - Slides: run `video slides slides/deck.md slides`. Write each build step as its own slide; Marp has no per-step PNGs. Layout classes: `title` (with `.glyph`, `p.subtitle`, `p.footer`), `bullets` (numbered cards), and the `.cols` / `.col.good` / `.col.bad` two-column cards. See the example deck. If the command exits 2 because headless Chrome could not start, follow "Slides without a browser launch".

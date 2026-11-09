@@ -9,10 +9,10 @@ Load `yue2-song`. Write a short song (about 75 s) whose chorus shouts the title,
 ## Finding cuts
 
 1. `present music-scan music/take.mp3 <bpm>` prints the beat phase, the bar length, and the level of every bar. Bar n starts at `phase + n * bar`; start every cut on one.
-2. Opener: the chorus with the title shout, about 20 s, set as `length`. Its card is `opener()` in `_bumper.py`.
+2. Opener: the chorus with the title shout, about 20 s, set as `length`. Its card is `opener()` in `_bumper.py`. Make the card's video no longer than its lead plus `length`: the assembler holds the scene for the whole video, so extra video puts silence inside the crossfade and the bed starts out of step, which Jeff hears as a dip. `present music` stops on a mismatch.
 3. Bumpers: four bars each (`"bars": 4`) from vocal-free stretches, preferably starting a four-bar phrase. To check a window for vocals, cut it to a wav with ffmpeg and transcribe it with the `stt-transcribe` skill; an empty transcript means no vocals. Parts may reuse windows. A quiet breakdown works as a bumper with `extra_db` (about +5).
 4. Outro: from a phrase start to the end of the take (`"to_end": true`), 12-16 s, `"fade_out": 3.0`. A short outro feels abrupt.
-5. `gain_window`: the loudest vocal stretch. One gain applies to every cut, set so that stretch sits at `music_lufs` (-22), a little under the -20 LUFS speech.
+5. `gain_window`: the loudest vocal stretch. One gain applies to every cut, set so that stretch sits at `music_lufs` (-19), 1 dB over the -20 LUFS speech. At -22, Jeff found the narration too loud after the jingle (2026-11-09).
 
 ## Beds
 
@@ -24,4 +24,4 @@ A music scene after the opener has lead 0 and starts on a downbeat, so its t = 0
 
 ## Levels
 
-`present video check` must show -20 LUFS and true peak at or below -2 dBFS. Music scenes skip the speech chain. If speech sounds quiet against the music, check per-clip loudness with `present audio-stats` before touching `music_lufs`.
+`present video check` must show -21 LUFS (Jeff's pick: -20 was a little loud overall) and true peak at or below -2 dBFS. Music scenes skip the speech chain. If speech sounds quiet against the music, check per-clip loudness with `present audio-stats` before touching `music_lufs`.

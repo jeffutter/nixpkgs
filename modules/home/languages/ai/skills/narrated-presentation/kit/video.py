@@ -70,7 +70,10 @@ LEAD = 0.4  # silence before narration in each scene
 TRANSITION = 0.8
 # Tail silence must cover the transition so narration never overlaps the next scene.
 TAIL = TRANSITION + 0.5
-LOUDNESS = {"I": -20.0, "TP": -2.0, "LRA": 11.0}
+# A video visual may outlast lead + narration + tail by this much; a scene's "hold" raises it.
+# More means the visual was rendered for an older, longer narration and holds in silence.
+HOLD_MAX = 1.0
+LOUDNESS = {"I": -21.0, "TP": -2.0, "LRA": 11.0}
 FADE_IN, FADE_OUT = 0.05, 0.3
 CAPTION_MAX_CHARS = 90
 XFADE_NAMES = {
@@ -112,12 +115,21 @@ def load_scenes(path):
 
 # ---------------------------------------------------------------- voice
 
+# Characters per chunk in the TTS server. Each chunk is generated from the voice reference alone,
+# with its own seed, so a longer text changes tone at the join; send it as one chunk instead.
+TTS_CHUNK = {"breeze": 600, "higgs": 1024}
+
+
 def voice_body(scene, style):
-    """A scene's own "voice" picks its style; --style is the default for scenes without one."""
+    """A scene's own "voice" picks its style; --style is the default for scenes without one.
+    A scene's "seed" replaces SEED when one take drifts in tone partway through."""
     spec = VOICE_STYLES[scene.get("voice", style)]
     text = spec["prefix"] + scene.get("say", scene["caption"])
-    return {"model": spec["model"], "voice": VOICE, "input": text, "response_format": "opus",
-            "seed": SEED, **spec["options"]}
+    body = {"model": spec["model"], "voice": VOICE, "input": text, "response_format": "opus",
+            "seed": scene.get("seed", SEED), **spec["options"]}
+    if len(text) > TTS_CHUNK.get(spec["model"], len(text)):
+        body["options"] = {"text_chunk_size": len(text)}
+    return body
 
 
 def speak(api, body, out):
@@ -403,11 +415,34 @@ SPEECH_EQ = ("highpass=f=80,afftdn=nr=12:nf=-50:tn=1,"
              "acompressor=threshold=-26dB:ratio=2.5:attack=8:release=150")
 SPEECH_LUFS = -20.0
 LIMIT = 0.708  # -3 dBFS sample peak, so the final true peak stays under -2 dBTP
+# Each Breeze take has its own tone: one can carry 4 dB less low end than the next, which sounds
+# like a different room. Every clip is EQ'd so its band balance (dB relative to the clip's overall
+# RMS) lands on this target, the median of one course's jeff-voice clips after SPEECH_EQ.
+BANDS = (63, 125, 250, 500, 1000, 2000, 4000, 8000)  # octave centres, Hz
+BAND_TARGET = (-19.1, -9.2, -5.5, -8.6, -9.8, -12.9, -13.9, -20.0)
+BAND_MAX_DB = 6.0
 
 
 def integrated_lufs(path):
     err = run(["ffmpeg", "-hide_banner", "-nostats", "-i", path, "-af", "ebur128", "-f", "null", "-"]).stderr
     return float(re.findall(r"I:\s+(-?[\d.]+) LUFS", err)[-1])
+
+
+def band_balance(path):
+    def level(chain):
+        err = run(["ffmpeg", "-hide_banner", "-nostats", "-i", path, "-af",
+                   f"{chain}astats=measure_overall=RMS_level:measure_perchannel=0", "-f", "null", "-"]).stderr
+        return float(re.findall(r"RMS level dB: (-?[\d.]+)", err)[-1])
+    full = level("")
+    octave = "bandpass=f={f}:width_type=o:width=1"
+    return [level(f"{octave.format(f=f)},{octave.format(f=f)},") - full for f in BANDS]
+
+
+def tone_match(path):
+    """firequalizer filter that moves the clip's band balance onto BAND_TARGET."""
+    gains = [max(-BAND_MAX_DB, min(BAND_MAX_DB, t - m)) for t, m in zip(BAND_TARGET, band_balance(path))]
+    entries = ";".join(f"entry({f},{g:.2f})" for f, g in zip(BANDS, gains))
+    return f"firequalizer=gain_entry='{entries}'"
 
 
 def clean_narration(src, dst, music=False):
@@ -417,9 +452,15 @@ def clean_narration(src, dst, music=False):
         run(["ffmpeg", "-y", "-v", "error", "-i", src, "-af",
              f"aresample={RATE},aformat=channel_layouts=stereo", "-c:a", "pcm_s16le", dst])
         return duration(dst)
+    eqd = Path(dst).with_suffix(".eq.wav")
     shaped = Path(dst).with_suffix(".shaped.wav")
     run(["ffmpeg", "-y", "-v", "error", "-i", src, "-af",
-         f"{SPEECH_EQ},aresample={RATE},aformat=channel_layouts=stereo", "-c:a", "pcm_s16le", shaped])
+         f"{SPEECH_EQ},aresample={RATE},aformat=channel_layouts=stereo", "-c:a", "pcm_s16le", eqd])
+    # The bands overlap, so one correction lands about halfway; three converge.
+    for _ in range(3):
+        run(["ffmpeg", "-y", "-v", "error", "-i", eqd, "-af", tone_match(eqd), "-c:a", "pcm_s16le", shaped])
+        shaped.replace(eqd)
+    eqd.replace(shaped)
     length = duration(shaped)
     gain = SPEECH_LUFS - integrated_lufs(shaped)
     chain = (f"volume={gain:.2f}dB,alimiter=limit={LIMIT}:level=disabled:attack=2:release=60,"
@@ -494,6 +535,10 @@ def render_scene(scene, base, work):
     length = lead + narration + (0.0 if scene.get("music") else TAIL)
     is_video = visual.suffix.lower() in VIDEO_EXT
     if is_video:
+        over = duration(visual) - length
+        if over > scene.get("hold", HOLD_MAX):
+            sys.exit(f"{scene['id']}: {scene['visual']} runs {over:.1f}s past the narration and tail; "
+                     f"re-render it for the current narration, or set \"hold\" if the hold is intended")
         length = max(length, duration(visual))
     scale = (f"scale={W}:{H}:force_original_aspect_ratio=decrease,"
              f"pad={W}:{H}:(ow-iw)/2:(oh-ih)/2:color=0x{NIGHT['bg'][1:]},setsar=1,fps={FPS},format=yuv420p")

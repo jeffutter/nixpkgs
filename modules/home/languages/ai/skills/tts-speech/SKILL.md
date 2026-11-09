@@ -24,7 +24,7 @@ Jeff's voice:
 
 Steps:
 
-1. Get the text. Write it as it should be spoken: spell out numbers, symbols, and abbreviations that the model could misread ("3.5B" becomes "three point five B"). Drop markdown, URLs, and code.
+1. Get the text. Write it as it should be spoken: spell out numbers, symbols, and abbreviations that the model could misread ("3.5B" becomes "three point five B"). Drop markdown, URLs, and code. Spell code words for the ear: "json" as "jason", and join a spelled-out camelCase name with hyphens ("page-you-eye" for pageUI); with spaces, Breeze pauses inside the name.
 
 2. Pick the model.
    - Jeff's voice: `breeze`. Use `higgs` for non-English text.

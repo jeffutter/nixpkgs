@@ -31,7 +31,8 @@ Load the `flashhead-video` skill before step 2. It covers the models, the portra
 
 5. Preview. Run `present head build out/<name>.mp4 talking-head/preview.mp4 --stand-in talking-head/clips/<pilot>.mp4 --from <s> --to <e>` over a window that has a corner swap. Jeff judges the look before the full composite.
 
-6. Build. Run `present head build out/<name>.mp4 out/<name>-head.mp4` in the background. It overlays the head with a soft shadow and a thin ring.
+6. Build. Run `present head timeline` after every `video assemble`, then `present head build out/<name>.mp4 out/<name>-head.mp4` in the background. It overlays the head with a soft shadow and a thin ring.
+   - It rebuilds the cached head track whenever the timeline or a clip changed (`head-track.inputs.json`). A track built for an older timeline puts every clip after a changed scene out of lip sync.
    - The head fades out into every music scene and back in after it.
    - When the spot changes between scenes, the head crossfades with the slide transition.
    - It copies the audio and caption tracks, sets the captions to off by default, and prints whether they match the input byte for byte. FAIL is a bug: do not hand the video over.

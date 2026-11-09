@@ -257,8 +257,13 @@ def cmd_build(a):
         speech.append((r["speech_at"], clip, min(r["speech"], dur(clip))))
     idle = Path(a.stand_in) if a.stand_in else CLIPS / "idle.mp4"
     track = HEAD / ("head-track-standin.mp4" if a.stand_in else "head-track.mp4")
-    if not track.exists() or any(c.stat().st_mtime > track.stat().st_mtime for _, c, _ in speech):
+    # The track depends on the timeline as well as the clips: a shorter scene moves every later clip.
+    stamp = track.with_suffix(".inputs.json")
+    inputs_now = json.dumps({"total": tl["total"], "idle": [str(idle), idle.stat().st_mtime],
+                             "speech": [[at, str(c), c.stat().st_mtime, n] for at, c, n in speech]})
+    if not track.exists() or not stamp.exists() or stamp.read_text() != inputs_now:
         head_track(tl["total"], speech, idle, track)
+        stamp.write_text(inputs_now)
 
     fps = sh("ffprobe", "-v", "error", "-select_streams", "v", "-show_entries", "stream=r_frame_rate",
              "-of", "csv=p=0", a.video, capture_output=True, text=True).stdout.strip()

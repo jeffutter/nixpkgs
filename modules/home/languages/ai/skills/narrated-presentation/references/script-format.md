@@ -41,6 +41,8 @@ What `present scenes` reads:
 - `Audio:` followed by a backticked path, anywhere in the block: a music scene. Its cut is set in `music.json` under the same id.
 - `- Voice:` presenter (default), relaxed or dramatic.
 - `- Transition:` an xfade name (see the narrated-video skill). Default fade. Give each bumper its own and use `fadeblack` into the outro.
+- `- Seed: 42 (<why>)`: a TTS seed for this scene only. Use it when one take changes tone partway through (sounds close-mic'd or in another room from one sentence on). Try two or three seeds and keep the one Jeff picks.
+- `- Hold: 2.6 s (<why>)`: the visual may run this long past the narration and tail, for a beat that stays up after the words end. Without it, `present video assemble` stops on a visual more than 1 s longer, because that visual was rendered for an older, longer narration.
 
 Everything else is for people and agents. Key each Visual bullet to the narration phrase it follows, quoted in brackets with its first words, because those phrases become `scene_cues` marks.
 

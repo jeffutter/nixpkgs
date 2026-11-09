@@ -30,7 +30,7 @@ Steps:
 
 7. Visuals. Write `production-brief.md` from `references/visuals.md` and the script's production reference. Pilot one scene per part yourself and check it against the brief. Then send one subagent per part with the brief, the part's scene ids, and the kit API. Each agent renders with `present run`, looks at 3-4 frames per scene, logs deviations to `problems-<part>.md`, and ends with the report skeleton from the user's CLAUDE.md.
 
-8. Compose. Run `present render-all`, `present scenes` (it picks up the mp4 paths), `present music`, `present video assemble scenes.json out/<name>.mp4`, then `present video check out/<name>.mp4`. Confirm h264, aac, a mov_text track marked not default, -20 LUFS, and true peak at or below -2 dBFS. Look at frames from every new or changed scene and from each music scene.
+8. Compose. Run `present render-all`, `present scenes` (it picks up the mp4 paths), `present music`, `present video assemble scenes.json out/<name>.mp4`, then `present video check out/<name>.mp4`. Confirm h264, aac, a mov_text track marked not default, -21 LUFS, and true peak at or below -2 dBFS. Look at frames from every new or changed scene and from each music scene.
 
 9. Report. Start with a status line: length, loudness, commit state. Say how to open it (`! open <path>`). Then what changed, the source corrections from step 2, and a "Needs your ear" list: voice styles, doubtful words, music windows, beat sync, and length against the target with ranked cuts and the seconds each saves. Commit the sources (script, plans, research, visuals-src, say.json, music.json, README) when Jeff asks; media stays untracked.
 

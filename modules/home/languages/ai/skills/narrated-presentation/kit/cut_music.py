@@ -7,7 +7,7 @@ Reads music.json in the project root:
     "take": "music/take.mp3",
     "bpm": 126,                         the tempo the take was rendered at
     "gain_window": [28.8, 46.0],        loudest stretch with vocals; sets the one shared gain
-    "music_lufs": -22.0,                that stretch's loudness after gain (speech is -20)
+    "music_lufs": -19.0,                that stretch's loudness after gain (speech is -20)
     "cuts": {
       "<music scene id>": {"start": 28.40, "length": 19.60},
       "<bumper id>": {"start": 15.49, "bars": 4},
@@ -86,7 +86,7 @@ def mix_beds(pieces):
 
 
 a, b = cfg["gain_window"]
-GAIN = cfg.get("music_lufs", -22.0) - lufs(a, b - a)
+GAIN = cfg.get("music_lufs", -19.0) - lufs(a, b - a)
 take_len = seconds(TAKE)
 scenes = json.loads((ROOT / "scenes.json").read_text())["scenes"]
 index = {s["id"]: i for i, s in enumerate(scenes)}
@@ -102,6 +102,12 @@ for sid, c in cfg["cuts"].items():
     print(f"{scenes[i]['audio']}: take {start:.2f}-{start + length:.2f}s")
     nxt = scenes[i + 1] if i + 1 < len(scenes) else None
     if nxt and nxt.get("bed"):
+        # The assembler holds a scene for its whole video. Video past the cut is silence inside the
+        # crossfade and puts the bed out of step, which sounds like a dip.
+        if scenes[i]["visual"].endswith(".mp4"):
+            own = scenes[i].get("lead", LEAD) + length
+            video = seconds(ROOT / scenes[i]["visual"])
+            assert video - own < 0.02, f"{sid}: video {video:.2f}s outlasts lead + cut {own:.2f}s"
         env = (f"if(lt(t,{BED_FULL}),1,if(lt(t,{BED_DUCK}),1-(1-{duck:.3f})*(t-{BED_FULL})/{BED_DUCK - BED_FULL:.2f},"
                f"{duck:.3f}*max(0,({BED_END}-t)/{BED_END - BED_DUCK:.2f})))")
         beds.setdefault(ROOT / nxt["bed"], []).append((start + length - TRANSITION, BED_END, env, 0.0, extra))

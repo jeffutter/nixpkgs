@@ -57,6 +57,9 @@ LEAD = 0.4  # silence before narration in each scene
 TRANSITION = 0.8
 # Tail silence must cover the transition so narration never overlaps the next scene.
 TAIL = TRANSITION + 0.5
+# A video visual may outlast lead + narration + tail by this much; a scene's "hold" raises it.
+# More means the visual was rendered for an older, longer narration and holds in silence.
+HOLD_MAX = 1.0
 LOUDNESS = {"I": -20.0, "TP": -2.0, "LRA": 11.0}
 FADE_IN, FADE_OUT = 0.05, 0.3
 CAPTION_MAX_CHARS = 90
@@ -99,11 +102,20 @@ def load_scenes(path):
 
 # ---------------------------------------------------------------- voice
 
+# Characters per chunk in the TTS server. Each chunk is generated from the voice reference alone,
+# with its own seed, so a longer text changes tone at the join; send it as one chunk instead.
+TTS_CHUNK = {"breeze": 600, "higgs": 1024}
+
+
 def voice_body(scene, style):
+    """A scene's "seed" replaces SEED when one take drifts in tone partway through."""
     spec = VOICE_STYLES[style]
     text = spec["prefix"] + scene.get("say", scene["caption"])
-    return {"model": spec["model"], "voice": VOICE, "input": text, "response_format": "opus",
-            "seed": SEED, **spec["options"]}
+    body = {"model": spec["model"], "voice": VOICE, "input": text, "response_format": "opus",
+            "seed": scene.get("seed", SEED), **spec["options"]}
+    if len(text) > TTS_CHUNK.get(spec["model"], len(text)):
+        body["options"] = {"text_chunk_size": len(text)}
+    return body
 
 
 def speak(api, body, out):
@@ -452,6 +464,10 @@ def render_scene(scene, base, work, style):
     length = LEAD + narration + TAIL
     is_video = visual.suffix.lower() in VIDEO_EXT
     if is_video:
+        over = duration(visual) - length
+        if over > scene.get("hold", HOLD_MAX):
+            sys.exit(f"{scene['id']}: {scene['visual']} runs {over:.1f}s past the narration and tail; "
+                     f"re-render it for the current narration, or set \"hold\" if the hold is intended")
         length = max(length, duration(visual))
     scale = (f"scale={W}:{H}:force_original_aspect_ratio=decrease,"
              f"pad={W}:{H}:(ow-iw)/2:(oh-ih)/2:color=0x{NIGHT['bg'][1:]},setsar=1,fps={FPS},format=yuv420p")

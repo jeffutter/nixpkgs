@@ -5,6 +5,8 @@ A scene is a `### <id>` block in script.md. The lines this reads:
   ... Audio: `music/<file>.wav`        music scene (jingle, bumper, outro); no narration
   - Voice: presenter|relaxed|dramatic optional; default DEFAULT_VOICE
   - Transition: <xfade name>          optional; default fade
+  - Seed: <n> (<why>)                 optional; replaces the TTS seed for this scene
+  - Hold: <seconds> s (<why>)         optional; how long the visual may run past narration + tail
 Spellings for the TTS come from say.json: {"replace": [[from, to], ...], "regex": [[pattern, to], ...]},
 applied in order to the caption to make the scene's "say" text.
 
@@ -49,6 +51,12 @@ for b in blocks:
         voice = re.search(r"^- Voice: (\w+)", b, flags=re.M)
         sc = {"id": sid, "visual": f"visuals/{sid}.{ext}", "caption": cap,
               "voice": voice.group(1) if voice else DEFAULT_VOICE}
+        seed = re.search(r"^- Seed: (\d+)", b, flags=re.M)
+        if seed:
+            sc["seed"] = int(seed.group(1))
+        hold = re.search(r"^- Hold: ([\d.]+) s", b, flags=re.M)
+        if hold:
+            sc["hold"] = float(hold.group(1))
         say = cap
         for a, z in say_cfg.get("replace", []):
             say = say.replace(a, z)
