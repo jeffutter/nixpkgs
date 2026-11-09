@@ -69,7 +69,6 @@ in
     obsidian
     pavucontrol
     slurp
-    telegram-desktop
     wayshot
     wiremix
     wl-clipboard

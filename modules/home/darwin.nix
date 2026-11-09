@@ -13,8 +13,6 @@ in
 {
   home.packages = with pkgs; [
     aerospace
-    # telegram-desktop 7.3.5 fails to build on darwin against nixpkgs f4a03c0.
-    # telegram-desktop
   ];
 
   programs.man.package = pkgs.man;
