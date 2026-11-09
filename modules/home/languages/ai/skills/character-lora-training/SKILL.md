@@ -11,7 +11,7 @@ Fixed values:
 - Everything runs on the dgx-spark: `ssh jeffutter@192.168.10.14`. The `fizgig` command there is the only entry point to the trainer: `fizgig up | down | status | password | tool SCRIPT.py ARGS | sh CMD`. Its source is `home/dgx-spark.nix` and `home/fizgig/` in the colmena repo.
 - Workspace: `~/fizgig/workspace` on the spark (`/workspace` in the container): `datasets/NAME/`, `output_loras/NAME/`, `models/`, `user_data/runs.json`, `tools/`. Container-written files are root-owned: delete them with `fizgig sh rm -rf /workspace/...`.
 - Web UI: `http://192.168.10.14:8081`, password from `fizgig password`.
-- Tools (`fizgig tool X.py`, docs at the top of each file): `face_prep.py` (face crops), `sam_masks.py` (person masks), `sam_people.py` (one mask per person in a picture), `fizgig_run.py` (start a run), `arcface_score.py` (likeness score).
+- Tools (`fizgig tool X.py`, docs at the top of each file): `face_prep.py` (face crops), `sam_masks.py` (person masks), `sam_people.py` (one mask per person in a picture), `fizgig_run.py` (start a run, from an earlier run or a model preset), `arcface_score.py` (likeness score).
 - Model: MOSS-Image Base, Standard preset, rank 32, Muon. Measured: 2.65 s/step at 1 MP on 26 images; 3.6 s/step at 1.5 MP on 47 images (40 epochs, 1880 steps, 1 h 50 min). Measure before you estimate: a guess of 8 s/step was 3x too high.
 - Render with the `comfyui-spark` and `comfy-moss-image` skills. ComfyUI runs MOSS-Image SFT NVFP4; Fizgig trains on Base. The LoRA transfers, strength 1.0.
 - ComfyUI workflows (Workflows sidebar, key `w`): "MOSS-Image + Character LoRA" and "... + Face Detail". In each, set the LoRA in `LoraLoaderModelOnly` and start the prompt with the trigger word. The face-detail one upscales 2x, repaints only the face at denoise 0.4, and takes about 140 s.
@@ -55,6 +55,8 @@ Steps:
 8. Face detail for full-body shots. Faces in full-length renders are small and score low (0.34-0.43 in one run). The face-detail workflow raised the mean of three from 0.38 to 0.47; a script that cropped the face, regenerated it at 1024 px, and pasted it back reached 0.52, within noise of it. Use the workflow; it needs no extra install.
 
 9. Finish. Tell the user the LoRA path and which checks you did. Ask before `fizgig down` if the user may start another run soon. Restore a chat model only when the user says they are done: any request to it loads it.
+
+Other models (Z-Image Turbo, Krea 2, FLUX.2 Klein): not part of the default flow. Only if the user asks, read `other-models.md` in this skill's directory. It has the headless `fizgig_run.py --family/--preset` command, downloads, times, disk and memory traps, the comparison with MOSS-Image, and how to update Fizgig.
 
 Two people in one image: not part of the default flow. Only if the user asks, read `two-person.md` in this skill's directory. It holds the tested recipe (neutral base, SAM masks, per-person repaint) and what failed. `lora-isolation.md` is an untried plan for one LoRA of both people.
 
