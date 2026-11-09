@@ -232,6 +232,7 @@
             # NixOS/nixpkgs#579204: Bun's "system" store on darwin omits Apple's root CAs.
             installPhase =
               if final.stdenv.hostPlatform.isDarwin then
+                assert final.lib.hasInfix "CLAUDE_CODE_CERT_STORE system" oldAttrs.installPhase;
                 builtins.replaceStrings
                   [ "CLAUDE_CODE_CERT_STORE system" ]
                   [ "CLAUDE_CODE_CERT_STORE bundled,system" ]
@@ -248,6 +249,7 @@
           config = nixpkgsConfig;
           overlays = [
             claudeCodeOverlay
+            (import ./overlays/workarounds.nix inputs)
           ];
         };
 
@@ -380,7 +382,9 @@
         zvec-grep = (pkgsFor system).callPackage ./pkgs/zvec-grep { };
         windmill-cli = (pkgsFor system).callPackage ./pkgs/windmill-cli { };
         yue2-song-skill = (pkgsFor system).callPackage ./pkgs/yue2-song-skill { };
-        song-cover-skill = (pkgsFor system).callPackage ./pkgs/song-cover-skill { inherit yue2-song-skill; };
+        song-cover-skill = (pkgsFor system).callPackage ./pkgs/song-cover-skill {
+          inherit yue2-song-skill;
+        };
         tts-speech-skill = (pkgsFor system).callPackage ./pkgs/tts-speech-skill { };
         flashhead-video-skill = (pkgsFor system).callPackage ./pkgs/flashhead-video-skill { };
         stt-transcribe-skill = (pkgsFor system).callPackage ./pkgs/stt-transcribe-skill { };

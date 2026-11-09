@@ -8,15 +8,6 @@
 
   programs.himalaya = {
     enable = true;
-    # nixpkgs' himalaya 2.2.1 lacks these link inputs (libgit2 for pkg-config, sqlite for -lsqlite3).
-    # Drop this once nixpkgs fixes it.
-    package = pkgs.himalaya.overrideAttrs (old: {
-      buildInputs = (old.buildInputs or [ ]) ++ [
-        pkgs.libgit2
-        pkgs.sqlite
-        pkgs.zlib
-      ];
-    });
     settings = {
       name = "Jeffery Utter";
     };
@@ -46,12 +37,6 @@
 
   programs.atuin = {
     enable = true;
-    # The e2e_capture pty test times out in the darwin build sandbox.
-    package =
-      if pkgs.stdenv.hostPlatform.isDarwin then
-        pkgs.atuin.overrideAttrs { doCheck = false; }
-      else
-        pkgs.atuin;
     enableBashIntegration = true;
     enableFishIntegration = true;
     flags = [ "--disable-up-arrow" ];
