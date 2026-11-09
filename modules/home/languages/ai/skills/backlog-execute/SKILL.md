@@ -19,7 +19,7 @@ Steps:
 4. Check the ticket status from step 1.
    - Done: stop. Report that a Done ticket reached you as a queueing bug. Claim nothing and change nothing.
    - Any other status: continue.
-5. Search HEAD for the artifacts the ticket names: files, symbols, routes, columns. Also search commit messages for those names, since many commits carry the ticket ID only in a trailer.
+5. Search HEAD for the artifacts the ticket names: files, symbols, routes, columns. Also search commit messages for those names.
    - Fully shipped: tick each acceptance criterion that the shipped code meets (step 9 command). Skip to step 12 and commit only the ticket file, naming the commit that shipped it.
    - Partly shipped: build only the remainder. State in the notes which part already existed.
    - Not shipped: continue.
@@ -38,14 +38,12 @@ Steps:
 14. Commit all changes, before marking the ticket Done:
    - Run `git submodule status`. For each submodule with changes, cd into it, stage the changed files, and commit there first.
    - In the root repo, stage changed files, submodule pointer updates, and backlog task files. Commit with a concise, informative message.
-   - Add both trailers to every commit in this step, even when the subject already names $0: `git commit --trailer "Co-Authored-By: Claude Code <noreply@anthropic.com>" --trailer "Task-Id: $0"`. These flags work alongside `-m` and `-F`.
 15. Run `backlog task edit $0 -s Done --remove-label ready-for-agent`.
 16. Stage the updated ticket file.
 17. Check that HEAD is the root-repo commit you created in step 14.
-   - Yes: run `git commit --amend --no-edit` with no `--trailer` flags. `--no-edit` keeps the existing trailers; re-passing the flags duplicates them.
-   - No: make a new commit with both trailers from step 14.
-18. Run `git log -1 --format=%B | grep -c '^Task-Id:'` and confirm it prints 1. If it prints more, write the message with one trailer block to a file and run `git commit --amend -F <file>`.
-19. Run `git rev-parse HEAD` again. If it differs from step 2, re-read anything you cite in the summary.
-20. Print a summary of what you did and exit.
+   - Yes: run `git commit --amend --no-edit`.
+   - No: make a new commit.
+18. Run `git rev-parse HEAD` again. If it differs from step 2, re-read anything you cite in the summary.
+19. Print a summary of what you did and exit.
 
 Additional Information: $ARGUMENTS
