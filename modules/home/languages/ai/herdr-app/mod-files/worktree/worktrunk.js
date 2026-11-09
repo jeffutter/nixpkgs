@@ -6,12 +6,15 @@
 // (its `worktree-path`) and runs its hooks. `repo` is { top, main, name, linked }.
 // `--yes` because nothing here can answer an approval prompt.
 
-async function wtRun(cmd, cwd, args, on) {
-  const r = await exec(cmd, args, { cwd, on });
+async function wtRun(cmd, cwd, args, on, timeout) {
+  const r = await exec(cmd, args, { cwd, on, ...(timeout === undefined ? {} : { timeout }) });
   return { ok: r.code === 0, out: (r.stdout ?? "").trim(), err: (r.stderr ?? r.stdout ?? "").trim() };
 }
 
-const wtCmd = (cwd, args, on) => wtRun("wt", cwd, ["--yes", ...args], on);
+const wtCmd = (cwd, args, on, timeout) => wtRun("wt", cwd, ["--yes", ...args], on, timeout);
+
+// Upstream's own git worktree add/remove calls use this; hooks make wt slower, not faster.
+const WT_SLOW_MS = 600_000;
 
 // Every checkout of the repo, the main one first, then the most recently
 // committed: { path, branch, main, at }.
@@ -35,7 +38,7 @@ async function wtCheckouts(repo, on) {
 // Makes the branch's worktree (and the branch, if it is new). { path } or { error }.
 async function wtCreate(repo, branch, on) {
   const exists = (await wtRun("git", repo.main, ["show-ref", "--verify", "--quiet", `refs/heads/${branch}`], on)).ok;
-  const r = await wtCmd(repo.top, ["switch", ...(exists ? [] : ["--create"]), "--no-cd", "--format=json", branch], on);
+  const r = await wtCmd(repo.top, ["switch", ...(exists ? [] : ["--create"]), "--no-cd", "--format=json", branch], on, WT_SLOW_MS);
   if (!r.ok) return { error: r.err || "wt switch failed." };
   // Hooks may print before the result: it is the last JSON line.
   const line = r.out.split("\n").reverse().find((l) => l.startsWith("{"));
@@ -45,6 +48,6 @@ async function wtCreate(repo, branch, on) {
 
 // Removes the repo's linked worktree. "" on success, else the error.
 async function wtRemove(repo, force, on) {
-  const r = await wtCmd(repo.main, ["remove", "--foreground", ...(force ? ["--force"] : []), repo.top], on);
+  const r = await wtCmd(repo.main, ["remove", "--foreground", ...(force ? ["--force"] : []), repo.top], on, WT_SLOW_MS);
   return r.ok ? "" : r.err || "wt remove failed.";
 }
