@@ -36,8 +36,7 @@ Steps:
 12. Run `backlog task edit $0 --plan "SHIPPED by <commit sha>. This plan is superseded; the ticket's final summary describes what actually landed."`. Use the sha of the commit that delivers the work.
 13. Run `backlog task $0 --plain` and confirm no `[ ]` remains. For a criterion that does not apply, explain why in the implementation notes, then check it. Resolve every unchecked criterion before step 14.
 14. Commit all changes, before marking the ticket Done:
-   - Changes inside `sportsbook-bff/`: cd into it, stage the changed files, and commit there first.
-   - Changes inside `penn-core/`: cd into it, stage the changed files, and commit there first.
+   - Run `git submodule status`. For each submodule with changes, cd into it, stage the changed files, and commit there first.
    - In the root repo, stage changed files, submodule pointer updates, and backlog task files. Commit with a concise, informative message.
    - Add both trailers to every commit in this step, even when the subject already names $0: `git commit --trailer "Co-Authored-By: Claude Code <noreply@anthropic.com>" --trailer "Task-Id: $0"`. These flags work alongside `-m` and `-F`.
 15. Run `backlog task edit $0 -s Done --remove-label ready-for-agent`.

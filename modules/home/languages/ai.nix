@@ -560,6 +560,16 @@ let
     ];
     text = builtins.readFile ./ai/hooks/zg-hint.sh;
   };
+  backlogUnblocked = pkgs.writeShellApplication {
+    name = "backlog-unblocked";
+    runtimeInputs = [
+      pkgs.yq-go
+      pkgs.jq
+      pkgs.gawk
+      pkgs.coreutils
+    ];
+    text = builtins.readFile ./ai/pi-extensions/ralph/unblocked-todo.sh;
+  };
   claudeStatusline = pkgs.writeShellApplication {
     name = "claude-statusline";
     runtimeInputs = [
@@ -792,6 +802,7 @@ in
       [
         agent-browser
         backlog-md
+        backlogUnblocked
         claude-agent-acp
         claude-tail
         herdr
@@ -893,6 +904,8 @@ in
       source = ./ai/pi-extensions/ralph/unblocked-todo.sh;
       executable = true;
     };
+
+    home.file.".claude/workflows/ralph-backlog-loop.js".source = ./ai/workflows/ralph-backlog-loop.js;
 
     # clear-alias: aliases /clear to /new. Same "promoted to load globally"
     # situation as ralph above -- source lives at ./ai/pi-extensions/clear-alias.ts
@@ -1521,6 +1534,21 @@ in
       );
 
       agents = {
+        blind-reader = ''
+          ---
+          name: blind-reader
+          description: Independent reader for ralph-backlog-loop. Answers a prompt using only the files it names, with no other context. Started by the workflow script, not by hand.
+          tools: Read
+          ---
+
+          You are an independent reader. Your prompt is everything you know about the task.
+
+          - Open only the files the prompt names by absolute path. Do not look for other files.
+          - Answer every question the prompt asks, in the order it asks them.
+          - Base each answer on what the files show. When a file does not settle a question, say so.
+          - Do not guess what answer the caller expects.
+          - Return the answer only. Do not add a preamble or a summary of your method.
+        '';
       };
 
       rules = {
@@ -1593,6 +1621,7 @@ in
         ast-grep = "${ast-grep-skill}/ast-grep/skills/ast-grep";
         backlog-execute = ./ai/skills/backlog-execute;
         backlog-planner = ./ai/skills/backlog-planner;
+        setup-backlog-tracker = ./ai/skills/setup-backlog-tracker;
         brainstorming = ./ai/skills/brainstorming;
         character-lora-training = ./ai/skills/character-lora-training;
         diagram-design = "${diagram-design-skill}/skills/diagram-design";
