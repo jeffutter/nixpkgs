@@ -17,7 +17,9 @@
   # Bootloader.
   boot.loader.systemd-boot = {
     enable = true;
-    configurationLimit = 3;
+    # /boot is only 256M and each generation carries a kernel plus a large
+    # initrd (wifi firmware, ssh, wpa_supplicant), so 3 no longer fits.
+    configurationLimit = 2;
   };
   boot.loader.efi.canTouchEfiVariables = true;
   boot.kernelPackages = pkgs.linuxPackages_latest;
