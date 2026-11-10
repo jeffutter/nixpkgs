@@ -37,4 +37,4 @@ Breeze takes differ in tone: one can carry 4 dB less low end than the next, and 
 - Over 600 characters, the server generates each chunk separately, so the tone jumps at the join. `video.py` sends longer text as one chunk.
 - Under 600, a drift is the seed's sampling. Render two or three seeds, let Jeff pick, and pin the winner with `- Seed:` in script.md.
 
-After any re-voice, re-render that scene's visual and head clip. `present video assemble` stops on a visual more than 1 s longer than its narration plus tail (`- Hold:` allows an intended hold).
+After any re-voice, re-render that scene's visual and head clip, and rerun `present music`: the bed that fades the outro in is padded to the old scene length, and assemble stops on a bed older than its narration. `present video assemble` stops on a visual more than 1 s longer than its narration plus tail (`- Hold:` allows an intended hold).

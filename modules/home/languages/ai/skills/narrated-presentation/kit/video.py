@@ -552,6 +552,9 @@ def render_scene(scene, base, work):
     out = work / f"{scene['id']}.mov"
     # A "bed" is music cut by `present music`, mixed under the narration from t = 0.
     if scene.get("bed"):
+        # A pre-roll bed is padded to the scene length, so a re-voice misplaces it.
+        if (base / scene["bed"]).stat().st_mtime < scene_audio(base, scene).stat().st_mtime:
+            sys.exit(f"{scene['id']}: {scene['bed']} is older than the narration; run `present music`")
         bed = work / f"{scene['id']}.bed.wav"
         clean_narration(base / scene["bed"], bed, music=True)
         ain = ["-i", audio, "-i", bed]
