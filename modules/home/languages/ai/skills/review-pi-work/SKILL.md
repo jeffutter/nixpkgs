@@ -26,13 +26,13 @@ SETUP preamble, used verbatim in every ticket plan:
 
 ## Steps
 
-1. Find task commits by their `Task-Id:` trailer. Subject lines vary, so match the trailer only.
+1. Find task commits by the ticket files they touch. Subject lines vary and carry no task ID, so match the files only. Each task commit also commits its ticket file.
    ```bash
-   git log --oneline -n 40 --grep='^Task-Id: ' --extended-regexp
+   git log -n 40 --format='commit %h %s' --name-only -- backlog/tasks backlog/completed
    ```
-   Run `git show <sha>` on each match to read its task ID. Take the first N distinct task IDs.
+   Read each task ID from the ticket file names listed under each commit. Take the first N distinct task IDs, newest first, and note the newest commit that touched each ticket file as its `<sha>`.
 
-2. List Done tasks with `backlog task list -s Done --plain`. For each Done task with no matching commit, file a ticket now:
+2. List Done tasks with `backlog task list -s Done --plain`. For each Done task whose ticket file no commit touches, file a ticket now:
    - `--priority high`.
    - Description: the ticket's record and the repository disagree.
    - Acceptance criterion: check the working tree for uncommitted files matching the original plan before redoing any work.

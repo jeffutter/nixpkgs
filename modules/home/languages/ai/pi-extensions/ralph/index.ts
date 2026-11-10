@@ -1692,7 +1692,7 @@ function dirtyTreeGuidance(paths: string[]): string {
     knowingly whether to continue that work or discard it, and say which in your first intercom ping.
     Never silently revert, stash, clean or reset it. Discarding is allowed, but only as a decision you
     state out loud, because those edits may be the only copy of that design work. If they turn out to
-    be complete and green, land them (commit with the ticket's Task-Id trailer) instead of redoing
+    be complete and green, land them (commit them) instead of redoing
     them.
   `;
 }
@@ -1729,8 +1729,8 @@ function stateVerificationGuidance(
         do NOT re-implement it and do not write a competing version into the same files - two
         implementations of one decision is worse than either alone, and whichever the tests fail to
         pin loses silently. Instead confirm the shipped code actually meets each acceptance
-        criterion, tick the criteria it meets, mark the ticket Done, and commit the ticket file alone
-        with the required trailers. Name the commit that shipped it in your summary. If only part of
+        criterion, tick the criteria it meets, mark the ticket Done, and commit the ticket file alone.
+        Name the commit that shipped it in your summary. If only part of
         it shipped, build exactly the remainder and say which part was already there.
       `
       : dedent`
@@ -1760,7 +1760,7 @@ function stateVerificationGuidance(
       grep -rn "<the specific symbols/files/routes the ticket names>" crates/
 
     Search for the artifacts, not just the ticket ID: much of this project's work landed under
-    descriptive subject lines with the ID only in a trailer. If the deliverable is already in HEAD,
+    descriptive subject lines that do not name the ticket ID. If the deliverable is already in HEAD,
     ${shipped}
 
     After a context compaction, none of the above is optional. A summary saying you are "about to

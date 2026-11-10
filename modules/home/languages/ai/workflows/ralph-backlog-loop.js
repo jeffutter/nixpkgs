@@ -419,8 +419,9 @@ const results = [];
 let stopReason = "cap";
 let executeCount = 0;
 let executedSinceReview = [];
-// One execute and one plan per ticket per run; re-picking a stuck ticket would burn the cap on it.
-const setAside = new Map();
+// One execute and one plan per ticket per run, tracked separately: a ticket planned this run must still be executable. Re-picking a stuck ticket would burn the cap on it.
+const executed = new Map();
+const planned = new Map();
 
 for (let i = 0; i < MAX_ITERATIONS; i++) {
   phase("State");
@@ -471,10 +472,10 @@ for (let i = 0; i < MAX_ITERATIONS; i++) {
   const unblockedIP = new Set(state.unblockedInProgress);
   const unblockedDR = new Set(state.unblockedDevReady);
   const agentInProgress = state.inProgress.filter(
-    (id) => !humanOnly.has(id) && unblockedIP.has(id) && !setAside.has(id),
+    (id) => !humanOnly.has(id) && unblockedIP.has(id) && !executed.has(id),
   );
   const agentDevReady = state.devReady.filter(
-    (id) => !humanOnly.has(id) && unblockedDR.has(id) && !setAside.has(id),
+    (id) => !humanOnly.has(id) && unblockedDR.has(id) && !executed.has(id),
   );
   const heldBack = [
     ...state.inProgress.filter(
@@ -490,7 +491,7 @@ for (let i = 0; i < MAX_ITERATIONS; i++) {
     );
   }
   const agentNeedsPlan = state.needsPlan.filter(
-    (id) => !humanOnly.has(id) && !setAside.has(id),
+    (id) => !humanOnly.has(id) && !planned.has(id),
   );
 
   const skippedHuman = [
@@ -506,7 +507,7 @@ for (let i = 0; i < MAX_ITERATIONS; i++) {
 
   if (agentInProgress.length > 0 || agentDevReady.length > 0) {
     const target = agentInProgress[0] || agentDevReady[0];
-    setAside.set(target, "already executed this run");
+    executed.set(target, "already executed this run");
 
     phase("Execute");
     log(`Iteration ${i + 1}: execute -> ${target}`);
@@ -618,7 +619,7 @@ for (let i = 0; i < MAX_ITERATIONS; i++) {
 
   if (agentNeedsPlan.length > 0) {
     const target = agentNeedsPlan[0];
-    setAside.set(target, "already planned this run");
+    planned.set(target, "already planned this run");
 
     phase("Plan");
     log(`Iteration ${i + 1}: plan -> ${target}`);
@@ -684,10 +685,10 @@ for (let i = 0; i < MAX_ITERATIONS; i++) {
       ...state.inProgress,
       ...state.devReady,
       ...state.needsPlan,
-    ].filter((id) => setAside.has(id));
+    ].filter((id) => executed.has(id) || planned.has(id));
     if (stillPooled.length > 0) {
       log(
-        `Note: ${stillPooled.length} ticket(s) already handled this run are still in In Progress/Dev Ready/Needs Plan and were not retried: ${stillPooled.map((id) => `${id} (${setAside.get(id)})`).join(", ")}. Check their results above.`,
+        `Note: ${stillPooled.length} ticket(s) already handled this run are still in In Progress/Dev Ready/Needs Plan and were not retried: ${stillPooled.map((id) => `${id} (${executed.get(id) ?? planned.get(id)})`).join(", ")}. Check their results above.`,
       );
     }
     if (heldBack.length > 0) {
