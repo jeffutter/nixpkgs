@@ -101,7 +101,9 @@ let
         # references/render bundles Python, Playwright, and a matching Chromium.'
       '';
   yue2SongSkill = pkgs.callPackage ../../../pkgs/yue2-song-skill { };
-  songCoverSkill = pkgs.callPackage ../../../pkgs/song-cover-skill { yue2-song-skill = yue2SongSkill; };
+  songCoverSkill = pkgs.callPackage ../../../pkgs/song-cover-skill {
+    yue2-song-skill = yue2SongSkill;
+  };
   ttsSpeechSkill = pkgs.callPackage ../../../pkgs/tts-speech-skill { };
   flashheadVideoSkill = pkgs.callPackage ../../../pkgs/flashhead-video-skill { };
   sttTranscribeSkill = pkgs.callPackage ../../../pkgs/stt-transcribe-skill { };
@@ -138,6 +140,9 @@ let
   worktrunkClearCommand = ''bash "${worktrunkHookScript}" config state marker clear || true'';
 
   claude-tail = inputs.claude-tail.packages.${pkgs.stdenv.hostPlatform.system}.default;
+  carin = inputs.carin.packages.${pkgs.stdenv.hostPlatform.system}.default;
+  carin-skill = inputs.carin.packages.${pkgs.stdenv.hostPlatform.system}.skill;
+  carin-herdr-mod = inputs.carin.packages.${pkgs.stdenv.hostPlatform.system}.herdr-mod;
   herdr = inputs.herdr.packages.${pkgs.stdenv.hostPlatform.system}.default;
   herdr-core = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.herdr-core;
   herdr-app = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.herdr-app;
@@ -803,6 +808,7 @@ in
         agent-browser
         backlog-md
         backlogUnblocked
+        carin
         claude-agent-acp
         claude-tail
         herdr
@@ -842,6 +848,10 @@ in
           force = true;
         };
         "herdr-app/themes/stylix.json".text = builtins.toJSON herdrAppTheme;
+        "herdr-app/mods/carin" = {
+          source = "${carin-herdr-mod}/mods/carin";
+          recursive = true;
+        };
 
         # force: replaces the files `herdr-app do layout.clone` first wrote.
         "herdr-app/layouts/my-layout.json" = {
@@ -1288,6 +1298,7 @@ in
             allowWrite = [
               "/private/var/folders/*/*/T/**"
               "/var/folders/*/*/T/**"
+              "~/.local/share/carin/**"
               "~/obsidian/**"
             ];
           };
@@ -1623,6 +1634,7 @@ in
         backlog-planner = ./ai/skills/backlog-planner;
         setup-backlog-tracker = ./ai/skills/setup-backlog-tracker;
         brainstorming = ./ai/skills/brainstorming;
+        carin = "${carin-skill}";
         character-lora-training = ./ai/skills/character-lora-training;
         diagram-design = "${diagram-design-skill}/skills/diagram-design";
         diff-explanation-core = ./ai/skills/diff-explanation-core;

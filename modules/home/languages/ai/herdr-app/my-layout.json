@@ -140,6 +140,13 @@
                       "content": {
                         "mod": "changes"
                       }
+                    },
+                    {
+                      "id": "carin",
+                      "type": "block",
+                      "content": {
+                        "mod": "carin"
+                      }
                     }
                   ],
                   "active": "files"
