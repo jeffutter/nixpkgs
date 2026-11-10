@@ -3,7 +3,7 @@ export const meta = {
   description:
     "Priority-ordered autonomous Backlog.md loop for the current repo: execute > plan > choose",
   whenToUse:
-    "Work through a repo's Backlog.md tickets unattended. Args: a number (max iterations) or { maxIterations, reviewEvery }.",
+    "Work through a repo's Backlog.md tickets unattended. Args: a number (max tickets to execute) or { maxIterations, reviewEvery }.",
   phases: [
     {
       title: "Setup",
@@ -62,8 +62,14 @@ const positiveInt = (v, fallback) => {
   return Number.isInteger(n) && n > 0 ? n : fallback;
 };
 
-const MAX_ITERATIONS = positiveInt(ARGS.maxIterations, 25);
-const REVIEW_EVERY = positiveInt(ARGS.reviewEvery, 4);
+// maxIterations caps EXECUTES (tickets worked), not loop steps: one ticket costs a choose, a plan and an
+// execute step, so counting steps stopped runs after about a third as many tickets as the number implied.
+// STEP_CAP is only a runaway guard on total steps.
+const MAX_EXECUTES = positiveInt(ARGS.maxIterations, 10);
+const STEP_CAP = MAX_EXECUTES * 4 + 4;
+// Default 1: every executed ticket gets its own review by a fresh agent that did not write it. An agent
+// reviewing its own work, or a batch of four tickets at once, misses what a cold single-ticket read finds.
+const REVIEW_EVERY = positiveInt(ARGS.reviewEvery, 1);
 
 // Workflow agents have no Agent tool, so this script must start any readers a ticket needs.
 const READER_MODELS = ["haiku", "sonnet", "opus"];
@@ -138,6 +144,24 @@ const STATE_SCHEMA = {
       description:
         'Every ticket ID from `backlog task list -a "@human" --plain`, across ALL statuses (the command groups by status; collect IDs from every group). The loop must never work these.',
     },
+    blocked: {
+      type: "array",
+      items: { type: "string" },
+      description:
+        'Every ticket ID from `backlog task list -s "Blocked" --plain` (may be empty).',
+    },
+    done: {
+      type: "array",
+      items: { type: "string" },
+      description:
+        'Every ticket ID from `backlog task list -s "Done" --plain` (may be empty). A backlog whose other lists are all empty but whose Done list is not is finished, not broken.',
+    },
+    reviewFix: {
+      type: "array",
+      items: { type: "string" },
+      description:
+        'Every ticket ID from `backlog task list -s "To Do" -l review-fix --plain` (may be empty).',
+    },
   },
   required: [
     "inProgress",
@@ -149,6 +173,9 @@ const STATE_SCHEMA = {
     "todoByPriority",
     "noRalph",
     "humanOnly",
+    "blocked",
+    "done",
+    "reviewFix",
   ],
 };
 
@@ -157,8 +184,12 @@ const MOVE_SCHEMA = {
   properties: {
     ticketId: { type: "string" },
     success: { type: "boolean" },
+    status: {
+      type: "string",
+      description: 'The status the ticket was moved to: "Needs Plan" or "Dev Ready"',
+    },
   },
-  required: ["ticketId", "success"],
+  required: ["ticketId", "success", "status"],
 };
 
 const VERIFY_SCHEMA = {
@@ -252,7 +283,7 @@ Report via structured output:
 
 const STATE_PROMPT = `${CONTEXT}
 
-Run these nine commands and report each result as a plain ID list. This is pure data extraction: no filtering, judgment, or dependency reasoning. The caller does that.
+Run these twelve commands and report each result as a plain ID list. This is pure data extraction: no filtering, judgment, or dependency reasoning. The caller does that.
 
 1. backlog task list -s "In Progress" --plain -> inProgress
 2. backlog task list -s "Dev Ready" --plain -> devReady
@@ -263,15 +294,32 @@ Run these nine commands and report each result as a plain ID list. This is pure 
 7. backlog task list -a "@human" --plain -> humanOnly: every ticket ID shown, from EVERY status group in the output. Do not pass -s, and do not stop at the first group (empty array if none)
 8. ${UNBLOCKED} "In Progress" -> unblockedInProgress: same extraction as command 4, same rule on errors.
 9. ${UNBLOCKED} "Dev Ready" -> unblockedDevReady: same extraction as command 4, same rule on errors.
+10. backlog task list -s "Blocked" --plain -> blocked: every ticket ID shown (empty array if none)
+11. backlog task list -s "Done" --plain -> done: every ticket ID shown (empty array if none)
+12. backlog task list -s "To Do" -l review-fix --plain -> reviewFix: every ticket ID shown (empty array if none)
 
-Report all nine lists via the structured output.`;
+Report all twelve lists via the structured output.`;
 
-function moveToNeedsPlanPrompt(ticketId) {
-  return `${CONTEXT}
+// A review-fix ticket was written by the reviewer, who had the code open and knew the defect, so a
+// cold planner adds little. It skips planning only when it already carries a plan and a criterion.
+function moveForwardPrompt(ticketId, reviewFix) {
+  if (!reviewFix) {
+    return `${CONTEXT}
 
 Run: backlog task edit ${ticketId} -s "Needs Plan"
 
-Report via structured output: ticketId "${ticketId}", success (true if the edit succeeded, false otherwise).`;
+Report via structured output: ticketId "${ticketId}", success (true if the edit succeeded, false otherwise), status "Needs Plan".`;
+  }
+  return `${CONTEXT}
+
+Run: backlog task ${ticketId} --plain
+
+This is a review-fix ticket. If it has a non-empty "Implementation Plan" section AND at least one acceptance criterion, run:
+  backlog task edit ${ticketId} -s "Dev Ready"
+Otherwise run:
+  backlog task edit ${ticketId} -s "Needs Plan"
+
+Report via structured output: ticketId "${ticketId}", success (true if the edit succeeded, false otherwise), status (the status you set).`;
 }
 
 function verifyAndCorrectPrompt(ticketId) {
@@ -379,12 +427,17 @@ Review the work and create follow-up backlog tickets for any real issues found:
      git log --oneline -20
    Identify commits related to the tickets listed above.
 
-2. Use the Skill tool to invoke "/code-review" on the recent changes (medium effort is fine).
+2. You did not write this code and have no context on it beyond the diff. Form your own view from the code before you read the ticket's implementation notes, which only say what the author believed. Use the Skill tool to invoke "/code-review" on the recent changes (medium effort is fine). Reading the diff alone is not a review: also run the project's build and tests, and say in your summary whether you ran the skill and the checks.
 
 3. For each genuine issue (correctness bugs, significant inefficiencies, clear design problems; NOT nitpicks or style):
-     backlog task create "Fix: <brief description>" --description "<detail>" --status "To Do" --label "review-fix" --priority high --depends-on <ID of the reviewed ticket the issue traces back to>
+     backlog task create "Fix: <brief description>" --description "<detail>" --ac "<criterion>" --plan "<plan>" --status "To Do" --label "review-fix" --priority high --depends-on <ID of the reviewed ticket the issue traces back to>
 
    The reviewed ticket is already Done, so the follow-up is immediately unblocked and sorts to the top by priority. Do not add a ready-for-agent label.
+
+   You have the code open and know the defect, so you write the ticket's plan and criteria; the loop skips the planner for review-fix tickets that have both. Each ticket must carry:
+   - at least one --ac that a test or command can check (repeat --ac for more), including a regression test for the defect;
+   - a --plan of concrete ordered steps with file paths and the intended fix;
+   - a sweep of sibling code: before you write the plan, search for other call sites, siblings, or earlier fixes with the same defect pattern (the same function fixed twice before is the warning sign), and make the plan fix all of them in this one ticket instead of leaving a twin for the next review.
 
    Only create tickets you'd actually want implemented. Err on the side of fewer, higher-signal tickets.
 
@@ -423,15 +476,14 @@ let executedSinceReview = [];
 const executed = new Map();
 const planned = new Map();
 
-for (let i = 0; i < MAX_ITERATIONS; i++) {
-  phase("State");
-  // An all-empty sweep means the agent skipped the commands, not a drained backlog: retry.
-  let state = null;
+// An all-empty sweep means the agent skipped the commands: retry. The Done list is part of the check,
+// so a finished backlog (everything Done) is a valid sweep that falls through to Choose and "drained".
+async function sweepState() {
   for (let attempt = 0; attempt < 3; attempt++) {
     const s = await agent(
       attempt === 0
         ? STATE_PROMPT
-        : `${STATE_PROMPT}\n\nYour previous answer had every list empty without running the commands. You MUST actually run all nine commands with the Bash tool and copy the IDs from their real output.`,
+        : `${STATE_PROMPT}\n\nYour previous answer had every list empty without running the commands. You MUST actually run all twelve commands with the Bash tool and copy the IDs from their real output.`,
       {
         schema: STATE_SCHEMA,
         model: attempt === 0 ? "haiku" : "sonnet",
@@ -449,22 +501,59 @@ for (let i = 0; i < MAX_ITERATIONS; i++) {
       s.todoByPriority,
       s.noRalph,
       s.humanOnly,
+      s.blocked,
+      s.done,
+      s.reviewFix,
     ].every((a) => a.length === 0);
-    if (!allEmpty) {
-      state = s;
-      break;
-    }
+    if (!allEmpty) return s;
     log(
       `State sweep returned all-empty lists (attempt ${attempt + 1}); retrying.`,
     );
   }
+  return null;
+}
+
+// Review the executes since the last review. Called every REVIEW_EVERY executes and once at exit,
+// so the last tickets of a run are never shipped unreviewed.
+async function runReview(reason) {
+  if (executedSinceReview.length === 0) return;
+  const ids = executedSinceReview;
+  executedSinceReview = [];
+  phase("Review");
+  log(`Review (${reason}) of ${ids.join(", ")}`);
+  const review = await agent(reviewPrompt(ids), {
+    schema: REVIEW_SCHEMA,
+    phase: "Review",
+  });
+  if (!review) return;
+  results.push({
+    ticketId: "(review)",
+    phase: "review",
+    outcome:
+      review.issuesFound > 0 ? `${review.issuesFound} issue(s) queued` : "clean",
+    summary: review.summary,
+  });
+  if (review.ticketsCreated.length > 0) {
+    log(
+      `Review created ${review.ticketsCreated.length} follow-up ticket(s): ${review.ticketsCreated.join(", ")}`,
+    );
+  }
+}
+
+let steps = 0;
+let lastState = null;
+for (; steps < STEP_CAP && executeCount < MAX_EXECUTES; steps++) {
+  const i = steps;
+  phase("State");
+  const state = await sweepState();
   if (!state) {
     stopReason = "state-error";
     log(
-      "State detection failed, or the backlog has no tickets in any loop status; stopping.",
+      "State detection failed: the sweep returned empty lists three times in a row; stopping.",
     );
     break;
   }
+  lastState = state;
 
   // @human tickets are filtered from every branch; unassigned tickets stay eligible.
   const humanOnly = new Set(state.humanOnly);
@@ -587,31 +676,7 @@ for (let i = 0; i < MAX_ITERATIONS; i++) {
     executedSinceReview.push(target);
 
     if (executeCount % REVIEW_EVERY === 0) {
-      phase("Review");
-      log(
-        `Review triggered after ${REVIEW_EVERY} executes (${executedSinceReview.join(", ")})`,
-      );
-      const review = await agent(reviewPrompt(executedSinceReview), {
-        schema: REVIEW_SCHEMA,
-        phase: "Review",
-      });
-      executedSinceReview = [];
-      if (review) {
-        results.push({
-          ticketId: "(review)",
-          phase: "review",
-          outcome:
-            review.issuesFound > 0
-              ? `${review.issuesFound} issue(s) queued`
-              : "clean",
-          summary: review.summary,
-        });
-        if (review.ticketsCreated.length > 0) {
-          log(
-            `Review created ${review.ticketsCreated.length} follow-up ticket(s): ${review.ticketsCreated.join(", ")}`,
-          );
-        }
-      }
+      await runReview(`after ${REVIEW_EVERY} executes`);
     }
 
     continue;
@@ -707,32 +772,72 @@ for (let i = 0; i < MAX_ITERATIONS; i++) {
     break;
   }
 
-  const moved = await agent(moveToNeedsPlanPrompt(target), {
-    schema: MOVE_SCHEMA,
-    model: "haiku",
-    phase: "Choose",
-  });
+  const moved = await agent(
+    moveForwardPrompt(target, state.reviewFix.includes(target)),
+    {
+      schema: MOVE_SCHEMA,
+      model: "haiku",
+      phase: "Choose",
+    },
+  );
   if (!moved || !moved.success) {
     stopReason = "choose-error";
-    log(`Failed to move ${target} to Needs Plan; stopping.`);
+    log(`Failed to move ${target} out of To Do; stopping.`);
     break;
   }
 
-  log(`Iteration ${i + 1}: choose -> ${target}`);
+  log(`Iteration ${i + 1}: choose -> ${target} (${moved.status})`);
   results.push({
     ticketId: target,
     phase: "choose",
-    outcome: "queued-for-planning",
-    summary: `Deterministically picked: highest-priority To Do ticket whose dependencies are all Done, not labeled no-ralph and not @human-assigned, out of ${state.todoByPriority.length} To Do candidate(s).`,
+    outcome:
+      moved.status === "Dev Ready" ? "skipped-planning" : "queued-for-planning",
+    summary: `Highest-priority unblocked To Do ticket, moved to ${moved.status}.`,
   });
 }
 
+// Review whatever executed since the last review, even when the run ended on a cap or an error.
+await runReview("run ended");
+
+// Fresh counts for the end report. A drained run already has current lists in lastState.
+let remaining = null;
+{
+  // A failed sweep would fail again, so skip it (three more retries) after a state-error.
+  const fin =
+    stopReason === "drained"
+      ? lastState
+      : stopReason === "state-error"
+        ? null
+        : await sweepState();
+  if (fin) {
+    remaining = {
+      todo: fin.todoByPriority.length,
+      unblockedTodo: fin.unblockedTodo.length,
+      needsPlan: fin.needsPlan.length,
+      devReady: fin.devReady.length,
+      inProgress: fin.inProgress.length,
+      blocked: fin.blocked.length,
+      humanOnly: fin.humanOnly.length,
+      done: fin.done.length,
+    };
+  }
+}
+
+// Compact on purpose: the whole return value is shown to the caller and long results are cut off, which hid
+// the last rows. Choose rows and plain "planned" rows say nothing a ticket's own status does not.
 const table = [
   "| Ticket | Phase | Outcome | Summary |",
   "|---|---|---|---|",
-  ...results.map(
-    (r) => `| ${r.ticketId} | ${r.phase} | ${r.outcome} | ${r.summary} |`,
-  ),
+  ...results
+    .filter(
+      (r) =>
+        r.phase === "execute" ||
+        r.phase === "review" ||
+        !["queued-for-planning", "skipped-planning", "planned"].includes(
+          r.outcome,
+        ),
+    )
+    .map((r) => `| ${r.ticketId} | ${r.phase} | ${r.outcome} | ${r.summary} |`),
 ].join("\n");
 
-return { stopReason, iterations: results.length, results, table };
+return { stopReason, executes: executeCount, steps, remaining, table };
