@@ -46,8 +46,6 @@
       extraFirmwarePaths = [ "iwlwifi-ma-b0-gf-a0-89.ucode.zst" ];
 
       systemd = {
-        enable = true;
-
         packages = [ pkgs.wpa_supplicant ];
         initrdBin = [ pkgs.wpa_supplicant ];
         targets.initrd.wants = [ "wpa_supplicant@${interface}.service" ];

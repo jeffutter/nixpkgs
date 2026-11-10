@@ -409,6 +409,11 @@ let
   };
   herdrAppClones = pkgs.runCommand "herdr-app-clones" { nativeBuildInputs = [ pkgs.coreutils ]; } ''
     export HOME="$TMPDIR" HERDR_APP_HOME="$TMPDIR/herdr-app-home"
+    # The build sandbox has no Wayland socket and no host fontconfig state, so GPUI's
+    # text system can't resolve any font for `herdr-app check` unless pointed at one
+    # explicitly - without this it panics with "failed to resolve font '.SystemUIFont'".
+    export FONTCONFIG_FILE="${pkgs.fontconfig.out}/etc/fonts/fonts.conf"
+    export XDG_DATA_DIRS="${pkgs.dejavu_fonts}/share"
     mkdir -p "$HERDR_APP_HOME"
     ${herdr-app}/bin/herdr-app >"$TMPDIR/herdr-app.log" 2>&1 &
     pid=$!
