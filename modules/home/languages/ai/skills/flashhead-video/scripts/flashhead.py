@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Make a talking-head MP4 from a portrait and a speech clip using
-SoulX-FlashHead on the dgx-spark (audio.cpp behind llama-swap).
+SoulX-FlashHead on the GPU host (audio.cpp behind llama-swap).
 
     flashhead preset:jeff-desk speech.wav out.mp4 [--model lite|pro]
     flashhead portrait.png speech.wav out.mp4 [--model lite|pro]
@@ -9,10 +9,10 @@ SoulX-FlashHead on the dgx-spark (audio.cpp behind llama-swap).
 The speech goes to the server inline over HTTP (16 kHz mono WAV, which is what
 FlashHead consumes). The portrait cannot: audio.cpp reads it from a
 server-local path only. `preset:NAME` uses /portraits/NAME.png, baked into the
-spark's container from the portraits/ directory of the colmena repo, so no
-copy is needed. A local image file is copied to ~/audiocpp/io on the spark
+GPU host's container from the portraits/ directory of its deployment config, so no
+copy is needed. A local image file is copied to ~/audiocpp/io on the GPU host
 over ssh instead (mounted read-only as /io). `portraits` lists the presets over
-ssh. Needs ffmpeg; ssh/scp access to the spark only for local image files and
+ssh. Needs ffmpeg; ssh/scp access to the GPU host only for local image files and
 for `portraits`.
 """
 
@@ -27,8 +27,8 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
-SPARK_SSH = os.environ["FLASHHEAD_SSH"]
-API = os.environ["FLASHHEAD_API"].rstrip("/") + "/audioapi/v1/tasks/run"
+HOST_SSH = os.environ["TALKING_HEAD_SSH"]
+API = os.environ["TALKING_HEAD_API"].rstrip("/") + "/audioapi/v1/tasks/run"
 MODELS = {
     "lite": "audio-cpp/SoulX-FlashHead-Lite",
     "pro": "audio-cpp/SoulX-FlashHead-Pro",
@@ -37,7 +37,7 @@ MODELS = {
 
 def list_portraits():
     out = subprocess.run(
-        ["ssh", SPARK_SSH, "ls ~/audiocpp/portraits"], check=True, capture_output=True, text=True
+        ["ssh", HOST_SSH, "ls ~/audiocpp/portraits"], check=True, capture_output=True, text=True
     ).stdout
     for name in out.split():
         print("preset:" + name.removesuffix(".png"))
@@ -73,8 +73,8 @@ def main():
             if not local.is_file():
                 sys.exit(f"portrait not found: {local} (use preset:NAME for a preset)")
             staged = f"{args.output.stem}{local.suffix}"
-            subprocess.run(["ssh", SPARK_SSH, "mkdir -p ~/audiocpp/io"], check=True)
-            subprocess.run(["scp", "-q", str(local), f"{SPARK_SSH}:audiocpp/io/{staged}"], check=True)
+            subprocess.run(["ssh", HOST_SSH, "mkdir -p ~/audiocpp/io"], check=True)
+            subprocess.run(["scp", "-q", str(local), f"{HOST_SSH}:audiocpp/io/{staged}"], check=True)
             remote_img = f"/io/{staged}"
 
         body = {

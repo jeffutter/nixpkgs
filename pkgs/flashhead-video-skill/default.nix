@@ -1,5 +1,6 @@
 {
   lib,
+  endpoints,
   runCommand,
   makeWrapper,
   python3,
@@ -7,8 +8,9 @@
   openssh,
 }:
 
-# SoulX-FlashHead portrait video via audio.cpp on the dgx-spark. --set-default
-# keeps the endpoints overridable from the environment if the host moves.
+# SoulX-FlashHead portrait video via audio.cpp on the media host. --set-default
+# keeps the endpoints (jeff.endpoints.talkingHeadApi and .talkingHeadSsh) overridable from the
+# environment if the host moves.
 # openssh is needed because audio.cpp only reads server-local paths, so the
 # script copies its inputs to the spark with scp.
 #
@@ -18,7 +20,9 @@ runCommand "flashhead-video-skill" { nativeBuildInputs = [ makeWrapper ]; } ''
   cp -r ${../../modules/home/languages/ai/skills/flashhead-video} $out
   chmod -R u+w $out
   substituteInPlace $out/SKILL.md \
-    --replace-fail '@flashhead@' "$out/scripts/flashhead"
+    --replace-fail '@flashhead@' "$out/scripts/flashhead" \
+    --replace-fail '@talkingHeadApi@' ${lib.escapeShellArg endpoints.talkingHeadApi} \
+    --replace-fail '@talkingHeadSsh@' ${lib.escapeShellArg endpoints.talkingHeadSsh}
   makeWrapper ${python3}/bin/python3 $out/scripts/flashhead \
     --prefix PATH : ${
       lib.makeBinPath [
@@ -26,7 +30,7 @@ runCommand "flashhead-video-skill" { nativeBuildInputs = [ makeWrapper ]; } ''
         openssh
       ]
     } \
-    --set-default FLASHHEAD_API http://192.168.10.14:8000 \
-    --set-default FLASHHEAD_SSH jeffutter@192.168.10.14 \
+    --set-default TALKING_HEAD_API ${lib.escapeShellArg endpoints.talkingHeadApi} \
+    --set-default TALKING_HEAD_SSH ${lib.escapeShellArg endpoints.talkingHeadSsh} \
     --add-flags $out/scripts/flashhead.py
 ''

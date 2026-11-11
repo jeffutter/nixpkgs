@@ -1,13 +1,14 @@
 {
   lib,
+  endpoints,
   runCommand,
   makeWrapper,
   python3,
   ffmpeg-headless,
 }:
 
-# YuE2 song generation via audio.cpp on the dgx-spark. --set-default keeps the
-# endpoints overridable from the environment if a model moves.
+# YuE2 song generation via audio.cpp on the media host. --set-default keeps the
+# endpoints (jeff.endpoints.musicApi and .musicSttApi) overridable from the environment.
 #
 # SKILL.md refers to the wrapper as @yue2@, filled in with this derivation's own
 # store path, so the source names no agent's skill directory and the same build
@@ -22,9 +23,9 @@ runCommand "yue2-song-skill" { nativeBuildInputs = [ makeWrapper ]; } ''
     --replace-fail '@yue2@' "$out/scripts/yue2"
   makeWrapper ${python}/bin/python3 $out/scripts/yue2 \
     --prefix PATH : ${lib.makeBinPath [ ffmpeg-headless ]} \
-    --set-default YUE2_API http://192.168.10.14:8000 \
+    --set-default MUSIC_API ${lib.escapeShellArg endpoints.musicApi} \
     --set-default YUE2_MODEL audio-cpp/Yue2-3B-GGUF \
-    --set-default STT_API http://192.168.10.4:8089 \
+    --set-default MUSIC_STT_API ${lib.escapeShellArg endpoints.musicSttApi} \
     --set-default STT_MODEL whisper-1 \
     --add-flags $out/scripts/yue2.py
 ''

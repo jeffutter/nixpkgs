@@ -1,5 +1,6 @@
 {
   lib,
+  endpoints,
   runCommand,
   makeWrapper,
   python3,
@@ -23,10 +24,10 @@ runCommand "song-cover-skill" { nativeBuildInputs = [ makeWrapper ]; } ''
     --replace-fail '@yue2@' "${yue2-song-skill}/scripts/yue2"
   makeWrapper ${python3}/bin/python3 $out/scripts/cover \
     --prefix PATH : ${lib.makeBinPath [ ffmpeg-headless ]} \
-    --set-default AUDIOCPP_API http://192.168.10.14:8000/upstream/audiocpp \
+    --set-default COVER_API ${lib.escapeShellArg endpoints.coverApi} \
     --set-default SHEETSAGE_MODEL audio-cpp/SheetSage2-GGUF \
     --set-default WORDS_MODEL parakeet-tdt-0.6b-v3 \
-    --set-default STT_API http://192.168.10.4:8089 \
+    --set-default COVER_STT_API ${lib.escapeShellArg endpoints.coverSttApi} \
     --set-default STT_MODEL whisper-1 \
     --add-flags $out/scripts/cover.py
 ''

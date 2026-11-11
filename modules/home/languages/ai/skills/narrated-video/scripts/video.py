@@ -139,7 +139,9 @@ def speak(api, body, out):
 def cmd_voice(a):
     need("curl")
     base, scenes = load_scenes(a.scenes)
-    api = os.environ.get("TTS_API", "https://llama.home.jeffutter.com/v1").rstrip("/")
+    api = os.environ.get("NARRATION_TTS_API", "").rstrip("/")
+    if not api:
+        sys.exit("NARRATION_TTS_API is not set (the skill wrapper sets it)")
     outdir = base / "audio" / a.style
     outdir.mkdir(parents=True, exist_ok=True)
     failed = []

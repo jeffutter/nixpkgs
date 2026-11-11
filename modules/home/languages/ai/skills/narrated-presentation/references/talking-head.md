@@ -7,7 +7,7 @@ Load the `flashhead-video` skill before step 2. It covers the models, the portra
 ## What it costs
 
 - Render time: about 9x the speech length with `pro` at size 384, so 20 minutes of speech takes about 3.3 hours. Tell Jeff the estimate first. Only the speech is rendered, plus one 8 s idle clip.
-- `pro` holds the dgx-spark for the whole run, so Jeff's chat models get evicted.
+- `pro` holds the GPU host for the whole run, so Jeff's chat models get evicted.
 - Jeff rejected `lite`: the smile looks creepy and the head barely moves. Do not offer it again.
 - Size 256 is blurry and the framing drifts. Size 384 matches 512 at the size the head is shown, in half the time.
 - Composite: 20-30 minutes of encoding for a 20-minute video.

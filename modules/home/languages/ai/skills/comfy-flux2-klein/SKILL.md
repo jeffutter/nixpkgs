@@ -1,9 +1,9 @@
 ---
 name: comfy-flux2-klein
-description: Generate or edit images with FLUX.2 Klein-9B (Q8_0 GGUF) on the dgx-spark ComfyUI. Use to edit or restyle an existing image from a reference, to change one thing and keep the rest, or when the user names Klein or Flux.2. Load the comfyui skill first.
+description: Generate or edit images with FLUX.2 Klein-9B (Q8_0 GGUF) on the GPU host's ComfyUI. Use to edit or restyle an existing image from a reference, to change one thing and keep the rest, or when the user names Klein or Flux.2. Load the comfyui skill first.
 ---
 
-Use this skill for FLUX.2 Klein-9B text-to-image and for editing a reference image. Read the `comfyui-spark` skill first for the CLI, the steps, and how to adapt a workflow.
+Use this skill for FLUX.2 Klein-9B text-to-image and for editing a reference image. Read the `comfyui-remote` skill first for the CLI, the steps, and how to adapt a workflow.
 
 Fixed values:
 - Text-to-image template: `@skills@/comfy-flux2-klein/workflow.json`.
@@ -22,5 +22,5 @@ Editing:
 
 Notes:
 - To use no reference image, use `workflow.json`. It is the same graph without the reference nodes.
-- LoRAs for this model live in `loras/flux-2-klein/` (see `comfy models`). Node `20`, see the `comfyui-spark` skill; the model input to rewire is node `12`. Ask the user before choosing one.
+- LoRAs for this model live in `loras/flux-2-klein/` (see `comfy models`). Node `20`, see the `comfyui-remote` skill; the model input to rewire is node `12`. Ask the user before choosing one.
 - Not tested: Klein's text-to-image quality against the other models, or two reference images.

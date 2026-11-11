@@ -16,10 +16,10 @@ import sys
 import tempfile
 import urllib.request
 
-AUDIOCPP = os.environ["AUDIOCPP_API"]  # .../upstream/audiocpp
+AUDIOCPP = os.environ["COVER_API"].rstrip("/") + "/upstream/audiocpp"
 SHEETSAGE_MODEL = os.environ["SHEETSAGE_MODEL"]
 WORDS_MODEL = os.environ["WORDS_MODEL"]  # model that returns word timestamps
-STT_API = os.environ["STT_API"]
+COVER_STT_API = os.environ["COVER_STT_API"]
 STT_MODEL = os.environ["STT_MODEL"]
 
 
@@ -89,7 +89,7 @@ def cmd_lyrics(a):
     with tempfile.TemporaryDirectory() as td:
         wav = os.path.join(td, "a.wav")
         to_wav(a.audio, 16000, wav)
-        r = multipart(f"{STT_API}/v1/audio/transcriptions", {"model": STT_MODEL}, "file", wav, 600)
+        r = multipart(f"{COVER_STT_API}/v1/audio/transcriptions", {"model": STT_MODEL}, "file", wav, 600)
     text = r["text"].strip()
     open(a.out, "w").write(text + "\n")
     print(f"wrote {a.out}: {len(text.split())} words (draft, unstructured, may contain mishearings)")

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Speech-to-text through an OpenAI-compatible /v1/audio/transcriptions endpoint.
 
-Stdlib only. The endpoint is a base URL (llama-swap by default); --api or the
-STT_API environment variable points it elsewhere.
+Stdlib only. The endpoint is a base URL read from the STT_API environment variable
+(the skill wrapper sets it); --api overrides it.
 """
 import argparse
 import json
@@ -13,7 +13,7 @@ import urllib.error
 import urllib.request
 import uuid
 
-DEFAULT_API = os.environ.get("STT_API", "https://llama.home.jeffutter.com/v1")
+DEFAULT_API = os.environ.get("STT_API")
 ASR_MARKERS = ("parakeet", "whisper", "nemotron-asr", "crisperwhisper", "canary", "asr")
 
 
@@ -87,7 +87,7 @@ def cmd_transcribe(args):
 
 def main():
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument("--api", default=DEFAULT_API, help="base URL (default: %(default)s)")
+    p.add_argument("--api", default=DEFAULT_API, help="base URL (default: $STT_API)")
     sub = p.add_subparsers(dest="cmd", required=True)
     sub.add_parser("models", help="list speech-to-text models the endpoint serves").set_defaults(fn=cmd_models)
     s = sub.add_parser("transcribe", help="transcribe audio files to text on stdout")
@@ -98,6 +98,8 @@ def main():
     s.add_argument("--timeout", type=int, default=600)
     s.set_defaults(fn=cmd_transcribe)
     args = p.parse_args()
+    if not args.api:
+        sys.exit("no endpoint: set STT_API or pass --api URL")
     args.fn(args)
 
 

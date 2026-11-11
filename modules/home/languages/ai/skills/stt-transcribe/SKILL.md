@@ -1,13 +1,13 @@
 ---
 name: stt-transcribe
-description: Transcribe audio files (voice memos, recordings, MP3/M4A/WAV) to text with the homelab speech-to-text models. Use when the user gives an audio file and asks what is said, wants a transcript, or wants to check a generated voice clip or song against its script.
+description: Transcribe audio files (voice memos, recordings, MP3/M4A/WAV) to text with the local speech-to-text models. Use when the user gives an audio file and asks what is said, wants a transcript, or wants to check a generated voice clip or song against its script.
 ---
 
 Use this skill when the user wants text from audio. The end state is the transcript, reported with the model used and any words you doubt.
 
 Fixed values:
 - Tool: `@stt@`. Make every call through it. `stt` below means this path.
-- Endpoint: llama-swap on the homelab, `https://llama.home.jeffutter.com/v1`. Point at another machine with `stt --api URL ...` or the `STT_API` environment variable. `--api` goes before the subcommand. Use it only when the user names another machine.
+- Endpoint: `@sttApi@` (the speech API, served by llama-swap). It is preconfigured in `STT_API`. Point at another machine with `stt --api URL ...` or by setting `STT_API`. `--api` goes before the subcommand. Use it only when the user names another machine.
 - `stt transcribe FILE... [--model M] [--language L] [--json]` prints each transcript to stdout and the model and timing to stderr. With several files, each transcript follows a `== path` line. `--json` prints the full response.
 - `stt models` lists the speech-to-text models the endpoint serves. Run it when a model name fails.
 - Any common audio format works. The server converts to 16 kHz mono itself, so do not pre-convert.

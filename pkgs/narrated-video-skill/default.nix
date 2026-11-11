@@ -1,5 +1,6 @@
 {
   lib,
+  endpoints,
   runCommand,
   makeWrapper,
   fetchurl,
@@ -47,7 +48,7 @@ runCommand "narrated-video-skill" { nativeBuildInputs = [ makeWrapper ]; } ''
   substituteInPlace $out/SKILL.md --replace-fail '@video@' "$out/scripts/video"
   makeWrapper ${python}/bin/python3 $out/scripts/video \
     --prefix PATH : ${lib.makeBinPath tools} \
-    --set-default TTS_API https://llama.home.jeffutter.com/v1 \
+    --set-default NARRATION_TTS_API ${lib.escapeShellArg endpoints.narrationTtsApi} \
     --set PELE_JS $out/vendor/pele/dist/pele.js \
     --set VIDEO_FONT_DIRS ${inter}/share/fonts:${jetbrains-mono}/share/fonts \
     --set VIDEO_MONO_FONT ${jetbrains-mono}/share/fonts/truetype/JetBrainsMono-Regular.ttf \

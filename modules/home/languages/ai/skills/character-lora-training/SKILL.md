@@ -1,19 +1,19 @@
 ---
 name: character-lora-training
-description: Train and evaluate a character (person) LoRA for MOSS-Image with Fizgig on the dgx-spark, then render with it in ComfyUI. Use when the user wants a LoRA of a specific person, wants to retrain or compare LoRA runs, improve face likeness or body shape in full-body renders, or names Fizgig.
+description: Train and evaluate a character (person) LoRA for MOSS-Image with Fizgig on the GPU host, then render with it in ComfyUI. Use when the user wants a LoRA of a specific person, wants to retrain or compare LoRA runs, improve face likeness or body shape in full-body renders, or names Fizgig.
 ---
 
 Use this skill to turn a folder of photos of one person into a LoRA that renders them in MOSS-Image. The end state is a `.safetensors` file in ComfyUI's LoRA folder, test renders that you looked at, and a likeness score, reported with what was and was not checked.
 
-The photos show a real, usually private person. Keep them on the spark. Do not put them or renders in an Artifact, a git repo, or a shared page unless the user asks.
+The photos show a real, usually private person. Keep them on the GPU host. Do not put them or renders in an Artifact, a git repo, or a shared page unless the user asks.
 
 Fixed values:
-- Everything runs on the dgx-spark: `ssh jeffutter@192.168.10.14`. The `fizgig` command there is the only entry point to the trainer: `fizgig up | down | status | password | tool SCRIPT.py ARGS | sh CMD`. Its source is `home/dgx-spark.nix` and `home/fizgig/` in the colmena repo.
-- Workspace: `~/fizgig/workspace` on the spark (`/workspace` in the container): `datasets/NAME/`, `output_loras/NAME/`, `models/`, `user_data/runs.json`, `tools/`. Container-written files are root-owned: delete them with `fizgig sh rm -rf /workspace/...`.
-- Web UI: `http://192.168.10.14:8081`, password from `fizgig password`.
+- Everything runs on the GPU host: `ssh @loraSsh@`. The `fizgig` command there is the only entry point to the trainer: `fizgig up | down | status | password | tool SCRIPT.py ARGS | sh CMD`. Its source is in the GPU host's deployment config (`fizgig/`).
+- Workspace: `~/fizgig/workspace` on the GPU host (`/workspace` in the container): `datasets/NAME/`, `output_loras/NAME/`, `models/`, `user_data/runs.json`, `tools/`. Container-written files are root-owned: delete them with `fizgig sh rm -rf /workspace/...`.
+- Web UI: `@loraUi@`, password from `fizgig password`.
 - Tools (`fizgig tool X.py`, docs at the top of each file): `face_prep.py` (face crops), `sam_masks.py` (person masks), `sam_people.py` (one mask per person in a picture), `fizgig_run.py` (start a run, from an earlier run or a model preset), `arcface_score.py` (likeness score).
 - Model: MOSS-Image Base, Standard preset, rank 32, Muon. Measured: 2.65 s/step at 1 MP on 26 images; 3.6 s/step at 1.5 MP on 47 images (40 epochs, 1880 steps, 1 h 50 min). Measure before you estimate: a guess of 8 s/step was 3x too high.
-- Render with the `comfyui-spark` and `comfy-moss-image` skills. ComfyUI runs MOSS-Image SFT NVFP4; Fizgig trains on Base. The LoRA transfers, strength 1.0.
+- Render with the `comfyui-remote` and `comfy-moss-image` skills. ComfyUI runs MOSS-Image SFT NVFP4; Fizgig trains on Base. The LoRA transfers, strength 1.0.
 - ComfyUI workflows (Workflows sidebar, key `w`): "MOSS-Image + Character LoRA" and "... + Face Detail". In each, set the LoRA in `LoraLoaderModelOnly` and start the prompt with the trigger word. The face-detail one upscales 2x, repaints only the face at denoise 0.4, and takes about 140 s.
 
 Steps:

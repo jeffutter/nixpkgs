@@ -100,20 +100,34 @@ let
                   '# Preinstalled via Nix (home-manager) — no setup required.
         # references/render bundles Python, Playwright, and a matching Chromium.'
       '';
-  yue2SongSkill = pkgs.callPackage ../../../pkgs/yue2-song-skill { };
+  # Network endpoints the skills talk to, named by role (see options.jeff.endpoints).
+  # Skill sources hold no addresses: scripts read env vars that their wrapper sets
+  # from these values, and SKILL.md prose carries @role@ tokens filled in here.
+  endpoints = config.jeff.endpoints;
+  yue2SongSkill = pkgs.callPackage ../../../pkgs/yue2-song-skill { inherit endpoints; };
   songCoverSkill = pkgs.callPackage ../../../pkgs/song-cover-skill {
+    inherit endpoints;
     yue2-song-skill = yue2SongSkill;
   };
-  ttsSpeechSkill = pkgs.callPackage ../../../pkgs/tts-speech-skill { };
-  flashheadVideoSkill = pkgs.callPackage ../../../pkgs/flashhead-video-skill { };
-  sttTranscribeSkill = pkgs.callPackage ../../../pkgs/stt-transcribe-skill { };
-  narratedVideoSkill = pkgs.callPackage ../../../pkgs/narrated-video-skill { };
+  ttsSpeechSkill = pkgs.callPackage ../../../pkgs/tts-speech-skill { inherit endpoints; };
+  flashheadVideoSkill = pkgs.callPackage ../../../pkgs/flashhead-video-skill { inherit endpoints; };
+  sttTranscribeSkill = pkgs.callPackage ../../../pkgs/stt-transcribe-skill { inherit endpoints; };
+  narratedVideoSkill = pkgs.callPackage ../../../pkgs/narrated-video-skill { inherit endpoints; };
   narratedPresentationSkill = pkgs.callPackage ../../../pkgs/narrated-presentation-skill {
+    inherit endpoints;
     narrated-video-skill = narratedVideoSkill;
     stt-transcribe-skill = sttTranscribeSkill;
     flashhead-video-skill = flashheadVideoSkill;
   };
-  comfyuiSkills = pkgs.callPackage ../../../pkgs/comfyui-skills { };
+  comfyuiSkills = pkgs.callPackage ../../../pkgs/comfyui-skills { inherit endpoints; };
+  # Plain-prose skill with no wrapper: only the @role@ tokens need filling in.
+  characterLoraTrainingSkill = pkgs.runCommand "character-lora-training-skill" { } ''
+    cp -r ${./ai/skills/character-lora-training} $out
+    chmod -R u+w $out
+    substituteInPlace $out/SKILL.md $out/lora-isolation.md \
+      --replace-quiet '@loraSsh@' ${lib.escapeShellArg endpoints.loraSsh} \
+      --replace-quiet '@loraUi@' ${lib.escapeShellArg endpoints.loraUi}
+  '';
   the-elements-of-style = inputs.the-elements-of-style;
   # nixpkgs' todoist-cli ships only the `td` binary, not a static skill file;
   # v1.75.2+ generates SKILL.md on demand from bundled content. Call the
@@ -785,6 +799,51 @@ in
     default = false;
   };
 
+  # Network endpoints, one per model use, not per machine: skills say "the TTS
+  # API" and never name a host, so moving a service means editing one value here.
+  # Two uses that run different models never share an entry, even when they
+  # point at the same URL today, so repointing one cannot move the other. Option
+  # name -> env var is SCREAMING_SNAKE (ttsApi -> TTS_API); the same name between
+  # @ @ is the token in SKILL.md prose. No trailing slash. A skill appends its own
+  # API path to the bare ones.
+  options.jeff.endpoints =
+    let
+      # Where each service lives today. Roles below pick one as their default.
+      litellm = "https://litellm.home.jeffutter.com/v1";
+      homelabSwap = "https://llama.home.jeffutter.com/v1";
+      homelabStt = "http://192.168.10.4:8089";
+      sparkSwap = "http://192.168.10.14:8000";
+      sparkSsh = "jeffutter@192.168.10.14";
+      sparkTrainerUi = "http://192.168.10.14:8081";
+      endpoint =
+        default: description:
+        lib.mkOption {
+          type = lib.types.str;
+          inherit default description;
+        };
+    in
+    lib.mkOption {
+      default = { };
+      type = lib.types.submodule {
+        options = {
+          llmApi = endpoint litellm "Chat models for pi (provider litellm-home), base URL including /v1.";
+          deciderApi = endpoint litellm "Decider classifier model for thinking-router, base URL including /v1.";
+          ttsApi = endpoint homelabSwap "Text-to-speech models (tts-speech skill), base URL including /v1.";
+          narrationTtsApi = endpoint homelabSwap "Narration voice for narrated-video and narrated-presentation, base URL including /v1.";
+          sttApi = endpoint homelabSwap "Speech-to-text models (stt-transcribe skill), base URL including /v1.";
+          imageApi = endpoint sparkSwap "ComfyUI image models, bare base URL (comfy adds /upstream/comfyui).";
+          musicApi = endpoint sparkSwap "YuE2 song generation, bare base URL (yue2 adds /audioapi).";
+          musicSttApi = endpoint homelabStt "Transcription yue2 uses to check generated lyrics, bare base URL (adds /v1/audio/transcriptions).";
+          coverApi = endpoint sparkSwap "SheetSage2 and word-timestamp models for song-cover, bare base URL (cover adds /upstream/audiocpp).";
+          coverSttApi = endpoint homelabStt "Transcription song-cover uses for lyrics, bare base URL (adds /v1/audio/transcriptions).";
+          talkingHeadApi = endpoint sparkSwap "SoulX-FlashHead video models, bare base URL (flashhead adds /audioapi).";
+          talkingHeadSsh = endpoint sparkSsh "ssh target flashhead stages inputs to and reads logs from.";
+          loraSsh = endpoint sparkSsh "ssh target of the LoRA trainer (character-lora-training skill).";
+          loraUi = endpoint sparkTrainerUi "Web UI of the LoRA trainer.";
+        };
+      };
+    };
+
   # Host-specific Claude Code context, appended to the environment preamble in
   # ~/.claude/CLAUDE.md. The work machine uses it for how its managed sandbox
   # treats git/gh/acli, which doesn't apply anywhere else.
@@ -931,7 +990,9 @@ in
     # classifier (decider-4b), restoring pi's level after each run. Metrics go
     # to ~/.pi/agent/thinking-router/decisions.jsonl and optional overrides are
     # read from ~/.pi/agent/thinking-router.json, both outside this store path.
-    home.file.".pi/agent/extensions/thinking-router.ts".source = ./ai/pi-extensions/thinking-router.ts;
+    home.file.".pi/agent/extensions/thinking-router.ts".text =
+      builtins.replaceStrings [ "@deciderApi@" ] [ endpoints.deciderApi ]
+        (builtins.readFile ./ai/pi-extensions/thinking-router.ts);
 
     # command-history: cross-session command history for pi's editor (up/down
     # arrow recall across sessions), mirroring Claude Code's behavior. Same
@@ -1154,7 +1215,7 @@ in
     home.file.".pi/agent/models.json".text = builtins.toJSON {
       providers = {
         "litellm-home" = {
-          baseUrl = "https://litellm.home.jeffutter.com/v1";
+          baseUrl = endpoints.llmApi;
           api = "openai-completions";
           apiKey = "$LITELLM_KEY";
           compat = {
@@ -1640,7 +1701,7 @@ in
         setup-backlog-tracker = ./ai/skills/setup-backlog-tracker;
         brainstorming = ./ai/skills/brainstorming;
         carin = "${carin-skill}";
-        character-lora-training = ./ai/skills/character-lora-training;
+        character-lora-training = "${characterLoraTrainingSkill}";
         diagram-design = "${diagram-design-skill}/skills/diagram-design";
         diff-explanation-core = ./ai/skills/diff-explanation-core;
         elixir = ./ai/skills/elixir;
@@ -1676,7 +1737,7 @@ in
         stt-transcribe = "${sttTranscribeSkill}";
         narrated-video = "${narratedVideoSkill}";
         narrated-presentation = "${narratedPresentationSkill}";
-        comfyui-spark = "${comfyuiSkills}/comfyui-spark";
+        comfyui-remote = "${comfyuiSkills}/comfyui-remote";
         comfy-moss-image = "${comfyuiSkills}/comfy-moss-image";
         comfy-z-image = "${comfyuiSkills}/comfy-z-image";
         comfy-krea-2 = "${comfyuiSkills}/comfy-krea-2";

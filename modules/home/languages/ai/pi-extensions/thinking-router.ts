@@ -71,7 +71,7 @@ interface Config {
 const DEFAULT_CONFIG: Config = {
 	// Through litellm (its `decider` route, backed by h2o-lightning-4b on llama-swap), authenticated
 	// with pi's own LITELLM_KEY.
-	baseUrl: "https://litellm.home.jeffutter.com/v1",
+	baseUrl: "@deciderApi@", // filled in by ai.nix (jeff.endpoints.deciderApi)
 	model: "decider",
 	timeoutMs: 2000,
 	// ~1000 chars. Classifier latency scales with total input at ~1.9ms/token, and the uncached

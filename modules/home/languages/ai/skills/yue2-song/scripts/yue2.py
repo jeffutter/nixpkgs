@@ -19,9 +19,9 @@ import uuid
 
 import numpy as np
 
-YUE2_API = os.environ["YUE2_API"]
+MUSIC_API = os.environ["MUSIC_API"]
 YUE2_MODEL = os.environ["YUE2_MODEL"]
-STT_API = os.environ["STT_API"]
+MUSIC_STT_API = os.environ["MUSIC_STT_API"]
 STT_MODEL = os.environ["STT_MODEL"]
 
 
@@ -37,7 +37,7 @@ def post_json(url, body, timeout):
 
 def run_task(lyrics, options, timeout):
     return post_json(
-        f"{YUE2_API}/audioapi/v1/tasks/run",
+        f"{MUSIC_API}/audioapi/v1/tasks/run",
         {"model": YUE2_MODEL, "text": lyrics, "options": options},
         timeout,
     )
@@ -225,7 +225,7 @@ def transcribe(path):
     )
     parts.append(f"--{boundary}--\r\n".encode())
     req = urllib.request.Request(
-        f"{STT_API}/v1/audio/transcriptions", b"".join(parts),
+        f"{MUSIC_STT_API}/v1/audio/transcriptions", b"".join(parts),
         {"content-type": f"multipart/form-data; boundary={boundary}"},
     )
     return json.loads(urllib.request.urlopen(req, timeout=600).read()).get("text", "")

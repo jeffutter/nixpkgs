@@ -1,6 +1,6 @@
 ---
 name: yue2-song
-description: Generate full songs with vocals using YuE2 (audio.cpp on the dgx-spark, behind llama-swap) and iterate on them with the user. Use when the user asks to write, generate, or render a song or music with lyrics, or to revise a YuE2 take (style, instruments, meter, melody, arrangement).
+description: Generate full songs with vocals using YuE2 (audio.cpp on the GPU host, behind llama-swap) and iterate on them with the user. Use when the user asks to write, generate, or render a song or music with lyrics, or to revise a YuE2 take (style, instruments, meter, melody, arrangement).
 ---
 
 Use this skill when the user asks for a song with vocals or a revision of a YuE2 take. The end state is MP3 takes in the user's directory, reported with check results, revised until the user stops asking.
@@ -48,7 +48,7 @@ Steps:
    - Use the same style string with different seeds.
    - Run one render at a time, in the background.
 
-6. Handle a slow or failed render. YuE2 and the user's chat model evict each other on the dgx-spark. Ask the user whether they are chatting, then rerun the render.
+6. Handle a slow or failed render. YuE2 and the user's chat model evict each other on the GPU host. Ask the user whether they are chatting, then rerun the render.
 
 7. Read each take's `check` output.
    - The pulse line says whether the take has a simple pulse (2/4, 3/4, 4/4) or a compound pulse (6/8, 9/8, 12/8).
