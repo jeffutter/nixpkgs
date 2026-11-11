@@ -643,7 +643,7 @@ let
       wrapProgram $out/bin/pi \
         --set NPM_CONFIG_PREFIX ${config.home.homeDirectory}/.pi/npm/ \
         --prefix PATH : ${pkgs.lib.makeBinPath [ pkgs.nodejs_latest ]} \
-        --run 'if [ -z "$LITELLM_KEY" ]; then op whoami > /dev/null 2>&1 || eval $(op signin); export LITELLM_KEY="$(op read '"'"'op://Private/litellm-pi/notesPlain'"'"')"; fi'
+        --run 'case "$1" in install|remove|uninstall|update|list|config|-h|--help|-v|--version) ;; *) if [ -z "$LITELLM_KEY" ] && command -v op > /dev/null 2>&1; then op whoami > /dev/null 2>&1 || eval "$(op signin)"; LITELLM_KEY="$(op read '"'"'op://Private/litellm-pi/notesPlain'"'"')" && export LITELLM_KEY; fi ;; esac'
     '';
   };
 
