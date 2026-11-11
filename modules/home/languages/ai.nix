@@ -107,13 +107,9 @@ let
   endpoints = config.jeff.endpoints;
   endpointEnv = {
     TTS_API = endpoints.ttsApi;
-    NARRATION_TTS_API = endpoints.narrationTtsApi;
     STT_API = endpoints.sttApi;
     IMAGE_API = endpoints.imageApi;
     MUSIC_API = endpoints.musicApi;
-    MUSIC_STT_API = endpoints.musicSttApi;
-    COVER_API = endpoints.coverApi;
-    COVER_STT_API = endpoints.coverSttApi;
     TALKING_HEAD_API = endpoints.talkingHeadApi;
     TALKING_HEAD_SSH = endpoints.talkingHeadSsh;
     LORA_SSH = endpoints.loraSsh;
@@ -814,9 +810,8 @@ in
   options.jeff.endpoints =
     let
       # Where each service lives today. Roles below pick one as their default.
-      litellm = "https://litellm.home.jeffutter.com/v1";
-      homelabSwap = "https://llama.home.jeffutter.com/v1";
-      homelabStt = "http://192.168.10.4:8089";
+      litellm = "https://litellm.home.jeffutter.com";
+      homelabSwap = "https://llama.home.jeffutter.com";
       sparkSwap = "http://192.168.10.14:8000";
       sparkSsh = "jeffutter@192.168.10.14";
       sparkTrainerUi = "http://192.168.10.14:8081";
@@ -831,16 +826,12 @@ in
       default = { };
       type = lib.types.submodule {
         options = {
-          llmApi = endpoint litellm "Chat models for pi (provider litellm-home), base URL including /v1.";
-          deciderApi = endpoint litellm "Decider classifier model for thinking-router, base URL including /v1.";
-          ttsApi = endpoint homelabSwap "Text-to-speech models (tts-speech skill), base URL including /v1.";
-          narrationTtsApi = endpoint homelabSwap "Narration voice for narrated-video and narrated-presentation, base URL including /v1.";
-          sttApi = endpoint homelabSwap "Speech-to-text models (stt-transcribe skill), base URL including /v1.";
+          llmApi = endpoint litellm "Chat models for pi (provider litellm-home). Bare base URL; Nix adds /v1.";
+          deciderApi = endpoint litellm "Decider classifier model for thinking-router. Bare base URL; Nix adds /v1.";
+          ttsApi = endpoint homelabSwap "Text-to-speech: tts-speech, voice mode, narrated-video, narrated-presentation. Bare base URL; each tool adds /v1.";
+          sttApi = endpoint homelabSwap "Speech-to-text: stt-transcribe, the narration check, yue2 lyric check, song-cover lyrics and word timing. Bare base URL; each tool adds its own path (/v1/..., /upstream/...).";
           imageApi = endpoint sparkSwap "ComfyUI image models, bare base URL (comfy adds /upstream/comfyui).";
-          musicApi = endpoint sparkSwap "YuE2 song generation, bare base URL (yue2 adds /audioapi).";
-          musicSttApi = endpoint homelabStt "Transcription yue2 uses to check generated lyrics, bare base URL (adds /v1/audio/transcriptions).";
-          coverApi = endpoint sparkSwap "SheetSage2 and word-timestamp models for song-cover, bare base URL (cover adds /upstream/audiocpp).";
-          coverSttApi = endpoint homelabStt "Transcription song-cover uses for lyrics, bare base URL (adds /v1/audio/transcriptions).";
+          musicApi = endpoint sparkSwap "Music on the GPU host's audio.cpp: YuE2 generation (yue2 adds /audioapi) and song-cover's SheetSage2 (cover adds /upstream/audiocpp). Bare base URL.";
           talkingHeadApi = endpoint sparkSwap "SoulX-FlashHead video models, bare base URL (flashhead adds /audioapi).";
           talkingHeadSsh = endpoint sparkSsh "ssh target flashhead stages inputs to and reads logs from.";
           loraSsh = endpoint sparkSsh "ssh target of the LoRA trainer (character-lora-training skill).";
@@ -998,7 +989,7 @@ in
     # to ~/.pi/agent/thinking-router/decisions.jsonl and optional overrides are
     # read from ~/.pi/agent/thinking-router.json, both outside this store path.
     home.file.".pi/agent/extensions/thinking-router.ts".text =
-      builtins.replaceStrings [ "@deciderApi@" ] [ endpoints.deciderApi ]
+      builtins.replaceStrings [ "@deciderApi@" ] [ "${endpoints.deciderApi}/v1" ]
         (builtins.readFile ./ai/pi-extensions/thinking-router.ts);
 
     # command-history: cross-session command history for pi's editor (up/down
@@ -1222,7 +1213,7 @@ in
     home.file.".pi/agent/models.json".text = builtins.toJSON {
       providers = {
         "litellm-home" = {
-          baseUrl = endpoints.llmApi;
+          baseUrl = "${endpoints.llmApi}/v1";
           api = "openai-completions";
           apiKey = "$LITELLM_KEY";
           compat = {

@@ -29,7 +29,7 @@ def require_env(name):
 
 MUSIC_API = require_env("MUSIC_API").rstrip("/")
 YUE2_MODEL = os.environ["YUE2_MODEL"]
-MUSIC_STT_API = require_env("MUSIC_STT_API").rstrip("/")
+STT_API = require_env("STT_API").rstrip("/")
 STT_MODEL = os.environ["STT_MODEL"]
 
 
@@ -233,7 +233,7 @@ def transcribe(path):
     )
     parts.append(f"--{boundary}--\r\n".encode())
     req = urllib.request.Request(
-        f"{MUSIC_STT_API}/v1/audio/transcriptions", b"".join(parts),
+        f"{STT_API}/v1/audio/transcriptions", b"".join(parts),
         {"content-type": f"multipart/form-data; boundary={boundary}"},
     )
     return json.loads(urllib.request.urlopen(req, timeout=600).read()).get("text", "")

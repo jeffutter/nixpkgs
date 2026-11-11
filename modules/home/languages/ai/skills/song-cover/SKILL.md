@@ -10,7 +10,7 @@ This skill covers the pipeline. Rendering rules (style string, plans, BPM, check
 Fixed values:
 - Helper: `@cover@`. `cover` below means this path.
 - Renderer: `@yue2@`. `yue2` below means this path.
-- Servers: audio.cpp on the GPU host behind llama-swap. SheetSage2, YuE2 and the Parakeet word-timestamp model evict each other. The first call after a model swap can take several minutes. If the user says audio.cpp is not loaded, wait for their go-ahead before any call that needs the server.
+- Servers: audio.cpp on the GPU host behind llama-swap. SheetSage2 and YuE2 evict each other. The first call after a model swap can take several minutes. If the user says audio.cpp is not loaded, wait for their go-ahead before any call that needs the server.
 - `cover status` lists the audio.cpp models and whether each is loaded. It changes nothing.
 - `cover transcribe AUDIO --out X-sheetsage.abc` converts the audio to mono 44.1 kHz WAV, uploads it and runs SheetSage2. It takes about 30s once the model is loaded. SheetSage2 accepts WAV only and must be the FP32 build, because the Q8 build changes notes.
 - `cover lyrics AUDIO --out draft.txt` writes a flat speech-to-text draft of the words.
@@ -75,4 +75,4 @@ Steps:
 Known limits:
 - SheetSage2 gives the melody and rough chords of one sung line. Dense or heavily layered sources transcribe poorly.
 - YuE2 sings its own timing against the plan. The plan fixes notes, key, structure and length, but not which word lands on which note. About 0.6x realtime to render.
-- `cover timing` needs the Parakeet word-timestamp model. The ordinary Whisper endpoint returns no word times.
+- `cover timing` needs the Parakeet word-timestamp route, which the ordinary `/v1/audio/transcriptions` route does not have (it returns no word times). It runs on the STT host, not the GPU host, through llama-swap's `/upstream/<model>/` path, so it does not evict the GPU host's models.

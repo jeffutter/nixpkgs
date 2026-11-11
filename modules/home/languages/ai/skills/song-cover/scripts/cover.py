@@ -24,10 +24,10 @@ def require_env(name):
     return value
 
 
-AUDIOCPP = require_env("COVER_API").rstrip("/") + "/upstream/audiocpp"
+AUDIOCPP = require_env("MUSIC_API").rstrip("/") + "/upstream/audiocpp"
 SHEETSAGE_MODEL = os.environ["SHEETSAGE_MODEL"]
 WORDS_MODEL = os.environ["WORDS_MODEL"]  # model that returns word timestamps
-COVER_STT_API = require_env("COVER_STT_API").rstrip("/")
+STT_API = require_env("STT_API").rstrip("/")
 STT_MODEL = os.environ["STT_MODEL"]
 
 
@@ -61,7 +61,7 @@ def to_wav(src, rate, dst):
 # ---------------------------------------------------------------- status
 def cmd_status(a):
     d = json.loads(http(f"{AUDIOCPP}/v1/models", timeout=60))
-    want = ("SheetSage2", "Yue2", "parakeet")
+    want = ("SheetSage2", "Yue2")
     for m in d["data"]:
         if any(w.lower() in m["id"].lower() for w in want):
             print(f"{m['id']:45} loaded={m.get('loaded')}")
@@ -97,7 +97,7 @@ def cmd_lyrics(a):
     with tempfile.TemporaryDirectory() as td:
         wav = os.path.join(td, "a.wav")
         to_wav(a.audio, 16000, wav)
-        r = multipart(f"{COVER_STT_API}/v1/audio/transcriptions", {"model": STT_MODEL}, "file", wav, 600)
+        r = multipart(f"{STT_API}/v1/audio/transcriptions", {"model": STT_MODEL}, "file", wav, 600)
     text = r["text"].strip()
     open(a.out, "w").write(text + "\n")
     print(f"wrote {a.out}: {len(text.split())} words (draft, unstructured, may contain mishearings)")
@@ -289,11 +289,16 @@ def chord_spans(text, parsed):
 
 # ------------------------------------------------------------------ timing
 def cmd_timing(a):
-    """Word onsets of a rendered take (Parakeet word timestamps) against the plan's expected length."""
+    """Word onsets of a rendered take (Parakeet word timestamps) against the plan's expected length.
+
+    The /details route is audio.cpp's own, not the OpenAI one, so it is reached through llama-swap's
+    /upstream/<model>/ passthrough on the STT host.
+    """
     with tempfile.TemporaryDirectory() as td:
         wav = os.path.join(td, "t.wav")
         to_wav(a.take, 16000, wav)
-        r = multipart(f"{AUDIOCPP}/v1/audio/transcriptions/details", {"model": WORDS_MODEL}, "file", wav, 600)
+        url = f"{STT_API}/upstream/{WORDS_MODEL}/v1/audio/transcriptions/details"
+        r = multipart(url, {"model": WORDS_MODEL}, "file", wav, 600)
     sr = r["sample_rate"]
     t = [w["start_sample"] / sr for w in r["words"]]
     if not t: sys.exit("no words found: the take may be instrumental or the lyrics were dropped")

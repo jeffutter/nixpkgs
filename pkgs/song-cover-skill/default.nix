@@ -9,7 +9,7 @@
 
 # Cover-song pipeline on the GPU host: SheetSage2 transcription, lyric drafts,
 # plan/reharmonization checks and take timing. Rendering is delegated to the
-# yue2-song skill's tool. COVER_API and COVER_STT_API come from the environment
+# yue2-song skill's tool. MUSIC_API and STT_API come from the environment
 # (jeff.endpoints, exported by home.sessionVariables in ai.nix); the tool exits if
 # either is unset.
 #

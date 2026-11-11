@@ -125,7 +125,7 @@ def speak(api, body, out):
         body_file.write_text(json.dumps(body))
         proc = subprocess.run(
             ["curl", "-sS", "--max-time", "900", "-o", str(out), "-D", str(hdr),
-             "-w", "%{http_code}", "-X", "POST", f"{api}/audio/speech",
+             "-w", "%{http_code}", "-X", "POST", f"{api}/v1/audio/speech",
              "-H", "Content-Type: application/json", "--data-binary", f"@{body_file}"],
             capture_output=True, text=True)
         if proc.returncode != 0 or proc.stdout.strip() != "200" or not out.is_file():
@@ -139,9 +139,9 @@ def speak(api, body, out):
 def cmd_voice(a):
     need("curl")
     base, scenes = load_scenes(a.scenes)
-    api = os.environ.get("NARRATION_TTS_API", "").rstrip("/")
+    api = os.environ.get("TTS_API", "").rstrip("/")
     if not api:
-        sys.exit("NARRATION_TTS_API is not set: export it in your environment")
+        sys.exit("TTS_API is not set: export it in your environment")
     outdir = base / "audio" / a.style
     outdir.mkdir(parents=True, exist_ok=True)
     failed = []

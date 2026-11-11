@@ -6,7 +6,7 @@
   ffmpeg-headless,
 }:
 
-# YuE2 song generation via audio.cpp on the GPU host. MUSIC_API and MUSIC_STT_API come from the
+# YuE2 song generation via audio.cpp on the GPU host. MUSIC_API and STT_API come from the
 # environment (jeff.endpoints, exported by home.sessionVariables in ai.nix); the
 # tool exits if either is unset. The model ids below are not endpoints and stay here.
 #
