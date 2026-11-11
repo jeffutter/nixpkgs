@@ -19,9 +19,17 @@ import uuid
 
 import numpy as np
 
-MUSIC_API = os.environ["MUSIC_API"]
+def require_env(name):
+    """Return the environment variable, or exit saying which one is missing."""
+    value = os.environ.get(name)
+    if not value:
+        sys.exit(f"{name} is not set: export it in your environment (see SKILL.md)")
+    return value
+
+
+MUSIC_API = require_env("MUSIC_API").rstrip("/")
 YUE2_MODEL = os.environ["YUE2_MODEL"]
-MUSIC_STT_API = os.environ["MUSIC_STT_API"]
+MUSIC_STT_API = require_env("MUSIC_STT_API").rstrip("/")
 STT_MODEL = os.environ["STT_MODEL"]
 
 

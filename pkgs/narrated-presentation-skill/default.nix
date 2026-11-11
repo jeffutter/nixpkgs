@@ -1,6 +1,5 @@
 {
   lib,
-  endpoints,
   runCommand,
   makeWrapper,
   python3,
@@ -47,7 +46,6 @@ runCommand "narrated-presentation-skill" { nativeBuildInputs = [ makeWrapper ]; 
   substituteInPlace $out/SKILL.md --replace-fail '@present@' "$out/bin/present"
   makeWrapper ${python}/bin/python3 $out/bin/present \
     --prefix PATH : ${lib.makeBinPath tools} \
-    --set-default NARRATION_TTS_API ${lib.escapeShellArg endpoints.narrationTtsApi} \
     --set NARRATED_VIDEO_DIR ${narrated-video-skill}/scripts \
     --set PELE_JS ${narrated-video-skill}/vendor/pele/dist/pele.js \
     --set STT_TOOL ${stt-transcribe-skill}/scripts/stt \

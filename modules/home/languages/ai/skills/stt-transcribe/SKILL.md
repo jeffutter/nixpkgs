@@ -7,7 +7,7 @@ Use this skill when the user wants text from audio. The end state is the transcr
 
 Fixed values:
 - Tool: `@stt@`. Make every call through it. `stt` below means this path.
-- Endpoint: `@sttApi@` (the speech API, served by llama-swap). It is preconfigured in `STT_API`. Point at another machine with `stt --api URL ...` or by setting `STT_API`. `--api` goes before the subcommand. Use it only when the user names another machine.
+- Endpoint: the base URL in `$STT_API` (llama-swap). Point at another machine with `stt --api URL ...` or by setting `STT_API`. `--api` goes before the subcommand. Use it only when the user names another machine.
 - `stt transcribe FILE... [--model M] [--language L] [--json]` prints each transcript to stdout and the model and timing to stderr. With several files, each transcript follows a `== path` line. `--json` prints the full response.
 - `stt models` lists the speech-to-text models the endpoint serves. Run it when a model name fails.
 - Any common audio format works. The server converts to 16 kHz mono itself, so do not pre-convert.

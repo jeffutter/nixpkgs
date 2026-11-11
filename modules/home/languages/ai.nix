@@ -100,34 +100,39 @@ let
                   '# Preinstalled via Nix (home-manager) — no setup required.
         # references/render bundles Python, Playwright, and a matching Chromium.'
       '';
-  # Network endpoints the skills talk to, named by role (see options.jeff.endpoints).
-  # Skill sources hold no addresses: scripts read env vars that their wrapper sets
-  # from these values, and SKILL.md prose carries @role@ tokens filled in here.
+  # Network endpoints, one per model use (see options.jeff.endpoints). Skill
+  # sources hold no addresses: scripts and SKILL.md prose read the environment
+  # variables below, which home.sessionVariables exports to every shell and so to
+  # every agent started from one.
   endpoints = config.jeff.endpoints;
-  yue2SongSkill = pkgs.callPackage ../../../pkgs/yue2-song-skill { inherit endpoints; };
+  endpointEnv = {
+    TTS_API = endpoints.ttsApi;
+    NARRATION_TTS_API = endpoints.narrationTtsApi;
+    STT_API = endpoints.sttApi;
+    IMAGE_API = endpoints.imageApi;
+    MUSIC_API = endpoints.musicApi;
+    MUSIC_STT_API = endpoints.musicSttApi;
+    COVER_API = endpoints.coverApi;
+    COVER_STT_API = endpoints.coverSttApi;
+    TALKING_HEAD_API = endpoints.talkingHeadApi;
+    TALKING_HEAD_SSH = endpoints.talkingHeadSsh;
+    LORA_SSH = endpoints.loraSsh;
+    LORA_UI = endpoints.loraUi;
+  };
+  yue2SongSkill = pkgs.callPackage ../../../pkgs/yue2-song-skill { };
   songCoverSkill = pkgs.callPackage ../../../pkgs/song-cover-skill {
-    inherit endpoints;
     yue2-song-skill = yue2SongSkill;
   };
-  ttsSpeechSkill = pkgs.callPackage ../../../pkgs/tts-speech-skill { inherit endpoints; };
-  flashheadVideoSkill = pkgs.callPackage ../../../pkgs/flashhead-video-skill { inherit endpoints; };
-  sttTranscribeSkill = pkgs.callPackage ../../../pkgs/stt-transcribe-skill { inherit endpoints; };
-  narratedVideoSkill = pkgs.callPackage ../../../pkgs/narrated-video-skill { inherit endpoints; };
+  ttsSpeechSkill = pkgs.callPackage ../../../pkgs/tts-speech-skill { };
+  flashheadVideoSkill = pkgs.callPackage ../../../pkgs/flashhead-video-skill { };
+  sttTranscribeSkill = pkgs.callPackage ../../../pkgs/stt-transcribe-skill { };
+  narratedVideoSkill = pkgs.callPackage ../../../pkgs/narrated-video-skill { };
   narratedPresentationSkill = pkgs.callPackage ../../../pkgs/narrated-presentation-skill {
-    inherit endpoints;
     narrated-video-skill = narratedVideoSkill;
     stt-transcribe-skill = sttTranscribeSkill;
     flashhead-video-skill = flashheadVideoSkill;
   };
-  comfyuiSkills = pkgs.callPackage ../../../pkgs/comfyui-skills { inherit endpoints; };
-  # Plain-prose skill with no wrapper: only the @role@ tokens need filling in.
-  characterLoraTrainingSkill = pkgs.runCommand "character-lora-training-skill" { } ''
-    cp -r ${./ai/skills/character-lora-training} $out
-    chmod -R u+w $out
-    substituteInPlace $out/SKILL.md $out/lora-isolation.md \
-      --replace-quiet '@loraSsh@' ${lib.escapeShellArg endpoints.loraSsh} \
-      --replace-quiet '@loraUi@' ${lib.escapeShellArg endpoints.loraUi}
-  '';
+  comfyuiSkills = pkgs.callPackage ../../../pkgs/comfyui-skills { };
   the-elements-of-style = inputs.the-elements-of-style;
   # nixpkgs' todoist-cli ships only the `td` binary, not a static skill file;
   # v1.75.2+ generates SKILL.md on demand from bundled content. Call the
@@ -802,10 +807,10 @@ in
   # Network endpoints, one per model use, not per machine: skills say "the TTS
   # API" and never name a host, so moving a service means editing one value here.
   # Two uses that run different models never share an entry, even when they
-  # point at the same URL today, so repointing one cannot move the other. Option
-  # name -> env var is SCREAMING_SNAKE (ttsApi -> TTS_API); the same name between
-  # @ @ is the token in SKILL.md prose. No trailing slash. A skill appends its own
-  # API path to the bare ones.
+  # point at the same URL today, so repointing one cannot move the other. The skill
+  # ones are exported as env vars (endpointEnv); llmApi and deciderApi feed the pi
+  # config directly. No trailing slash. A skill appends its own API path to the
+  # bare ones.
   options.jeff.endpoints =
     let
       # Where each service lives today. Roles below pick one as their default.
@@ -894,9 +899,11 @@ in
     # potion-code-16m-v2 is a static model2vec embedding that ranked the right
     # function first for 1 of 10 concept queries on blueprint, jina for 8.
     # An existing index keeps the model it was built with.
-    home.sessionVariables = lib.optionalAttrs config.jeff.enableZvecGrep {
-      ZVEC_GREP_EMBEDDING = "local/jina-embeddings-v2-base-code";
-    };
+    home.sessionVariables =
+      endpointEnv
+      // lib.optionalAttrs config.jeff.enableZvecGrep {
+        ZVEC_GREP_EMBEDDING = "local/jina-embeddings-v2-base-code";
+      };
 
     # Per-file links keep the herdr-app mod folders writable; it writes jsconfig.json and .d.ts there.
     xdg.configFile =
@@ -1701,7 +1708,7 @@ in
         setup-backlog-tracker = ./ai/skills/setup-backlog-tracker;
         brainstorming = ./ai/skills/brainstorming;
         carin = "${carin-skill}";
-        character-lora-training = "${characterLoraTrainingSkill}";
+        character-lora-training = ./ai/skills/character-lora-training;
         diagram-design = "${diagram-design-skill}/skills/diagram-design";
         diff-explanation-core = ./ai/skills/diff-explanation-core;
         elixir = ./ai/skills/elixir;

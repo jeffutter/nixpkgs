@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Speech-to-text through an OpenAI-compatible /v1/audio/transcriptions endpoint.
 
-Stdlib only. The endpoint is a base URL read from the STT_API environment variable
-(the skill wrapper sets it); --api overrides it.
+Stdlib only. The endpoint is a base URL read from the STT_API environment variable;
+--api overrides it.
 """
 import argparse
 import json

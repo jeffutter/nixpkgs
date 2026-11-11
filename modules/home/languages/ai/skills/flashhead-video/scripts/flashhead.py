@@ -27,8 +27,16 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
-HOST_SSH = os.environ["TALKING_HEAD_SSH"]
-API = os.environ["TALKING_HEAD_API"].rstrip("/") + "/audioapi/v1/tasks/run"
+def require_env(name):
+    """Return the environment variable, or exit saying which one is missing."""
+    value = os.environ.get(name)
+    if not value:
+        sys.exit(f"{name} is not set: export it in your environment (see SKILL.md)")
+    return value
+
+
+HOST_SSH = require_env("TALKING_HEAD_SSH")
+API = require_env("TALKING_HEAD_API").rstrip("/") + "/audioapi/v1/tasks/run"
 MODELS = {
     "lite": "audio-cpp/SoulX-FlashHead-Lite",
     "pro": "audio-cpp/SoulX-FlashHead-Pro",

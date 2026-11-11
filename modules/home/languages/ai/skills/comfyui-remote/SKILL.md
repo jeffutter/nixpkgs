@@ -6,7 +6,7 @@ description: Shared instructions for generating or editing images with the GPU h
 Use this skill whenever an image is generated on the GPU host. The end state is PNG files in the directory the user named (default: the current directory), checked by you and reported with the seed and settings.
 
 Fixed values:
-- Tool: `@skills@/comfyui-remote/scripts/comfy`. Make every ComfyUI call through it. `comfy` in the commands below means this path. Default host: `@imageApi@/upstream/comfyui` (through llama-swap), preconfigured in `IMAGE_API`.
+- Tool: `@skills@/comfyui-remote/scripts/comfy`. Make every ComfyUI call through it. `comfy` in the commands below means this path. Default host: the base URL in `$IMAGE_API`, reached through llama-swap's `/upstream/comfyui`.
 - Host: `comfy --host HOST gen ...` or the `COMFY_HOST` environment variable (it overrides `IMAGE_API`). `--host` goes before the subcommand. HOST is a bare host (`myhost`), `host:8000`, or a full URL. Those on port 8000 or with no port are reached through llama-swap's `/upstream/comfyui`. Any other explicit port (`myhost:8014`) is treated as ComfyUI itself. Use `--host` only when the user names another machine.
 - `comfy gen TEMPLATE --prompt P [--negative N] [--seed S] [--width W] [--height H] [--steps N] [--cfg C] [--sampler X] [--scheduler X] [--batch N] [--param NAME=VALUE]... [--set NODE.inputs.FIELD=VALUE]... [--out F.png] [--dry-run]` generates and downloads. It prints the file path, then `seed=` and `time=` on stderr. A random seed is used unless `--seed` is given.
 - `comfy models` lists the diffusion, text encoder, VAE and LoRA files ComfyUI sees, plus CLIP types, samplers and schedulers. Run it before naming any file.

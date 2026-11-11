@@ -43,4 +43,4 @@ Prompting afterwards: use the joined word (`gweltman`, `zwxemwoman`), name any o
 
 - Combined set is 76 images. Our measured MOSS speeds were 2.65 s/step at 1 MP and 3.6 s/step at 1.5 MP, so 40 epochs would be roughly 3000 steps. With the 1.5x Isolation overhead that is on the order of 4 to 5 hours at 1.5 MP. Measure a few steps before committing.
 - Isolation was tested at 0.25 MP on Krea 2; lowering the resolution on MOSS would cut the time, with an unknown effect on likeness.
-- `fizgig_run.py` clones a previous run's settings and has no Subjects options yet. The first Isolation run is easiest from the web UI (`@loraUi@`, password from `fizgig password`).
+- `fizgig_run.py` clones a previous run's settings and has no Subjects options yet. The first Isolation run is easiest from the web UI (`$LORA_UI`, password from `fizgig password`).

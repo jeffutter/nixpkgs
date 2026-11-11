@@ -1,6 +1,5 @@
 {
   lib,
-  endpoints,
   runCommand,
   makeWrapper,
   python3,
@@ -8,11 +7,11 @@
   openssh,
 }:
 
-# SoulX-FlashHead portrait video via audio.cpp on the media host. --set-default
-# keeps the endpoints (jeff.endpoints.talkingHeadApi and .talkingHeadSsh) overridable from the
-# environment if the host moves.
+# SoulX-FlashHead portrait video via audio.cpp on the GPU host. TALKING_HEAD_API and
+# TALKING_HEAD_SSH come from the environment (jeff.endpoints, exported by
+# home.sessionVariables in ai.nix); the tool exits if either is unset.
 # openssh is needed because audio.cpp only reads server-local paths, so the
-# script copies its inputs to the spark with scp.
+# script copies its inputs to the GPU host with scp.
 #
 # SKILL.md refers to the wrapper as @flashhead@, filled in with this
 # derivation's own store path, so the source names no agent's skill directory.
@@ -20,9 +19,7 @@ runCommand "flashhead-video-skill" { nativeBuildInputs = [ makeWrapper ]; } ''
   cp -r ${../../modules/home/languages/ai/skills/flashhead-video} $out
   chmod -R u+w $out
   substituteInPlace $out/SKILL.md \
-    --replace-fail '@flashhead@' "$out/scripts/flashhead" \
-    --replace-fail '@talkingHeadApi@' ${lib.escapeShellArg endpoints.talkingHeadApi} \
-    --replace-fail '@talkingHeadSsh@' ${lib.escapeShellArg endpoints.talkingHeadSsh}
+    --replace-fail '@flashhead@' "$out/scripts/flashhead"
   makeWrapper ${python3}/bin/python3 $out/scripts/flashhead \
     --prefix PATH : ${
       lib.makeBinPath [
@@ -30,7 +27,5 @@ runCommand "flashhead-video-skill" { nativeBuildInputs = [ makeWrapper ]; } ''
         openssh
       ]
     } \
-    --set-default TALKING_HEAD_API ${lib.escapeShellArg endpoints.talkingHeadApi} \
-    --set-default TALKING_HEAD_SSH ${lib.escapeShellArg endpoints.talkingHeadSsh} \
     --add-flags $out/scripts/flashhead.py
 ''

@@ -8,9 +8,9 @@ Use this skill to turn a folder of photos of one person into a LoRA that renders
 The photos show a real, usually private person. Keep them on the GPU host. Do not put them or renders in an Artifact, a git repo, or a shared page unless the user asks.
 
 Fixed values:
-- Everything runs on the GPU host: `ssh @loraSsh@`. The `fizgig` command there is the only entry point to the trainer: `fizgig up | down | status | password | tool SCRIPT.py ARGS | sh CMD`. Its source is in the GPU host's deployment config (`fizgig/`).
+- Everything runs on the GPU host: `ssh "$LORA_SSH"`. The `fizgig` command there is the only entry point to the trainer: `fizgig up | down | status | password | tool SCRIPT.py ARGS | sh CMD`. Its source is in the GPU host's deployment config (`fizgig/`).
 - Workspace: `~/fizgig/workspace` on the GPU host (`/workspace` in the container): `datasets/NAME/`, `output_loras/NAME/`, `models/`, `user_data/runs.json`, `tools/`. Container-written files are root-owned: delete them with `fizgig sh rm -rf /workspace/...`.
-- Web UI: `@loraUi@`, password from `fizgig password`.
+- Web UI: `$LORA_UI`, password from `fizgig password`.
 - Tools (`fizgig tool X.py`, docs at the top of each file): `face_prep.py` (face crops), `sam_masks.py` (person masks), `sam_people.py` (one mask per person in a picture), `fizgig_run.py` (start a run, from an earlier run or a model preset), `arcface_score.py` (likeness score).
 - Model: MOSS-Image Base, Standard preset, rank 32, Muon. Measured: 2.65 s/step at 1 MP on 26 images; 3.6 s/step at 1.5 MP on 47 images (40 epochs, 1880 steps, 1 h 50 min). Measure before you estimate: a guess of 8 s/step was 3x too high.
 - Render with the `comfyui-remote` and `comfy-moss-image` skills. ComfyUI runs MOSS-Image SFT NVFP4; Fizgig trains on Base. The LoRA transfers, strength 1.0.

@@ -7,7 +7,7 @@ Use this skill when the user wants spoken audio from text. The end state is an a
 
 Fixed values:
 - Tool: `@tts@`. Make every call through it. `tts` below means this path.
-- Endpoint: `@ttsApi@` (the speech API, served by llama-swap). It is preconfigured in `TTS_API`. Point at another machine with `tts --api URL ...` or by setting `TTS_API`. `--api` goes before the subcommand. URL is a base URL, `host:port`, or a bare host. Use it only when the user names another machine.
+- Endpoint: the base URL in `$TTS_API` (llama-swap). Point at another machine with `tts --api URL ...` or by setting `TTS_API`. `--api` goes before the subcommand. URL is a base URL, `host:port`, or a bare host. Use it only when the user names another machine.
 - `tts say "TEXT" [--model M] [--voice V] [--format mp3|wav|opus|aac|flac|pcm] [--option KEY=VALUE]... [--file F|-] [--out F]` writes one file and prints its path. Defaults: model `breeze`, voice `jeff`, format `mp3`.
 - `tts models` lists the TTS models the endpoint serves right now. Run it when a model name fails.
 - You cannot hear audio. The user judges voice likeness, pacing, and emotion by ear.

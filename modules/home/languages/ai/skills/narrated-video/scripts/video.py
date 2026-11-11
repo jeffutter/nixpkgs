@@ -141,7 +141,7 @@ def cmd_voice(a):
     base, scenes = load_scenes(a.scenes)
     api = os.environ.get("NARRATION_TTS_API", "").rstrip("/")
     if not api:
-        sys.exit("NARRATION_TTS_API is not set (the skill wrapper sets it)")
+        sys.exit("NARRATION_TTS_API is not set: export it in your environment")
     outdir = base / "audio" / a.style
     outdir.mkdir(parents=True, exist_ok=True)
     failed = []

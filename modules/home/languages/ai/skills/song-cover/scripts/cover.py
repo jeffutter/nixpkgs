@@ -16,10 +16,18 @@ import sys
 import tempfile
 import urllib.request
 
-AUDIOCPP = os.environ["COVER_API"].rstrip("/") + "/upstream/audiocpp"
+def require_env(name):
+    """Return the environment variable, or exit saying which one is missing."""
+    value = os.environ.get(name)
+    if not value:
+        sys.exit(f"{name} is not set: export it in your environment (see SKILL.md)")
+    return value
+
+
+AUDIOCPP = require_env("COVER_API").rstrip("/") + "/upstream/audiocpp"
 SHEETSAGE_MODEL = os.environ["SHEETSAGE_MODEL"]
 WORDS_MODEL = os.environ["WORDS_MODEL"]  # model that returns word timestamps
-COVER_STT_API = os.environ["COVER_STT_API"]
+COVER_STT_API = require_env("COVER_STT_API").rstrip("/")
 STT_MODEL = os.environ["STT_MODEL"]
 
 

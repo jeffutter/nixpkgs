@@ -12,7 +12,7 @@ TEMPLATE is one of:
   - a bare API-format graph JSON (no named params; steer it with --set)
   - a PNG made by ComfyUI (its embedded graph is reused; steer it with --set)
 
-Host: --host HOST_OR_URL, else $COMFY_HOST, else $IMAGE_API (the skill wrapper sets it).
+Host: --host HOST_OR_URL, else $COMFY_HOST, else $IMAGE_API.
 A bare host (or one on port 8000) is
 reached through llama-swap, which starts the ComfyUI container (and evicts any
 conflicting LLM) on demand; a cold start adds roughly 20-40 s. Any other

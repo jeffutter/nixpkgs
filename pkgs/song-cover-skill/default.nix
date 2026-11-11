@@ -1,6 +1,5 @@
 {
   lib,
-  endpoints,
   runCommand,
   makeWrapper,
   python3,
@@ -8,10 +7,11 @@
   yue2-song-skill,
 }:
 
-# Cover-song pipeline on the dgx-spark: SheetSage2 transcription, lyric drafts,
+# Cover-song pipeline on the GPU host: SheetSage2 transcription, lyric drafts,
 # plan/reharmonization checks and take timing. Rendering is delegated to the
-# yue2-song skill's tool. Endpoints are --set-default so the environment can
-# point them at another machine.
+# yue2-song skill's tool. COVER_API and COVER_STT_API come from the environment
+# (jeff.endpoints, exported by home.sessionVariables in ai.nix); the tool exits if
+# either is unset.
 #
 # SKILL.md refers to the helper as @cover@ and to the renderer as @yue2@, filled
 # in with store paths, so the source names no agent's skill directory and the same
@@ -24,10 +24,8 @@ runCommand "song-cover-skill" { nativeBuildInputs = [ makeWrapper ]; } ''
     --replace-fail '@yue2@' "${yue2-song-skill}/scripts/yue2"
   makeWrapper ${python3}/bin/python3 $out/scripts/cover \
     --prefix PATH : ${lib.makeBinPath [ ffmpeg-headless ]} \
-    --set-default COVER_API ${lib.escapeShellArg endpoints.coverApi} \
     --set-default SHEETSAGE_MODEL audio-cpp/SheetSage2-GGUF \
     --set-default WORDS_MODEL parakeet-tdt-0.6b-v3 \
-    --set-default COVER_STT_API ${lib.escapeShellArg endpoints.coverSttApi} \
     --set-default STT_MODEL whisper-1 \
     --add-flags $out/scripts/cover.py
 ''

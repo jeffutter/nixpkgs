@@ -2,7 +2,7 @@
 """Text-to-speech through an OpenAI-compatible /v1/audio/speech endpoint.
 
 Stdlib plus curl on PATH. The endpoint is a base URL read from the TTS_API environment
-variable (the skill wrapper sets it); --api overrides it.
+variable; --api overrides it.
 """
 import argparse
 import json
