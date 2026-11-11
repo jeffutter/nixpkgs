@@ -44,7 +44,9 @@ export default class Prefix extends View {
       return;
     }
     this.close();
-    if (action) dispatch(action, this.terminal);
+    // In the repeat window any other key is ordinary typing, not a second prefix command.
+    if (this.repeating) forward(e, this.terminal);
+    else if (action) dispatch(action, this.terminal);
   }
 
   render() {

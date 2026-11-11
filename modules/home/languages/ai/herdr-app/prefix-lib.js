@@ -19,6 +19,17 @@ function lookup(e) {
   return BY_KEY.get(e.keystroke) ?? (e.key_char ? BY_KEY.get(e.key_char) : undefined);
 }
 
+// Replays a keypress the popup swallowed into `terminal`.
+function forward(e, terminal) {
+  if (!terminal) return;
+  const mods = /^((?:(?:ctrl|alt|cmd|shift)-)*)/.exec(e.keystroke)[1];
+  if (e.key_char && e.key_char.length === 1 && e.key_char >= " " && !/ctrl|alt|cmd/.test(mods)) {
+    hc(["send", terminal, e.key_char]);
+  } else {
+    hc(["keys", terminal, mods.replaceAll("-", "+") + e.keystroke.slice(mods.length)]);
+  }
+}
+
 // `terminal` receives { keys } entries: the one that was focused when ctrl-a was pressed.
 function dispatch(action, terminal) {
   if (action.keys) {
