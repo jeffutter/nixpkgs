@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Submit ComfyUI API-format graphs to the dgx-spark and download the result.
+"""Submit ComfyUI API-format graphs to a ComfyUI server and download the result.
 
   comfy [--host H] gen TEMPLATE --prompt "..." [--seed N] [--width W] [--height H] [--out F.png]
   comfy models                      list loader/LoRA files ComfyUI can see
@@ -12,11 +12,11 @@ TEMPLATE is one of:
   - a bare API-format graph JSON (no named params; steer it with --set)
   - a PNG made by ComfyUI (its embedded graph is reused; steer it with --set)
 
-Host: --host HOST_OR_URL, else $COMFY_HOST, else the dgx-spark at
-http://192.168.10.14:8000/upstream/comfyui. A bare host (or one on port 8000) is
+Host: --host HOST_OR_URL, else $COMFY_HOST, else $IMAGE_API.
+A bare host (or one on port 8000) is
 reached through llama-swap, which starts the ComfyUI container (and evicts any
 conflicting LLM) on demand; a cold start adds roughly 20-40 s. Any other
-explicit port, e.g. 192.168.10.14:8014, is treated as ComfyUI itself.
+explicit port, e.g. host:8014, is treated as ComfyUI itself.
 """
 import argparse
 import json
@@ -33,8 +33,7 @@ import urllib.request
 import uuid
 import zlib
 
-DEFAULT_HOST = "http://192.168.10.14:8000/upstream/comfyui"
-BASE = DEFAULT_HOST
+BASE = None  # set in main()
 POLL_TIMEOUT = int(os.environ.get("COMFY_TIMEOUT", "900"))
 
 
@@ -273,7 +272,7 @@ def cmd_info(a):
 def main():
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--host", metavar="HOST_OR_URL",
-                   help="ComfyUI/llama-swap host or URL (default: $COMFY_HOST, else the dgx-spark)")
+                   help="ComfyUI/llama-swap host or URL (default: $COMFY_HOST, else $IMAGE_API)")
     sub = p.add_subparsers(dest="cmd", required=True)
     g = sub.add_parser("gen", help="generate an image from a template")
     g.add_argument("template")
@@ -303,7 +302,10 @@ def main():
     i.set_defaults(fn=cmd_info)
     a = p.parse_args()
     global BASE
-    BASE = resolve_host(a.host or os.environ.get("COMFY_HOST") or DEFAULT_HOST)
+    host = a.host or os.environ.get("COMFY_HOST") or os.environ.get("IMAGE_API")
+    if not host:
+        sys.exit("no ComfyUI host: set IMAGE_API (or COMFY_HOST) or pass --host")
+    BASE = resolve_host(host)
     a.fn(a)
 
 

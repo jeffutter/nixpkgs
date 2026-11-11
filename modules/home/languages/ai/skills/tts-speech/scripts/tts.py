@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Text-to-speech through an OpenAI-compatible /v1/audio/speech endpoint.
 
-Stdlib plus curl on PATH. The endpoint is a base URL (llama-swap by default); --api or the
-TTS_API environment variable points it elsewhere.
+Stdlib plus curl on PATH. The endpoint is a base URL read from the TTS_API environment
+variable; --api overrides it.
 """
 import argparse
 import json
@@ -11,7 +11,7 @@ import subprocess
 import sys
 import urllib.request
 
-DEFAULT_API = os.environ.get("TTS_API", "https://llama.home.jeffutter.com/v1")
+DEFAULT_API = os.environ.get("TTS_API")
 TTS_MARKERS = ("tts", "breeze", "higgs", "kokoro")
 
 
@@ -91,7 +91,7 @@ def fetch(url: str, payload: str, timeout: int, out: str, attempts: int = 3) -> 
 
 def main():
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument("--api", default=DEFAULT_API, help="base URL (default: %(default)s)")
+    p.add_argument("--api", default=DEFAULT_API, help="base URL (default: $TTS_API)")
     sub = p.add_subparsers(dest="cmd", required=True)
     sub.add_parser("models", help="list TTS models the endpoint serves").set_defaults(fn=cmd_models)
     s = sub.add_parser("say", help="synthesize speech to a file")
@@ -106,6 +106,8 @@ def main():
     s.add_argument("--out")
     s.set_defaults(fn=cmd_say)
     args = p.parse_args()
+    if not args.api:
+        sys.exit("no endpoint: set TTS_API or pass --api URL")
     args.fn(args)
 
 

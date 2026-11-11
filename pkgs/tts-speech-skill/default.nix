@@ -7,8 +7,9 @@
 }:
 
 # Text-to-speech skill (Kokoro, Breeze, Higgs behind llama-swap's
-# /v1/audio/speech). TTS_API is --set-default so the environment or `--api`
-# can point it at another machine.
+# /v1/audio/speech). The tool reads TTS_API from the environment
+# (jeff.endpoints.ttsApi, exported by home.sessionVariables in ai.nix) and exits
+# if it is unset; `--api` overrides it.
 #
 # SKILL.md refers to the wrapper as @tts@, filled in with this derivation's own
 # store path, so the source names no agent's skill directory and the same
@@ -20,6 +21,5 @@ runCommand "tts-speech-skill" { nativeBuildInputs = [ makeWrapper ]; } ''
     --replace-fail '@tts@' "$out/scripts/tts"
   makeWrapper ${python3}/bin/python3 $out/scripts/tts \
     --prefix PATH : ${lib.makeBinPath [ curl ]} \
-    --set-default TTS_API https://llama.home.jeffutter.com/v1 \
     --add-flags $out/scripts/tts.py
 ''

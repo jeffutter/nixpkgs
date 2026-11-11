@@ -7,10 +7,11 @@
   openssh,
 }:
 
-# SoulX-FlashHead portrait video via audio.cpp on the dgx-spark. --set-default
-# keeps the endpoints overridable from the environment if the host moves.
+# SoulX-FlashHead portrait video via audio.cpp on the GPU host. TALKING_HEAD_API and
+# TALKING_HEAD_SSH come from the environment (jeff.endpoints, exported by
+# home.sessionVariables in ai.nix); the tool exits if either is unset.
 # openssh is needed because audio.cpp only reads server-local paths, so the
-# script copies its inputs to the spark with scp.
+# script copies its inputs to the GPU host with scp.
 #
 # SKILL.md refers to the wrapper as @flashhead@, filled in with this
 # derivation's own store path, so the source names no agent's skill directory.
@@ -26,7 +27,5 @@ runCommand "flashhead-video-skill" { nativeBuildInputs = [ makeWrapper ]; } ''
         openssh
       ]
     } \
-    --set-default FLASHHEAD_API http://192.168.10.14:8000 \
-    --set-default FLASHHEAD_SSH jeffutter@192.168.10.14 \
     --add-flags $out/scripts/flashhead.py
 ''

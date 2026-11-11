@@ -19,9 +19,17 @@ import uuid
 
 import numpy as np
 
-YUE2_API = os.environ["YUE2_API"]
+def require_env(name):
+    """Return the environment variable, or exit saying which one is missing."""
+    value = os.environ.get(name)
+    if not value:
+        sys.exit(f"{name} is not set: export it in your environment (see SKILL.md)")
+    return value
+
+
+MUSIC_API = require_env("MUSIC_API").rstrip("/")
 YUE2_MODEL = os.environ["YUE2_MODEL"]
-STT_API = os.environ["STT_API"]
+STT_API = require_env("STT_API").rstrip("/")
 STT_MODEL = os.environ["STT_MODEL"]
 
 
@@ -37,7 +45,7 @@ def post_json(url, body, timeout):
 
 def run_task(lyrics, options, timeout):
     return post_json(
-        f"{YUE2_API}/audioapi/v1/tasks/run",
+        f"{MUSIC_API}/audioapi/v1/tasks/run",
         {"model": YUE2_MODEL, "text": lyrics, "options": options},
         timeout,
     )

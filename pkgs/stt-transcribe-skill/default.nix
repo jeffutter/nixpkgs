@@ -5,8 +5,9 @@
 }:
 
 # Speech-to-text skill (Parakeet and friends behind llama-swap's
-# /v1/audio/transcriptions). STT_API is --set-default so the environment or
-# `--api` can point it at another machine.
+# /v1/audio/transcriptions). The tool reads STT_API from the environment
+# (jeff.endpoints.sttApi, exported by home.sessionVariables in ai.nix) and exits
+# if it is unset; `--api` overrides it.
 #
 # SKILL.md refers to the wrapper as @stt@, filled in with this derivation's own
 # store path, so the source names no agent's skill directory and the same
@@ -17,6 +18,5 @@ runCommand "stt-transcribe-skill" { nativeBuildInputs = [ makeWrapper ]; } ''
   substituteInPlace $out/SKILL.md \
     --replace-fail '@stt@' "$out/scripts/stt"
   makeWrapper ${python3}/bin/python3 $out/scripts/stt \
-    --set-default STT_API https://llama.home.jeffutter.com/v1 \
     --add-flags $out/scripts/stt.py
 ''

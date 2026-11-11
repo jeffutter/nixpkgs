@@ -70,7 +70,7 @@ Skip: ffmpeg-gl-transition, ffmpeg-concat and editly (need OpenGL; archived or d
 
 | Tool | Status | Use when | Note |
 |---|---|---|---|
-| Homelab TTS through `video voice` (curl) | ran | Default; Jeff's cloned voice | Styles live in `VOICE_STYLES` in `scripts/video.py` |
+| Local TTS through `video voice` (curl) | ran | Default; Jeff's cloned voice | Styles live in `VOICE_STYLES` in `scripts/video.py` |
 | The `tts-speech` skill | ran | One-off clips and auditioning a new style | Fixed to use curl on 2026-11-03; it used urllib, which truncated through the sandbox proxy |
 | Kokoro (same server) | read | Drafts, or a voice that is not Jeff's | No cloning |
 | audio.cpp `--task align` | read | Word timestamps for exact caption timing | Not exposed through the server yet |

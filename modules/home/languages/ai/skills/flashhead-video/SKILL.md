@@ -1,6 +1,6 @@
 ---
 name: flashhead-video
-description: Make a talking-head video (MP4) from a portrait image and a speech clip with SoulX-FlashHead (audio.cpp on the dgx-spark, behind llama-swap). Use when the user wants a portrait or avatar to speak a TTS clip, lip-synced video from an image plus audio, or names FlashHead.
+description: Make a talking-head video (MP4) from a portrait image and a speech clip with SoulX-FlashHead (audio.cpp on the GPU host, behind llama-swap). Use when the user wants a portrait or avatar to speak a TTS clip, lip-synced video from an image plus audio, or names FlashHead.
 ---
 
 Use this skill when the user wants a still portrait to talk. The end state is an MP4 (portrait video muxed with the speech) in the directory the user named, reported with the model, size, and run time.
@@ -10,10 +10,10 @@ Fixed values:
 - `flashhead PORTRAIT AUDIO OUT.mp4 [--model lite|pro] [--seed N] [--size N]` renders one MP4 and prints its path. `PORTRAIT` is `preset:NAME` or a local image file.
 - `flashhead portraits` lists the presets (`preset:jeff-desk`, `preset:demo`). Use a preset by default for Jeff: `preset:jeff-desk`. Defaults: model `pro`, seed 42, size 512 (square, divisible by 32).
 - Input audio can be any format ffmpeg reads. The tool converts it to 16 kHz mono WAV first. The MP4 carries that audio.
-- Endpoint: audio.cpp behind the dgx-spark's llama-swap, `http://192.168.10.14:8000`, path `/audioapi/v1/tasks/run`. Override with `FLASHHEAD_API`. Model ids: `audio-cpp/SoulX-FlashHead-Lite`, `audio-cpp/SoulX-FlashHead-Pro`.
+- Endpoint: audio.cpp behind the talking-head host's llama-swap, `$TALKING_HEAD_API`, path `/audioapi/v1/tasks/run`. Model ids: `audio-cpp/SoulX-FlashHead-Lite`, `audio-cpp/SoulX-FlashHead-Pro`.
 - The speech goes to the server inline over HTTP (`audio_base64`), so audio needs no ssh. The portrait cannot: audio.cpp's `reference_image_file` is a server-local path only (a `data:` URI fails with HTTP 500, checked 2026-11-06 on v0.9.4).
-- Presets are PNGs baked into the spark's container at `/portraits/<name>.png`, built from the `portraits/` directory of the colmena repo (`audioCppPortraits` in `home/dgx-spark.nix`). To add one: put `<name>.png` (square, a clear front-facing head and shoulders) in `portraits/`, commit, and deploy the spark. PNG only; the build fails on anything else.
-- A local image file is copied over ssh to `~/audiocpp/io` on the spark (mounted read-only as `/io`) as `<out-stem>.<ext>`, so reusing an output name overwrites it. The ssh target is `jeffutter@192.168.10.14`, override with `FLASHHEAD_SSH`. `flashhead portraits` also uses ssh.
+- Presets are PNGs baked into the GPU host's container at `/portraits/<name>.png`, built from the `portraits/` directory of the host's deployment config. To add one: put `<name>.png` (square, a clear front-facing head and shoulders) in `portraits/`, commit, and redeploy the GPU host. PNG only; the build fails on anything else.
+- A local image file is copied over ssh to `~/audiocpp/io` on the GPU host (mounted read-only as `/io`) as `<out-stem>.<ext>`, so reusing an output name overwrites it. The ssh target is `$TALKING_HEAD_SSH`. `flashhead portraits` also uses ssh.
 - The response is raw RGB frames in base64, about 1.1 GB for 42 s of video. The call is one blocking HTTP request, so run it in the background.
 - Output is 25 fps, generated in 24-frame blocks. A partial last block is padded with silence upstream.
 - You cannot see or hear the result. The user judges likeness, lip sync, and motion.
@@ -21,7 +21,7 @@ Fixed values:
 Models (measured 2026-11-06 on the 42 s demo clip, 512x512):
 - `lite` (Q8 GGUF): about 2.4x clip time of compute, about 3x end to end including a cold model load. Use for drafts and checking a portrait.
 - `pro` (Wan VAE): about 16x clip time of compute, about 33x end to end (23 minutes for 42 s). Size trades time for quality (Pro, 10 s clip, warm, GPU otherwise idle, 2026-11-06): `--size 512` 170 s (17x), `--size 384` 84 s (8.4x), `--size 256` 33 s (3.3x). Jeff's verdict by eye: 512 is clearly best, 384 is passable. 256 was timed but not rated. Default to 512 for finals; offer 384 when time matters or for a long timeline. A cold model load adds minutes on the first call after a swap. The 42 s demo took 33x at 512, which likely included a cold load; use about 17x warm and 33x as the cautious upper bound. Run from a locally normalized checkpoint, not a packaged GGUF. Use for the final render. The user asked for Pro whenever it works.
-- Each model swap costs a load. llama-swap evicts other spark models to make room, so a render can stall if the user is chatting.
+- Each model swap costs a load. llama-swap evicts other models on the GPU host to make room, so a render can stall if the user is chatting.
 
 Steps:
 
@@ -29,7 +29,7 @@ Steps:
 
 2. Render a short draft first when the clip is over about 20 seconds or the portrait is new: cut a 10 second piece with ffmpeg and run it with `--model lite`. Ask the user whether the portrait and motion look right.
 
-3. Render the final with `--model pro` at `--size 512`, in the background. Estimate the time up front: clip seconds x 17 warm, x 33 cautious (Pro 512); x 8.4 at `--size 384`; x 3 (Lite 512). Tell the user the estimate. Check that nothing else is using the spark first (`curl -s http://192.168.10.14:8000/running`, `nvidia-smi`): a concurrent job inflated one run by 50%.
+3. Render the final with `--model pro` at `--size 512`, in the background. Estimate the time up front: clip seconds x 17 warm, x 33 cautious (Pro 512); x 8.4 at `--size 384`; x 3 (Lite 512). Tell the user the estimate. Check that nothing else is using the GPU host first (`curl -s "$TALKING_HEAD_API/running"`, `nvidia-smi`): a concurrent job inflated one run by 50%.
 
 4. Name files `<subject>-<model>.mp4`. Leave videos out of git.
 
@@ -82,7 +82,7 @@ Seams and limits:
 - Estimate Pro time from the speech seconds only (rates in step 3 of the main steps), plus one idle clip. Use `--size 384` for the idle clip and speech alike only if the whole track uses it; mixed sizes will not overlay cleanly.
 
 When something fails:
-- `HTTP 404 no router for requested model`: the call reached the homelab llama-swap instead of the spark. Check `FLASHHEAD_API`.
-- Timeout or no response for minutes on a first call: the model is loading or the spark is busy. Pro legitimately takes tens of minutes. Check `ssh jeffutter@192.168.10.14 'docker logs --tail 5 audiocpp'` and `nvidia-smi`; high GPU use means it is working.
-- ssh or scp errors: only local image files and `flashhead portraits` use ssh; the machine running the tool needs ssh access to the spark for those. `preset:` renders do not.
-- HTTP 500 `Cannot read FlashHead portrait`: the portrait path is not in the container. For a preset, run `flashhead portraits` and check the name (a new preset needs a spark deploy). For a local file, confirm `~/audiocpp/io` on the spark has it.
+- `HTTP 404 no router for requested model`: the call reached a different llama-swap than the GPU host's. Check `TALKING_HEAD_API`.
+- Timeout or no response for minutes on a first call: the model is loading or the GPU host is busy. Pro legitimately takes tens of minutes. Check `ssh "$TALKING_HEAD_SSH" 'docker logs --tail 5 audiocpp'` and `nvidia-smi`; high GPU use means it is working.
+- ssh or scp errors: only local image files and `flashhead portraits` use ssh; the machine running the tool needs ssh access to the GPU host for those. `preset:` renders do not.
+- HTTP 500 `Cannot read FlashHead portrait`: the portrait path is not in the container. For a preset, run `flashhead portraits` and check the name (a new preset needs a GPU host redeploy). For a local file, confirm `~/audiocpp/io` on the GPU host has it.

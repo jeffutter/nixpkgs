@@ -1,6 +1,6 @@
 # Character LoRAs on other models (Z-Image Turbo, Krea 2, FLUX.2 Klein)
 
-Optional reference for `character-lora-training`. Read it only when the user wants a LoRA on a model other than MOSS-Image. All numbers are from one pair of people (Jeff, 29 images; Rebecca, 47 images), one seed per image, on the dgx-spark, Fizgig v9.0.8 for the runs.
+Optional reference for `character-lora-training`. Read it only when the user wants a LoRA on a model other than MOSS-Image. All numbers are from one pair of people (Jeff, 29 images; Rebecca, 47 images), one seed per image, on the GPU host, Fizgig v9.0.8 for the runs.
 
 ## Run any model headless
 
@@ -20,13 +20,13 @@ If `fizgig` fails with a missing `~/fizgig/password`, the container was not star
 | Krea 2 | krea2 | "Krea 2 Standard (rank 32, full model)" | 40 (preset says 64) | about 32 GB (RAW 26 GB), no account | 31 / 51 min, about 1.6 s/step; Fizgig's auto plan chose 0.25 MP |
 | FLUX.2 Klein 9B | klein | "Old Reliable (rank 16, full model, single subject)" | 40 (preset says 55) | about 35 GB, gated | 24 / 40 min, about 1.25 s/step |
 
-Download with `python -m fizgig.scripts.fetch_models --family F --models-dir /workspace/models` inside the container (it also writes the paths into Fizgig's preferences). Klein needs `HF_TOKEN` and the FLUX.2 Klein licence accepted on that account; the spark has an `hf-token` sops secret at `~/.config/sops-nix/secrets/hf-token`, passed into the container as an env var without printing it. Z-Image and Krea 2 need no token.
+Download with `python -m fizgig.scripts.fetch_models --family F --models-dir /workspace/models` inside the container (it also writes the paths into Fizgig's preferences). Klein needs `HF_TOKEN` and the FLUX.2 Klein licence accepted on that account; the GPU host has an `hf-token` sops secret at `~/.config/sops-nix/secrets/hf-token`, passed into the container as an env var without printing it. Z-Image and Krea 2 need no token.
 
-Copy the final file to `~/comfyui/models/loras/NAME/NAME-final.safetensors` and load it with node `20` as in the `comfyui-spark` skill. The rewire node differs: `10.inputs.model` for Z-Image and Krea 2, `12.inputs.model` for Klein.
+Copy the final file to `~/comfyui/models/loras/NAME/NAME-final.safetensors` and load it with node `20` as in the `comfyui-remote` skill. The rewire node differs: `10.inputs.model` for Z-Image and Krea 2, `12.inputs.model` for Klein.
 
 ## Disk and memory traps
 
-- Per-epoch saves add up: Krea 2 wrote 235 MB per epoch plus a state folder of about 13 GB per run; Z-Image and Klein state folders were 3 to 4 GB. A finished run's `-state` folders only allow resuming and can be deleted. The spark was at 97% full after four models; check `df -h ~` before each run.
+- Per-epoch saves add up: Krea 2 wrote 235 MB per epoch plus a state folder of about 13 GB per run; Z-Image and Klein state folders were 3 to 4 GB. A finished run's `-state` folders only allow resuming and can be deleted. The GPU host was at 97% full after four models; check `df -h ~` before each run.
 - **Fizgig plans memory from free GPU memory, and file cache hides it.** After downloading model files and building an image, the page cache held about 79 GB and Fizgig saw 5 GB free, switched on heavy block swapping, and trained about 25% slower. Release cache without root with `posix_fadvise(DONTNEED)` on the big files (python `os.posix_fadvise(fd, 0, 0, os.POSIX_FADV_DONTNEED)` over `workspace/models`, `output_loras` and `~/comfyui/models`). Check `free -g` (the "free" column) before timing anything.
 - Fizgig needs the whole GPU. `GET /unload` on llama-swap, check `/running` is empty, and tell the user their chat model is gone.
 
@@ -53,7 +53,7 @@ Tried once, no training: the `comfy-flux2-klein` edit template (`workflow-edit.j
 
 ## Updating Fizgig itself
 
-- The repo's `home/fizgig/Dockerfile` pins an upstream commit. v9.2.1 moved PyTorch to 2.15 on the `cu134` index, which has aarch64 wheels, so the old `cu128` to `cu130` rewrite is gone and the build now fails if the index line changes again. Python 3.12 and driver 580 are fine for it. The pin is now v9.2.1 (commit `4919525d`).
-- Build with the repo Dockerfile on the spark, test on a spare port, then `docker tag ... fizgig:latest` and `fizgig up`. Measured on a 4-epoch Klein run with free memory: 2:55 on v9.2.1 against 3:27 on v9.0.8, about 15% faster including warm-up; a full-length run was not timed.
+- The deployment config's `fizgig/Dockerfile` pins an upstream commit. v9.2.1 moved PyTorch to 2.15 on the `cu134` index, which has aarch64 wheels, so the old `cu128` to `cu130` rewrite is gone and the build now fails if the index line changes again. Python 3.12 and driver 580 are fine for it. The pin is now v9.2.1 (commit `4919525d`).
+- Build with that Dockerfile on the GPU host, test on a spare port, then `docker tag ... fizgig:latest` and `fizgig up`. Measured on a 4-epoch Klein run with free memory: 2:55 on v9.2.1 against 3:27 on v9.0.8, about 15% faster including warm-up; a full-length run was not timed.
 - The old image seemed unable to read the caches the new one wrote (loss 1.98 instead of 0.70). Unverified. Do not run two Fizgig versions against the same workspace.
 - `docker ps -a` showed an old exited `fz-fetch` container holding the old image; remove it before `docker rmi`.
