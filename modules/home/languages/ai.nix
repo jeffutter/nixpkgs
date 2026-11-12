@@ -1719,6 +1719,7 @@ in
         hunk-review = "${pkgs.hunk}/skills/hunk-review";
         kami = "${kami}/skills/kami";
         pi-authoring = "${pi-authoring-skill}";
+        maintainer-review = ./ai/skills/maintainer-review;
         pr-preflight = ./ai/skills/pr-preflight;
         rebase = ./ai/skills/rebase;
         review-pi-work = ./ai/skills/review-pi-work;
