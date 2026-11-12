@@ -5,7 +5,7 @@ Fill every `<...>`. Leave out a section marked "(if any)" when it has no content
 ```markdown
 # Maintainer review: <PR title or branch>
 
-<URL or branch> by <author> - `BASE` <short hash> .. `HEAD` <short hash> - <date>
+<URL or branch> by <author> - compared against `PARENT` (<reason>) - `BASE` <short hash> .. `HEAD` <short hash> - <date>
 Context file: <present | missing - see Assumptions>. Models: <model per agent>.
 
 ## What this change does

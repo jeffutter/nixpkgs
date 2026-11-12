@@ -5,17 +5,16 @@ End state: `WORK/report.md` holds a verdict and verified findings in the maintai
 Fixed values:
 
 - `SKILL`: the absolute path of this skill's base directory.
-- `WORK`: the work directory from step 1.1.
-- `BASE` and `HEAD`: the commits from step 1.2 or 1.4.
-- In every command and prompt below, replace `SKILL`, `WORK`, `BASE`, `HEAD` and `<...>` with their values.
+- `GITDIR`, `WORK`, `MAIN`, `DEFAULT` and the context file paths: as defined in `SKILL.md` under "Locations". Resolve them in step 1.1.
+- `PARENT`: the branch this change is compared against, and the reason it was chosen, from step 1.2 or 1.4. In a stack it is the branch below this one, not `DEFAULT`.
+- `BASE` and `HEAD`: the commits from step 1.2 or 1.4. `BASE` is the merge-base of `PARENT` and `HEAD`, so the review covers only this branch's own commits.
+- In every command and prompt below, replace `SKILL`, `WORK`, `MAIN`, `DEFAULT`, `PARENT`, `BASE`, `HEAD` and `<...>` with their values.
 - Agent calls: use `subagent_type: "general-purpose"`. If a call rejects its `model` value, repeat the call without `model`.
 - Agents write no files. Each agent's final message is a file's content. Save it with the Write tool at the path the step names.
 
 ## 1. Resolve the target
 
-1. Run `git rev-parse --path-format=absolute --git-common-dir`. Set `WORK` to `<output>/maintainer-review/<slug>`.
-   - PR: the slug is `pr-<number>`. Take the number from the URL when the target is a URL.
-   - Branch: the slug is `branch-<name>`, with each `/` replaced by `-`.
+1. Resolve `GITDIR`, `WORK`, `MAIN` and `DEFAULT` as `SKILL.md` "Locations" says.
 2. For a PR, run these commands:
    - `gh pr view <n> --json number,title,body,author,url,baseRefName,headRefName,headRefOid,isCrossRepository,closingIssuesReferences,comments,reviews`
    - `gh pr checks <n>`. Keep the output even when the exit code is not zero. A non-zero exit means some checks failed or are pending.
@@ -23,14 +22,19 @@ Fixed values:
    - `gh repo view --json nameWithOwner` and `git remote -v`. The base remote is the remote whose URL contains that `nameWithOwner`.
    - `git fetch <base remote> <baseRefName> +pull/<n>/head:refs/maintainer-review/pr-<n>`. This fetch checks out nothing.
    - Set `HEAD` to `refs/maintainer-review/pr-<n>`.
-   - Set `BASE` to the output of `git merge-base <base remote>/<baseRefName> refs/maintainer-review/pr-<n>`.
+   - Set `PARENT` to `<base remote>/<baseRefName>`, reason "PR base branch". With `--base <ref>`, set `PARENT` to `<ref>`, reason "--base".
+   - Set `BASE` to the output of `git merge-base PARENT HEAD`.
 3. For a PR, find the related PRs in its stack. Stop at 10 PRs.
    - Later PRs: run `gh pr list --state all --base <headRefName> --json number,title,state,headRefName,baseRefName,body`. Repeat with each result's `headRefName`.
    - Earlier PRs: when `baseRefName` is not the default branch, run `gh pr list --state all --head <baseRefName> --json number,title,state,headRefName,baseRefName,body`. Repeat with each result's `baseRefName`.
 4. For a branch, or for no target (use the current branch from `git branch --show-current`):
-   - Run `git symbolic-ref --short refs/remotes/origin/HEAD` to get the default branch.
    - Set `HEAD` to the branch.
-   - Set `BASE` to the output of `git merge-base <default branch> <branch>`.
+   - Set `PARENT` with the first case that applies:
+     - With `--base <ref>`: `<ref>`, reason "--base".
+     - Run `gh pr list --head <branch> --state open --json number,baseRefName`. With one result: run `git fetch origin <baseRefName>`, then use `origin/<baseRefName>`, reason "base of open PR #<number>". Also run step 1.3 for that PR.
+     - Run `git log --first-parent --simplify-by-decoration --format='%h%x09%D' DEFAULT..<branch>`. The first line is the branch's own tip; skip it. Take the next line that names a branch other than `<branch>` and `origin/<branch>`. Ignore `tag:` entries. When a line names a local branch and a remote branch, use the local one. Use that branch, reason "nearest ancestor branch".
+     - Otherwise: `DEFAULT`, reason "no parent branch found".
+   - Set `BASE` to the output of `git merge-base PARENT HEAD`.
 5. If `WORK/report.md` exists, this run is a re-review. Apply section 10 together with sections 2 to 9.
 
 ## 2. Write the inputs into WORK
@@ -42,8 +46,9 @@ Fixed values:
    - `git archive --format=tar --output=WORK/head.tar HEAD`
 2. Run `git log --format='%h %an %s' BASE..HEAD`. Write its output to `WORK/log.txt`.
 3. Run `rm -rf WORK/src`, then `mkdir -p WORK/src`, then `tar -xf WORK/head.tar -C WORK/src`, then `rm WORK/head.tar`.
-4. Write `WORK/meta.md`: target, URL, author, `BASE` and `HEAD` hashes, whether the PR is cross-repository, and today's date.
-5. For a PR, write `WORK/pr.md` with these sections:
+4. Write `WORK/meta.md`: target, URL, author, `PARENT` and its reason, `BASE` and `HEAD` hashes, whether the PR is cross-repository, and today's date.
+5. Run `git show DEFAULT:.github/maintainer-review.md`. When it succeeds, write its output to `WORK/context-file.md`. When it fails, write the single line `No context file on DEFAULT.` to `WORK/context-file.md`.
+6. For a PR, write `WORK/pr.md` with these sections:
    - Title, body, and linked issue titles and bodies.
    - Each comment and review, with its author.
    - The `gh pr checks` output.
@@ -74,7 +79,7 @@ Fixed values:
    - `WORK/findings-SEC.md` contains `Gate: PASS`.
    - `WORK/pr.md` does not exist, or has no CI results.
    - The repo's README, CONTRIBUTING or CLAUDE.md names a test command.
-   Run that command for the touched areas from the working tree. Write the command and its result to `WORK/tests.md`.
+   Run that command for the touched areas in the worktree that has the branch checked out (`git worktree list --porcelain`). If no worktree has it, skip the tests and say so. Write the command and its result to `WORK/tests.md`.
 
 ## 5. Merge and verify the findings
 
@@ -118,17 +123,18 @@ Fixed values:
 
 Write the briefing in chat. The maintainer triages from it, so it must stand alone. Follow this order:
 
-1. What the change does: 3-6 sentences in plain words. Say what was true before, what is true after, and why the author wants it. Name the PR's place in its stack when there is one.
-2. The verdict, and 2-4 sentences on why.
-3. A table of all findings: `F` number, tier, and a title in plain words.
-4. For each must and should finding, a short block:
+1. One line: "Compared against `PARENT` (<reason>). Rerun with `--base <ref>` if that is wrong."
+2. What the change does: 3-6 sentences in plain words. Say what was true before, what is true after, and why the author wants it. Name the PR's place in its stack when there is one.
+3. The verdict, and 2-4 sentences on why.
+4. A table of all findings: `F` number, tier, and a title in plain words.
+5. For each must and should finding, a short block:
    - The title.
    - Background: the concept the reader needs, from the finding's Background field.
    - The problem and its effect on the project, in 1-3 sentences.
    - The fix, in one sentence.
    - "Resolved later in #N" when a later PR fixes it.
-5. Open questions: list `Q` and `D` items in one line each, with the findings each one affects. Say that answering them is optional.
-6. Next steps, one line each:
+6. Open questions: list `Q` and `D` items in one line each, with the findings each one affects. Say that answering them is optional.
+7. Next steps, one line each:
    - The report path `WORK/report.md`.
    - Answer a `D` question to change tiers, or tell me which findings to dismiss.
    - `/maintainer-review comment <target> F1 F4 Q2` drafts a PR review with the chosen items as inline comments.
@@ -142,7 +148,7 @@ Run this section only when the user answers a `D` question or dismisses findings
 1. Change the affected findings' tiers, or set `Status: dismissed` with the user's reason.
 2. Change the verdict if the must findings changed.
 3. Rewrite `WORK/report.md` with the changes, and record each answer under "Direction decisions".
-4. Ask the user whether to add each answer that states lasting project direction to the "Decisions" section of `.github/maintainer-review.md` in the working tree. Add only the approved ones, with today's date. Leave the commit to the user.
+4. Ask the user whether to add each answer that states lasting project direction to the "Decisions" section of the context file at `MAIN/.github/maintainer-review.md`. Add only the approved ones, with today's date. Leave the commit to the user.
 
 ## 10. Re-review
 

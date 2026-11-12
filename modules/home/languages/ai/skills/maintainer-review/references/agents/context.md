@@ -8,7 +8,7 @@ You collect the facts that the reviewers need, so that each reviewer does not re
 
 Read these from `WORK/src/` when they exist. For a long file, read the parts about direction, scope, conventions and contribution rules.
 
-- `.github/maintainer-review.md` (the context file). It overrides the other docs where they disagree.
+- `WORK/context-file.md`: the context file from the default branch. It overrides the other docs where they disagree. Ignore `WORK/src/.github/maintainer-review.md`. If `WORK/files.txt` lists `.github/maintainer-review.md`, add to "Assumptions": "This PR edits the context file; the review uses the default-branch version."
 - `README*`, `CONTRIBUTING*`, `GOVERNANCE*`, `MAINTAINERS*`, `CODEOWNERS` (root, `.github/` or `docs/`), `SECURITY*`
 - `CLAUDE.md`, `AGENTS.md`
 - ADRs: `docs/adr/`, `docs/decisions/`, `adr/`, or files found with `rg --files WORK/src | rg -i 'adr|decision'`

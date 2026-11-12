@@ -4,7 +4,9 @@ End state: `WORK/review.json` holds a PR review for the contributor, with inline
 
 Fixed values:
 
-- `SKILL`, `WORK` and the PR number `<n>`: as in `references/review.md` step 1.1.
+- `SKILL`: the absolute path of this skill's base directory.
+- `WORK`: as defined in `SKILL.md` under "Locations". Resolve it with git; never look for `./.git`.
+- `<n>`: the PR number from the target.
 - `<repo>`: the `nameWithOwner` from `gh repo view --json nameWithOwner`.
 
 ## 1. Pick the items
