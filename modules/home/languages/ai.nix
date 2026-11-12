@@ -814,9 +814,9 @@ in
       # Where each service lives today. Roles below pick one as their default.
       litellm = "https://litellm.home.jeffutter.com";
       homelabSwap = "https://llama.home.jeffutter.com";
-      sparkSwap = "http://192.168.10.14:8000";
-      sparkSsh = "jeffutter@192.168.10.14";
-      sparkTrainerUi = "http://192.168.10.14:8081";
+      sparkSwap = "http://gx10.home.jeffutter.com:8000";
+      sparkSsh = "jeffutter@gx10.home.jeffutter.com";
+      sparkTrainerUi = "http://gx10.home.jeffutter.com:8081";
       endpoint =
         default: description:
         lib.mkOption {
