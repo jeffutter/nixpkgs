@@ -1,13 +1,13 @@
 ---
 name: maintainer-review
 description: Review a contribution to a project with many outside contributors (open source or inner source) as its maintainer would. Checks correctness, quality, completeness, untrusted-contributor security, and long-term maintainability - what the change commits the project to, which future decisions it precludes, who will own it. Writes a verdict report in the maintainer's voice, then optionally a contributor-facing review comment. Use when asked to "maintainer review", review an external or community PR, decide whether to accept a contribution, draft a reply to a contributor, or set up a project's maintainer-review context file.
-argument-hint: "[review] <PR number | PR URL | branch> [--deep] | comment <target> [--post] | init"
+argument-hint: "[review] <PR number | PR URL | branch> [--deep] | comment <target> [F1 F4 Q2 ...] [--post] | init"
 ---
 
 Pick the mode from the first argument. Read only that mode's file, then follow it.
 
 - `<target>`, `<target> --deep`, `review <target>` or `review <target> --deep`: read `references/review.md`.
-- `comment <target>` or `comment <target> --post`: read `references/comment.md`.
+- `comment <target> [F1 F4 Q2 ...] [--post]`: read `references/comment.md`.
 - `init`: read `references/init.md`.
 
 `<target>` is a GitHub PR number, a PR URL, or a local branch name. With no target, use the current branch.

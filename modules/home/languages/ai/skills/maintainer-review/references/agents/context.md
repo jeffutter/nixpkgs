@@ -33,7 +33,7 @@ Count the added plus deleted lines of hand-written files only, from `WORK/stat.t
 
 Group the hand-written files into concerns. A concern is one change that someone could merge or revert on its own: one feature, one fix, one refactor, one dependency bump. A feature and the tests and docs for it are one concern.
 
-## 4. Write `WORK/context.md`
+## 4. Return the context file
 
 ```markdown
 # Context
@@ -56,6 +56,9 @@ Group the hand-written files into concerns. A concern is one change that someone
 ## Never accept
 - <item from the context file or docs> (source)
 
+## Stack
+<Position of this PR in "Related PRs" of `WORK/pr.md`, and what each later PR in the stack changes, one line each. Omit when there are no related PRs.>
+
 ## Ownership
 - <CODEOWNERS entries for the touched paths, maintainers named for them>
 
@@ -75,4 +78,4 @@ Hand-written lines changed: <n>. Generated lines changed: <n>. `max_changed_line
 
 Cite a source for every item. Leave out an item that has no source, except under "Assumptions".
 
-Return only: "context written", the number of concerns, and whether the context file exists. At most 30 words.
+Your final message is the context file, in full, in the layout above. Write no file. The main session saves it as `WORK/context.md`.
