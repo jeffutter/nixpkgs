@@ -46,6 +46,10 @@
       url = "github:jeffutter/cairn";
     };
 
+    scree = {
+      url = "github:jeffutter/scree";
+    };
+
     meethook = {
       url = "github:jeffutter/meethook/v0.4.0";
     };

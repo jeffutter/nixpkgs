@@ -160,6 +160,8 @@ let
   cairn = inputs.cairn.packages.${pkgs.stdenv.hostPlatform.system}.default;
   cairn-skill = inputs.cairn.packages.${pkgs.stdenv.hostPlatform.system}.skill;
   cairn-herdr-mod = inputs.cairn.packages.${pkgs.stdenv.hostPlatform.system}.herdr-mod;
+  scree = inputs.scree.packages.${pkgs.stdenv.hostPlatform.system}.default;
+  scree-skill = inputs.scree.packages.${pkgs.stdenv.hostPlatform.system}.skill;
   herdr = inputs.herdr.packages.${pkgs.stdenv.hostPlatform.system}.default;
   herdr-core = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.herdr-core;
   herdr-app = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.herdr-app;
@@ -873,6 +875,7 @@ in
         cairn
         claude-agent-acp
         claude-tail
+        scree
         herdr
         herdr-app
         herdr-core
@@ -1703,6 +1706,7 @@ in
         setup-backlog-tracker = ./ai/skills/setup-backlog-tracker;
         brainstorming = ./ai/skills/brainstorming;
         cairn = "${cairn-skill}";
+        scree = "${scree-skill}";
         character-lora-training = ./ai/skills/character-lora-training;
         diagram-design = "${diagram-design-skill}/skills/diagram-design";
         diff-explanation-core = ./ai/skills/diff-explanation-core;
