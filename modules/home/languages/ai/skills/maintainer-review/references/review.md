@@ -144,12 +144,16 @@ Use `F`, `Q` and `D` numbers only. Leave reviewer IDs (`COR-2`) and dimension co
 
 ## 9. Apply the maintainer's answers
 
-Run this section only when the user answers a `D` question or dismisses findings.
+Run this section only when the user answers a `D` question, dismisses findings, or agrees with you on a different design.
 
 1. Change the affected findings' tiers, or set `Status: dismissed` with the user's reason.
-2. Change the verdict if the must findings changed.
-3. Rewrite `WORK/report.md` with the changes, and record each answer under "Direction decisions". If step 7.6 published the report, publish it again the same way.
-4. Ask the user whether to add each answer that states lasting project direction to the "Decisions" section of the context file at `MAIN/.github/maintainer-review.md`. Add only the approved ones, with today's date. Leave the commit to the user.
+2. When the agreed answer replaces the PR's approach, not only fixes it:
+   - Write one must finding for the rework. Its Fix states the agreed design.
+   - Sort every other finding against that design. Move a finding that the rework makes moot into "Why we ask for the rework", with no tier. Turn a finding that still applies into an acceptance criterion of the rework finding, with its fix rewritten for the new design.
+   - Mark each claim about the new design that no reviewer or verifier checked as "not reviewed".
+3. Change the verdict if the must findings changed.
+4. Rewrite `WORK/report.md` with the changes, and record each answer under "Direction decisions". If step 7.6 published the report, publish it again the same way.
+5. Ask the user whether to add each answer that states lasting project direction to the "Decisions" section of the context file at `MAIN/.github/maintainer-review.md`. Add only the approved ones, with today's date. Leave the commit to the user.
 
 ## 10. Re-review
 

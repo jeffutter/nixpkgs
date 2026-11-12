@@ -59,6 +59,9 @@ Answering them is optional. Each one names the findings it would change.
 - Resolved later: <#N and evidence, or omit>
 <figure, if any: ![<alt text>](fig-<n>.png)>
 
+## Why we ask for the rework (if any)
+<Only after review section 9 step 2. Findings that the rework makes moot, one short block each, with no tier and no Status. They explain the rework to the author.>
+
 ## Should fix
 <same layout>
 
