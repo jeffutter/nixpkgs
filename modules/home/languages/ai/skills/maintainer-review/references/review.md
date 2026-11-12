@@ -118,6 +118,7 @@ Fixed values:
    - Drop each question whose answer changes no tier and not the verdict.
    - Merge duplicates. Number author questions `Q1`, `Q2`, ... and maintainer questions `D1`, `D2`, ....
 5. Fill the template from `WORK/pr.md`, `WORK/context.md`, the findings files, the verifier results and the figures. Write in the maintainer's voice: direct, first person plural for the project ("we would own this"). Write the result to `WORK/report.md`.
+6. If `cairn` is in your list of available skills, read `SKILL/references/cairn.md` and publish `WORK/report.md`.
 
 ## 8. Brief the maintainer
 
@@ -135,7 +136,7 @@ Write the briefing in chat. The maintainer triages from it, so it must stand alo
    - "Resolved later in #N" when a later PR fixes it.
 6. Open questions: list `Q` and `D` items in one line each, with the findings each one affects. Say that answering them is optional.
 7. Next steps, one line each:
-   - The report path `WORK/report.md`.
+   - The report path `WORK/report.md`, and the cairn link when step 7.6 published it.
    - Answer a `D` question to change tiers, or tell me which findings to dismiss.
    - `/maintainer-review comment <target> F1 F4 Q2` drafts a PR review with the chosen items as inline comments.
 
@@ -147,7 +148,7 @@ Run this section only when the user answers a `D` question or dismisses findings
 
 1. Change the affected findings' tiers, or set `Status: dismissed` with the user's reason.
 2. Change the verdict if the must findings changed.
-3. Rewrite `WORK/report.md` with the changes, and record each answer under "Direction decisions".
+3. Rewrite `WORK/report.md` with the changes, and record each answer under "Direction decisions". If step 7.6 published the report, publish it again the same way.
 4. Ask the user whether to add each answer that states lasting project direction to the "Decisions" section of the context file at `MAIN/.github/maintainer-review.md`. Add only the approved ones, with today's date. Leave the commit to the user.
 
 ## 10. Re-review

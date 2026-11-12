@@ -54,14 +54,14 @@ Write `WORK/review.json`:
 }
 ```
 
-Show the user the body in full, and a table of the inline comments: item number, `path:line`, and the comment in short.
+Write `WORK/review-preview.md`: the event, the body in full, and a table of the inline comments with item number, `path:line` and the full comment. Show it to the user. If `cairn` is in your list of available skills, read `SKILL/references/cairn.md`, publish `WORK/review-preview.md`, and show the link.
 
 ## 4. Post (only with `--post`, or when the user asks to post)
 
 1. Ask the user to confirm. Name the event.
 2. After the user confirms, run `gh api repos/<repo>/pulls/<n>/reviews --method POST --input WORK/review.json --jq '{id, state, html_url}'`.
 3. Check the comments: run `gh api repos/<repo>/pulls/<n>/comments --jq '.[] | select(.pull_request_review_id == <id>) | "\(.path):\(.line)"'`. Compare the output with the anchors you sent. The reviews endpoint shows `line: null` for new comments; use this comments endpoint.
-4. In `WORK/report.md`, set `Status: posted` on each item you sent.
+4. In `WORK/report.md`, set `Status: posted` on each item you sent. If `WORK/cairn.md` lists `report.md`, publish it again as `SKILL/references/cairn.md` says.
 5. Show the user the review URL and any comment that did not land on its anchor.
 
 Without `--post`, tell the user the path `WORK/review.json`, and that "post it" posts it.
