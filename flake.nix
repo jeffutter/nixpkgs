@@ -42,8 +42,8 @@
       url = "github:jeffutter/graphql-document-utils/v0.3.1";
     };
 
-    carin = {
-      url = "github:jeffutter/carin";
+    cairn = {
+      url = "github:jeffutter/cairn";
     };
 
     meethook = {

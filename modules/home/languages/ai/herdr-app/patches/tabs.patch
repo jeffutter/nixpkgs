@@ -14,7 +14,7 @@
        : 10;
      const panel = find(root, "panel"), body = find(root, "panel-body");
 -    const enabled = shared("workspace.panels") ?? ["files", "changes"];
-+    const enabled = [...new Set([...(shared("workspace.panels") ?? ["files", "changes"]), "carin"])];
++    const enabled = [...new Set([...(shared("workspace.panels") ?? ["files", "changes"]), "cairn"])];
      this.syncPanel(space, panel, body, enabled);
      const panelButton = (id, label, icon) => {
        const on = panel && !panel.hidden && body?.active === id;
@@ -29,7 +29,7 @@
 -      .when(w?.buttons, el => el.child(button("minimize", w.platform === "windows" ? svg("mods/tabs/win-min.svg").size(16) : "−", () => run("window.minimize")))
 -        .child(button("maximize", w.platform === "windows" ? svg(`mods/tabs/${w.maximized ? "win-restore" : "win-max"}.svg`).size(16) : "□", () => run("window.maximize")))
 -        .child(button("close-window", w.platform === "windows" ? svg("mods/tabs/win-close.svg").size(16) : svg("mods/pane/close.svg").size(13), () => run("window.close"))));
-+      .when(enabled.includes("carin"), el => el.child(panelButton("carin", "Carin", "mods/carin/carin.svg")))
++      .when(enabled.includes("cairn"), el => el.child(panelButton("cairn", "Cairn", "mods/cairn/cairn.svg")))
 +      .when(w?.buttons, el => el.child(button("minimize", w.platform === "windows" ? svg("mods/my-tabs/win-min.svg").size(16) : "−", () => run("window.minimize")))
 +        .child(button("maximize", w.platform === "windows" ? svg(`mods/my-tabs/${w.maximized ? "win-restore" : "win-max"}.svg`).size(16) : "□", () => run("window.maximize")))
 +        .child(button("close-window", w.platform === "windows" ? svg("mods/my-tabs/win-close.svg").size(16) : svg("mods/pane/close.svg").size(13), () => run("window.close"))));

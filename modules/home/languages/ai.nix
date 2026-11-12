@@ -157,9 +157,9 @@ let
   worktrunkClearCommand = ''bash "${worktrunkHookScript}" config state marker clear || true'';
 
   claude-tail = inputs.claude-tail.packages.${pkgs.stdenv.hostPlatform.system}.default;
-  carin = inputs.carin.packages.${pkgs.stdenv.hostPlatform.system}.default;
-  carin-skill = inputs.carin.packages.${pkgs.stdenv.hostPlatform.system}.skill;
-  carin-herdr-mod = inputs.carin.packages.${pkgs.stdenv.hostPlatform.system}.herdr-mod;
+  cairn = inputs.cairn.packages.${pkgs.stdenv.hostPlatform.system}.default;
+  cairn-skill = inputs.cairn.packages.${pkgs.stdenv.hostPlatform.system}.skill;
+  cairn-herdr-mod = inputs.cairn.packages.${pkgs.stdenv.hostPlatform.system}.herdr-mod;
   herdr = inputs.herdr.packages.${pkgs.stdenv.hostPlatform.system}.default;
   herdr-core = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.herdr-core;
   herdr-app = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.herdr-app;
@@ -870,7 +870,7 @@ in
         agent-browser
         backlog-md
         backlogUnblocked
-        carin
+        cairn
         claude-agent-acp
         claude-tail
         herdr
@@ -914,8 +914,8 @@ in
           force = true;
         };
         "herdr-app/themes/stylix.json".text = builtins.toJSON herdrAppTheme;
-        "herdr-app/mods/carin" = {
-          source = "${carin-herdr-mod}/mods/carin";
+        "herdr-app/mods/cairn" = {
+          source = "${cairn-herdr-mod}/mods/cairn";
           recursive = true;
         };
 
@@ -1366,7 +1366,7 @@ in
             allowWrite = [
               "/private/var/folders/*/*/T/**"
               "/var/folders/*/*/T/**"
-              "~/.local/share/carin/**"
+              "~/.local/share/cairn/**"
               "~/obsidian/**"
             ];
           };
@@ -1702,7 +1702,7 @@ in
         backlog-planner = ./ai/skills/backlog-planner;
         setup-backlog-tracker = ./ai/skills/setup-backlog-tracker;
         brainstorming = ./ai/skills/brainstorming;
-        carin = "${carin-skill}";
+        cairn = "${cairn-skill}";
         character-lora-training = ./ai/skills/character-lora-training;
         diagram-design = "${diagram-design-skill}/skills/diagram-design";
         diff-explanation-core = ./ai/skills/diff-explanation-core;

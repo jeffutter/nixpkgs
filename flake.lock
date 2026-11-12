@@ -204,7 +204,7 @@
         "type": "github"
       }
     },
-    "carin": {
+    "cairn": {
       "inputs": {
         "crane": "crane",
         "flake-utils": "flake-utils_2",
@@ -212,16 +212,16 @@
         "rust-overlay": "rust-overlay"
       },
       "locked": {
-        "lastModified": 1794328631,
-        "narHash": "sha256-1mQ9YtMbY6gBlR/DfuJFXTk4S7Z717DIac2HscJ4wlM=",
+        "lastModified": 1794501630,
+        "narHash": "sha256-U0WMuMZZL83keLWgjpL/Xc5G4engiqzquOJfZOgzOJg=",
         "owner": "jeffutter",
-        "repo": "carin",
-        "rev": "6edcc92e1b10196c9f302ee73345d6160df3cab7",
+        "repo": "cairn",
+        "rev": "529792a0841fe21a148f7c7850d99e7c584fc4f8",
         "type": "github"
       },
       "original": {
         "owner": "jeffutter",
-        "repo": "carin",
+        "repo": "cairn",
         "type": "github"
       }
     },
@@ -1169,7 +1169,7 @@
         "apollo_skills": "apollo_skills",
         "ast-grep-skill": "ast-grep-skill",
         "backlog-md": "backlog-md",
-        "carin": "carin",
+        "cairn": "cairn",
         "claude-tail": "claude-tail",
         "diagram-design-skill": "diagram-design-skill",
         "excalidraw-diagram-skill": "excalidraw-diagram-skill",
@@ -1204,7 +1204,7 @@
     "rust-overlay": {
       "inputs": {
         "nixpkgs": [
-          "carin",
+          "cairn",
           "nixpkgs"
         ]
       },
