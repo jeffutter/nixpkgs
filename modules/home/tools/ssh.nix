@@ -31,7 +31,7 @@ let
       user = "jeffutter";
     };
     spark = {
-      hostName = "192.168.10.14";
+      hostName = "gx10.home.jeffutter.com";
       user = "jeffutter";
     };
     mbp16 = {
