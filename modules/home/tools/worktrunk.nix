@@ -20,8 +20,9 @@ let
   '';
 
   # A fresh worktree has no node_modules and no gitignored CLAUDE.local.md, so
-  # every agent session in it first fails a build, then installs. Both guarded
-  # so repos without a pnpm lockfile or a local rules file are untouched.
+  # every agent session in it first fails a build, then installs. Each step is
+  # guarded so repos without a pnpm lockfile or a local rules file are untouched.
+  # .github/maintainer-review.md is copied only if the worktree lacks it.
   # CI=1 keeps pnpm from running `lefthook install` into the shared .git.
   postStartSetup = ''
     if test -f pnpm-lock.yaml && ! test -d node_modules; then
@@ -29,6 +30,10 @@ let
     fi
     if test -f "{{ primary_worktree_path }}/CLAUDE.local.md" && ! test -e CLAUDE.local.md; then
       cp "{{ primary_worktree_path }}/CLAUDE.local.md" CLAUDE.local.md
+    fi
+    if test -f "{{ primary_worktree_path }}/.github/maintainer-review.md" && ! test -e .github/maintainer-review.md; then
+      mkdir -p .github
+      cp "{{ primary_worktree_path }}/.github/maintainer-review.md" .github/maintainer-review.md
     fi
   '';
 in
