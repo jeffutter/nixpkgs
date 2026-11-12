@@ -19,12 +19,19 @@ function lookup(e) {
   return BY_KEY.get(e.keystroke) ?? (e.key_char ? BY_KEY.get(e.key_char) : undefined);
 }
 
-// Replays a keypress the popup swallowed into `terminal`.
+// hc keys types these unshifted; it rejects every shifted symbol and drops shift on punctuation.
+const TYPABLE = /^[a-z0-9`\-=[\]\\;',./]$/;
+
+// Replays a keypress the popup swallowed into `terminal`. `hc send` cannot: it wraps the text in
+// <hc> tags and presses Enter. Shifted symbols (`?`, `<`, `!`, ...) have no raw path and are dropped.
 function forward(e, terminal) {
   if (!terminal) return;
   const mods = /^((?:(?:ctrl|alt|cmd|shift)-)*)/.exec(e.keystroke)[1];
-  if (e.key_char && e.key_char.length === 1 && e.key_char >= " " && !/ctrl|alt|cmd/.test(mods)) {
-    hc(["send", terminal, e.key_char]);
+  const ch = e.key_char;
+  if (ch && ch.length === 1 && ch >= " " && !/ctrl|alt|cmd/.test(mods)) {
+    if (ch === " ") hc(["keys", terminal, "space"]);
+    else if (TYPABLE.test(ch)) hc(["keys", terminal, ch]);
+    else if (/^[A-Z]$/.test(ch)) hc(["keys", terminal, "shift+" + ch.toLowerCase()]);
   } else {
     hc(["keys", terminal, mods.replaceAll("-", "+") + e.keystroke.slice(mods.length)]);
   }
