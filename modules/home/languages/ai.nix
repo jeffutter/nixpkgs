@@ -102,8 +102,10 @@ let
       '';
   # Network endpoints, one per model use (see options.jeff.endpoints). Skill
   # sources hold no addresses: scripts and SKILL.md prose read the environment
-  # variables below, which home.sessionVariables exports to every shell and so to
-  # every agent started from one.
+  # variables below. fish's shellInit exports them on every shell start, not
+  # through home.sessionVariables, whose once-per-login guard
+  # (__HM_SESS_VARS_SOURCED) hides a rebuilt value from every shell started
+  # under the old session. Every agent started from a shell gets them.
   endpoints = config.jeff.endpoints;
   endpointEnv = {
     TTS_API = endpoints.ttsApi;
@@ -890,11 +892,13 @@ in
     # potion-code-16m-v2 is a static model2vec embedding that ranked the right
     # function first for 1 of 10 concept queries on blueprint, jina for 8.
     # An existing index keeps the model it was built with.
-    home.sessionVariables =
-      endpointEnv
-      // lib.optionalAttrs config.jeff.enableZvecGrep {
-        ZVEC_GREP_EMBEDDING = "local/jina-embeddings-v2-base-code";
-      };
+    home.sessionVariables = lib.optionalAttrs config.jeff.enableZvecGrep {
+      ZVEC_GREP_EMBEDDING = "local/jina-embeddings-v2-base-code";
+    };
+
+    programs.fish.shellInit = lib.concatStringsSep "\n" (
+      lib.mapAttrsToList (name: value: "set -gx ${name} ${lib.escapeShellArg value}") endpointEnv
+    );
 
     # Per-file links keep the herdr-app mod folders writable; it writes jsconfig.json and .d.ts there.
     xdg.configFile =
