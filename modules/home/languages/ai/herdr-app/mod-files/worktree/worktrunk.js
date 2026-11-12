@@ -36,8 +36,12 @@ async function wtCheckouts(repo, on) {
 }
 
 // Makes the branch's worktree (and the branch, if it is new). { path } or { error }.
+// A branch only on a remote is not new: plain `wt switch` checks it out tracking the remote.
 async function wtCreate(repo, branch, on) {
-  const exists = (await wtRun("git", repo.main, ["show-ref", "--verify", "--quiet", `refs/heads/${branch}`], on)).ok;
+  // Best effort: offline, the refs already fetched decide. No prompt: nothing can answer one.
+  await wtRun("env", repo.main, ["GIT_TERMINAL_PROMPT=0", "git", "fetch", "--all", "--quiet"], on).catch(() => {});
+  const refs = await wtRun("git", repo.main, ["for-each-ref", "--count=1", "--format=%(refname)", `refs/heads/${branch}`, `refs/remotes/*/${branch}`], on);
+  const exists = refs.ok && refs.out !== "";
   const r = await wtCmd(repo.top, ["switch", ...(exists ? [] : ["--create"]), "--no-cd", "--format=json", branch], on, WT_SLOW_MS);
   if (!r.ok) return { error: r.err || "wt switch failed." };
   // Hooks may print before the result: it is the last JSON line.
