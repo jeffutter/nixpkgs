@@ -985,6 +985,7 @@ in
     };
 
     home.file.".claude/workflows/ralph-backlog-loop.js".source = ./ai/workflows/ralph-backlog-loop.js;
+    home.file.".claude/workflows/ralph-scree-loop.js".source = ./ai/workflows/ralph-scree-loop.js;
 
     # clear-alias: aliases /clear to /new. Same "promoted to load globally"
     # situation as ralph above -- source lives at ./ai/pi-extensions/clear-alias.ts
@@ -1703,6 +1704,8 @@ in
         ast-grep = "${ast-grep-skill}/ast-grep/skills/ast-grep";
         backlog-execute = ./ai/skills/backlog-execute;
         backlog-planner = ./ai/skills/backlog-planner;
+        scree-execute = ./ai/skills/scree-execute;
+        scree-planner = ./ai/skills/scree-planner;
         setup-backlog-tracker = ./ai/skills/setup-backlog-tracker;
         brainstorming = ./ai/skills/brainstorming;
         cairn = "${cairn-skill}";
