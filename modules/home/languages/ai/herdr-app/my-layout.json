@@ -87,81 +87,108 @@
           "window_drag": true
         },
         {
-          "id": "work-body",
-          "type": "row",
+          "id": "work-area",
+          "type": "stack",
           "children": [
             {
-              "id": "main",
-              "type": "block",
-              "content": {
-                "tab": "active",
-                "pane": {
-                  "header": {
-                    "content": {
-                      "mod": "pane"
-                    },
-                    "reveal": "always",
-                    "height": 30,
-                    "position": "top"
-                  },
-                  "background": "background",
-                  "border": {
-                    "width": 1,
-                    "color": "border"
-                  },
-                  "focus": {
-                    "width": 1,
-                    "color": "accent"
-                  },
-                  "radius": 10,
-                  "gap": 8,
-                  "lone": true
-                }
-              }
-            },
-            {
-              "id": "panel",
-              "type": "column",
+              "id": "work-body",
+              "type": "row",
               "children": [
                 {
-                  "id": "panel-body",
-                  "type": "stack",
+                  "id": "main",
+                  "type": "block",
+                  "content": {
+                    "tab": "active",
+                    "pane": {
+                      "header": {
+                        "content": {
+                          "mod": "pane"
+                        },
+                        "reveal": "always",
+                        "height": 30,
+                        "position": "top"
+                      },
+                      "background": "background",
+                      "border": {
+                        "width": 1,
+                        "color": "border"
+                      },
+                      "focus": {
+                        "width": 1,
+                        "color": "accent"
+                      },
+                      "radius": 10,
+                      "gap": 8,
+                      "lone": true
+                    }
+                  }
+                },
+                {
+                  "id": "panel",
+                  "type": "column",
                   "children": [
                     {
-                      "id": "files",
-                      "type": "block",
-                      "content": {
-                        "mod": "files"
-                      }
-                    },
-                    {
-                      "id": "changes",
-                      "type": "block",
-                      "content": {
-                        "mod": "changes"
-                      }
-                    },
-                    {
-                      "id": "cairn",
-                      "type": "block",
-                      "content": {
-                        "mod": "cairn"
-                      }
+                      "id": "panel-body",
+                      "type": "stack",
+                      "children": [
+                        {
+                          "id": "files",
+                          "type": "block",
+                          "content": {
+                            "mod": "files"
+                          }
+                        },
+                        {
+                          "id": "changes",
+                          "type": "block",
+                          "content": {
+                            "mod": "changes"
+                          }
+                        },
+                        {
+                          "id": "cairn",
+                          "type": "block",
+                          "content": {
+                            "mod": "cairn"
+                          }
+                        },
+                        {
+                          "id": "scree",
+                          "type": "block",
+                          "content": {
+                            "mod": "scree",
+                            "props": {
+                              "view": "panel"
+                            }
+                          }
+                        }
+                      ],
+                      "active": "files"
                     }
                   ],
-                  "active": "files"
+                  "size": {
+                    "px": 368
+                  },
+                  "min": 280,
+                  "max": 4000,
+                  "hidden": true
                 }
               ],
-              "size": {
-                "px": 368
-              },
-              "min": 280,
-              "max": 4000,
-              "hidden": true
+              "padding": 8,
+              "gap": 8
+            },
+            {
+              "id": "scree-board",
+              "type": "block",
+              "content": {
+                "mod": "scree",
+                "props": {
+                  "view": "board"
+                }
+              }
             }
           ],
-          "padding": 8,
-          "gap": 8
+          "active": "work-body"
         },
         {
           "id": "status",

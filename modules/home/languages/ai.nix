@@ -162,6 +162,7 @@ let
   cairn-herdr-mod = inputs.cairn.packages.${pkgs.stdenv.hostPlatform.system}.herdr-mod;
   scree = inputs.scree.packages.${pkgs.stdenv.hostPlatform.system}.default;
   scree-skill = inputs.scree.packages.${pkgs.stdenv.hostPlatform.system}.skill;
+  scree-herdr-mod = inputs.scree.packages.${pkgs.stdenv.hostPlatform.system}.herdr-mod;
   herdr = inputs.herdr.packages.${pkgs.stdenv.hostPlatform.system}.default;
   herdr-core = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.herdr-core;
   herdr-app = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.herdr-app;
@@ -920,6 +921,12 @@ in
         "herdr-app/mods/cairn" = {
           source = "${cairn-herdr-mod}/mods/cairn";
           recursive = true;
+          force = true;
+        };
+        "herdr-app/mods/scree" = {
+          source = "${scree-herdr-mod}/mods/scree";
+          recursive = true;
+          force = true;
         };
 
         # force: replaces the files `herdr-app do layout.clone` first wrote.
@@ -928,6 +935,16 @@ in
           force = true;
         };
       };
+
+    # herdr-app does not draw an svg that is a symlink into the store; the built-in mods ship real files.
+    home.activation.herdrAppModIcons = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
+      for mod in cairn scree; do
+        for icon in "${config.xdg.configHome}/herdr-app/mods/$mod"/*.svg; do
+          [ -L "$icon" ] || continue
+          run cp --remove-destination --no-preserve=mode "$(readlink -f "$icon")" "$icon"
+        done
+      done
+    '';
 
     # herdr-app rewrites settings.json (zoom, Settings screen), so merge only theme, font and ui_font into it.
     home.activation.herdrAppSettings = lib.hm.dag.entryAfter [ "writeBoundary" ] ''

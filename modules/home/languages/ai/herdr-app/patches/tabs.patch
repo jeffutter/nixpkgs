@@ -9,16 +9,17 @@
          .when(Boolean(program?.icon), el => el.child(program.tint ? svg(program.icon).size(14).text_color(t.muted) : image(program.icon).size(14)))
          .child(div().max_w(170).truncate().child(c.zoomed ? `${name} Z` : name))
          .when(c.status === "working", el => el.child(svg("mods/workspace-chrome/spinner.svg").size(12).flex_none().text_color(t.working).spin(900)))
-@@ -77,7 +77,7 @@
+@@ -77,7 +77,8 @@
        ? Math.max(10, (root.traffic_lights[0] + 64) / settings().zoom - (sidebar?.hidden ? 0 : sidebar?.size?.px ?? 0))
        : 10;
      const panel = find(root, "panel"), body = find(root, "panel-body");
 -    const enabled = shared("workspace.panels") ?? ["files", "changes"];
-+    const enabled = [...new Set([...(shared("workspace.panels") ?? ["files", "changes"]), "cairn"])];
++    const enabled = [...new Set([...(shared("workspace.panels") ?? ["files", "changes"]), "cairn", "scree"])];
++    const boardOn = find(root, "work-area")?.active === "scree-board";
      this.syncPanel(space, panel, body, enabled);
      const panelButton = (id, label, icon) => {
        const on = panel && !panel.hidden && body?.active === id;
-@@ -93,11 +93,12 @@
+@@ -93,11 +94,14 @@
        .on_mouse_up("left", () => { this.pressed = null; })
        .on_scroll_wheel(e => { if (Math.abs(e.delta.y) >= 1) run(e.delta.y > 0 ? "tab.prev" : "tab.next"); })
        .child(h_flex().id("tab-scroll").flex_1().min_w(0).h_full().items_center().gap(3).overflow_x_scrollbar().children(shown.map(item)))
@@ -30,6 +31,8 @@
 -        .child(button("maximize", w.platform === "windows" ? svg(`mods/tabs/${w.maximized ? "win-restore" : "win-max"}.svg`).size(16) : "□", () => run("window.maximize")))
 -        .child(button("close-window", w.platform === "windows" ? svg("mods/tabs/win-close.svg").size(16) : svg("mods/pane/close.svg").size(13), () => run("window.close"))));
 +      .when(enabled.includes("cairn"), el => el.child(panelButton("cairn", "Cairn", "mods/cairn/cairn.svg")))
++      .when(enabled.includes("scree"), el => el.child(panelButton("scree", "Scree", "mods/scree/scree.svg")))
++      .when(enabled.includes("scree"), el => el.child(h_flex().id("board-scree").h(26).px(8).gap(5).flex_none().items_center().rounded(6).text_size(12).bg(boardOn ? t.selected : t.chrome).text_color(boardOn ? t.foreground : t.muted).hover(s => s.bg(t.hover)).on_mouse_down("left", stop).on_click(() => run("layout.select", { stack: "work-area", child: boardOn ? "work-body" : "scree-board" })).child(svg("mods/scree/scree.svg").size(14)).child("Board")))
 +      .when(w?.buttons, el => el.child(button("minimize", w.platform === "windows" ? svg("mods/my-tabs/win-min.svg").size(16) : "−", () => run("window.minimize")))
 +        .child(button("maximize", w.platform === "windows" ? svg(`mods/my-tabs/${w.maximized ? "win-restore" : "win-max"}.svg`).size(16) : "□", () => run("window.maximize")))
 +        .child(button("close-window", w.platform === "windows" ? svg("mods/my-tabs/win-close.svg").size(16) : svg("mods/pane/close.svg").size(13), () => run("window.close"))));
