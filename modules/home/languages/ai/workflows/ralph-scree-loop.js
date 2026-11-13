@@ -322,6 +322,52 @@ async function sweepState() {
   return null;
 }
 
+const VERIFY_SCHEMA = {
+  type: "object",
+  properties: {
+    tickets: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          id: { type: "string" },
+          planStart: {
+            type: "string",
+            description: 'The first 80 characters of "plan" copied verbatim from `scree show <id>`; empty string if the plan is empty.',
+          },
+          criteriaCount: {
+            type: "number",
+            description: 'Length of "criteria" in `scree show <id>`.',
+          },
+        },
+        required: ["id", "planStart", "criteriaCount"],
+      },
+    },
+  },
+  required: ["tickets"],
+};
+
+// Corrects the candidates in place from a fresh `scree show` per ticket. The quoted planStart is
+// evidence the agent read the ticket; a ticket with no quote and no criteria stays "unplanned".
+async function verifyPlanned(candidates) {
+  if (candidates.length === 0) return;
+  const ids = candidates.map((c) => c.id);
+  const v = await agent(
+    `${CONTEXT}\n\nFor each of these tickets, run \`scree show <id>\` with the Bash tool and report what it prints: ${ids.join(", ")}. Copy values from the output; do not infer them.`,
+    { schema: VERIFY_SCHEMA, model: "sonnet", phase: "State" },
+  );
+  for (const t of v?.tickets ?? []) {
+    const c = candidates.find((x) => x.id === t.id);
+    if (!c) continue;
+    const hasPlan = t.planStart.trim().length > 0;
+    if (hasPlan !== c.hasPlan || t.criteriaCount !== c.criteriaCount) {
+      log(`Sweep misreported ${c.id} (hasPlan ${c.hasPlan}, criteria ${c.criteriaCount}); verified hasPlan ${hasPlan}, criteria ${t.criteriaCount}.`);
+    }
+    c.hasPlan = hasPlan;
+    c.criteriaCount = t.criteriaCount;
+  }
+}
+
 // Review the executes since the last review. Called every REVIEW_EVERY executes and once at exit,
 // so the last tickets of a run are never shipped unreviewed.
 async function runReview(reason) {
@@ -367,6 +413,10 @@ for (; steps < STEP_CAP && executeCount < MAX_EXECUTES; steps++) {
   // scree already guarantees: ready, unblocked, first among siblings, for agents, claimable. The script
   // only skips tickets it already handled this run, and tickets whose plan it could not produce.
   const needsPlan = (c) => !c.hasPlan || c.criteriaCount === 0;
+  // The sweep's hasPlan/criteriaCount are self-reported by a cheap model and have been fabricated
+  // (it skipped `scree show`). Giving up on a ticket is the costly decision, so re-check those
+  // tickets with a verifier that must quote the plan before the script stops on them.
+  await verifyPlanned(state.candidates.filter((c) => needsPlan(c) && planned.has(c.id)));
   const stuckUnplanned = state.candidates.filter(
     (c) => needsPlan(c) && planned.has(c.id),
   );
