@@ -97,7 +97,6 @@ in
     casks = [
       "1password"
       "1password-cli"
-      "charles"
       "claude"
       "contexts"
       "cyberduck"
