@@ -8,17 +8,19 @@
       "*.env.example": "allow"
     },
     "bash": {
+      "*": "allow",
       "rm -rf *": "deny",
       "sudo *": "ask"
     },
     "external_directory": {
       "*": "ask",
+      "/nix/*": "allow",
+      "/nix/store/*": "allow",
+      "/private/tmp/*": "allow",
       "/tmp/*": "allow",
-      "~/.pi/*": "allow",
       "~/.cache/*": "allow",
       "~/.cargo/*": "allow",
-      "/nix/store/*": "allow",
-      "/nix/*": "allow"
+      "~/.pi/*": "allow"
     }
   }
 }

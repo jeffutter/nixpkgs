@@ -12,6 +12,7 @@ in
   homebrew.casks = [
     "balenaetcher"
     "beekeeper-studio"
+    "charles"
     "deskpad"
     "insta360-link-controller"
     "intellij-idea-ce"
