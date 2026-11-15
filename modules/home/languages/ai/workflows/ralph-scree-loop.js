@@ -296,11 +296,12 @@ const planned = new Set();
 // An empty sweep with nothing counted means the agent skipped the commands: retry. A finished or
 // empty backlog still shows done, ready, draft or active counts, so it is a valid sweep.
 async function sweepState() {
+  let lastSuspect = null;
   for (let attempt = 0; attempt < 3; attempt++) {
     const s = await agent(
       attempt === 0
         ? STATE_PROMPT
-        : `${STATE_PROMPT}\n\nYour previous answer was all zeros and empty without running the commands. You MUST actually run every command with the Bash tool and copy the real output.`,
+        : `${STATE_PROMPT}\n\nYour previous answer was wrong: it was all zeros, or it listed no candidates although ready tickets exist and none are blocked. You MUST actually run every command with the Bash tool and copy the real output, including every ticket \`scree next\` returns into "candidates".`,
       {
         schema: STATE_SCHEMA,
         model: attempt === 0 ? "haiku" : "sonnet",
@@ -316,10 +317,26 @@ async function sweepState() {
       s.draft === 0 &&
       s.done === 0 &&
       s.active.length === 0;
-    if (!allEmpty) return s;
-    log(`State sweep returned all zeros (attempt ${attempt + 1}); retrying.`);
+    if (allEmpty) {
+      log(`State sweep returned all zeros (attempt ${attempt + 1}); retrying.`);
+      continue;
+    }
+    // Ready tickets that are neither blocked, waiting on a human, nor claimed should be available,
+    // so an empty candidate list beside them means the agent dropped what `scree next` returned
+    // (seen once: it printed 9 available tickets, then reported none). A ready ticket queued behind
+    // a sibling can also leave this gap legitimately, so after the retries accept the last answer
+    // instead of failing; the worst case is a normal "drained" stop.
+    const unexplained = s.ready - s.blockedPending - s.humanPending - s.active.length;
+    if (s.candidates.length === 0 && unexplained > 0) {
+      lastSuspect = s;
+      log(
+        `State sweep reported ${s.ready} ready ticket(s) but no candidates (attempt ${attempt + 1}); retrying.`,
+      );
+      continue;
+    }
+    return s;
   }
-  return null;
+  return lastSuspect;
 }
 
 const VERIFY_SCHEMA = {
