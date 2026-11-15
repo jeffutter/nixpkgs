@@ -55,7 +55,7 @@ import type {
 const DEFAULT_CONCURRENCY = 3;
 const MAX_CONCURRENCY = 8;
 const DEFAULT_MAX_PER_TICKET = 8;
-const DEFAULT_REVIEW_EVERY = 1;
+const DEFAULT_REVIEW_EVERY = 3;
 /** How often the supervisor looks at every live worker. Each look is two cheap CLI calls
  * (`scree` reads a local database, `hc get` reads the core's table), so this is about
  * latency of slot refill, not load. */

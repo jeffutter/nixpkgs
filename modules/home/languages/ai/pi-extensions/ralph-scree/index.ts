@@ -58,7 +58,7 @@ import type {
 // --- Constants -------------------------------------------------------------
 
 const DEFAULT_MAX_EXECUTES = 10;
-const DEFAULT_REVIEW_EVERY = 1;
+const DEFAULT_REVIEW_EVERY = 3;
 /** How many available tickets one sweep reports. The loop skips ones it already handled this
  * run, so it needs more than one to find something actionable. */
 const CANDIDATES = 8;
@@ -149,6 +149,8 @@ type LoopState = {
   steps: number;
   executed: number;
   executedSinceReview: number;
+  /** Tickets awaiting review; excludes "Fix:" tickets, which are never reviewed. */
+  reviewIds?: string[];
   stopRequested: boolean;
   startedAt: string;
   /** This session's intercom id, captured once so workers can ping progress back here. */
@@ -790,7 +792,7 @@ function reviewPrompt(ticketIds: string[]): string {
 
 These tickets were recently implemented and committed in this checkout: ${ticketIds.join(", ")}.
 
-Review the work and create follow-up tickets for any real issues found:
+Review the work for defects that keep those tickets from doing what they were meant to do:
 
 1. Find the commits: \`git log --oneline -30\`. The ticket comments name their shipping commit;
    read them with \`scree show <id>\`.
@@ -799,18 +801,24 @@ Review the work and create follow-up tickets for any real issues found:
    \`code-review\` skill on the recent changes if it is available (medium effort is fine). Reading
    the diff alone is not a review: also run the project's build and tests, and say in your summary
    whether you ran them.
-3. For each genuine issue (correctness bugs, significant inefficiencies, clear design problems —
-   not nitpicks or style) create one ticket:
-     scree add "Fix: <brief description>" --description "<detail>" --plan "<ordered steps with file
-       paths>" --criterion "<something a test or command can check>" --blocked-by <ID of the reviewed
-       ticket the issue traces back to> --status ready
-   Review follow-ups are the one case where the loop queues its own tickets straight to ready rather
-   than draft: you hold the defect in your head, and the loop must be able to pick it up unattended.
-   Each one needs a criterion that includes a regression test, a concrete plan, and a sweep of
-   sibling code first — search for other call sites or earlier fixes with the same defect pattern,
-   and fix all of them in this one ticket instead of leaving a twin for the next review.
-   Only create tickets you would actually want implemented. Err toward fewer, higher-signal ones.
-4. Report in your final message: how many issues warranted tickets, the IDs you created (or
+3. A finding qualifies only if you can name how it breaks the reviewed ticket's goal or one of its
+   acceptance criteria, and you can show it (a failing test, a command, a concrete input and wrong
+   output). Hypothetical drift ("a new status could break X", "no test pins this", "this could
+   diverge later"), style, and issues outside the reviewed tickets' goal do not qualify.
+4. For a qualifying finding, create one ticket, as a draft so a human decides whether it is worth
+   doing:
+     scree add "Fix: <brief description>" --description "<detail, including which criterion or goal
+       of the reviewed ticket it breaks and the evidence>" --plan "<ordered steps with file paths>"
+       --criterion "<something a test or command can check, including a regression test>"
+       --blocked-by <ID of the reviewed ticket the issue traces back to> --status draft
+   Create at most 2 tickets per review. If more qualify, keep the two most severe and mention the
+   rest in your summary.
+   The plan fixes the defect where it is. You may also fix the same defect pattern in code the
+   reviewed commits touched. Do not search the rest of the repo for siblings and do not widen the
+   scope beyond the reviewed commits.
+5. Anything that does not qualify but is worth knowing goes in one comment on the reviewed ticket
+   (\`scree comment add <id> ...\`), not in a new ticket.
+6. Report in your final message: how many issues warranted tickets, the IDs you created (or
    "none"), and one sentence on the outcome.`;
 }
 
@@ -957,7 +965,11 @@ async function doExecute(
   if (after.status === "done") {
     ok = true;
     state.executed += 1;
-    state.executedSinceReview += 1;
+    // A review's own "Fix:" follow-up is not reviewed again: that is how fix chains grow.
+    if (!after.title.startsWith("Fix:")) {
+      state.executedSinceReview += 1;
+      (state.reviewIds ??= []).push(ticketId);
+    }
   } else if (after.for === "human") {
     // The skill's documented exit for "only HUMAN: criteria remain": real progress, no more
     // agent work here. Not an execute for review purposes.
@@ -1043,7 +1055,10 @@ async function doReview(
   const known = new Set<string>((before?.tickets ?? []).map((t: any) => t?.id).filter(Boolean));
   const created = (after?.tickets ?? []).map((t: any) => t?.id).filter((id: any) => typeof id === "string" && !known.has(id));
 
-  if (result.ok) state.executedSinceReview = 0;
+  if (result.ok) {
+    state.executedSinceReview = 0;
+    state.reviewIds = [];
+  }
   await recordHistory(cwd, state, {
     kind: "review",
     ticket: ticketIds.join(","),
@@ -1107,15 +1122,6 @@ async function postStatusMessage(text: string): Promise<void> {
   }
 }
 
-/** The tickets this run actually shipped code for, oldest first: successful executes only,
- * and not the ones skipped because they were already closed. Feeds review, which must name
- * what it is looking at. */
-function recentExecutedIds(state: LoopState): string[] {
-  return state.history
-    .filter((h) => h.kind === "execute" && h.outcome === "ok" && h.ticket && !h.summary.startsWith("already"))
-    .map((h) => h.ticket as string);
-}
-
 async function runLoop(pi: ExtensionAPI, ctx: ExtensionCommandContext, cwd: string, state: LoopState): Promise<void> {
   try {
     // STEP_CAP is only a runaway guard: a ticket can cost a plan step and an execute step.
@@ -1134,7 +1140,7 @@ async function runLoop(pi: ExtensionAPI, ctx: ExtensionCommandContext, cwd: stri
         break;
       }
       if (state.executedSinceReview >= state.reviewEvery) {
-        const ids = recentExecutedIds(state).slice(-state.executedSinceReview);
+        const ids = (state.reviewIds ?? []).slice(-state.executedSinceReview);
         state.steps += 1;
         const ok = await doReview(pi, ctx, cwd, state, ids.length > 0 ? ids : ["(see git log)"]);
         await persist(cwd, state);
@@ -1183,7 +1189,7 @@ async function runLoop(pi: ExtensionAPI, ctx: ExtensionCommandContext, cwd: stri
     // Whatever executed since the last review gets one, even when the run ended on a cap, a stop
     // request or a failure: the last tickets of a run must not ship unreviewed.
     if (state.executedSinceReview > 0) {
-      const ids = recentExecutedIds(state).slice(-state.executedSinceReview);
+      const ids = (state.reviewIds ?? []).slice(-state.executedSinceReview);
       state.steps += 1;
       setCurrentStep(ctx, state, `final review of ${ids.join(", ")}`, WORKER_CEILING_MS);
       await doReview(pi, ctx, cwd, state, ids.length > 0 ? ids : ["(see git log)"]);

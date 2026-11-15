@@ -29,7 +29,7 @@ export const meta = {
     {
       title: "Review",
       detail:
-        "every reviewEvery executes (default 1): review recent work with fresh eyes and queue follow-up tickets for real issues",
+        "every reviewEvery executes (default 3): review recent work with fresh eyes and queue follow-up tickets for real issues",
     },
   ],
 };
@@ -59,8 +59,8 @@ const positiveInt = (v, fallback) => {
 // execute step. STEP_CAP is only a runaway guard on total steps.
 const MAX_EXECUTES = positiveInt(ARGS.maxIterations, 10);
 const STEP_CAP = MAX_EXECUTES * 3 + 4;
-// Default 1: every executed ticket gets its own review by a fresh agent that did not write it.
-const REVIEW_EVERY = positiveInt(ARGS.reviewEvery, 1);
+// Default 3: one fresh reviewer (who did not write the code) per batch of executed tickets, since a review session is slow.
+const REVIEW_EVERY = positiveInt(ARGS.reviewEvery, 3);
 
 // How many available tickets the sweep reports. The script skips ones already handled this run, so
 // it needs a few more than one.
@@ -261,7 +261,7 @@ function reviewPrompt(executedTicketIds) {
 
 The following tickets were recently implemented and committed: ${executedTicketIds.join(", ")}.
 
-Review the work and create follow-up tickets for any real issues found:
+Review the work for defects that keep those tickets from doing what they were meant to do. Run \`scree show\` on each listed ticket first: skip any whose title starts with "Fix:" (a review's own follow-up is never reviewed again; if all are skipped, report no tickets and stop).
 
 1. Find commits for this work:
      git log --oneline -20
@@ -269,19 +269,20 @@ Review the work and create follow-up tickets for any real issues found:
 
 2. You did not write this code and have no context on it beyond the diff. Form your own view from the code before you read the ticket comments, which only say what the author believed. Use the Skill tool to invoke "/code-review" on the recent changes (medium effort is fine). Reading the diff alone is not a review: also run the project's build and tests, and say in your summary whether you ran the skill and the checks.
 
-3. For each genuine issue (correctness bugs, significant inefficiencies, clear design problems; NOT nitpicks or style), create one ticket:
-     scree add "Fix: <brief description>" --description "<detail>" --plan "<plan>" --criterion "<criterion>" --blocked-by <ID of the reviewed ticket the issue traces back to> --status ready
+3. A finding qualifies only if you can name how it breaks the reviewed ticket's goal or one of its acceptance criteria, and you can show it (a failing test, a command, a concrete input and wrong output). Hypothetical drift ("a new status could break X", "no test pins this", "this could diverge later"), style, and issues outside the reviewed tickets' goal do not qualify.
 
-   Review follow-ups are the one case where the loop may queue its own tickets straight to ready: you hold the defect in your head, and the loop must be able to pick the ticket up unattended. The reviewed ticket is already done, so the follow-up is immediately available. The loop skips the planner for tickets that carry both a plan and a criterion.
+4. For a qualifying finding, create one ticket, as a draft so a human decides whether it is worth doing:
+     scree add "Fix: <brief description>" --description "<detail, including which criterion or goal of the reviewed ticket it breaks and the evidence>" --plan "<plan>" --criterion "<criterion>" --blocked-by <ID of the reviewed ticket the issue traces back to> --status draft
+
+   Create at most 2 tickets per review. If more qualify, keep the two most severe and mention the rest in your summary.
 
    Each ticket must carry:
    - at least one --criterion that a test or command can check (repeat for more), including a regression test for the defect;
-   - a --plan of concrete ordered steps with file paths and the intended fix;
-   - a sweep of sibling code: before you write the plan, search for other call sites, siblings, or earlier fixes with the same defect pattern (the same function fixed twice before is the warning sign), and make the plan fix all of them in this one ticket instead of leaving a twin for the next review.
+   - a --plan of concrete ordered steps with file paths and the intended fix. The plan may also fix the same defect pattern in code the reviewed commits touched. Do not search the rest of the repo for siblings and do not widen the scope beyond the reviewed commits.
 
-   Only create tickets you'd actually want implemented. Err on the side of fewer, higher-signal tickets.
+5. Anything that does not qualify but is worth knowing goes in one comment on the reviewed ticket (\`scree comment add <id> ...\`), not in a new ticket.
 
-4. Report via structured output:
+6. Report via structured output:
    - ticketsReviewed: the ticket IDs that were reviewed (${executedTicketIds.join(", ")})
    - issuesFound: number of issues that warranted new tickets
    - ticketsCreated: list of new ticket IDs created (empty array if none)
