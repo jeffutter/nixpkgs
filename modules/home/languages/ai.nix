@@ -1004,6 +1004,25 @@ in
     home.file.".claude/workflows/ralph-backlog-loop.js".source = ./ai/workflows/ralph-backlog-loop.js;
     home.file.".claude/workflows/ralph-scree-loop.js".source = ./ai/workflows/ralph-scree-loop.js;
 
+    # ralph-scree: the scree inner loop (`/ralph-scree`), the tracker-port of the backlog loop
+    # above. Deliberately its own copy of the worker/liveness machinery rather than shared code,
+    # so porting carried no risk to the running backlog loop; consolidate the two watchdogs if
+    # both stay in use (see the file header).
+    home.file.".pi/agent/extensions/ralph-scree/index.ts".source =
+      ./ai/pi-extensions/ralph-scree/index.ts;
+
+    # talus: the outer loop around ralph-scree (`/talus SCR-1 SCR-2 --concurrency 2`). For each
+    # ticket it makes a worktrunk worktree named after the ticket, moves the ticket and its
+    # subtasks there with `scree move`, opens a Herdr space whose terminal is a child of this
+    # session, and starts `pi` inside it running /ralph-scree. Merging back to main is not
+    # implemented on purpose -- watch a few runs before deciding what shipping looks like.
+    # A launched session inherits only the herdr-core environment, which has no LITELLM_KEY, so
+    # it sources ~/.config/talus/env.sh (mode 600) before exec'ing pi; keep the export there
+    # rather than in a command line, since argv lands on the worker's screen and in its log.
+    home.file.".pi/agent/extensions/talus/index.ts".source = ./ai/pi-extensions/talus/index.ts;
+    # How to run it, what each step does, and what is deliberately missing (merge-back).
+    home.file.".pi/agent/extensions/talus/README.md".source = ./ai/pi-extensions/talus/README.md;
+
     # clear-alias: aliases /clear to /new. Same "promoted to load globally"
     # situation as ralph above -- source lives at ./ai/pi-extensions/clear-alias.ts
     # and is edited in place in this repo going forward.
@@ -1213,6 +1232,7 @@ in
         "npm:pi-intercom"
         "npm:pi-lens"
         "npm:pi-simplify"
+        "npm:pi-tidy"
         "npm:pi-tool-display"
         "npm:pi-web-access"
       ];
@@ -1231,6 +1251,9 @@ in
         enabled = true;
         reserveTokens = 16384;
         keepRecentTokens = 15000;
+      };
+      terminal = {
+        showTerminalProgress = true;
       };
       theme = "dark";
     };
