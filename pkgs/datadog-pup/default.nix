@@ -8,7 +8,7 @@
 }:
 
 let
-  version = "2.4.2";
+  version = "2.4.7";
 
   # Datadog does not publish pup in nixpkgs, so we repackage the upstream
   # prebuilt release binaries. macOS builds are signed by Datadog (they
@@ -18,19 +18,19 @@ let
   sources = {
     "aarch64-darwin" = {
       url = "https://github.com/DataDog/pup/releases/download/v${version}/pup_${version}_Darwin_arm64.tar.gz";
-      hash = "sha256-7PCBAX/J7TDMVBXjCGQuO3/syrrehKMwDiKwErl/MLA=";
+      hash = "sha256-dUBE0OwEYdDYrGt2SmS5WoXyrQq15TorQNDu9yW7BMM=";
     };
     "x86_64-darwin" = {
       url = "https://github.com/DataDog/pup/releases/download/v${version}/pup_${version}_Darwin_x86_64.tar.gz";
-      hash = "sha256-OfPq+GqXGriIsM8tXIYIDj0zPoK6LAGpQ/XJKZOYo8g=";
+      hash = "sha256-eD90cF0WAOC6KCgFze9PJ4pN4e6LG2kZ/jGmt8hdJHM=";
     };
     "aarch64-linux" = {
       url = "https://github.com/DataDog/pup/releases/download/v${version}/pup_${version}_Linux_arm64.tar.gz";
-      hash = "sha256-0y6BTMyWXcWr70RcXEJHo0eeJozV0mIcuPLqe8BwjgA=";
+      hash = "sha256-DcQC+at9+bEhYOvEVMK0JQhGCJCMXyDaQFNbTEbwqII=";
     };
     "x86_64-linux" = {
       url = "https://github.com/DataDog/pup/releases/download/v${version}/pup_${version}_Linux_x86_64.tar.gz";
-      hash = "sha256-svCTwE8COYrE3QpdEni+3W9K0bgYQO0rGG2dJ4Lpl4I=";
+      hash = "sha256-1oX6bz7gensPX9lRij2HKplm0ZLCz46b0bjoD8MmhQQ=";
     };
   };
 in
