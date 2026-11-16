@@ -1403,11 +1403,11 @@
         "rust-overlay": "rust-overlay_7"
       },
       "locked": {
-        "lastModified": 1794854580,
-        "narHash": "sha256-7dgcpYte1XMRee8Lc6vVnyFD+v+QyzpGOWi9YLlYiH0=",
+        "lastModified": 1794857977,
+        "narHash": "sha256-k3GWedOa1Z7fhj5jU+4nGG2EcHAGrSU9LUgzyi0mSpc=",
         "owner": "jeffutter",
         "repo": "scree",
-        "rev": "a761dec0af284aa1bb3d7a6a6880b18ff582b4e1",
+        "rev": "92454e58d8d177f98c927c45151c854ba09bf167",
         "type": "github"
       },
       "original": {
