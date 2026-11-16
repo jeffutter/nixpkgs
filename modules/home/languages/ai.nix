@@ -1043,14 +1043,10 @@ in
     # going forward. Its state (command-history.json) is written to
     # ~/.pi/agent/, not anywhere under this store path, so this symlink being
     # read-only is fine.
-    home.file.".pi/agent/extensions/command-history/index.ts".source =
-      ./ai/pi-extensions/command-history/index.ts;
-    home.file.".pi/agent/extensions/command-history/history-manager.ts".source =
-      ./ai/pi-extensions/command-history/history-manager.ts;
-    home.file.".pi/agent/extensions/command-history/history-editor.ts".source =
-      ./ai/pi-extensions/command-history/history-editor.ts;
-    home.file.".pi/agent/extensions/command-history/README.md".source =
-      ./ai/pi-extensions/command-history/README.md;
+    # The whole directory is one store path so index.ts's relative imports
+    # (./history-manager, ./history-editor) resolve beside it. Per-file entries
+    # become separate store paths (hm_index.ts etc.) and the imports break.
+    home.file.".pi/agent/extensions/command-history".source = ./ai/pi-extensions/command-history;
 
     # pi-permission-system's global config (its permission rules) -- edited in
     # place at ./ai/pi-extensions/pi-permission-system/config.json going
