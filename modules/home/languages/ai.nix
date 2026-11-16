@@ -166,26 +166,6 @@ let
   herdr = inputs.herdr.packages.${pkgs.stdenv.hostPlatform.system}.default;
   herdr-core = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.herdr-core;
   herdr-app = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.herdr-app;
-  # The package ships only bin/herdr-app, so darwin.nix has no .app to link into ~/Applications.
-  herdrAppBundle = pkgs.runCommandLocal "herdr-app-bundle" { } ''
-    app="$out/Applications/Herdr.app/Contents"
-    mkdir -p "$app/MacOS"
-    ln -s ${herdr-app}/bin/herdr-app "$app/MacOS/herdr-app"
-    cat > "$app/Info.plist" <<EOF
-    <?xml version="1.0" encoding="UTF-8"?>
-    <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-    <plist version="1.0">
-    <dict>
-      <key>CFBundleName</key><string>Herdr</string>
-      <key>CFBundleIdentifier</key><string>dev.herdr.app</string>
-      <key>CFBundleExecutable</key><string>herdr-app</string>
-      <key>CFBundlePackageType</key><string>APPL</string>
-      <key>CFBundleVersion</key><string>${herdr-app.version}</string>
-      <key>NSHighResolutionCapable</key><true/>
-    </dict>
-    </plist>
-    EOF
-  '';
   herdrConfig = {
     onboarding = false;
     theme = {
@@ -888,7 +868,6 @@ in
           llm-jq = true;
         })
       ]
-      ++ lib.optional pkgs.stdenv.hostPlatform.isDarwin herdrAppBundle
       ++ lib.optional config.jeff.enableZvecGrep zvec-grep;
 
     # Model for every new zg index. The daemon (darwin.nix / linux.nix) reads
