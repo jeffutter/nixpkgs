@@ -1386,6 +1386,7 @@ in
               "/private/var/folders/*/*/T/**"
               "/var/folders/*/*/T/**"
               "~/.local/share/cairn/**"
+              "~/.local/share/scree/**"
               "~/obsidian/**"
             ];
           };
