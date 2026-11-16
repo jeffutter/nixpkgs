@@ -8,4 +8,16 @@ inputs: final: prev: {
         nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ prev.pkg-config ];
         buildInputs = (old.buildInputs or [ ]) ++ [ prev.zstd ];
       });
+
+  # rustaceanvim's luarocks check phase starts rust-analyzer and waits for it to index a
+  # workspace; that times out in the nix sandbox on macOS (9.2.2-2), which fails the whole
+  # system build. Same plugin, check phase off. Delete once the upstream check passes in the
+  # sandbox again.
+  vimPlugins = prev.vimPlugins.extend (
+    _: _: {
+      rustaceanvim = prev.neovimUtils.buildNeovimPlugin {
+        luaAttr = prev.neovim-unwrapped.lua.pkgs.rustaceanvim.overrideAttrs { doCheck = false; };
+      };
+    }
+  );
 }
