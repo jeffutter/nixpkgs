@@ -42,7 +42,8 @@ Write it yourself in the main session. The user's edits to the report are the in
 - Inline comment: the problem in one or two sentences, the fix in one sentence, and the background only when the contributor may not know it.
 - When a fix changes the design or is longer than one line, add a short code sketch in the repo's language. Read the code the sketch touches first, and use its real names. Say in the text that the sketch is untested.
 - Never mention the security gate, ownership concerns about the contributor, "Assumptions", or tiers by name. Turn a security finding into a plain request ("Please pin this action to a commit hash").
-- Review event: `REQUEST_CHANGES` when a must finding is picked, `COMMENT` otherwise, `APPROVE` only when the user asks. Use the event the user names when they name one.
+- Review event: `REQUEST_CHANGES` when a must finding is picked, `COMMENT` otherwise, `APPROVE` only when the user asks. Use the event the user names when they name one. When `WORK/meta.md` says `SELF` is yes, always use `COMMENT`: GitHub rejects an approval or a change request on your own PR.
+- Write a finding with Source reviewer file as your own preference ("I'd prefer..."), not as a project rule.
 
 Write the files, then build the payload:
 

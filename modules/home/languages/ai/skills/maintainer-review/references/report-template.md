@@ -6,7 +6,7 @@ Fill every `<...>`. Leave out a section marked "(if any)" when it has no content
 # Maintainer review: <PR title or branch>
 
 <URL or branch> by <author> - compared against `PARENT` (<reason>) - `BASE` <short hash> .. `HEAD` <short hash> - <date>
-Context file: <present | missing - see Assumptions>. Models: <model per agent>.
+Context file: <present | missing - see Assumptions>. Reviewer file: <present | none>. Models: <model per agent>.
 
 ## What this change does
 <3-6 sentences in plain words: what was true before, what is true after, and why the author wants it.>
@@ -23,9 +23,9 @@ To do this, the change:
 <When FAIL: each security must finding, one line each, with its F number. Say "Do not check out or run this branch" when a finding involves code that runs on checkout, install, build or CI.>
 
 ## Index
-| # | Tier | Finding | Resolved later |
-|---|---|---|---|
-| F1 | must | <title in plain words> | <#N or blank> |
+| # | Tier | Category | Finding | Resolved later |
+|---|---|---|---|---|
+| F1 | must | <dimension in plain words, "(your preference)" when Source is the reviewer file> | <title in plain words> | <#N or blank> |
 
 Tiers: must blocks the merge; should is fixed before merge unless we accept it; optional the contributor may skip.
 
@@ -49,7 +49,7 @@ Answering them is optional. Each one names the findings it would change.
 ## Must fix
 ### F1: <title in plain words>
 - Status: open
-- Raised by: <reviewer names, for example correctness, maintainability> - Dimension: <code> - Confidence: <high | medium | low> - Verified: <yes | not verified>
+- Raised by: <reviewer names, for example correctness, maintainability> - Source: <project | reviewer file> - Dimension: <code> - Confidence: <high | medium | low> - Verified: <yes | not verified>
 - Background: <...>
 - Evidence: `path:line` - "<quote>"
 - Anchor: `path:line` or none

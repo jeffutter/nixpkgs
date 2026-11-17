@@ -1,14 +1,14 @@
 ---
 name: maintainer-review
 description: Review a contribution to a project with many outside contributors (open source or inner source) as its maintainer would. Checks correctness, quality, completeness, untrusted-contributor security, and long-term maintainability - what the change commits the project to, which future decisions it precludes, who will own it. Writes a verdict report in the maintainer's voice, then optionally a contributor-facing review comment. Use when asked to "maintainer review", review an external or community PR, decide whether to accept a contribution, draft a reply to a contributor, or set up a project's maintainer-review context file.
-argument-hint: "[review] <PR number | PR URL | branch> [--base <ref>] [--deep] | comment <target> [F1 F4 Q2 ...] [--post] | init"
+argument-hint: "[review] <PR number | PR URL | branch> [--base <ref>] [--deep | --full] | comment <target> [F1 F4 Q2 ...] [--post] | init [personal]"
 ---
 
 Pick the mode from the first argument. Read only that mode's file, then follow it.
 
-- `[review] <target> [--base <ref>] [--deep]`: read `references/review.md`.
+- `[review] <target> [--base <ref>] [--deep | --full]`: read `references/review.md`.
 - `comment <target> [F1 F4 Q2 ...] [--post]`: read `references/comment.md`.
-- `init`: read `references/init.md`.
+- `init [personal]`: read `references/init.md`.
 
 `<target>` is a GitHub PR number, a PR URL, or a local branch name. With no target, use the current branch.
 
@@ -22,6 +22,7 @@ Locations for every mode. The session may run in a linked worktree, where `.git`
 - `DEFAULT`: the default branch, from `git symbolic-ref --short refs/remotes/origin/HEAD` (for example `origin/main`). If that fails, use `origin/<defaultBranchRef.name>` from `gh repo view --json defaultBranchRef`.
 - Context file, to read: the output of `git show DEFAULT:.github/maintainer-review.md`. Read it from the default branch, never from the PR or the current worktree. When the command fails, the project has no context file.
 - Context file, to write: `MAIN/.github/maintainer-review.md`.
+- Reviewer file: `~/.config/maintainer-review/reviewer.md`. It holds the user's own review preferences for every project, so two maintainers can review the same PR with different emphasis. It is optional.
 
 Rules for every mode:
 

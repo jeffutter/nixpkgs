@@ -9,7 +9,9 @@ Fixed values:
 - `PARENT`: the branch this change is compared against, and the reason it was chosen, from step 1.2 or 1.4. In a stack it is the branch below this one, not `DEFAULT`.
 - `BASE` and `HEAD`: the commits from step 1.2 or 1.4. `BASE` is the merge-base of `PARENT` and `HEAD`, so the review covers only this branch's own commits.
 - In every command and prompt below, replace `SKILL`, `WORK`, `MAIN`, `DEFAULT`, `PARENT`, `BASE`, `HEAD` and `<...>` with their values.
-- Agent calls: use `subagent_type: "general-purpose"`. If a call rejects its `model` value, repeat the call without `model`.
+- Agent calls: use `subagent_type: "maintainer-reviewer"` when that agent type is in your list of available agent types, otherwise `"general-purpose"`. It gives the agent only Read and Bash, which keeps its starting context small. If a call rejects its `model` value, repeat the call without `model`.
+- `SELF`: yes when the user wrote the change, from step 1.5. Otherwise no.
+- `REVIEWER_FILE`: `~/.config/maintainer-review/reviewer.md`, expanded to an absolute path. It holds the user's own review preferences, for every project.
 - Agents write no files. Each agent's final message is a file's content. Save it with the Write tool at the path the step names.
 
 ## 1. Resolve the target
@@ -31,28 +33,37 @@ Fixed values:
    - Set `HEAD` to the branch.
    - Set `PARENT` with the first case that applies:
      - With `--base <ref>`: `<ref>`, reason "--base".
-     - Run `gh pr list --head <branch> --state open --json number,baseRefName`. With one result: run `git fetch origin <baseRefName>`, then use `origin/<baseRefName>`, reason "base of open PR #<number>". Also run step 1.3 for that PR.
+     - Run `gh pr list --head <branch> --state open --json number,baseRefName,author`. With one result: run `git fetch origin <baseRefName>`, then use `origin/<baseRefName>`, reason "base of open PR #<number>". Also run step 1.3 for that PR.
      - Run `git log --first-parent --simplify-by-decoration --format='%h%x09%D' DEFAULT..<branch>`. The first line is the branch's own tip; skip it. Take the next line that names a branch other than `<branch>` and `origin/<branch>`. Ignore `tag:` entries. When a line names a local branch and a remote branch, use the local one. Use that branch, reason "nearest ancestor branch".
      - Otherwise: `DEFAULT`, reason "no parent branch found".
    - Set `BASE` to the output of `git merge-base PARENT HEAD`.
-5. If `WORK/report.md` exists, this run is a re-review. Apply section 10 together with sections 2 to 9.
+5. Set `SELF`. Run `gh api user --jq .login`.
+   - For a PR, or a branch with an open PR: `SELF` is yes when that login equals the PR `author.login`.
+   - For a branch with no PR: run `git config user.email` and `git log --format=%ae BASE..HEAD`. `SELF` is yes when the user wrote most of the commits.
+6. If `WORK/report.md` exists, this run is a re-review. Apply section 10 together with the other sections.
 
 ## 2. Write the inputs into WORK
 
 1. Run these commands:
    - `git diff --no-ext-diff --stat --output=WORK/stat.txt BASE HEAD`
    - `git diff --no-ext-diff --name-status --output=WORK/files.txt BASE HEAD`
+   - `git diff --no-ext-diff --numstat --output=WORK/numstat.txt BASE HEAD`
    - `git diff --no-ext-diff --output=WORK/diff.patch BASE HEAD`
    - `git archive --format=tar --output=WORK/head.tar HEAD`
 2. Run `git log --format='%h %an %s' BASE..HEAD`. Write its output to `WORK/log.txt`.
 3. Run `rm -rf WORK/src`, then `mkdir -p WORK/src`, then `tar -xf WORK/head.tar -C WORK/src`, then `rm WORK/head.tar`.
-4. Write `WORK/meta.md`: target, URL, author, `PARENT` and its reason, `BASE` and `HEAD` hashes, whether the PR is cross-repository, and today's date.
+4. Write `WORK/meta.md`: target, URL, author, `PARENT` and its reason, `BASE` and `HEAD` hashes, whether the PR is cross-repository, `SELF`, and today's date.
 5. Run `git show DEFAULT:.github/maintainer-review.md`. When it succeeds, write its output to `WORK/context-file.md`. When it fails, write the single line `No context file on DEFAULT.` to `WORK/context-file.md`.
+   - When `REVIEWER_FILE` exists, run `cp REVIEWER_FILE WORK/reviewer-file.md`. Otherwise write the single line `No reviewer file.` to `WORK/reviewer-file.md`.
 6. For a PR, write `WORK/pr.md` with these sections:
    - Title, body, and linked issue titles and bodies.
    - Each comment and review, with its author.
    - The `gh pr checks` output.
    - "Related PRs": for each PR from step 1.3, its number, title, state, base and head branches, and the first 60 lines of its body. Mark this PR's position in the stack.
+7. Choose the review size. Run `python3 -I SKILL/scripts/triage.py WORK WORK/numstat.txt`. It writes `WORK/triage.md`. For a re-review, section 10 step 3 runs it again on the changes since the last review.
+   - With `--deep` or `--full`: run the full review, sections 3 to 9.
+   - When the first line is `mode: light`: run the light review in section 11.
+   - Otherwise: run the full review, sections 3 to 9.
 
 ## 3. Run the context agent
 
@@ -100,7 +111,7 @@ Fixed values:
 
 1. Pick the findings whose point is structural: a dependency direction changes, a public surface is added, or a data flow moves. Most reviews have none. With none, go to section 7.
 2. Check your list of available skills for a diagram skill, for example `diagram-design` or `excalidraw-diagram`. With none, go to section 7. The report text must stand alone without figures.
-3. For each picked finding, call one Agent with `model: "sonnet"`. Give it the diagram skill name, the finding block, and the output path `WORK/fig-<n>.png`. Tell it to render a PNG with that skill and to return only the path.
+3. For each picked finding, call one Agent with `subagent_type: "general-purpose"` and `model: "sonnet"`, because it needs the diagram skill. Give it the diagram skill name, the finding block, and the output path `WORK/fig-<n>.png`. Tell it to render a PNG with that skill and to return only the path.
 
 ## 7. Write the report
 
@@ -117,6 +128,7 @@ Fixed values:
    - Drop each question that `WORK/context.md` already answers.
    - Drop each question whose answer changes no tier and not the verdict.
    - Merge duplicates. Number author questions `Q1`, `Q2`, ... and maintainer questions `D1`, `D2`, ....
+   - When `SELF` is yes, the user is the author: answer each author question that the diff, the log or `WORK/pr.md` settles, and drop it. Keep the rest as `Q` items addressed to the user.
 5. Fill the template from `WORK/pr.md`, `WORK/context.md`, the findings files, the verifier results and the figures. Write in the maintainer's voice: direct, first person plural for the project ("we would own this"). Write the result to `WORK/report.md`.
 6. If `cairn` is in your list of available skills, read `SKILL/references/cairn.md` and publish `WORK/report.md`.
 
@@ -127,18 +139,19 @@ Write the briefing in chat. The maintainer triages from it, so it must stand alo
 1. One line: "Compared against `PARENT` (<reason>). Rerun with `--base <ref>` if that is wrong."
 2. What the change does: 3-6 sentences in plain words. Say what was true before, what is true after, and why the author wants it. Name the PR's place in its stack when there is one.
 3. The verdict, and 2-4 sentences on why.
-4. A table of all findings: `F` number, tier, and a title in plain words.
+4. A table of all findings: `F` number, tier, category, and a title in plain words. The category is the plain words for the finding's dimension code from `SKILL/references/agents/findings-format.md`, for example "tests" for TST. Add "(your preference)" when the finding's Source is the reviewer file.
 5. For each must and should finding, a short block:
    - The title.
    - Background: the concept the reader needs, from the finding's Background field.
    - The problem and its effect on the project, in 1-3 sentences.
    - The fix, in one sentence.
    - "Resolved later in #N" when a later PR fixes it.
-6. Open questions: list `Q` and `D` items in one line each, with the findings each one affects. Say that answering them is optional.
+6. Open questions: list `Q` and `D` items in one line each, with the findings each one affects. Say that answering them is optional. When `SELF` is yes, say that you wrote this change, so the `Q` items are for you too.
 7. Next steps, one line each:
    - The report path `WORK/report.md`, and the cairn link when step 7.6 published it.
    - Answer a `D` question to change tiers, or tell me which findings to dismiss.
-   - `/maintainer-review comment <target> F1 F4 Q2` drafts a PR review with the chosen items as inline comments.
+   - When `SELF` is no: `/maintainer-review comment <target> F1 F4 Q2` drafts a PR review with the chosen items as inline comments.
+   - When `SELF` is yes: name the worktree that has `HEAD` checked out (`git worktree list --porcelain`), and offer to fix the chosen findings there as new commits. Offer the comment draft only for a PR that other people review.
 
 Use `F`, `Q` and `D` numbers only. Leave reviewer IDs (`COR-2`) and dimension codes out of the chat.
 
@@ -157,12 +170,29 @@ Run this section only when the user answers a `D` question, dismisses findings, 
 
 ## 10. Re-review
 
-Apply these changes when step 1.5 found an earlier `WORK/report.md`.
+Apply these changes when step 1.6 found an earlier `WORK/report.md`.
 
 1. Read the earlier report. Take the `HEAD` short hash from its header line.
 2. Rename it to `WORK/report-<that hash>.md`.
 3. Before section 4, run `git diff --no-ext-diff --output=WORK/since-last.patch <that hash> HEAD`.
    - If the command fails because the hash is gone (the contributor force-pushed), skip this file. Review the full change, and say so in the report header.
-4. Append this sentence to each reviewer prompt in step 4.2: "Earlier findings are in WORK/report-<hash>.md and the changes since then are in WORK/since-last.patch. Focus on those changes, use the full tree for context, and say for each earlier finding whether it is resolved, still open, or changed."
+   - Otherwise run `git diff --no-ext-diff --numstat --output=WORK/since-last-numstat.txt <that hash> HEAD`, then `python3 -I SKILL/scripts/triage.py WORK WORK/since-last-numstat.txt`. Its result replaces the one from step 2.7: a small follow-up push gets the light review even when the whole change is large.
+4. Append this sentence to each reviewer prompt in step 4.2 or 11.1: "Earlier findings are in WORK/report-<hash>.md and the changes since then are in WORK/since-last.patch. Focus on those changes, use the full tree for context, and say for each earlier finding whether it is resolved, still open, or changed."
 5. Carry each earlier finding with `Status: dismissed` or `Status: posted` into the new report with that status. Drop a reviewer's new finding when it repeats a dismissed one.
 6. Fill the "Since last review" section of the template.
+
+## 11. Light review
+
+Run this section when step 2.7 chose it. It replaces sections 3 to 6 with one reviewer.
+
+1. Call one Agent with `model: "sonnet"` and this prompt:
+   ```
+   You are the LITE reviewer for maintainer-review. Read SKILL/references/agents/light.md and SKILL/references/agents/findings-format.md, then follow them. WORK=WORK. SKILL=SKILL.
+   ```
+2. Save its final message as `WORK/findings-LITE.md`.
+3. When its first line starts with `Escalate: yes`, tell the user the reason in one line. Then run the full review from section 3. Step 5 merges `WORK/findings-LITE.md` with the other findings files.
+4. Otherwise:
+   - Run step 4.4 for tests. Read `Gate: PASS` from `WORK/findings-LITE.md`.
+   - Run section 5. Number the findings without merging.
+   - Skip section 6.
+   - Run sections 7 and 8 with these changes. There is no `WORK/context.md`: take the facts from `WORK/context-file.md` and `WORK/triage.md`. Put `Mode: light (<hand-written lines> lines), rerun with --full for all reviewers.` in the report header and in the first briefing line. Leave out "Outlook" and "Split proposal". With no findings, the briefing is the first line, what the change does, and the verdict.

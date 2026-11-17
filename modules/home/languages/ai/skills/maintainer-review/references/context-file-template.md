@@ -27,6 +27,9 @@ Template for `.github/maintainer-review.md`. Keep each section short. Every line
 generated:
   - <glob>
 max_changed_lines: <number, or delete this line for no limit>
+light_max_lines: <hand-written lines up to which one reviewer runs instead of five; default 80>
+always_full:
+  - <glob of paths that always get the full review, for example a public schema>
 
 ## Other docs to read
 - <path> - <what it covers>

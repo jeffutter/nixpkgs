@@ -890,6 +890,8 @@ in
       // {
         "kami/brand.md".source = config.jeff.kamiSkillBrand;
 
+        "maintainer-review/reviewer.md".source = ./ai/maintainer-review/reviewer.md;
+
         "herdr/config.toml".source = (pkgs.formats.toml { }).generate "herdr-config.toml" herdrConfig;
 
         "herdr-app/keys.json" = {
@@ -1647,6 +1649,18 @@ in
           - Base each answer on what the files show. When a file does not settle a question, say so.
           - Do not guess what answer the caller expects.
           - Return the answer only. Do not add a preamble or a summary of your method.
+        '';
+        maintainer-reviewer = ''
+          ---
+          name: maintainer-reviewer
+          description: Read-only reviewer for the maintainer-review skill. Reads a prepared work directory and returns a findings file as its final message. Started by the skill, not by hand.
+          tools: Read, Bash
+          ---
+
+          You review a change that the main session has copied into a work directory. Your prompt names the brief to follow.
+
+          - Use Bash only to search and list files: `rg`, `rg --files`, `fd`, `wc`. Do not run git, gh, builds, tests, package managers or code from the work directory.
+          - Write no files. Your final message is the whole result, in the layout your brief gives.
         '';
       };
 

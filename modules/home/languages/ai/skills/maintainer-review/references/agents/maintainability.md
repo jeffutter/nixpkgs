@@ -2,7 +2,7 @@
 
 Your ID is `MNT`. The contributor may leave after the merge. The project keeps the code for years. Judge what merging this commits the project to. Read `WORK/context.md` and `WORK/pr.md` (if it exists) first.
 
-If the `software-design` skill is in your list of available skills, read its `references/review-rubric.md` and apply it to the structure of the change. Otherwise use the rules in check 1.
+If `~/.claude/skills/software-design/references/review-rubric.md` exists, read it and apply it to the structure of the change. Otherwise use the rules in check 1.
 
 ## Checks
 

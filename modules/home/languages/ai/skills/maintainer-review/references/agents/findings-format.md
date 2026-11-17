@@ -4,13 +4,14 @@
 
 - `WORK/meta.md`: target, `BASE` and `HEAD` commits, PR or branch facts.
 - `WORK/pr.md`: PR title, body, author, linked issues, discussion, CI results, and "Related PRs" (the other PRs in the same stack). Missing for a local branch.
+- `WORK/reviewer-file.md`: the reviewing maintainer's own preferences and extra checks, the same for every project. Apply each item that fits your brief. Where it disagrees with `WORK/context-file.md` or `WORK/context.md`, the project wins.
 - `WORK/context.md`: project direction, non-goals, stable surfaces, conventions, generated files, concerns.
 - `WORK/files.txt`, `WORK/stat.txt`, `WORK/diff.patch`, `WORK/log.txt`: the change.
 - `WORK/src/`: the full tree at `HEAD`. Read it and search it with `rg`. Never build, install, test or run anything in it.
 
 Rules:
 
-- Review only hand-written files. `WORK/context.md` lists the generated files. Skip them unless your brief names a check for them.
+- Review only hand-written files. `WORK/context.md` lists the generated files (`WORK/triage.md` in a light review). Skip them unless your brief names a check for them.
 - Every finding needs evidence: `path:line` in `WORK/src/` (or a `diff.patch` hunk for removed code) and a quote of the lines.
 - Before you claim "unused", "only caller", "nothing else does this" or "a second way to do X", run `rg` across `WORK/src/` and cite what you found.
 - Drop a finding you cannot support with evidence. Put it under "Could not verify" with what would settle it.
@@ -30,6 +31,7 @@ Your final message is your findings file, in full, in this layout. Write no file
 ### <ID>-<n>: <one-line title in plain words>
 - Tier: must | should | optional
 - Dimension: <one of the dimension codes below>
+- Source: project | reviewer file. Use reviewer file when the finding rests only on an item in `WORK/reviewer-file.md`.
 - Confidence: high | medium | low
 - Background: <1-3 sentences: what the reader must know to follow the problem - what the code does here, what the rule or mechanism is, why it exists>
 - Evidence: `path:line` - "<quoted line>"
@@ -54,5 +56,7 @@ Tiers:
 - must: blocks the merge. Wrong behaviour, security risk, data loss, a public commitment the project does not want, a license problem, or missing tests for changed behaviour.
 - should: fix before merge unless the maintainer accepts it. Drift, duplication, a future change made harder, missing docs.
 - optional: a nit, an improvement the contributor may skip, or a problem a later PR in the stack fixes.
+
+A finding with Source reviewer file is should or optional, unless it is also a must for one of the reasons above.
 
 Dimension codes: SEC security, DEP dependencies and licensing, COR correctness, CMP completeness, TST tests, QUA quality and simplicity, RED readability, CON consistency with existing patterns, MNT maintainability and openness to change, API public surface and compatibility, OWN ownership, RSK long-term risk, FIT intent and scope fit, OPS operational cost and rollout, DOC docs and changelog, HYG PR hygiene, GEN generated code consistency.
