@@ -337,6 +337,22 @@
         "type": "github"
       }
     },
+    "egm": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1794966023,
+        "narHash": "sha256-3SLRCV1ssp8SBfszXIuYL1tke4H7Hh6iCwiUtHmyy60=",
+        "owner": "google",
+        "repo": "elephant-goldfish-model",
+        "rev": "70406c4d22cc7ea8299637c2c5b44625c48b3f08",
+        "type": "github"
+      },
+      "original": {
+        "owner": "google",
+        "repo": "elephant-goldfish-model",
+        "type": "github"
+      }
+    },
     "excalidraw-diagram-skill": {
       "flake": false,
       "locked": {
@@ -1221,6 +1237,7 @@
         "cairn": "cairn",
         "claude-tail": "claude-tail",
         "diagram-design-skill": "diagram-design-skill",
+        "egm": "egm",
         "excalidraw-diagram-skill": "excalidraw-diagram-skill",
         "expert": "expert",
         "fish-plugin-autopair": "fish-plugin-autopair",
