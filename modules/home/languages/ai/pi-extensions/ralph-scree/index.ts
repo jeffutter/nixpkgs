@@ -805,12 +805,11 @@ Review the work for defects that keep those tickets from doing what they were me
    acceptance criteria, and you can show it (a failing test, a command, a concrete input and wrong
    output). Hypothetical drift ("a new status could break X", "no test pins this", "this could
    diverge later"), style, and issues outside the reviewed tickets' goal do not qualify.
-4. For a qualifying finding, create one ticket, as a draft so a human decides whether it is worth
-   doing:
+4. For a qualifying finding, create one ticket, ready so this loop picks it up and fixes it next:
      scree add "Fix: <brief description>" --description "<detail, including which criterion or goal
        of the reviewed ticket it breaks and the evidence>" --plan "<ordered steps with file paths>"
        --criterion "<something a test or command can check, including a regression test>"
-       --blocked-by <ID of the reviewed ticket the issue traces back to> --status draft
+       --blocked-by <ID of the reviewed ticket the issue traces back to> --status ready
    Create at most 2 tickets per review. If more qualify, keep the two most severe and mention the
    rest in your summary.
    The plan fixes the defect where it is. You may also fix the same defect pattern in code the
@@ -1126,6 +1125,17 @@ async function runLoop(pi: ExtensionAPI, ctx: ExtensionCommandContext, cwd: stri
   try {
     // STEP_CAP is only a runaway guard: a ticket can cost a plan step and an execute step.
     const stepCap = state.maxExecutes * 3 + 4;
+    const runReview = async (): Promise<boolean> => {
+      const ids = (state.reviewIds ?? []).slice(-state.executedSinceReview);
+      state.steps += 1;
+      const ok = await doReview(pi, ctx, cwd, state, ids.length > 0 ? ids : ["(see git log)"]);
+      await persist(cwd, state);
+      if (trackFailure(state, "review", ok)) {
+        finish(ctx, state, "stopped", describeFailure(state, "review"));
+        return false;
+      }
+      return true;
+    };
     while (true) {
       if (state.stopRequested) {
         finish(ctx, state, "stopped", "stop requested");
@@ -1140,14 +1150,7 @@ async function runLoop(pi: ExtensionAPI, ctx: ExtensionCommandContext, cwd: stri
         break;
       }
       if (state.executedSinceReview >= state.reviewEvery) {
-        const ids = (state.reviewIds ?? []).slice(-state.executedSinceReview);
-        state.steps += 1;
-        const ok = await doReview(pi, ctx, cwd, state, ids.length > 0 ? ids : ["(see git log)"]);
-        await persist(cwd, state);
-        if (trackFailure(state, "review", ok)) {
-          finish(ctx, state, "stopped", describeFailure(state, "review"));
-          break;
-        }
+        if (!(await runReview())) break;
         continue;
       }
 
@@ -1168,6 +1171,12 @@ async function runLoop(pi: ExtensionAPI, ctx: ExtensionCommandContext, cwd: stri
 
       const action = pickAction(state, board.candidates);
       if (action.kind === "none") {
+        // Review before stopping: the review files its fixes as ready tickets, and the next sweep
+        // works them in this run. Once nothing is left to review, an empty board really is done.
+        if (state.executedSinceReview > 0) {
+          if (!(await runReview())) break;
+          continue;
+        }
         const bits = [`ready ${board.ready}`, `draft ${board.draft}`, `done ${board.done}`, `active ${board.active.length}`];
         if (board.humanPending > 0) bits.push(`${board.humanPending} waiting on a human`);
         if (board.blockedPending > 0) bits.push(`${board.blockedPending} blocked on a blocker`);
@@ -1187,7 +1196,8 @@ async function runLoop(pi: ExtensionAPI, ctx: ExtensionCommandContext, cwd: stri
     }
 
     // Whatever executed since the last review gets one, even when the run ended on a cap, a stop
-    // request or a failure: the last tickets of a run must not ship unreviewed.
+    // request or a failure: the last tickets of a run must not ship unreviewed. Fix tickets filed
+    // here stay ready for the next run.
     if (state.executedSinceReview > 0) {
       const ids = (state.reviewIds ?? []).slice(-state.executedSinceReview);
       state.steps += 1;
