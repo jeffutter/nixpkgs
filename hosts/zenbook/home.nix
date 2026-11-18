@@ -12,7 +12,19 @@
   ];
 
   home.packages = with pkgs; [
-    localsend
+    # nixpkgs localsend's binary needs libz.so.1 but nothing provides it
+    # (fails at launch with "cannot open shared object file"). Wrap it
+    # instead of overriding, so the Flutter build is not redone.
+    (symlinkJoin {
+      name = "localsend-${localsend.version}";
+      paths = [ localsend ];
+      nativeBuildInputs = [ makeWrapper ];
+      postBuild = ''
+        wrapProgram $out/bin/localsend_app \
+          --prefix LD_LIBRARY_PATH : ${lib.makeLibraryPath [ zlib ]}
+      '';
+      inherit (localsend) meta;
+    })
   ];
 
   # OLED energy savings: override background colors to pure black
