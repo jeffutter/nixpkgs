@@ -29,7 +29,7 @@ export const meta = {
     {
       title: "Review",
       detail:
-        "every reviewEvery executes (default 3): review recent work with fresh eyes and queue follow-up tickets for real issues",
+        "every reviewEvery executes (default 3) and before the loop stops on an empty queue: review recent work with fresh eyes and file ready \"Fix:\" tickets for real issues, which the loop then works (a Fix ticket is never reviewed again)",
     },
   ],
 };
@@ -271,8 +271,8 @@ Review the work for defects that keep those tickets from doing what they were me
 
 3. A finding qualifies only if you can name how it breaks the reviewed ticket's goal or one of its acceptance criteria, and you can show it (a failing test, a command, a concrete input and wrong output). Hypothetical drift ("a new status could break X", "no test pins this", "this could diverge later"), style, and issues outside the reviewed tickets' goal do not qualify.
 
-4. For a qualifying finding, create one ticket, as a draft so a human decides whether it is worth doing:
-     scree add "Fix: <brief description>" --description "<detail, including which criterion or goal of the reviewed ticket it breaks and the evidence>" --plan "<plan>" --criterion "<criterion>" --blocked-by <ID of the reviewed ticket the issue traces back to> --status draft
+4. For a qualifying finding, create one ticket, ready so this loop picks it up and fixes it next:
+     scree add "Fix: <brief description>" --description "<detail, including which criterion or goal of the reviewed ticket it breaks and the evidence>" --plan "<plan>" --criterion "<criterion>" --blocked-by <ID of the reviewed ticket the issue traces back to> --status ready
 
    Create at most 2 tickets per review. If more qualify, keep the two most severe and mention the rest in your summary.
 
@@ -453,6 +453,12 @@ for (; steps < STEP_CAP && executeCount < MAX_EXECUTES; steps++) {
     ) ?? null;
 
   if (!target) {
+    // Review before stopping: the review files its fixes as ready tickets, and the next sweep
+    // works them in this run. Once nothing is left to review, an empty sweep really is drained.
+    if (executedSinceReview.length > 0) {
+      await runReview("queue drained");
+      continue;
+    }
     stopReason = "drained";
     if (state.blockedPending > 0) {
       log(
@@ -583,6 +589,7 @@ for (; steps < STEP_CAP && executeCount < MAX_EXECUTES; steps++) {
 }
 
 // Review whatever executed since the last review, even when the run ended on a cap or an error.
+// Fix tickets filed here stay ready for the next run.
 await runReview("run ended");
 
 // Fresh counts for the end report. A drained run already has current lists in lastState.
