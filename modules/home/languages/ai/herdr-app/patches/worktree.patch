@@ -3,12 +3,12 @@
 @@ -4,7 +4,6 @@
  import { View, div } from "gpui-kit";
  import { v_flex, h_flex, InputState, Input, Scrollbar } from "gpui-base";
- import { run, props, closeOverlay, theme, spaces, panes, exec, home } from "herdr";
+ import { run, props, closeOverlay, theme, spaces, panes, exec, home, appHome, readTextFile } from "herdr";
 -
  // Where a space is now: its first terminal's live folder, else where it was made.
  function place(s, all = panes()) {
    if (!s) return null;
-@@ -142,7 +141,7 @@
+@@ -159,7 +158,7 @@
            this.dirty = (await git(repo.top, ["--no-optional-locks", "-c", "core.fsmonitor=false", "status", "--porcelain"], this.on)).out !== "";
            this.unpushed = (await submodules(repo.top, this.on)).unpushed;
          }
@@ -17,11 +17,11 @@
          this.repo = repo;
          cx.notify();
          // The list (and with it the filter input) only mounts once loading is
-@@ -184,11 +183,9 @@
+@@ -201,11 +200,9 @@
    async create() {
      const branch = this.text.trim();
      if (!branch) return "Type a branch name.";
--    const path = `${ROOT(this.userHome)}/${this.repo.name}/${slug(branch)}`;
+-    const path = `${this.root}/${this.repo.name}/${slug(branch)}`;
 -    const exists = (await git(this.repo.main, ["show-ref", "--verify", "--quiet", `refs/heads/${branch}`], this.on)).ok;
 -    const add = exists ? ["worktree", "add", path, branch] : ["worktree", "add", "-b", branch, path, "HEAD"];
 -    const r = await git(this.repo.top, add, this.on, 600_000);
@@ -32,7 +32,7 @@
      const p = props();
      // Leave spaces unnamed so they follow the checkout folder and nest under the repo.
      run("space.new", { folder: path, machine: this.on ?? "", tab: p.tab, argv: p.argv });
-@@ -223,8 +220,7 @@
+@@ -240,8 +237,7 @@
      // Terminals first: a shell sitting in the folder keeps it busy on Windows.
      run("space.close", { id: s.id, confirmed: true });
      const force = this.dirty || mods.length > 0;
