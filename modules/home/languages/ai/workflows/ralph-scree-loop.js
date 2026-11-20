@@ -1,7 +1,8 @@
 // The Claude Workflow version of the same inner loop. Under pi, use the `/ralph-scree` command
 // instead (pi-extensions/ralph-scree/index.ts): one process, resumable state, a liveness
 // watchdog, and `/talus` to run it in several worktrees at once. This copy stays for sessions
-// driven by Claude Code, which has no access to those commands.
+// driven by Claude Code, which has no access to those commands; talus-loop.js is the Claude
+// counterpart of `/talus` and starts one session per worktree running this workflow.
 export const meta = {
   name: "ralph-scree-loop",
   description:

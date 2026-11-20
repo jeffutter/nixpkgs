@@ -7,6 +7,11 @@ Two commands work together:
 | `/ralph-scree [max] [reviewEvery]` | `../ralph-scree/index.ts` | inner loop: churns the scree tickets that live in **one** checkout — plan, execute, review — with headless `pi` workers and a liveness watchdog. |
 | `/talus SCR-1 SCR-2 ... [--concurrency N]` | this directory | outer loop: fans a list of tickets out across git worktrees, one supervised session each running `/ralph-scree`. |
 
+Under Claude Code, the same fan-out is the `talus-loop` workflow
+(`../../workflows/talus-loop.js`, commands in `../../workflows/talus/talus-claude.sh`): it starts
+`claude` running the `ralph-scree-loop` workflow in each worktree instead of `pi` running
+`/ralph-scree`.
+
 Run talus from the **root checkout** of a repo (`/talus` refuses elsewhere, because it has to
 hand work to other sessions). It needs `wt`, `scree`, `hc` and `herdr-app` on PATH.
 

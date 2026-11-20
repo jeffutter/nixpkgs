@@ -589,6 +589,23 @@ let
     ];
     text = builtins.readFile ./ai/statusline.sh;
   };
+  # The command half of the talus-loop and talus-merge Claude workflows: preflight, launch, wait
+  # and friends (merge-info, cleanup for talus-merge), each printing
+  # one JSON line for a workflow agent to copy back. wt, scree, hc, herdr-app and claude come from
+  # the user's PATH (preflight checks them), not from here.
+  talusClaude = pkgs.writeShellApplication {
+    name = "talus-claude";
+    runtimeInputs = [
+      pkgs.jq
+      pkgs.git
+      pkgs.coreutils
+      pkgs.gnused
+      pkgs.gnugrep
+    ];
+    # Its jq programs are single-quoted on purpose.
+    excludeShellChecks = [ "SC2016" ];
+    text = builtins.readFile ./ai/workflows/talus/talus-claude.sh;
+  };
   # Per-session spoken replies: `/talk` toggles it, a UserPromptSubmit hook
   # adds listening rules, and a Stop hook reads the reply aloud.
   voiceMode = pkgs.writeShellApplication {
@@ -853,6 +870,7 @@ in
         agent-browser
         backlog-md
         backlogUnblocked
+        talusClaude
         cairn
         claude-agent-acp
         claude-tail
@@ -984,6 +1002,12 @@ in
 
     home.file.".claude/workflows/ralph-backlog-loop.js".source = ./ai/workflows/ralph-backlog-loop.js;
     home.file.".claude/workflows/ralph-scree-loop.js".source = ./ai/workflows/ralph-scree-loop.js;
+    # talus-loop: the Claude Code port of the pi talus extension below. One `claude` session per
+    # ticket worktree, each running ralph-scree-loop; commands live in talusClaude.
+    home.file.".claude/workflows/talus-loop.js".source = ./ai/workflows/talus-loop.js;
+    # talus-merge: the second half, run only after the user agrees: merge each finished branch
+    # into the root checkout one at a time, closing its Herdr space and worktree before the next.
+    home.file.".claude/workflows/talus-merge.js".source = ./ai/workflows/talus-merge.js;
 
     # ralph-scree: the scree inner loop (`/ralph-scree`), the tracker-port of the backlog loop
     # above. Deliberately its own copy of the worker/liveness machinery rather than shared code,
