@@ -21,6 +21,7 @@
 
       [*]
       BasedOnStyles = proselint, write-good, alex
+      proselint.CurlyQuotes = NO
     '';
   };
 
