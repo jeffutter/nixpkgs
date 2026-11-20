@@ -212,11 +212,11 @@
         "rust-overlay": "rust-overlay"
       },
       "locked": {
-        "lastModified": 1794972611,
-        "narHash": "sha256-+LTaNv3WCVmvxP2VQv6YP8ZHOkHhyXoW2tsJ8Ir0D+0=",
+        "lastModified": 1795010898,
+        "narHash": "sha256-8ZLbMsVwhRePus41peS5rfl9Zb9mNEk2OfmpZ/rAc9I=",
         "owner": "jeffutter",
         "repo": "cairn",
-        "rev": "1dd6afe380a55173c83357a1b2e940f47490b457",
+        "rev": "2ac59e2a109a326ceea33ed51f01609b81df6095",
         "type": "github"
       },
       "original": {
@@ -334,6 +334,22 @@
       "original": {
         "owner": "cathrynlavery",
         "repo": "diagram-design",
+        "type": "github"
+      }
+    },
+    "egm": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1794966023,
+        "narHash": "sha256-3SLRCV1ssp8SBfszXIuYL1tke4H7Hh6iCwiUtHmyy60=",
+        "owner": "google",
+        "repo": "elephant-goldfish-model",
+        "rev": "70406c4d22cc7ea8299637c2c5b44625c48b3f08",
+        "type": "github"
+      },
+      "original": {
+        "owner": "google",
+        "repo": "elephant-goldfish-model",
         "type": "github"
       }
     },
@@ -1221,6 +1237,7 @@
         "cairn": "cairn",
         "claude-tail": "claude-tail",
         "diagram-design-skill": "diagram-design-skill",
+        "egm": "egm",
         "excalidraw-diagram-skill": "excalidraw-diagram-skill",
         "expert": "expert",
         "fish-plugin-autopair": "fish-plugin-autopair",
@@ -1403,11 +1420,11 @@
         "rust-overlay": "rust-overlay_7"
       },
       "locked": {
-        "lastModified": 1794972668,
-        "narHash": "sha256-e1eXePYuX8fhZwUkb3D28cmn9Bs2mn7XQ5bAyowzIho=",
+        "lastModified": 1795013606,
+        "narHash": "sha256-NeTQUrO4yMb0A1Z+DdqCA1lGh9lyLttjVm75b22pQ8U=",
         "owner": "jeffutter",
         "repo": "scree",
-        "rev": "7331585e6913762269d6cb90cdc0245dd4383ef2",
+        "rev": "493be648012f986631118d9d3bda058d2987060e",
         "type": "github"
       },
       "original": {

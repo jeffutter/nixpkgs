@@ -156,6 +156,15 @@ let
     marker: ''bash "${worktrunkHookScript}" config state marker set ${marker} || true'';
   worktrunkClearCommand = ''bash "${worktrunkHookScript}" config state marker clear || true'';
 
+  # EGM's skills and agents name their resources through ${CLAUDE_PLUGIN_ROOT}, which only
+  # a plugin install fills in. Bake the store path in so they work as plain skills and agents.
+  egmRoot = pkgs.runCommand "egm-root" { } ''
+    cp -r ${inputs.egm} $out
+    chmod -R u+w $out
+    find $out/skills $out/.claude-plugin/agents $out/docs -name '*.md' \
+      -exec sed -i 's|\''${CLAUDE_PLUGIN_ROOT}|'"$out"'|g' {} +
+  '';
+
   claude-tail = inputs.claude-tail.packages.${pkgs.stdenv.hostPlatform.system}.default;
   cairn = inputs.cairn.packages.${pkgs.stdenv.hostPlatform.system}.default;
   cairn-skill = inputs.cairn.packages.${pkgs.stdenv.hostPlatform.system}.skill;
@@ -1659,6 +1668,16 @@ in
       );
 
       agents = {
+        egm-bootstrap-orchestrator = "${egmRoot}/.claude-plugin/agents/bootstrap_orchestrator.md";
+        egm-codebase-details = "${egmRoot}/.claude-plugin/agents/codebase_details.md";
+        egm-comprehension = "${egmRoot}/.claude-plugin/agents/comprehension.md";
+        egm-design = "${egmRoot}/.claude-plugin/agents/design_critic.md";
+        egm-implementation-readiness = "${egmRoot}/.claude-plugin/agents/implementation_readiness.md";
+        egm-inventive-catalyst = "${egmRoot}/.claude-plugin/agents/inventive_catalyst.md";
+        egm-structural = "${egmRoot}/.claude-plugin/agents/structural.md";
+        egm-style = "${egmRoot}/.claude-plugin/agents/style.md";
+        egm-synthesizer = "${egmRoot}/.claude-plugin/agents/synthesizer.md";
+        egm-zoom-out = "${egmRoot}/.claude-plugin/agents/zoom_out.md";
         blind-reader = ''
           ---
           name: blind-reader
@@ -1767,6 +1786,14 @@ in
         character-lora-training = ./ai/skills/character-lora-training;
         diagram-design = "${diagram-design-skill}/skills/diagram-design";
         diff-explanation-core = ./ai/skills/diff-explanation-core;
+        egm-bootstrap = "${egmRoot}/skills/egm-bootstrap";
+        egm-brainstorm = "${egmRoot}/skills/egm-brainstorm";
+        egm-draft = "${egmRoot}/skills/egm-draft";
+        egm-drift-report = "${egmRoot}/skills/egm-drift-report";
+        egm-lite = "${egmRoot}/skills/egm-lite";
+        egm-resolve = "${egmRoot}/skills/egm-resolve";
+        egm-review = "${egmRoot}/skills/egm-review";
+        egm-review-loop = "${egmRoot}/skills/egm-review-loop";
         elixir = ./ai/skills/elixir;
         excalidraw-diagram = "${excalidraw-diagram-skill-wrapped}";
         explain-diff-html = ./ai/skills/explain-diff-html;
