@@ -399,7 +399,8 @@ let
   # main.js (herdr-app rejects a sibling import that is a symlink into the store), so a patch is
   # only a few call sites. my-worktree runs worktrunk instead of git (worktrunk.js); my-agents
   # draws each agent's space avatar (space-mark.js); my-menu, my-new-menu, my-spaces and my-tabs
-  # only open the my-* mods; my-workspace-status shows the branch's GitHub PR (pr-status.js).
+  # only open the my-* mods; my-workspace-status shows the branch's GitHub PR (pr-status.js);
+  # my-spaces also shows each space's PR state after ahead/behind (pr-badges.js).
   # `herdr-app check` then fails the build on a name the appended code needs from main.js's
   # imports and no longer finds.
   herdrAppCloneFileNames = {
