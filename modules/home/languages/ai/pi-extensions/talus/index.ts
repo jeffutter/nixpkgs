@@ -500,20 +500,40 @@ async function tick(pi: ExtensionAPI, ctx: ExtensionCommandContext, state: Talus
 
   const live = state.workers.filter((w) => !isSettled(w.status)).length;
   if (live === 0 && state.queue.length === 0) {
-    finish(ctx, state, state.stopRequested ? "stopped" : "done");
+    void finish(pi, ctx, state, state.stopRequested ? "stopped" : "done");
     return;
   }
   renderWidget(ctx, state);
 }
 
-function finish(ctx: ExtensionCommandContext, state: TalusState, reason: "done" | "stopped"): void {
+/** "N tickets waiting on M decisions: ..." from `scree decisions --open` in the root checkout,
+ * or undefined when none are open or scree could not answer. Same wording as ralph-scree. */
+async function decisionsLine(pi: ExtensionAPI, cwd: string): Promise<string | undefined> {
+  try {
+    const r = await run(pi, cwd, "scree", ["decisions", "--open", "--json"]);
+    if (r.code !== 0) return undefined;
+    const rows: any[] = JSON.parse(r.stdout.trim())?.decisions ?? [];
+    if (!Array.isArray(rows) || rows.length === 0) return undefined;
+    const tickets = new Set<string>();
+    for (const row of rows) for (const t of Array.isArray(row?.tickets) ? row.tickets : []) tickets.add(String(t));
+    const plural = (n: number, w: string) => `${n} ${w}${n === 1 ? "" : "s"}`;
+    const top = rows.slice(0, 3).map((row) => `${row.id} ${row.question}`).join("; ");
+    return `${plural(tickets.size, "ticket")} waiting on ${plural(rows.length, "decision")}: ${top}. A human answers with \`scree decision answer\`.`;
+  } catch {
+    return undefined;
+  }
+}
+
+async function finish(pi: ExtensionAPI, ctx: ExtensionCommandContext, state: TalusState, reason: "done" | "stopped"): Promise<void> {
   state.running = false;
   stopTicker();
   renderWidget(ctx, state);
+  const waiting = await decisionsLine(pi, state.root);
   const lines = [`talus ${reason}: ${state.finished.length} ticket(s) handled`];
   for (const f of state.finished) {
     lines.push(`  ${f.ticketId} — ${f.outcome}${f.note ? `: ${f.note}` : ""}`);
   }
+  if (waiting) lines.push("", waiting);
   lines.push("");
   lines.push("Worktrees left in place (nothing merged back yet):");
   for (const w of state.workers) lines.push(`  ${w.ticketId}  branch ${w.branch}  ${w.path}`);
@@ -527,7 +547,7 @@ function startTicker(pi: ExtensionAPI, ctx: ExtensionCommandContext, state: Talu
   ticker = setInterval(() => {
     void tick(pi, ctx, state).catch((err: unknown) => {
       state.lastError = err instanceof Error ? err.message : String(err);
-      finish(ctx, state, "stopped");
+      void finish(pi, ctx, state, "stopped");
     });
   }, TICK_MS);
   ticker.unref?.();
@@ -718,7 +738,7 @@ export default function (pi: ExtensionAPI) {
       }
       renderWidget(ctx, state);
       if (state.workers.length === 0 && state.finished.length > 0) {
-        finish(ctx, state, "stopped");
+        void finish(pi, ctx, state, "stopped");
       }
     },
   });

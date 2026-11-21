@@ -305,6 +305,20 @@ async function screeJson(
   }
 }
 
+/** "N tickets waiting on M decisions: D-1 question; ..." from `scree decisions --open`, or
+ * undefined when none are open or scree could not answer (an older scree has no such command).
+ * Keep the wording in step with decisionsSummary in workflows/ralph-scree-loop.js. */
+async function decisionsLine(pi: ExtensionAPI, cwd: string): Promise<string | undefined> {
+  const r = await screeJson(pi, cwd, ["decisions", "--open"]);
+  const rows: any[] = Array.isArray(r?.decisions) ? r.decisions : [];
+  if (rows.length === 0) return undefined;
+  const tickets = new Set<string>();
+  for (const row of rows) for (const t of asStringArray(row?.tickets)) tickets.add(t);
+  const plural = (n: number, w: string) => `${n} ${w}${n === 1 ? "" : "s"}`;
+  const top = rows.slice(0, 3).map((row) => `${row.id} ${row.question}`).join("; ");
+  return `${plural(tickets.size, "ticket")} waiting on ${plural(rows.length, "decision")}: ${top}. A human answers with \`scree decision answer\`.`;
+}
+
 function asStringArray(value: unknown): string[] {
   return Array.isArray(value) ? value.filter((v): v is string => typeof v === "string") : [];
 }
@@ -1180,7 +1194,8 @@ async function runLoop(pi: ExtensionAPI, ctx: ExtensionCommandContext, cwd: stri
         const bits = [`ready ${board.ready}`, `draft ${board.draft}`, `done ${board.done}`, `active ${board.active.length}`];
         if (board.humanPending > 0) bits.push(`${board.humanPending} waiting on a human`);
         if (board.blockedPending > 0) bits.push(`${board.blockedPending} blocked on a blocker`);
-        finish(ctx, state, "done", `nothing actionable here (${bits.join(", ")})`);
+        const waiting = await decisionsLine(pi, cwd);
+        finish(ctx, state, "done", `nothing actionable here (${bits.join(", ")})${waiting ? `. ${waiting}` : ""}`);
         break;
       }
 
@@ -1355,6 +1370,8 @@ export default function (pi: ExtensionAPI) {
         lines.push(`  board: ${board.candidates.length} available, ready ${board.ready}, draft ${board.draft}, active ${board.active.length}, done ${board.done}`);
         if (board.humanPending > 0) lines.push(`  ${board.humanPending} ticket(s) waiting on a human`);
         if (board.blockedPending > 0) lines.push(`  ${board.blockedPending} ticket(s) blocked on a blocker`);
+        const waiting = await decisionsLine(pi, ctx.cwd);
+        if (waiting) lines.push(`  ${waiting}`);
       }
       ctx.ui.notify(lines.join("\n"), "info");
     },
