@@ -5,6 +5,14 @@
     "version": "0.1.11"
   },
   "type": "row",
+  "floating": [
+    {
+      "id": "attention-sound",
+      "content": { "mod": "attention-sound" },
+      "edge": "bottom",
+      "align": "end"
+    }
+  ],
   "children": [
     {
       "id": "sidebar",

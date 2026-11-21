@@ -367,6 +367,8 @@ let
       };
     }) herdrAppActions
     // {
+      "herdr-app/mods/attention-sound/main.js".source = ./ai/herdr-app/attention-sound.js;
+      "herdr-app/mods/attention-sound/mod.json".text = builtins.toJSON { place = "none"; };
       "herdr-app/mods/prefix/main.js".source = herdrAppPrefixMod ./ai/herdr-app/prefix.js;
       "herdr-app/mods/prefix/mod.json".text = builtins.toJSON {
         place = "none";
@@ -964,14 +966,15 @@ in
       done
     '';
 
-    # herdr-app rewrites settings.json (zoom, Settings screen), so merge only theme, font and ui_font into it.
+    # herdr-app rewrites settings.json (zoom, Settings screen), so merge only theme, font, ui_font
+    # and sounds.enabled into it. The attention-sound mod plays the sounds instead.
     home.activation.herdrAppSettings = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
       settings="${config.xdg.configHome}/herdr-app/settings.json"
       run mkdir -p "$(dirname "$settings")"
       [ -s "$settings" ] || run sh -c 'echo "{}" > "$1"' _ "$settings"
       tmp="$(mktemp)"
       ${pkgs.jq}/bin/jq --arg font ${lib.escapeShellArg config.stylix.fonts.monospace.name} \
-        '.theme = "stylix" | .font = $font | .ui_font = $font' "$settings" > "$tmp"
+        '.theme = "stylix" | .font = $font | .ui_font = $font | .sounds.enabled = false' "$settings" > "$tmp"
       # cp onto the existing file keeps its owner and mode; mv would leave mktemp's 0600.
       run cp "$tmp" "$settings"
       rm -f "$tmp"
