@@ -615,6 +615,40 @@ let remaining = null;
   }
 }
 
+// Open Decisions end-of-run summary. CLI only: `scree decisions --open` covers the whole Project.
+// Keep this block identical in talus-loop.js.
+const DECISIONS_SCHEMA = {
+  type: "object",
+  properties: {
+    decisionCount: { type: "integer" },
+    ticketCount: { type: "integer" },
+    top: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: { id: { type: "string" }, question: { type: "string" }, unblocks: { type: "integer" } },
+        required: ["id", "question", "unblocks"],
+      },
+    },
+  },
+  required: ["decisionCount", "ticketCount", "top"],
+};
+const DECISIONS_PROMPT = `${CONTEXT}
+
+Run \`scree decisions --open\` with the Bash tool. It prints {"decisions":[...]} ordered by "unblocks" descending. Report decisionCount = the length of "decisions"; ticketCount = the number of distinct ticket ids across every row's "tickets" array; top = the first 3 rows as id, question and unblocks, copied verbatim. If the command fails or prints no decisions, report decisionCount 0, ticketCount 0 and an empty top.`;
+
+async function decisionsSummary() {
+  const d = await agent(DECISIONS_PROMPT, { schema: DECISIONS_SCHEMA, model: "haiku", effort: "low", phase: "State" });
+  if (!d || d.decisionCount === 0) return null;
+  const plural = (n, w) => `${n} ${w}${n === 1 ? "" : "s"}`;
+  const questions = d.top.map((t) => `${t.id} ${t.question}`).join("; ");
+  const line = `${plural(d.ticketCount, "ticket")} waiting on ${plural(d.decisionCount, "decision")}: ${questions}. A human answers with \`scree decision answer\`.`;
+  log(line);
+  return { tickets: d.ticketCount, decisions: d.decisionCount, top: d.top, line };
+}
+
+const decisions = await decisionsSummary();
+
 // Compact on purpose: the whole return value is shown to the caller and long results are cut off.
 const table = [
   "| Ticket | Phase | Outcome | Summary |",
@@ -624,4 +658,12 @@ const table = [
     .map((r) => `| ${r.ticketId} | ${r.phase} | ${r.outcome} | ${r.summary} |`),
 ].join("\n");
 
-return { stopReason, executes: executeCount, steps, remaining, table };
+return {
+  stopReason,
+  executes: executeCount,
+  steps,
+  remaining,
+  decisions,
+  decisionsLine: decisions?.line ?? null,
+  table,
+};
