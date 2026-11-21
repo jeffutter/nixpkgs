@@ -90,15 +90,19 @@
 
     # Vale prose linting styles
     vale-proselint = {
-      url = "github:vale-cli/proselint/v0.3.4";
+      url = "github:vale-cli/proselint/v0.4.0";
       flake = false;
     };
     vale-write-good = {
-      url = "github:vale-cli/write-good/v0.4.1";
+      url = "github:vale-cli/write-good/v0.5.0";
       flake = false;
     };
     vale-alex = {
-      url = "github:vale-cli/alex/v0.2.3";
+      url = "github:vale-cli/alex/v0.3.0";
+      flake = false;
+    };
+    vale-ai-tells = {
+      url = "github:tbhb/vale-ai-tells/v1.37.0";
       flake = false;
     };
 

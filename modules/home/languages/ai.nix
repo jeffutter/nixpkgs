@@ -579,6 +579,15 @@ let
     ];
     text = builtins.readFile ./ai/hooks/zg-hint.sh;
   };
+  valeLintHook = pkgs.writeShellApplication {
+    name = "vale-lint-hook";
+    runtimeInputs = [
+      pkgs.jq
+      pkgs.vale
+      pkgs.coreutils
+    ];
+    text = builtins.readFile ./ai/hooks/vale-lint.sh;
+  };
   backlogUnblocked = pkgs.writeShellApplication {
     name = "backlog-unblocked";
     runtimeInputs = [
@@ -1551,7 +1560,18 @@ in
             }
           ]
           ++ (moshiClaudeHooks.PermissionRequest or [ ]);
-          PostToolUse = moshiClaudeHooks.PostToolUse or [ ];
+          PostToolUse = [
+            {
+              matcher = "Write|Edit|MultiEdit";
+              hooks = [
+                {
+                  type = "command";
+                  command = "${valeLintHook}/bin/vale-lint-hook";
+                }
+              ];
+            }
+          ]
+          ++ (moshiClaudeHooks.PostToolUse or [ ]);
           PostToolUseFailure =
             lib.optional config.jeff.enableZvecGrep {
               matcher = "Bash";

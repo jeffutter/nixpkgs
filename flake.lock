@@ -1261,6 +1261,7 @@
         "stylix": "stylix",
         "the-elements-of-style": "the-elements-of-style",
         "tinted-theming-schemes": "tinted-theming-schemes",
+        "vale-ai-tells": "vale-ai-tells",
         "vale-alex": "vale-alex",
         "vale-proselint": "vale-proselint",
         "vale-write-good": "vale-write-good",
@@ -1789,19 +1790,36 @@
         "type": "github"
       }
     },
+    "vale-ai-tells": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1789442525,
+        "narHash": "sha256-GwgAMjcxFqjuGqTc8OP5uvJb2jQiRhkIBxM+DQpauME=",
+        "owner": "tbhb",
+        "repo": "vale-ai-tells",
+        "rev": "dd60c5dc0d5432f71b0113fe2003fb06d069a71f",
+        "type": "github"
+      },
+      "original": {
+        "owner": "tbhb",
+        "ref": "v1.37.0",
+        "repo": "vale-ai-tells",
+        "type": "github"
+      }
+    },
     "vale-alex": {
       "flake": false,
       "locked": {
-        "lastModified": 1730374122,
-        "narHash": "sha256-p0CQg6ZLusSKr57SugwlnoDEoPNVY3UIM8rHHxOL2l0=",
+        "lastModified": 1795117725,
+        "narHash": "sha256-mCkk50GwmiI4mVClWWCSMj/e3IBKOBej5tUDi2UG6U8=",
         "owner": "vale-cli",
         "repo": "alex",
-        "rev": "907c9927473d1d66e7ddec9abd72d86e3d8103c5",
+        "rev": "8dc940131ad7f3aec4faef2b894dec5b08491875",
         "type": "github"
       },
       "original": {
         "owner": "vale-cli",
-        "ref": "v0.2.3",
+        "ref": "v0.3.0",
         "repo": "alex",
         "type": "github"
       }
@@ -1809,16 +1827,16 @@
     "vale-proselint": {
       "flake": false,
       "locked": {
-        "lastModified": 1717897170,
-        "narHash": "sha256-ryKJDX1JrvDWVKLC5qQGctweDf74yuwEXxl/IqumM4s=",
+        "lastModified": 1795119839,
+        "narHash": "sha256-3wndoHh7FqOjbLpji80lf91y8Na6ZKNf1JidxFMrJ+I=",
         "owner": "vale-cli",
         "repo": "proselint",
-        "rev": "f27b5e776bdeeb96adfc53eacfde425bb05e8c7e",
+        "rev": "fbe34620f5a27db2ab27c429d96c7d969db7ea42",
         "type": "github"
       },
       "original": {
         "owner": "vale-cli",
-        "ref": "v0.3.4",
+        "ref": "v0.4.0",
         "repo": "proselint",
         "type": "github"
       }
@@ -1826,16 +1844,16 @@
     "vale-write-good": {
       "flake": false,
       "locked": {
-        "lastModified": 1717968676,
-        "narHash": "sha256-W/eHlXklAVlAnY8nLPi/SIKsg8UUnH8UkH99BDo5yKk=",
+        "lastModified": 1795117726,
+        "narHash": "sha256-8Tz8F94ZrL8gGWkhWiUiWWNrPSmJghE6jBwguijskHk=",
         "owner": "vale-cli",
         "repo": "write-good",
-        "rev": "90c06e68dc5b6dddbc06c5961d94ba56a96b60d4",
+        "rev": "533ce6ec8117e6ca95d1ceb44110efd6ef7deac0",
         "type": "github"
       },
       "original": {
         "owner": "vale-cli",
-        "ref": "v0.4.1",
+        "ref": "v0.5.0",
         "repo": "write-good",
         "type": "github"
       }
