@@ -38,6 +38,9 @@ async function wtCheckouts(repo, on) {
 // Makes the branch's worktree (and the branch, if it is new). { path } or { error }.
 // A branch only on a remote is not new: plain `wt switch` checks it out tracking the remote.
 async function wtCreate(repo, branch, on) {
+  // `wt switch` on a checked-out branch returns the existing worktree, so refuse here.
+  const taken = (await wtCheckouts(repo, on)).find((c) => c.branch === branch);
+  if (taken) return { error: `Branch "${branch}" is already checked out at ${taken.path}.` };
   // Best effort: offline, the refs already fetched decide. No prompt: nothing can answer one.
   await wtRun("env", repo.main, ["GIT_TERMINAL_PROMPT=0", "git", "fetch", "--all", "--quiet"], on).catch(() => {});
   const refs = await wtRun("git", repo.main, ["for-each-ref", "--count=1", "--format=%(refname)", `refs/heads/${branch}`, `refs/remotes/*/${branch}`], on);
