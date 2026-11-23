@@ -7,7 +7,7 @@
 }:
 
 let
-  version = "0.3.0";
+  version = "0.3.1";
 
   # Upstream publishes the native binary as per-platform npm packages. Fetch
   # those tarballs directly instead of going through npm: each unpacks to
@@ -19,15 +19,15 @@ let
   sources = {
     "aarch64-darwin" = {
       url = npmUrl "darwin-arm64";
-      hash = "sha256-0/h4PfnP4eNfdGhMs9nlUIoaEweYbuzu1jteYtHUT4A=";
+      hash = "sha256-/p2bvUcySwz2AcVOJXUpKOfXOvhHtxloq2BTcTLYpHw=";
     };
     "x86_64-linux" = {
       url = npmUrl "linux-x64-gnu";
-      hash = "sha256-7P7n4EnUGrPyvLzbLKM+uVysLZLGujvrSFfaCqLCaqI=";
+      hash = "sha256-bNqxaSvSDh5Qd5f9ermCRNZ/DsofshVi7m5+zWJFVmU=";
     };
     "aarch64-linux" = {
       url = npmUrl "linux-arm64-gnu";
-      hash = "sha256-qtZco2Se5roBj3qgn6+MaefZDvjScP28ovJzRfSLdJQ=";
+      hash = "sha256-zngeqsOPSjP21i0UMtG2pjsdUQt2kxgc1YrKLtuyhHM=";
     };
   };
 

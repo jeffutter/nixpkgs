@@ -217,7 +217,7 @@
       claudeCodeOverlay =
         final: prev:
         let
-          claudeCodeVersion = "2.1.325";
+          claudeCodeVersion = "2.1.330";
           claudeCodeBaseUrl = "https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases";
           # Run `nix-prefetch-url <url>` for your platform to get the correct hash
           # URL format: ${claudeCodeBaseUrl}/${claudeCodeVersion}/<platform>/claude.zst
@@ -230,10 +230,10 @@
           # point at the `.zst` artifact or unzstd fails with "unsupported
           # format" on the raw binary.
           claudeCodeChecksums = {
-            "darwin-arm64" = "sha256-URffAbuBUM7QJNiUSpcGA04Mm/bijuUnuNdzU5espts=";
-            "darwin-x64" = "sha256-2SvhN3P4Shywo3jcsKpn3NLIJiZF8lv6DdexryGXLPI=";
-            "linux-arm64" = "sha256-ngMEv6aJCoutrSn0AGH5Cipv1wTZ1HtE78EKt0GEoO4=";
-            "linux-x64" = "sha256-ALG5d7zD8y62kSnwrDJ3qvsa7L+4fBfAr1OAaDLtQ2o=";
+            "darwin-arm64" = "sha256-yQnpdfARkxJr8o2k+maCXbTp0Q/VKyFxBv2zucf20kc=";
+            "darwin-x64" = "sha256-5Bzi4xg5sIwjKk5CvIKggPdK4PIDrPl8tdFE+VlUWsY=";
+            "linux-arm64" = "sha256-/TKlsVUmk8gB5vbLPcd+OcJDioc9AGAFWLrovcBrIL0=";
+            "linux-x64" = "sha256-1To/mquTyHu6CBPREBZ3Z3tFcQCCT1w2BP6pkVrFI3o=";
           };
           platformKey = "${final.stdenv.hostPlatform.parsed.kernel.name}-${
             if final.stdenv.hostPlatform.isAarch64 then "arm64" else "x64"

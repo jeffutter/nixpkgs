@@ -39,4 +39,9 @@
   # Stylix's rofi target still sets the renamed `programs.rofi.font`, which
   # warns on every eval. We don't use rofi, so turn the target off.
   stylix.targets.rofi.enable = false;
+
+  # Same for wayprompt: nixpkgs removed the package and home-manager turned
+  # `programs.wayprompt` into a removed-option assertion, but stylix's target
+  # still sets it.
+  stylix.targets.wayprompt.enable = false;
 }
