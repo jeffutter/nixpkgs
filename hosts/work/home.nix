@@ -15,6 +15,7 @@ let
     inputs.graphql-document-utils.packages.${pkgs.stdenv.hostPlatform.system}.default;
   meethook = inputs.meethook.packages.${pkgs.stdenv.hostPlatform.system}.default;
   pup = pkgs.callPackage ../../pkgs/datadog-pup { };
+  ldcli = pkgs.callPackage ../../pkgs/ldcli { };
   jira-axi = pkgs.callPackage ../../pkgs/jira-axi { };
   confluence-axi = pkgs.callPackage ../../pkgs/confluence-axi { };
   agent-slack = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.agent-slack;
@@ -61,6 +62,7 @@ in
     graphql-document-utils
     grpcurl
     jira-axi
+    ldcli
     llvmPackages.bintools
     meethook
     my_google-cloud-sdk

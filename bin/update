@@ -14,6 +14,7 @@ bin/update-thaw
 bin/update-claude-code
 bin/update-colgrep
 bin/update-datadog-pup
+bin/update-ldcli
 bin/update-moshi-hook
 bin/update-herdr
 bin/update-atlassian-axi
