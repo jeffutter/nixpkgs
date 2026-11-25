@@ -956,6 +956,16 @@ in
         };
       };
 
+    # Nix pins moshi-hook, so its self-updater can only fail against the
+    # read-only store. `set` edits one key of ~/.config/moshi/config.toml and
+    # leaves the rest, which the file stays writable for. Runs before the
+    # daemon restarts so the new process reads it.
+    home.activation.moshiHookAutoUpdate =
+      lib.hm.dag.entryBetween [ "reloadSystemd" "setupLaunchAgents" ] [ "writeBoundary" ]
+        ''
+          run ${moshi-hook}/bin/moshi-hook set auto-update off
+        '';
+
     # herdr-app does not draw an svg that is a symlink into the store; the built-in mods ship real files.
     home.activation.herdrAppModIcons = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
       for mod in cairn scree; do
@@ -1614,7 +1624,8 @@ in
                 }
               ];
             }
-          ];
+          ]
+          ++ (moshiClaudeHooks.Notification or [ ]);
           Stop = [
             {
               hooks = [
