@@ -51,7 +51,7 @@
     };
 
     meethook = {
-      url = "github:jeffutter/meethook/v0.5.1";
+      url = "github:jeffutter/meethook/v0.5.2";
     };
 
     herdr = {
