@@ -1435,6 +1435,7 @@ in
               "/var/folders/*/*/T/**"
               "~/.local/share/cairn/**"
               "~/.local/share/scree/**"
+              "~/Library/Mobile Documents/iCloud~md~obsidian/Documents/Jeffery Utter/**"
               "~/obsidian/**"
             ];
           };
@@ -1457,6 +1458,7 @@ in
           defaultMode = "auto";
           additionalDirectories = [
             "~/.herdr/worktrees"
+            "~/Library/Mobile Documents/iCloud~md~obsidian/Documents/Jeffery Utter/**"
             "~/obsidian"
           ];
           allow = [

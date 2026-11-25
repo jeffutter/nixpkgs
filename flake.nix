@@ -43,15 +43,15 @@
     };
 
     cairn = {
-      url = "github:jeffutter/cairn";
+      url = "github:jeffutter/cairn/v0.1.0";
     };
 
     scree = {
-      url = "github:jeffutter/scree";
+      url = "github:jeffutter/scree/v0.2.0";
     };
 
     meethook = {
-      url = "github:jeffutter/meethook/v0.4.0";
+      url = "github:jeffutter/meethook/v0.5.1";
     };
 
     herdr = {
