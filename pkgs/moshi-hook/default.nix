@@ -60,8 +60,8 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     runHook postInstall
   '';
 
-  # `moshi-hook install` renders the Claude Code hook JSON, the pi extension
-  # script, and the hermes-agent plugin from templates that embed its own
+  # `moshi-hook install` renders the Claude Code hook JSON, plugin and skill,
+  # the pi extension script, and the hermes-agent plugin from templates that embed its own
   # store path. Capture that output at build time (fully offline, runs
   # against the binary this derivation just produced) instead of
   # hand-transcribing generated code, so it stays byte-for-byte in sync with
@@ -81,6 +81,8 @@ stdenvNoCC.mkDerivation (finalAttrs: {
         mkdir -p $out
         cp "$HOME/.pi/agent/extensions/moshi-hooks.ts" $out/pi-extension.ts
         jq '.hooks' "$HOME/.claude/settings.json" > $out/claude-hooks.json
+        cp -r "$HOME/.claude/moshi-plugin" $out/claude-plugin
+        cp -r "$HOME/.claude/skills/moshi-visuals" $out/claude-skill
         mkdir -p $out/hermes-plugin
         cp "$HOME/.hermes/plugins/moshi-hooks/__init__.py" $out/hermes-plugin/__init__.py
         cp "$HOME/.hermes/plugins/moshi-hooks/plugin.yaml" $out/hermes-plugin/plugin.yaml

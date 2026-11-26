@@ -174,6 +174,8 @@ in
 
   jeff.enableApolloSkills = true;
 
+  jeff.enableMoshiPlugin = false;
+
   jeff.enableZvecGrep = true;
 
   jeff.claudeEffortLevel = "high";

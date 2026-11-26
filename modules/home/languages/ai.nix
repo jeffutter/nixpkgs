@@ -791,6 +791,8 @@ let
 in
 
 {
+  imports = [ ./claude-plugin-dirs.nix ];
+
   # kami reads its brand profile from ~/.config/kami/brand.md at runtime
   # (XDG, not baked into the skill package) -- see the xdg.configFile
   # deployment below.
@@ -805,6 +807,13 @@ in
   options.jeff.enableClaudeVoice = lib.mkOption {
     type = lib.types.bool;
     default = false;
+  };
+
+  # moshi-hook's Claude Code plugin. Off where managed policy rules plugins
+  # out; the moshi hooks and skill are installed either way.
+  options.jeff.enableMoshiPlugin = lib.mkOption {
+    type = lib.types.bool;
+    default = true;
   };
 
   # Apollo's server/federation skills are only relevant to Jeff's work
@@ -885,6 +894,12 @@ in
   };
 
   config = {
+    # Forwards the next-prompt suggestion to Moshi Chat View. `moshi-hook doctor`
+    # looks for it under this name.
+    jeff.claudePluginDirs = lib.optionalAttrs config.jeff.enableMoshiPlugin {
+      moshi-plugin = "${moshi-hook.passthru.agentConfigs}/claude-plugin";
+    };
+
     home.packages =
       with pkgs;
       [
@@ -1843,6 +1858,7 @@ in
         humanizer = "${humanizer}";
         hunk-review = "${pkgs.hunk}/skills/hunk-review";
         kami = "${kami}/skills/kami";
+        moshi-visuals = "${moshi-hook.passthru.agentConfigs}/claude-skill";
         pi-authoring = "${pi-authoring-skill}";
         maintainer-review = ./ai/skills/maintainer-review;
         pr-preflight = ./ai/skills/pr-preflight;
