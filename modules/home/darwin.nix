@@ -1,5 +1,6 @@
 {
   config,
+  inputs,
   lib,
   pkgs,
   ...
@@ -11,6 +12,11 @@ let
   osewa = pkgs.callPackage ../../pkgs/osewa { };
 in
 {
+  imports = [ inputs.cairn.homeManagerModules.default ];
+
+  # `cairn serve` as a launchd agent. ai.nix installs the matching CLI.
+  services.cairn.enable = true;
+
   home.packages = with pkgs; [
     aerospace
   ];

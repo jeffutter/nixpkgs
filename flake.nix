@@ -43,7 +43,7 @@
     };
 
     cairn = {
-      url = "github:jeffutter/cairn/v0.1.0";
+      url = "github:jeffutter/cairn/v0.2.0";
     };
 
     scree = {
