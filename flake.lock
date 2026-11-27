@@ -1515,16 +1515,16 @@
         "rust-overlay": "rust-overlay_8"
       },
       "locked": {
-        "lastModified": 1795485993,
-        "narHash": "sha256-vTj2kjywuwtawLPtkjXNJWm7G2YadK6lmycTK8lg5ik=",
+        "lastModified": 1795813552,
+        "narHash": "sha256-kukXjUTc/5xcUvyCMGrm9fk6/WQ0EXz1oPYWe95dVsI=",
         "owner": "jeffutter",
         "repo": "scree",
-        "rev": "7c5537758e5dd28e3e53a22ca1d48a0a96d47f4d",
+        "rev": "1646e1e0dfc1e77353bd98f7eb0151f178b776a5",
         "type": "github"
       },
       "original": {
         "owner": "jeffutter",
-        "ref": "v0.2.0",
+        "ref": "v0.3.0",
         "repo": "scree",
         "type": "github"
       }

@@ -47,7 +47,7 @@
     };
 
     scree = {
-      url = "github:jeffutter/scree/v0.2.0";
+      url = "github:jeffutter/scree/v0.3.0";
     };
 
     notectl = {

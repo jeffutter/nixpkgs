@@ -12,10 +12,15 @@ let
   osewa = pkgs.callPackage ../../pkgs/osewa { };
 in
 {
-  imports = [ inputs.cairn.homeManagerModules.default ];
+  imports = [
+    inputs.cairn.homeManagerModules.default
+    inputs.scree.homeManagerModules.default
+  ];
 
   # `cairn serve` as a launchd agent. ai.nix installs the matching CLI.
   services.cairn.enable = true;
+
+  services.scree-web.enable = true;
 
   home.packages = with pkgs; [
     aerospace
