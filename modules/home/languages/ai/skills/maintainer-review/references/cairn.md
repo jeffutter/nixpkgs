@@ -24,4 +24,4 @@ If any cairn command fails for another reason, stop publishing, say so in one li
 
 Read Comments only when the user asks. Never start `cairn comment list --wait`: it times out with an error after an hour.
 
-When you show the link, add: "It loads while `cairn serve` runs in a terminal. Comment there and tell me to read the comments."
+When you show the link, add: "It loads while `cairn serve` is running: a launchd agent on macOS, a terminal elsewhere. Comment there and tell me to read the comments."
