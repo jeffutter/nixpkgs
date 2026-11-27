@@ -50,6 +50,10 @@
       url = "github:jeffutter/scree/v0.2.0";
     };
 
+    notectl = {
+      url = "github:jeffutter/notectl/v0.15.0";
+    };
+
     meethook = {
       url = "github:jeffutter/meethook/v0.5.2";
     };

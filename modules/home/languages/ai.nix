@@ -172,6 +172,14 @@ let
   scree = inputs.scree.packages.${pkgs.stdenv.hostPlatform.system}.default;
   scree-skill = inputs.scree.packages.${pkgs.stdenv.hostPlatform.system}.skill;
   scree-herdr-mod = inputs.scree.packages.${pkgs.stdenv.hostPlatform.system}.herdr-mod;
+  # Only the HTTP client (notectl-remote) is installed, exposed as `notectl` and pointed at the
+  # homelab server. NOTECTL_SERVER can still be overridden in the environment or with --server.
+  notectl = pkgs.runCommand "notectl" { nativeBuildInputs = [ pkgs.makeWrapper ]; } ''
+    makeWrapper ${
+      inputs.notectl.packages.${pkgs.stdenv.hostPlatform.system}.notectl-remote
+    }/bin/notectl-remote $out/bin/notectl \
+      --set-default NOTECTL_SERVER http://notectl.home.jeffutter.com:5680
+  '';
   herdr = inputs.herdr.packages.${pkgs.stdenv.hostPlatform.system}.default;
   herdr-core = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.herdr-core;
   herdr-app = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.herdr-app;
@@ -911,6 +919,7 @@ in
         claude-agent-acp
         claude-tail
         scree
+        notectl
         herdr
         herdr-app
         herdr-core
