@@ -145,6 +145,22 @@
         "type": "github"
       }
     },
+    "builderio-skills": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1795706447,
+        "narHash": "sha256-9ACuwsdwAMJj9aUiWE+SarpAopyQJirf/bxw5raVb4k=",
+        "owner": "BuilderIO",
+        "repo": "skills",
+        "rev": "69fa115f5841d4b55a102b4fd746dbca5cbabc6b",
+        "type": "github"
+      },
+      "original": {
+        "owner": "BuilderIO",
+        "repo": "skills",
+        "type": "github"
+      }
+    },
     "bun2nix": {
       "inputs": {
         "flake-parts": "flake-parts",
@@ -366,6 +382,22 @@
       "original": {
         "owner": "google",
         "repo": "elephant-goldfish-model",
+        "type": "github"
+      }
+    },
+    "epic-infographics": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1787862355,
+        "narHash": "sha256-mK/Z4sFVWjrb0RdSTgcH3lJNLYFOZXLjL1+ehOvQnUc=",
+        "owner": "OrRon",
+        "repo": "EpicInfographics",
+        "rev": "bf97e589df21302aacb24d9c7631393e81b9a015",
+        "type": "github"
+      },
+      "original": {
+        "owner": "OrRon",
+        "repo": "EpicInfographics",
         "type": "github"
       }
     },
@@ -1306,10 +1338,12 @@
         "apollo_skills": "apollo_skills",
         "ast-grep-skill": "ast-grep-skill",
         "backlog-md": "backlog-md",
+        "builderio-skills": "builderio-skills",
         "cairn": "cairn",
         "claude-tail": "claude-tail",
         "diagram-design-skill": "diagram-design-skill",
         "egm": "egm",
+        "epic-infographics": "epic-infographics",
         "excalidraw-diagram-skill": "excalidraw-diagram-skill",
         "expert": "expert",
         "fish-plugin-autopair": "fish-plugin-autopair",

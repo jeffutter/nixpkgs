@@ -100,6 +100,18 @@ let
                   '# Preinstalled via Nix (home-manager) — no setup required.
         # references/render bundles Python, Playwright, and a matching Chromium.'
       '';
+  epicInfographicsSkill = pkgs.callPackage ../../../pkgs/epic-infographics-skill {
+    src = inputs.epic-infographics;
+  };
+  agent-native = pkgs.callPackage ../../../pkgs/agent-native { };
+  builderioVisualSkills = pkgs.callPackage ../../../pkgs/builderio-visual-skills {
+    src = inputs.builderio-skills;
+  };
+  videowright = pkgs.callPackage ../../../pkgs/videowright {
+    tts-speech-skill = ttsSpeechSkill;
+    stt-transcribe-skill = sttTranscribeSkill;
+    yue2-song-skill = yue2SongSkill;
+  };
   # Network endpoints, one per model use (see options.jeff.endpoints). Skill
   # sources hold no addresses: scripts and SKILL.md prose read the environment
   # variables below. fish's shellInit exports them on every shell start, not
@@ -912,9 +924,13 @@ in
       with pkgs;
       [
         agent-browser
+        agent-native
         backlog-md
         backlogUnblocked
         talusClaude
+        videowright
+        # The videowright skill runs ffmpeg and ffprobe itself to build audio.
+        ffmpeg
         cairn
         claude-agent-acp
         claude-tail
@@ -943,7 +959,13 @@ in
     };
 
     programs.fish.shellInit = lib.concatStringsSep "\n" (
-      lib.mapAttrsToList (name: value: "set -gx ${name} ${lib.escapeShellArg value}") endpointEnv
+      lib.mapAttrsToList (name: value: "set -gx ${name} ${lib.escapeShellArg value}") (
+        endpointEnv
+        // {
+          # visual-plan and visual-recap: no uploads to the hosted Plan service.
+          AGENT_NATIVE_PLANS_MODE = "local-files";
+        }
+      )
     );
 
     # Per-file links keep the herdr-app mod folders writable; it writes jsconfig.json and .d.ts there.
@@ -1856,6 +1878,7 @@ in
         egm-review = "${egmRoot}/skills/egm-review";
         egm-review-loop = "${egmRoot}/skills/egm-review-loop";
         elixir = ./ai/skills/elixir;
+        epic-infographics = "${epicInfographicsSkill}";
         excalidraw-diagram = "${excalidraw-diagram-skill-wrapped}";
         explain-diff-html = ./ai/skills/explain-diff-html;
         explain-diff-markdown = ./ai/skills/explain-diff-markdown;
@@ -1877,6 +1900,9 @@ in
         software-design = ./ai/skills/software-design;
         stop-slop = "${stop-slop}";
         todoist-cli = "${todoist-cli-skill}";
+        videowright = "${videowright}/lib/node_modules/videowright/skill";
+        visual-plan = "${builderioVisualSkills}/visual-plan";
+        visual-recap = "${builderioVisualSkills}/visual-recap";
         voice-dna = ./ai/skills/voice-dna;
         voice-dna-creator = ./ai/skills/voice-dna-creator;
         worktrunk = "${worktrunkPluginRoot}/skills/worktrunk";

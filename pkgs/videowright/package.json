@@ -1,0 +1,9 @@
+{
+  "name": "videowright-nix",
+  "version": "0.4.1",
+  "private": true,
+  "dependencies": {
+    "videowright": "0.4.1",
+    "vitest": "^3.1.3"
+  }
+}

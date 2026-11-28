@@ -145,6 +145,16 @@
       flake = false;
     };
 
+    epic-infographics = {
+      url = "github:OrRon/EpicInfographics";
+      flake = false;
+    };
+
+    builderio-skills = {
+      url = "github:BuilderIO/skills";
+      flake = false;
+    };
+
     egm = {
       url = "github:google/elephant-goldfish-model";
       flake = false;
@@ -396,6 +406,10 @@
 
       packages = forAllSystems (system: rec {
         actual-cli = (pkgsFor system).callPackage ./pkgs/actual-cli { };
+        agent-native = (pkgsFor system).callPackage ./pkgs/agent-native { };
+        videowright = (pkgsFor system).callPackage ./pkgs/videowright {
+          inherit tts-speech-skill stt-transcribe-skill yue2-song-skill;
+        };
         colgrep = (pkgsFor system).callPackage ./pkgs/colgrep { };
         datadog-pup = (pkgsFor system).callPackage ./pkgs/datadog-pup { };
         moshi-hook = (pkgsFor system).callPackage ./pkgs/moshi-hook { };

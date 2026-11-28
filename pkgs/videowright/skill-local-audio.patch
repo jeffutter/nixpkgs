@@ -1,0 +1,1163 @@
+diff -ruN a/assets/hello_world/audio/audio_plan.md b/assets/hello_world/audio/audio_plan.md
+--- a/assets/hello_world/audio/audio_plan.md
++++ b/assets/hello_world/audio/audio_plan.md
+@@ -5,8 +5,8 @@
+ No audio configured. The hello-world template ships silent — `videowright
+ render` produces a video-only MP4 when `default_audio_track` is unset on the
+ timeline. To add audio, ask videowright to generate a voiceover script from
+-your segments' `voiceover` fields, send it to your TTS provider (or use
+-Gemini or ElevenLabs via the skill), then place the result in
++your segments' `voiceover` fields, generate it with the skill's local voice
++flow, then place the result in
+ `audio/originals/voiceovers/v1/` and build a track under `audio/tracks/v1/`.
+ 
+ ## Log
+diff -ruN a/references/audio/music/music.md b/references/audio/music/music.md
+--- a/references/audio/music/music.md
++++ b/references/audio/music/music.md
+@@ -6,7 +6,7 @@
+ 
+ ## Overview
+ 
+-Each music asset is a slug-named folder under `audio/originals/music/`. Music assets are immutable once used in a rendered track. The agent sources them (BYO, ElevenLabs, or Openverse), gets user approval, then references them in the audio plan as cues with volume curves and ducking.
++Each music asset is a slug-named folder under `audio/originals/music/`. Music assets are immutable once used in a rendered track. The agent sources them (BYO, local generation, or Openverse), gets user approval, then references them in the audio plan as cues with volume curves and ducking.
+ 
+ ## Sourcing decision
+ 
+@@ -15,13 +15,13 @@
+ > How would you like to source background music?
+ >
+ > 1. **Bring your own** -- drop an audio file (mp3/wav) into the project and I will set it up.
+-> 2. **Generate with ElevenLabs** -- describe the music you want and I will generate it via the ElevenLabs Music Generation API. **Requires a paid plan and API key.**
++> 2. **Generate locally** -- describe the music you want and I will generate it with the YuE2 model on your own server. Free, no API key.
+ > 3. **Search Openverse** -- search for freely-licensed music online. No API key required, free to use.
+ 
+ Based on the answer, load the appropriate provider reference:
+ 
+ - **BYO** -- load [providers/manual.md](providers/manual.md)
+-- **ElevenLabs** -- load [providers/elevenlabs.md](providers/elevenlabs.md)
++- **Generate locally** -- load [providers/local.md](providers/local.md)
+ - **Openverse** -- load [providers/openverse.md](providers/openverse.md)
+ 
+ ## Folder structure
+@@ -31,7 +31,8 @@
+   uplift_piano/
+     audio.mp3          # source audio (immutable after approval)
+     music.ts           # typed metadata with rich notes
+-    generate.sh        # only for ElevenLabs-sourced music
++    generate.sh        # only for generated music
++    lyrics.txt         # only for generated music
+   tense_synth/
+     audio.mp3
+     music.ts
+@@ -61,7 +62,7 @@
+   name: "Uplift piano",
+   description: "Solo piano, gentle build to optimistic resolution",
+   length_s: 64.2,
+-  source: "elevenlabs",
++  source: "local",
+   notes: `
+     BPM: 95
+     Key: C major
+@@ -81,7 +82,7 @@
+ | `name` | Yes | Human-readable name for display and reference. |
+ | `description` | Yes | One-line summary of the track's character. |
+ | `length_s` | Yes | Duration in seconds, measured via ffprobe. Round to 1 decimal place. |
+-| `source` | Yes | `"elevenlabs"`, `"user"`, or `"openverse"`. Records provenance. |
++| `source` | Yes | `"local"`, `"user"`, or `"openverse"`. Records provenance. |
+ | `notes` | Yes (strongly encouraged) | Free-text musical detail. See "What to capture in notes" below. |
+ 
+ If the `MusicAsset` type is not yet exported from videowright, use an inline type annotation or `any` -- the shape is what matters.
+diff -ruN a/references/audio/music/providers/elevenlabs.md b/references/audio/music/providers/elevenlabs.md
+--- a/references/audio/music/providers/elevenlabs.md
++++ b/references/audio/music/providers/elevenlabs.md
+@@ -1,170 +0,0 @@
+-# ElevenLabs Music Generation
+-
+-## When this is loaded
+-
+-The user chose ElevenLabs to generate background music. This reference covers the Music Generation API endpoint, prompt-writing tips, and the `generate.sh` template.
+-
+-## Prerequisites
+-
+-- `ELEVENLABS_API_KEY` set in `.env` at the project root. The key must have **Music Generation** permission enabled.
+-- If the user does not have an API key, guide them through setup: see [../../voiceover/providers/elevenlabs.md](../../voiceover/providers/elevenlabs.md) (Step 2: Get the API key). The same key works for TTS, STT, SFX, and Music.
+-
+-## Cost notice
+-
+-> **Cost notice:** ElevenLabs charges credits for music generation. Longer tracks cost more credits. A 60-second track typically costs 2,000-5,000 credits depending on complexity. Check your remaining quota at https://elevenlabs.io/app/subscription before generating.
+-
+-## API endpoint
+-
+-**Endpoint:** `POST https://api.elevenlabs.io/v1/music-generation`
+-
+-**Request body:**
+-
+-```json
+-{
+-  "text": "<prompt describing the desired music>",
+-  "duration_seconds": 60,
+-  "prompt_influence": 0.5
+-}
+-```
+-
+-| Field | Required | Description |
+-|---|---|---|
+-| `text` | Yes | Natural-language description of the music. See prompt-writing tips below. |
+-| `duration_seconds` | No | Target duration in seconds. If omitted, the API chooses (usually 30s). Recommended: specify to match your video length. |
+-| `prompt_influence` | No | 0.0-1.0. Higher values follow the prompt more literally; lower values give more creative freedom. 0.5 is a good starting point for music. |
+-
+-**Response:** The API returns raw audio bytes (mp3) directly in the response body.
+-
+-## `generate.sh` template
+-
+-Write this script to `audio/originals/music/<slug>/generate.sh` for reproducibility:
+-
+-```bash
+-#!/bin/bash
+-# Generated Music: <name>
+-# Prompt: <the exact prompt used>
+-# Duration: <duration_seconds>s
+-# Prompt influence: <prompt_influence>
+-
+-set -euo pipefail
+-
+-# Load API key from .env
+-if [ -f .env ]; then
+-  export $(grep -v '^#' .env | xargs)
+-fi
+-
+-if [ -z "${ELEVENLABS_API_KEY:-}" ]; then
+-  echo "Error: ELEVENLABS_API_KEY not set. Add it to .env" >&2
+-  exit 1
+-fi
+-
+-SLUG="<slug>"
+-OUTPUT_DIR="audio/originals/music/${SLUG}"
+-mkdir -p "${OUTPUT_DIR}"
+-
+-curl -X POST "https://api.elevenlabs.io/v1/music-generation" \
+-  -H "xi-api-key: ${ELEVENLABS_API_KEY}" \
+-  -H "Content-Type: application/json" \
+-  -d '{
+-    "text": "<prompt>",
+-    "duration_seconds": <duration>,
+-    "prompt_influence": <influence>
+-  }' \
+-  --output "${OUTPUT_DIR}/audio.mp3"
+-
+-echo "Music saved to ${OUTPUT_DIR}/audio.mp3"
+-```
+-
+-Make the script executable: `chmod +x generate.sh`.
+-
+-**Important:** Run `generate.sh` from the **video folder** (the directory containing `timeline.ts`) so that relative paths resolve correctly.
+-
+-## Prompt-writing tips
+-
+-Music generation prompts benefit from structure. Include these dimensions:
+-
+-### Specify genre and instruments
+-- Good: "Ambient electronic with soft piano chords and warm synth pads"
+-- Bad: "Background music"
+-
+-### Describe mood and energy arc
+-- Good: "Starts minimal and hopeful, builds gradually, reaches an optimistic peak at 30s, then settles into a gentle outro"
+-- Bad: "Happy music"
+-
+-### Mention tempo and rhythm
+-- Good: "Moderate tempo around 90-100 BPM, light percussion, no heavy drums"
+-- Bad: "Not too fast"
+-
+-### Describe the use case
+-- Good: "Background music for a product demo video. Needs to sit behind voiceover without competing. Should feel professional and modern."
+-- Bad: "Music for a video"
+-
+-### Useful descriptors for product/demo videos
+-
+-| Dimension | Good choices |
+-|---|---|
+-| Genre | ambient, corporate, indie electronic, lo-fi, minimal, cinematic |
+-| Instruments | piano, synth pads, soft guitar, muted percussion, strings, bells |
+-| Mood | professional, optimistic, calm, confident, innovative, warm |
+-| Energy | low-energy, mid-energy, building, steady, dynamic |
+-| Avoid | aggressive drums, heavy bass drops, distorted guitars, vocals |
+-
+-### Duration guidance
+-
+-Match the music duration to your video:
+-- Request slightly longer than needed (add 5-10s buffer). You can slice in the audio plan.
+-- For videos with intro + content + outro: request the full duration so you get a natural arc.
+-- For looping backgrounds: request at least one full musical phrase (usually 16-32s at standard tempos) so the loop point sounds clean.
+-
+-## Post-generation workflow
+-
+-After the curl command succeeds:
+-
+-1. **Verify the file exists and is non-empty:**
+-   ```bash
+-   ls -la audio/originals/music/<slug>/audio.mp3
+-   ```
+-
+-2. **Measure duration via ffprobe:**
+-   ```bash
+-   ffprobe -v error -show_entries format=duration \
+-     -of default=noprint_wrappers=1:nokey=1 \
+-     audio/originals/music/<slug>/audio.mp3
+-   ```
+-
+-3. **Ask the user to listen and describe the track.** Before writing metadata, ask the user to play the track and report:
+-   - BPM (can often be inferred from the prompt's requested tempo; otherwise ask the user to estimate)
+-   - Key (if discernible)
+-   - Structure (where sections change, where the energy peaks)
+-   - Any notable moments (beat drops, transitions, loop points)
+-
+-4. **Write `music.ts`** with rich metadata (see [../music.md](../music.md) for the shape). Set `source: "elevenlabs"`. Include all observed musical details in the `notes` field.
+-
+-5. **Trigger the approval UX** (see [../music.md](../music.md) -- Approval UX section).
+-
+-## Iteration on discard
+-
+-If the user discards and requests changes:
+-
+-1. Delete the folder: `rm -rf audio/originals/music/<slug>/`
+-2. Ask what should change about the music.
+-3. Adjust the prompt based on feedback. Common adjustments:
+-   - "Too energetic" -- add "calm", "minimal", "ambient", reduce tempo
+-   - "Too boring" -- add "building", "dynamic", increase tempo, add percussion
+-   - "Wrong mood" -- change mood descriptors entirely
+-   - "Too short" -- increase `duration_seconds`
+-   - "Instruments are wrong" -- specify desired instruments, explicitly exclude unwanted ones ("no drums", "no vocals")
+-   - "Needs a stronger ending" -- describe the outro in the prompt ("resolves to a clear final chord")
+-4. Re-run with the updated prompt. Write a new `generate.sh` reflecting the new parameters.
+-
+-## Troubleshooting
+-
+-| Issue | Resolution |
+-|---|---|
+-| 401 Unauthorized | Check `ELEVENLABS_API_KEY` in `.env`. Ensure the key has Music Generation permission. |
+-| 422 Unprocessable Entity | Prompt may be problematic. Keep prompts 20-500 characters. Avoid special characters. |
+-| Empty or 0-byte response | API may have failed silently. Retry. If persistent, try a shorter duration or different prompt. |
+-| Generated music does not match prompt | Increase `prompt_influence` (try 0.6-0.8). Be more specific about instruments and mood. |
+-| Music has vocals/singing | Add "instrumental only, no vocals, no singing" to the prompt. |
+-| Rate limited (429) | Wait and retry. Check quota at https://elevenlabs.io/app/subscription. |
+-| Track is shorter than requested | The API may cap duration. Try requesting in smaller segments or accept the shorter track. |
+diff -ruN a/references/audio/music/providers/local.md b/references/audio/music/providers/local.md
+--- a/references/audio/music/providers/local.md
++++ b/references/audio/music/providers/local.md
+@@ -0,0 +1,64 @@
++# Local music generation
++
++## When this is loaded
++
++The user chose to generate background music. It runs on the YuE2 model on the user's own server. `$MUSIC_API` and `$STT_API` are already set; there are no keys. The `yue2-song` skill describes the model in more depth.
++
++YuE2 is a song model. For an instrumental bed, the lyrics file holds only section labels and the style string asks for no vocals.
++
++## `generate.sh` template
++
++Write both files to `audio/originals/music/<slug>/`. `lyrics.txt`:
++
++```
++[Intro: instrumental, soft piano]
++
++[Interlude: instrumental, warm synth pads]
++
++[Outro: instrumental]
++```
++
++Name the instruments you want inside the labels. Write no words outside the brackets, or they are sung.
++
++`generate.sh`:
++
++```bash
++#!/usr/bin/env bash
++# Generated Music: <name>
++set -euo pipefail
++cd "$(dirname "$0")"
++
++@yue2@ render --lyrics lyrics.txt --seed 1 --out audio.mp3 \
++  --style "instrumental, no vocals, <genre>, <instruments>, <mood>, polished studio recording, 4/4, 90 BPM"
++```
++
++Run it in the background: rendering takes about 0.6 to 0.7 times the length of the audio, usually a few minutes at most.
++
++## The style string
++
++Comma-separated tags in this order: `instrumental, no vocals`, genre, instruments, mood, production, meter, tempo. Keep the meter and `NN BPM` tags: the tool checks the take against them. Name every instrument you want and leave the others out. Describe a reference artist's sound instead of naming them.
++
++For a bed under narration: low-energy or steady, soft instruments, "no heavy drums".
++
++## Length
++
++There is no duration setting. Takes have run from about 90 seconds to over three minutes. Use `Slice:` in the audio plan to take the part the video needs. Add a fade out at the end of the slice.
++
++## After each render
++
++1. Read the check output. `whisper: 0 words` means no vocals. A handful of words or more means the take has singing: change `--seed` and render again. The "lyrics missing or mumbled" note is expected here.
++2. Measure the duration with ffprobe.
++3. You cannot hear audio. Ask the user to listen and report the sections, energy peaks and any vocal sounds.
++4. Write `music.ts` (see [../music.md](../music.md)). Set `source: "local"`, and record the BPM, the seed and the style string in `notes`.
++5. Trigger the approval UX (see [../music.md](../music.md#approval-ux)).
++
++## Iteration on discard
++
++Delete the folder, ask what should change, and change one thing per round: keep the seed to compare style strings, or keep the style and change the seed for a new performance.
++
++## Troubleshooting
++
++| Issue | Resolution |
++|---|---|
++| The render fails or times out | The music model and the user's chat model evict each other on the server. Ask the user whether they are chatting, then rerun. |
++| The take has vocals | Change the seed. If it repeats, remove words that suggest singing from the style and labels. |
+diff -ruN a/references/audio/music/providers/openverse.md b/references/audio/music/providers/openverse.md
+--- a/references/audio/music/providers/openverse.md
++++ b/references/audio/music/providers/openverse.md
+@@ -81,7 +81,7 @@
+ - Prefer `cc0` or `pdm` over `by` (no attribution required)
+ - Longer tracks are generally better (can always slice; cannot extend)
+ 
+-If no results match, try broadening the query (fewer terms, more generic words). If still nothing, inform the user and suggest alternative sources (BYO or ElevenLabs).
++If no results match, try broadening the query (fewer terms, more generic words). If still nothing, inform the user and suggest alternative sources (BYO or local generation).
+ 
+ ### Step 4: Multi-choice offer
+ 
+@@ -255,7 +255,7 @@
+ 
+ | Situation | Behavior |
+ |---|---|
+-| No results for the query | Broaden search terms. If still nothing, suggest BYO or ElevenLabs. |
++| No results for the query | Broaden search terms. If still nothing, suggest BYO or local generation. |
+ | All results are very short (< 15s) | These may be SFX miscategorized as music. Try more specific genre terms or increase `page_size`. |
+ | Downloaded file is 0 bytes or corrupt | Delete and retry the download. If persistent, try a different result. |
+ | License is `by` (attribution required) | Note in `music.ts` notes that attribution is required. The agent does not enforce attribution in the final video but records the obligation. |
+diff -ruN a/references/audio/sfx/providers/elevenlabs.md b/references/audio/sfx/providers/elevenlabs.md
+--- a/references/audio/sfx/providers/elevenlabs.md
++++ b/references/audio/sfx/providers/elevenlabs.md
+@@ -7,7 +7,7 @@
+ ## Prerequisites
+ 
+ - `ELEVENLABS_API_KEY` set in `.env` at the project root. The key must have **Sound Effects** permission enabled.
+-- If the user does not have an API key, guide them through setup: see [../../voiceover/providers/elevenlabs.md](../../voiceover/providers/elevenlabs.md) (Step 2: Get the API key). The same key works for TTS, STT, SFX, and Music.
++- If the user does not have an API key, guide them through setup: see [../../voiceover/providers/elevenlabs.md](../../voiceover/providers/elevenlabs.md) (Step 2: Get the API key).
+ 
+ ## Cost notice
+ 
+diff -ruN a/references/audio/voiceover/provider_script.md b/references/audio/voiceover/provider_script.md
+--- a/references/audio/voiceover/provider_script.md
++++ b/references/audio/voiceover/provider_script.md
+@@ -12,13 +12,13 @@
+ videos/<video>/audio/originals/voiceovers/<slug>/provider_script.md
+ ```
+ 
+-Everything below the `---` line is the script. `retime.mjs text` turns the `[[pause]]` markers into the provider's pause tag to make the text sent to the TTS provider; `retime.mjs apply` uses the markers to set the pause lengths after generation (see [retime.md](retime.md)).
++Everything below the `---` line is the script. `local-take.mjs` synthesizes the text between `[[pause]]` markers; `retime.mjs apply` uses the markers to set the pause lengths after generation (see [retime.md](retime.md)).
+ 
+ ## The approach
+ 
+-Write **plain spoken text**. Let the TTS model choose intonation, emphasis, and the small pauses inside sentences -- current models (Gemini 3.8, ElevenLabs v3) do this well. Mark only the pauses that the video needs, with `[[pause Xs]]`. Each marker is sent to the model as a pause tag, so the model knows a pause is coming and makes one; the retime step then makes it exact. The audio is edited **only** at these markers, never between other words (see [retime.md](retime.md#rule-only-retime-a-pause-the-tts-was-told-to-make)).
++Write **plain spoken text**. Let the TTS model choose intonation, emphasis, and the small pauses inside sentences. Mark only the pauses that the video needs, with `[[pause Xs]]`. Each stretch between markers is synthesized on its own, and the retime step makes each pause exact. The audio is edited **only** at these markers (see [retime.md](retime.md#rule-only-retime-a-real-pause)).
+ 
+-**Do not write provider pause tags yourself** (`<break time="1s"/>`, `[pause]`, `<long pause>`, `<short pause>`). v3 does not support `<break>`, and in tests, Gemini pause tags on their own line or mid-sentence caused repeated phrases, tag names spoken aloud, and random noises. Instead, `retime.mjs text --pause-tag` adds the provider's pause tag at the end of the line before each `[[pause]]` marker (`[pause]` for v3, `<long pause>` for Gemini). In that position the tags tested clean in every take (8 of 8), and they give the model a natural gap to end the line, which the retime step then sets to the exact length.
++Do not write pause tags such as `<break time="1s"/>` or `[pause]`; they are read aloud or ignored.
+ 
+ ## Generating the provider script
+ 
+@@ -45,13 +45,10 @@
+ 
+ ### Emotion and tone
+ 
+-Each provider has one extra control. Use it lightly:
++The `breeze` model also takes a one-sentence delivery style for the whole take, passed as `--instruct` (see [providers/local.md](providers/local.md#generate)), never written in the script. Record it in the header block.
+ 
+-- **Gemini:** one short style string for the whole take, sent in `speech_metadata.style` (never in the text). See [providers/gemini.md](providers/gemini.md#style-string). Record it in the header block.
+-- **ElevenLabs v3:** inline audio tags in square brackets, e.g. `[excited]`, `[warmly]`, `[whispers]`, at the start of a sentence where the tone must change. Default is none; at most a few per script. See [providers/elevenlabs.md](providers/elevenlabs.md#audio-tags-v3).
++For an emotional arc (e.g., calm, then excited at the call to action), change the writing: longer sentences early, short sentences with exclamation marks at the end.
+ 
+-For an emotional arc (e.g., calm, then excited at the call to action), change the writing: longer sentences early, short sentences with exclamation marks at the end. For v3 you can also add one tag where the tone changes.
+-
+ ### Step 3: Add pause markers
+ 
+ Put a `[[pause Xs]]` marker on its own line, between paragraphs:
+@@ -70,7 +67,7 @@
+ Rules:
+ 
+ - Syntax: `[[pause 1.5s]]` (seconds; the `s` is optional).
+-- Put markers at sentence ends only. Mid-sentence, the model may not stop fully, and the retime step will refuse the take.
++- Put markers at sentence ends only. A marker mid-sentence splits it into two takes with sentence-final intonation.
+ - Do not add markers between every sentence. Pauses the video does not need should come from the model.
+ 
+ ### Step 4: Pronunciation and special terms
+@@ -87,8 +84,8 @@
+ ```markdown
+ # Provider Script
+ 
+-> Provider: Gemini 3.8 Flash TTS (google/gemini-3.8-flash-tts)
+-> Voice: Charon
++> Model: breeze
++> Voice: jeff
+ > Style: confident, warm tech explainer; conversational, natural pace
+ > Pronunciation: "S V G" spelled with spaces.
+ 
+@@ -117,10 +114,10 @@
+ 
+ ### Key conventions in the output
+ 
+-- The header block (blockquote) is metadata for the user and the agent. It is not sent to the provider.
++- The header block (blockquote) is metadata for the user and the agent. It is not spoken.
+ - Everything below the `---` is the script.
+ - `[[pause]]` markers are on their own lines, between paragraphs.
+-- No provider pause tags. Provider tone controls only as described in [Emotion and tone](#emotion-and-tone).
++- No pause tags.
+ 
+ ## Presenting to the user
+ 
+@@ -128,4 +125,4 @@
+ 
+ 1. Show the full script with a brief explanation of the markers and any tone controls.
+ 2. Write the file to `audio/originals/voiceovers/<slug>/provider_script.md`.
+-3. Proceed to audio generation with the chosen provider: [providers/gemini.md](providers/gemini.md) or [providers/elevenlabs.md](providers/elevenlabs.md).
++3. Proceed to audio generation: [providers/local.md](providers/local.md).
+diff -ruN a/references/audio/voiceover/providers/elevenlabs.md b/references/audio/voiceover/providers/elevenlabs.md
+--- a/references/audio/voiceover/providers/elevenlabs.md
++++ b/references/audio/voiceover/providers/elevenlabs.md
+@@ -1,39 +1,7 @@
+-# ElevenLabs
++# ElevenLabs API key
+ 
+-## When this is loaded
++For ElevenLabs sound effects only. Voiceovers and music use local models.
+ 
+-The user picked **ElevenLabs v3** in Flow A step 1 (see [voiceover.md](../../voiceover.md#flow-a-ai-generation)). This reference covers the API-key flow (automated) and the portal flow (manual web UI). It also covers ElevenLabs Speech-to-Text (STT) for the retime step and for the manual voiceover flow (Flow B).
+-
+-- **Model:** `eleven_v3` (ElevenLabs' most expressive model).
+-- **Voice:** from the [ElevenLabs voice catalog](../../voiceover.md#elevenlabs-voices). Default: **Asher**.
+-- **Limit:** 5,000 characters per request (~5 minutes of speech). See [Long scripts](#long-scripts).
+-- **Pauses:** v3 does not support SSML `<break>` tags. `retime.mjs text --pause-tag "[pause]"` puts a `[pause]` tag at each `[[pause]]` marker; the retime step then sets the exact length (see [retime.md](../retime.md)).
+-
+-## Mode selection
+-
+-Ask this after the user picks ElevenLabs:
+-
+-> Two ways to generate the voiceover with ElevenLabs:
+->
+-> 1. **API key (recommended for repeated use)** -- set up once in `.env`, then the agent generates the audio via curl. **Requires a paid ElevenLabs plan** (not available on the free tier). Note: granting the agent API access means it will spend your ElevenLabs credits, which costs real money.
+-> 2. **Portal (web UI, works with any plan)** -- the agent walks you through TTS in the ElevenLabs web portal, then STT to get word timings.
+->
+-> API key is faster and reusable across projects. Portal needs no setup but takes more clicks per video.
+->
+-> If you don't have an account: open https://elevenlabs.io and sign up first.
+-
+-After the user picks, if they chose **API key**, immediately present the [ElevenLabs voice catalog](../../voiceover.md#elevenlabs-voices). Portal users pick a voice in the ElevenLabs UI. Then continue with style intake and script writing. When it is time for audio generation, dispatch into the sub-flow below.
+-
+----
+-
+-## Flow 1: API Key
+-
+-### Step 1: Credit / cost warning
+-
+-> **Cost notice:** ElevenLabs charges about 1 credit per character for v3. A 60-second voiceover (~900 characters) costs about 900 credits, a small part of most paid plan quotas. Each regenerated take costs the same again.
+->
+-> Check your plan's remaining quota at https://elevenlabs.io/app/subscription before generating.
+-
+ ### Step 2: Get the API key
+ 
+ Skip this step if `.env` already has `ELEVENLABS_API_KEY` (check with `grep -c '^ELEVENLABS_API_KEY=' .env` -- do not print the value).
+@@ -46,10 +14,7 @@
+ > 2. Click **Create API Key**.
+ > 3. Give it a name (e.g., "videowright").
+ > 4. **Enable these permissions** on the key before creating it. The key creation UI has toggles for which features the key can access. Enable all of the following:
+->    - **Text to Speech** -- required for generating voiceover audio.
+->    - **Speech to Text** -- required for extracting word-level timing from audio.
+ >    - **Sound Effects** -- for SFX generation.
+->    - **Music Generation** -- for background music generation.
+ >
+ >    If you don't see individual permission toggles, create the key with full access -- the default may already include all required permissions.
+ > 5. Click **Create** and copy the key.
+@@ -62,151 +27,3 @@
+ > 1. Create a `.env` file at your project root (if it doesn't already exist).
+ > 2. Add this line: `ELEVENLABS_API_KEY=your-key-here`
+ > 3. Make sure `.env` is in your `.gitignore` (add it if not).
+-
+-### Step 3: Write `generate.sh`
+-
+-Write a script into the voiceover folder so the take can be regenerated. It sends the provider script text (each `[[pause]]` marker turned into a `[pause]` tag by `retime.mjs text`) and writes `raw.mp3`:
+-
+-```bash
+-#!/usr/bin/env bash
+-# ElevenLabs v3 TTS. Run from the project root.
+-set -euo pipefail
+-set -a; . ./.env; set +a
+-
+-VO_DIR="videos/<video>/audio/originals/voiceovers/<slug>"
+-VOICE_ID="tMvyQtpCVQ0DkixuYm6J"  # Asher
+-TEXT="$(node node_modules/videowright/skill/scripts/retime.mjs text "$VO_DIR/provider_script.md" \
+-  --pause-tag "[pause]")"
+-[ -n "$TEXT" ] || { echo "ERROR: no text from provider_script.md" >&2; exit 1; }
+-
+-HTTP_CODE=$(curl -sS -w "%{http_code}" -o "$VO_DIR/raw.mp3" \
+-  -X POST "https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}?output_format=mp3_44100_128" \
+-  -H "xi-api-key: ${ELEVENLABS_API_KEY}" \
+-  -H "Content-Type: application/json" \
+-  -d "$(jq -n --arg text "$TEXT" '{
+-    text: $text,
+-    model_id: "eleven_v3",
+-    voice_settings: { stability: 0.5 }
+-  }')")
+-
+-if [ "$HTTP_CODE" != "200" ]; then
+-  echo "ERROR: ElevenLabs returned HTTP $HTTP_CODE" >&2; head -c 800 "$VO_DIR/raw.mp3" >&2; echo >&2
+-  rm -f "$VO_DIR/raw.mp3"; exit 1
+-fi
+-echo "Wrote $VO_DIR/raw.mp3 ($(ffprobe -v error -show_entries format=duration -of csv=p=0 "$VO_DIR/raw.mp3")s)"
+-```
+-
+-Request notes:
+-
+-- `stability` for v3: `0.0` = Creative (most expressive, less stable), `0.5` = Natural (default), `1.0` = Robust (steady, ignores most audio tags). `similarity_boost` and `style` do not apply to v3.
+-- Run with network access to `api.elevenlabs.io`.
+-
+-Then continue to [retime.md](../retime.md). For STT, use OpenRouter if the user has `OPENROUTER_API_KEY`, else [ElevenLabs Scribe](#speech-to-text-api) with the same ElevenLabs key.
+-
+----
+-
+-## Flow 2: Portal (Web UI)
+-
+-### Step 1 -- Generate the audio (TTS)
+-
+-Run `node node_modules/videowright/skill/scripts/retime.mjs text <provider_script.md> --pause-tag "[pause]"` and show the output to the user in a code block. That is the text to paste (each `[[pause]]` marker turned into a `[pause]` tag).
+-
+-Guide the user:
+-
+-> **Generating voiceover audio with ElevenLabs:**
+->
+-> 1. Open https://elevenlabs.io/app and sign in.
+-> 2. Navigate to **Text to Speech** in the sidebar.
+-> 3. Select the **Eleven v3** model in the model dropdown.
+-> 4. Select a voice that matches your tone preferences. You can preview voices before generating.
+-> 5. Paste the text from the code block above into the text area.
+-> 6. Click **Generate**.
+-> 7. Listen to the preview. If the delivery needs changes, tell me and I will update the provider script.
+-> 8. **Download the audio file** and save it as `audio/originals/voiceovers/<slug>/raw.mp3`.
+-
+-Do not ask the user to adjust pauses in the portal. The retime step sets them.
+-
+-### Step 2 -- Word timings (STT)
+-
+-The TTS portal does not export word timings. Get them from Speech-to-Text:
+-
+-> **Getting word-level timing via Speech-to-Text:**
+->
+-> 1. In the ElevenLabs portal, switch to **Speech to Text** in the sidebar.
+-> 2. Upload `audio/originals/voiceovers/<slug>/raw.mp3`.
+-> 3. Wait for transcription to complete.
+-> 4. **Export the result as JSON.** Look for an "Export" or "Download" option and select **JSON** format. **Do not use plain text export** -- plain text does not include per-word timing data.
+-> 5. Save the JSON file as `audio/originals/voiceovers/<slug>/raw_stt.json`.
+-
+-Then continue to [retime.md](../retime.md), starting at the transcript check.
+-
+----
+-
+-## Speech-to-Text (API)
+-
+-Scribe v2 returns word timestamps. It uses the same `ELEVENLABS_API_KEY` (the key needs the **Speech to Text** permission):
+-
+-```bash
+-set -a; . ./.env; set +a
+-VO_DIR="videos/<video>/audio/originals/voiceovers/<slug>"
+-curl -sS -X POST https://api.elevenlabs.io/v1/speech-to-text \
+-  -H "xi-api-key: ${ELEVENLABS_API_KEY}" \
+-  -F model_id=scribe_v2 \
+-  -F file=@"$VO_DIR/raw.mp3" \
+-  -F timestamps_granularity=word \
+-  -F language_code=en \
+-  -F tag_audio_events=false \
+-  -o "$VO_DIR/raw_stt.json"
+-```
+-
+-The response has `words: [{text, start, end, type}]`, where `type` is `word` or `spacing`. `retime.mjs` reads this format directly.
+-
+-## Speech-to-Text (portal, for Flow B)
+-
+-Used when the user provides their own audio and does not use the API:
+-
+-> **Transcribing audio with ElevenLabs Speech-to-Text:**
+->
+-> 1. Open https://elevenlabs.io/app and sign in.
+-> 2. Navigate to **Speech to Text** in the sidebar.
+-> 3. Upload the audio file (mp3 or wav).
+-> 4. Wait for transcription to complete.
+-> 5. **Export as JSON.** Select the JSON export option -- plain text export does not include word timing data.
+-> 6. Save the JSON file in `audio/originals/voiceovers/<slug>/` as `timing.json`.
+-
+-If an exported JSON uses a different shape, convert it to the canonical format below: word text, start, and end for each word.
+-
+-## Timing JSON format (canonical)
+-
+-```json
+-{
+-  "words": [
+-    { "word": "Welcome", "start": 0.0, "end": 0.45 },
+-    { "word": "to", "start": 0.47, "end": 0.55 }
+-  ]
+-}
+-```
+-
+-- `word`: the spoken word
+-- `start` / `end`: seconds from the start of the audio file
+-
+-## Audio tags (v3)
+-
+-v3 supports inline audio tags in square brackets, e.g. `[excited]`, `[warmly]`, `[whispers]`, `[laughs]`, `[sighs]`. Use them sparingly, only where the tone must change, at the start of a sentence. The default is no tags. See [provider_script.md](../provider_script.md#emotion-and-tone).
+-
+-## Long scripts
+-
+-v3 accepts at most 5,000 characters per request. For longer scripts, split the provider script at a `[[pause]]` marker, generate one `raw_partN.mp3` per part with the same voice and settings, and join them into `raw.mp3` (see [Join clips end to end](../../ffmpeg_cookbook.md#join-clips-end-to-end)). Then run the retime step on the joined file.
+-
+-## Troubleshooting
+-
+-| Issue | Resolution |
+-|---|---|
+-| API returns 401 | Check that `ELEVENLABS_API_KEY` is set correctly in `.env` and the key is valid. |
+-| API returns 401/403 on STT only | The key does not have the **Speech to Text** permission. Edit the key or create a new one. |
+-| API returns 429 | Rate limited. Wait a moment and retry, or check your plan's quota. |
+-| API returns 400 about text length | The text is over 5,000 characters. See [Long scripts](#long-scripts). |
+-| Delivery is flat or over-acted | Change `stability` (lower = more expressive, higher = steadier), or try another voice. |
+-| Transcript check fails | Regenerate (takes vary). If it fails 3 times, raise `stability` to `1.0`, remove audio tags, and tell the user. |
+-| TTS mispronounces a word | Add a phonetic spelling in the provider script and regenerate. |
+-| STT JSON export option not visible | Look for a download/export button after transcription completes. The option may be labeled "Export", "Download", or appear as a dropdown with format choices. Select JSON specifically. |
+diff -ruN a/references/audio/voiceover/providers/gemini.md b/references/audio/voiceover/providers/gemini.md
+--- a/references/audio/voiceover/providers/gemini.md
++++ b/references/audio/voiceover/providers/gemini.md
+@@ -1,121 +0,0 @@
+-# Gemini TTS (via OpenRouter)
+-
+-## When this is loaded
+-
+-The user picked **Gemini 3.8 Flash TTS** in Flow A step 1 (see [voiceover.md](../../voiceover.md#flow-a-ai-generation)). This reference covers the OpenRouter API key setup and the TTS request. One OpenRouter key covers both TTS and the speech-to-text (STT) pass in [retime.md](../retime.md).
+-
+-- **Model:** `google/gemini-3.8-flash-tts` (Google's current TTS model; replaces `gemini-3.1-flash-tts-preview`).
+-- **Voice:** from the [Gemini voice catalog](../../voiceover.md#gemini-voices). Default: **Charon**.
+-- **Cost:** about $0.01-0.02 per minute of audio. STT adds less than $0.001 per minute. Current prices: https://openrouter.ai/google/gemini-3.8-flash-tts
+-- **No word timestamps.** Gemini returns audio only. The retime step gets word timings from STT.
+-
+-## Step 1: Get the API key
+-
+-Skip this step if `.env` already has `OPENROUTER_API_KEY` (check with `grep -c '^OPENROUTER_API_KEY=' .env` -- do not print the value).
+-
+-Guide the user:
+-
+-> **Creating your OpenRouter API key:**
+->
+-> 1. Go to https://openrouter.ai/settings/keys (sign in or create an account).
+-> 2. Add credits at https://openrouter.ai/settings/credits if your balance is zero. $5 covers hundreds of voiceover takes.
+-> 3. Click **Create API Key** and name it (e.g., "videowright").
+-> 4. **Set a credit limit** on the key (for example, $5). This caps what the agent can spend with the key.
+-> 5. Copy the key.
+-
+-**Storage rules -- do NOT paste the key into chat:**
+-
+-> **Important:** Do not paste your API key into this chat -- it would be sent to the LLM provider.
+->
+-> Instead:
+-> 1. Create a `.env` file at your project root (if it doesn't already exist).
+-> 2. Add this line: `OPENROUTER_API_KEY=your-key-here`
+-> 3. Make sure `.env` is in your `.gitignore` (add it if not).
+-
+-Before the first generation, tell the user that the agent will spend OpenRouter credits (a few cents per take).
+-
+-## Step 2: Write `generate.sh`
+-
+-Write a script into the voiceover folder so the take can be regenerated. It sends the provider script text (each `[[pause]]` marker turned into a `<long pause>` tag by `retime.mjs text`) and writes `raw.mp3`:
+-
+-```bash
+-#!/usr/bin/env bash
+-# Gemini 3.8 Flash TTS via OpenRouter. Run from the project root.
+-set -euo pipefail
+-set -a; . ./.env; set +a
+-
+-VO_DIR="videos/<video>/audio/originals/voiceovers/<slug>"
+-VOICE="Charon"
+-STYLE="confident, warm tech explainer; conversational, natural pace"
+-RAW="$(mktemp "${TMPDIR:-/tmp}/gemini_tts.XXXXXX")"
+-
+-TEXT="$(node node_modules/videowright/skill/scripts/retime.mjs text "$VO_DIR/provider_script.md" \
+-  --pause-tag "<long pause>")"
+-[ -n "$TEXT" ] || { echo "ERROR: no text from provider_script.md" >&2; exit 1; }
+-
+-HTTP_CODE=$(curl -sS -w "%{http_code}" -o "$RAW" https://openrouter.ai/api/v1/audio/speech \
+-  -H "Authorization: Bearer $OPENROUTER_API_KEY" \
+-  -H "Content-Type: application/json" \
+-  -d "$(jq -n --arg text "$TEXT" --arg voice "$VOICE" --arg style "$STYLE" '{
+-    model: "google/gemini-3.8-flash-tts",
+-    input: $text,
+-    voice: $voice,
+-    response_format: "pcm",
+-    provider: { options: { "google-ai-studio": { speech_metadata: { style: $style } } } }
+-  }')")
+-
+-if [ "$HTTP_CODE" != "200" ]; then
+-  echo "ERROR: OpenRouter returned HTTP $HTTP_CODE" >&2; head -c 800 "$RAW" >&2; echo >&2
+-  rm -f "$RAW"; exit 1
+-fi
+-
+-# OpenRouter returns raw 16-bit PCM, 24 kHz, mono. Accept a WAV header too, in case it is added.
+-if [ "$(head -c 4 "$RAW")" = "RIFF" ]; then
+-  ffmpeg -loglevel error -y -i "$RAW" -c:a libmp3lame -b:a 192k "$VO_DIR/raw.mp3"
+-else
+-  ffmpeg -loglevel error -y -f s16le -ar 24000 -ac 1 -i "$RAW" -c:a libmp3lame -b:a 192k "$VO_DIR/raw.mp3"
+-fi
+-rm -f "$RAW"
+-echo "Wrote $VO_DIR/raw.mp3 ($(ffprobe -v error -show_entries format=duration -of csv=p=0 "$VO_DIR/raw.mp3")s)"
+-```
+-
+-Request notes:
+-
+-- `response_format` must be `"pcm"`. Gemini on OpenRouter rejects `"mp3"` with HTTP 400.
+-- The style goes in `provider.options["google-ai-studio"].speech_metadata.style`. **Never put directions in `input`** -- Gemini 3.8 reads `input` word for word, so directions are spoken aloud.
+-- Run with network access to `openrouter.ai`.
+-
+-Then continue to [retime.md](../retime.md).
+-
+-## Style string
+-
+-Keep `speech_metadata.style` short: one line of tone and pace. Long "director's notes" make the voice drift. Build it from the style intake answers (see [style_intake.md](../style_intake.md)):
+-
+-| Intake answer | Style string |
+-|---|---|
+-| Default / conversational and warm | `confident, warm tech explainer; conversational, natural pace` |
+-| Enthusiastic | `upbeat and energetic, bright product-launch delivery` |
+-| Calm / serious | `calm, measured and authoritative; unhurried pace` |
+-| Playful | `playful and friendly, light and casual` |
+-
+-One request has one style. For a tone change within the video (e.g., build to excited at the end), write the change into the text itself (see [provider_script.md](../provider_script.md)).
+-
+-## Inline tags
+-
+-Gemini supports inline vocal tags in angle brackets, e.g. `<breath>`, `<chuckle>`, `<sigh>`, `<short pause>`, `<long pause>`. **Do not write them into the provider script.** In tests, pause tags on their own line or mid-sentence caused repeated phrases, spoken tag names ("short pause"), and random noises in 6 of 9 voices. The same `<long pause>` tag at the end of a line (added by `--pause-tag` at each `[[pause]]` marker) was clean in 5 of 5 voices. Use `[[pause]]` markers for pauses (see [provider_script.md](../provider_script.md)). Use a vocal tag only if the user asks for that sound, and always run the transcript check after.
+-
+-## Long scripts
+-
+-For scripts over about 5,000 characters (~5 minutes), split the provider script at a `[[pause]]` marker, generate one `raw_partN.mp3` per part with the same voice and style, and join them into `raw.mp3` (see [Join clips end to end](../../ffmpeg_cookbook.md#join-clips-end-to-end)). Then run the retime step on the joined file. The marker at the join sets the pause length there.
+-
+-## Troubleshooting
+-
+-| Issue | Resolution |
+-|---|---|
+-| HTTP 401 | `OPENROUTER_API_KEY` is missing or wrong in `.env`. |
+-| HTTP 402 | The account or key is out of credits, or the key's credit limit is reached. Add credits or raise the limit at https://openrouter.ai/settings/keys. |
+-| HTTP 400 `only supports response_format="pcm"` | Set `response_format` to `"pcm"`. |
+-| Audio sounds like noise or chipmunks | The PCM was decoded with the wrong format. Use `-f s16le -ar 24000 -ac 1`. |
+-| Directions are spoken aloud | Move them from the text into `speech_metadata.style`. |
+-| Transcript check fails | Regenerate (takes vary). Remove any inline tags. If it fails 3 times, try another voice and tell the user. |
+-| Mispronounced word | Add a phonetic spelling in the provider script (see [provider_script.md](../provider_script.md#step-4-pronunciation-and-special-terms)). |
+diff -ruN a/references/audio/voiceover/providers/local.md b/references/audio/voiceover/providers/local.md
+--- a/references/audio/voiceover/providers/local.md
++++ b/references/audio/voiceover/providers/local.md
+@@ -0,0 +1,34 @@
++# Local voice generation
++
++## When this is loaded
++
++Flow A step 5: turn `provider_script.md` into a take. The speech models run on the user's own servers. `$TTS_API` and `$STT_API` are already set; there are no keys.
++
++## Generate
++
++Write `generate.sh` in the voiceover folder, run it from the project root, and keep it so the take can be repeated:
++
++```bash
++#!/usr/bin/env bash
++set -euo pipefail
++node node_modules/videowright/skill/scripts/local-take.mjs "$(dirname "$0")" --seed 1234
++```
++
++The script synthesizes each stretch between `[[pause]]` markers separately, joins them with short silences into `raw.mp3`, and writes word timings to `raw_stt.json`.
++
++| Flag | Default | Purpose |
++|---|---|---|
++| `--seed <n>` | random, printed | The same seed and text give the same audio on `breeze` and `higgs`. Set it in `generate.sh`. |
++| `--model <name>` | `breeze` | See [Voices](../../voiceover.md#voices). |
++| `--voice <id>` | `jeff` | Pair `jeff` with `breeze` or `higgs` only. |
++| `--instruct <text>` | relaxed, conversational | Delivery style, `breeze` only. Change it for the tone from style intake. |
++
++Then continue with [retime.md](../retime.md) from Step 2.
++
++## Takes that need another try
++
++- The check reports a `PROBLEM`, or `apply` finds no natural pause: change `--seed` and run `generate.sh` again.
++- The same line fails every time: reword it, or split it with another `[[pause]]`.
++- A name is mispronounced: spell it the way it sounds in `provider_script.md`.
++- You cannot hear audio. Ask the user to judge voice likeness, pacing and pronunciation.
++- A slow first call or a timeout means the model is loading. Wait and rerun.
+diff -ruN a/references/audio/voiceover/providers/manual.md b/references/audio/voiceover/providers/manual.md
+--- a/references/audio/voiceover/providers/manual.md
++++ b/references/audio/voiceover/providers/manual.md
+@@ -32,32 +32,17 @@
+ 
+ ## Step 2: Generate transcript and timing
+ 
+-The sync algorithm needs per-word timing data in `timing.json`. Pick the first option that the user can use (check key names in `.env` only -- never print values):
++The sync algorithm needs per-word timing data in `timing.json`. Use the `stt-transcribe` skill's tool:
+ 
+-1. **`OPENROUTER_API_KEY` in `.env`:** run the OpenRouter STT call from [../retime.md](../retime.md#step-1-stt), with the user's audio file as input and `timing.json` as output.
+-2. **`ELEVENLABS_API_KEY` in `.env`:** run the Scribe call from [elevenlabs.md](elevenlabs.md#speech-to-text-api), with `timing.json` as output.
+-3. **No key:** the user runs ElevenLabs Speech-to-Text in the web portal (free tier available), as below.
++```bash
++@stt@ transcribe "$VO_DIR/audio.mp3" --words > "$VO_DIR/timing.json"
++```
+ 
+ Do not run the retime step in the manual flow. The user's recording has its own pacing.
+ 
+-For option 3, guide the user through ElevenLabs Speech-to-Text:
+-
+-> **To generate the timing data, we need to transcribe your audio with per-word timestamps.**
+->
+-> Follow these steps:
+->
+-> 1. Open https://elevenlabs.io/app and sign in (or create a free account).
+-> 2. Navigate to **Speech to Text** in the sidebar.
+-> 3. Upload your audio file (`<filename>`).
+-> 4. Wait for transcription to complete.
+-> 5. **Export as JSON.** Select the JSON export option -- **do not use plain text export**, which does not include per-word timing data.
+-> 6. Save the JSON file as `timing.json` in `audio/originals/voiceovers/<slug>/`.
+-
+-See [elevenlabs.md](elevenlabs.md) for the detailed STT portal walkthrough and expected JSON format.
+-
+ ## Step 3: Verify the transcript
+ 
+-After the user downloads the timing JSON:
++After writing the timing JSON:
+ 
+ 1. Read `timing.json` and extract the full transcript text.
+ 2. Present it to the user for review: "Here's what the transcription heard. Does this match your recording?"
+@@ -93,7 +78,7 @@
+ audio/originals/voiceovers/<slug>/
+   voiceover.ts             # created at the end of the flow
+   audio.mp3                # user-provided audio
+-  timing.json              # from STT (OpenRouter or ElevenLabs)
++  timing.json              # from local STT
+ ```
+ 
+ Note: there is no `provider_script.md` in the manual flow since the user recorded the audio themselves.
+@@ -105,4 +90,3 @@
+ | Audio has background music or noise | STT accuracy may suffer. Warn the user that timing data could be less precise. Suggest clean audio for best results. |
+ | Audio has multiple speakers | Videowright supports only single-narrator voiceovers. Ask the user to provide a single-speaker recording. |
+ | Audio is very short (< 5 seconds) | Proceed normally, but the resulting timing may be too sparse for meaningful sync. |
+-| User does not want to use ElevenLabs STT | Use OpenRouter STT (needs an OpenRouter key, see [gemini.md](gemini.md#step-1-get-the-api-key) for setup). Creating `timing.json` by hand is impractical. |
+diff -ruN a/references/audio/voiceover/retime.md b/references/audio/voiceover/retime.md
+--- a/references/audio/voiceover/retime.md
++++ b/references/audio/voiceover/retime.md
+@@ -10,18 +10,12 @@
+ 
+ ## Why
+ 
+-Expressive TTS models (Gemini 3.8, ElevenLabs v3) give natural intonation and pacing, but they do not give exact pause lengths, and a take can sometimes skip or repeat a phrase. The TTS model paces the speech; this step makes the pauses exact and catches bad takes. Exact pauses give the animation the time it needs at each segment boundary.
++Expressive TTS models give natural intonation and pacing, but they do not give exact pause lengths, and a take can sometimes skip or repeat a phrase. The TTS model paces the speech; this step makes the pauses exact and catches bad takes. Exact pauses give the animation the time it needs at each segment boundary.
+ 
+-## Rule: only retime a pause the TTS was told to make
++## Rule: only retime a real pause
+ 
+-Edit the audio only at a `[[pause]]` marker where a provider pause tag was sent to the TTS, and only inside a real silence. Never cut between two words that the model spoke close together: the voice can still be trailing off and there is no pure-silence point, so the edit sounds obviously re-cut. The tag also tells the model a pause is coming, so it ends the line with the right cadence.
++The tool edits audio only at a `[[pause]]` marker, and only inside a silence of at least 0.4s. Never cut between two words that the model spoke close together: the voice can still be trailing off, so the edit sounds re-cut. `local-take.mjs` leaves such a silence at every marker. Lead-in and tail markers only add or trim silence at the file edges.
+ 
+-The tool enforces this:
+-
+-- `text` adds the pause tag at every marker between two lines, and fails without `--pause-tag`.
+-- `apply` edits only inside a detected silence of at least 0.4s at each marker. If the take did not pause there, it stops -- regenerate the take. It never cuts at a gap between words that has no real silence.
+-- Lead-in and tail markers only add or trim silence at the file edges. They need no tag.
+-
+ Do not work around a refused pause by editing the audio another way. Regenerate the take, or move the marker to a sentence end.
+ 
+ ## The tool
+@@ -32,47 +26,16 @@
+ # A function (not a variable) so it works in both bash and zsh.
+ retime() { node node_modules/videowright/skill/scripts/retime.mjs "$@"; }
+ 
+-retime text  <provider_script.md> --pause-tag <tag>     # TTS text: markers -> provider pause tag
+ retime check <provider_script.md> <stt.json>            # transcript check; exit 1 = bad take
+ retime apply <provider_script.md> <raw_audio> <stt.json> <out_audio> <out_timing.json>
+ ```
+ 
+-It reads OpenRouter/OpenAI `verbose_json`, ElevenLabs Scribe JSON, and the canonical timing format.
++It reads the canonical timing format that `local-take.mjs` writes.
+ 
+-`--pause-tag` is `[pause]` for ElevenLabs v3 and `<long pause>` for Gemini. Each marker between two lines becomes the tag at the end of the line, then a paragraph break (never a tag at the start or end of the script):
+-
+-```
+-...with a single prompt. [pause]
+-
+-Videowright turns a coding agent into a video team...
+-```
+-
+-Keep the tag at the end of the line. In tests, Gemini tags on their own line caused repeated phrases and spoken tag names; at the end of the line they were clean in every take.
+-
+ ## Step 1: STT
+ 
+-Pick the STT provider from the keys in `.env` (check key names only -- do not print values):
++`local-take.mjs` has already written `raw_stt.json` (see [providers/local.md](providers/local.md)). There is nothing to run.
+ 
+-- **`OPENROUTER_API_KEY`** (preferred; costs less than $0.001 per minute):
+-
+-  ```bash
+-  set -a; . ./.env; set +a
+-  VO_DIR="videos/<video>/audio/originals/voiceovers/<slug>"
+-  curl -sS https://openrouter.ai/api/v1/audio/transcriptions \
+-    -H "Authorization: Bearer $OPENROUTER_API_KEY" \
+-    -F file=@"$VO_DIR/raw.mp3" \
+-    -F model=openai/whisper-large-v3-turbo \
+-    -F language=en \
+-    -F response_format=verbose_json \
+-    -F 'timestamp_granularities[]=word' \
+-    -o "$VO_DIR/raw_stt.json"
+-  ```
+-
+-- **`ELEVENLABS_API_KEY` only:** use Scribe v2 (see [providers/elevenlabs.md](providers/elevenlabs.md#speech-to-text-api)), output to `raw_stt.json`.
+-- **Portal users:** the user exports STT JSON from the ElevenLabs portal as `raw_stt.json` (see [providers/elevenlabs.md](providers/elevenlabs.md#step-2----word-timings-stt)).
+-
+-Add these STT calls to `generate.sh` after the TTS call, so one run makes a complete take.
+-
+ ## Step 2: Check
+ 
+ ```bash
+@@ -84,7 +47,7 @@
+ - **`ok`** lines are small differences, usually STT spelling ("Videowright" heard as "video write", "3D" as "three D"). These are normal.
+ - **`PROBLEM`** lines are 2+ words dropped, added, or replaced. The take skipped a phrase, repeated a phrase, spoke a tag aloud, or added noise words. The command exits 1.
+ 
+-On `FAIL`: regenerate the take (run `generate.sh` again; each take is different). After 3 failed takes, stop and show the user the `PROBLEM` lines. Suggest another voice, removing inline tags, or rewording the line.
++On `FAIL`: regenerate the take (run `generate.sh` again; each take is different). After 3 failed takes, stop and show the user the `PROBLEM` lines. Suggest rewording the line or splitting it.
+ 
+ Also read the `ok` lines. If a product name or term is heard differently in every take, the TTS may be mispronouncing it. Mention it to the user and offer a phonetic spelling.
+ 
+@@ -113,7 +76,7 @@
+ ```
+ audio/originals/voiceovers/<slug>/
+   provider_script.md       # script with [[pause]] markers
+-  generate.sh              # TTS + STT (API flows)
++  generate.sh              # TTS + STT
+   raw.mp3                  # TTS take, pauses as generated
+   raw_stt.json             # STT word timings for raw.mp3
+   audio.mp3                # retimed audio (referenced by voiceover.ts)
+@@ -129,5 +92,4 @@
+ | `cannot find the neighbouring words in the STT` | The words around that marker are missing from the transcript. Run `check` -- the take probably dropped them. Regenerate. |
+ | `transcript check failed` | See Step 2. `--allow-mismatch` retimes anyway; use it only when the user accepts the take. |
+ | `ffmpeg failed` / `ffprobe` not found | Install ffmpeg (see [export.md](../../export.md)). |
+-| `the take has no natural pause here` | The model did not pause at that marker. Regenerate the take. If it repeats, check that `generate.sh` passes `--pause-tag` and that the marker is at a sentence end. Do not force it with manual ffmpeg edits. |
+-| `pause markers between lines need --pause-tag` | Add `--pause-tag "[pause]"` (ElevenLabs v3) or `--pause-tag "<long pause>"` (Gemini) to the `text` command. |
++| `the take has no natural pause here` | Regenerate the take. If it repeats, check that the marker is at a sentence end. Do not force it with manual ffmpeg edits. |
+diff -ruN a/references/audio/voiceover/style_intake.md b/references/audio/voiceover/style_intake.md
+--- a/references/audio/voiceover/style_intake.md
++++ b/references/audio/voiceover/style_intake.md
+@@ -6,7 +6,7 @@
+ 
+ ## Purpose
+ 
+-Style intake captures preferences that the agent **directly uses** when writing the provider script: tone, emotional arc, and reference style. Voice selection (which voice to use, gender, accent, speaking rate) is handled separately -- from the provider's voice catalog in [voiceover.md](../voiceover.md#provider-choice), or visually in the portal UI for ElevenLabs portal users.
++Style intake captures preferences that the agent **directly uses** when writing the provider script: tone, emotional arc, and reference style. Voice selection (which voice to use, gender, accent, speaking rate) is handled separately -- from [Voices](../voiceover.md#voices).
+ 
+ ## Questions to ask
+ 
+@@ -27,25 +27,20 @@
+ 
+ ## How answers map to provider script
+ 
+-Tone is conveyed mostly through punctuation, sentence structure, and word choice. Each provider adds one light control: a style string for Gemini, and optional audio tags for ElevenLabs v3.
++Tone is conveyed mostly through punctuation, sentence structure, and word choice. The `breeze` model adds one control: the `--instruct` style sentence.
+ 
+-| Preference | Provider script effect |
++| Preference | Effect |
+ |---|---|
+-| Tone: enthusiastic | Exclamation marks, short punchy sentences, emphatic word choice. Gemini style: "upbeat and energetic". |
+-| Tone: calm/serious | Longer sentences, measured pacing. Gemini style: "calm, measured and authoritative". |
+-| Tone: warm | Natural conversational phrasing -- the default. Gemini style: "confident, warm tech explainer". |
+-| Emotional arc | Vary sentence structure and punctuation across sections of the script. ElevenLabs v3: optionally one audio tag where the tone changes. |
++| Tone: enthusiastic | Exclamation marks, short punchy sentences, emphatic word choice. Instruct: "Speak in an upbeat, energetic tone." |
++| Tone: calm/serious | Longer sentences, measured pacing. Instruct: "Speak in a calm, measured, authoritative tone." |
++| Tone: warm | Natural conversational phrasing and the default instruct. |
++| Emotional arc | Vary sentence structure and punctuation across sections of the script. |
+ 
+-See [provider_script.md](provider_script.md#emotion-and-tone) for the full writing toolkit and provider controls.
++See [provider_script.md](provider_script.md#emotion-and-tone) for the full writing toolkit.
+ 
+ ## What NOT to ask
+ 
+-Voice attributes (gender, accent, age, speaking rate) are **not** part of style intake. They are chosen at voice-selection time:
+-
+-- **Gemini and ElevenLabs API users** pick from the provider's curated voice catalog (see [voiceover.md](../voiceover.md#provider-choice)).
+-- **ElevenLabs portal users** select a voice visually in the ElevenLabs web UI.
+-
+-If the user volunteers voice preferences during style intake, acknowledge them and note that they will be applied during voice selection.
++Voice attributes (gender, accent, age, speaking rate) are **not** part of style intake. They come from the voice choice in [Voices](../voiceover.md#voices).
+ 
+ ## When to skip style intake
+ 
+diff -ruN a/references/audio/voiceover.md b/references/audio/voiceover.md
+--- a/references/audio/voiceover.md
++++ b/references/audio/voiceover.md
+@@ -10,9 +10,11 @@
+ 
+ Two production flows are supported:
+ 
+-- **AI-generated** -- write a script with `[[pause]]` markers, generate audio with Gemini 3.8 Flash TTS (via OpenRouter) or ElevenLabs v3 (API key or web portal), then transcribe it, check it, and set the pause lengths with the retime tool.
+-- **Manual** -- user provides their own audio file, then runs it through Speech-to-Text (OpenRouter or ElevenLabs) to get per-word timing data for sync.
++- **AI-generated** -- write a script with `[[pause]]` markers, generate audio with the local speech models (by default the user's cloned voice), check it, and set the pause lengths with the retime tool.
++- **Manual** -- user provides their own audio file, which local Speech-to-Text turns into per-word timing data for sync.
+ 
++Speech runs on the user's own servers (`$TTS_API` and `$STT_API`). No API keys or `.env` entries are needed.
++
+ Both flows produce the same output: a `voiceover.ts` file with a `Voiceover` object that includes the audio path and a `Timing` object.
+ 
+ ## Flow entry point
+@@ -26,61 +28,30 @@
+ 
+ ### Flow A: AI generation
+ 
+-1. **Provider and voice selection.** Ask which provider to use (see [Provider choice](#provider-choice)), then present that provider's voice catalog ([Gemini](#gemini-voices) or [ElevenLabs](#elevenlabs-voices)). ElevenLabs users also pick API key vs. portal (see [voiceover/providers/elevenlabs.md](voiceover/providers/elevenlabs.md#mode-selection)).
++1. **Voice selection.** Use the default voice unless the user asks for another. See [Voices](#voices).
+ 2. **Style intake.** Ask the user about tone and emotional arc preferences. See [voiceover/style_intake.md](voiceover/style_intake.md).
+ 3. **Script.** Write or integrate the VO script into PLAN.md. See [voiceover/script_writing.md](voiceover/script_writing.md).
+ 4. **Provider script.** Transform the PLAN script into `provider_script.md`: plain spoken text with `[[pause Xs]]` markers at segment boundaries and animation beats. See [voiceover/provider_script.md](voiceover/provider_script.md).
+-5. **Audio generation.** Generate the TTS take as `raw.mp3`. See [voiceover/providers/gemini.md](voiceover/providers/gemini.md) or [voiceover/providers/elevenlabs.md](voiceover/providers/elevenlabs.md).
++5. **Audio generation.** Generate the TTS take as `raw.mp3`. See [voiceover/providers/local.md](voiceover/providers/local.md).
+ 6. **Retime.** Transcribe the take (STT), check it against the script (regenerate bad takes), and set every `[[pause]]` to its exact length. Produces `audio.mp3` and `timing.json`. See [voiceover/retime.md](voiceover/retime.md).
+ 7. **Sync timing.** Read `timing.json` and compute a `Timing` object. See [voiceover/sync_algorithm.md](voiceover/sync_algorithm.md).
+ 8. **Write `voiceover.ts`.** Create the typed module exporting a `Voiceover` object.
+ 9. **Audio plan and build.** Create or update `audio/audio_plan.md` with a VO cue pointing at this voiceover. For VO-only videos, the plan is minimal (single cue, full file, placed at 0s -- see [audio_plan.md](audio_plan.md) for the VO-only shortcut). Then build the track via [build.md](build.md). The build workflow handles approval, timeline.ts update, and sync.
+ 
+-### Provider choice
++### Voices
+ 
+-Check which keys `.env` already has (key names only -- `grep -c '^OPENROUTER_API_KEY=' .env`; never print values). Then ask:
+-
+-> Which text-to-speech provider should we use?
+->
+-> 1. **Gemini 3.8 Flash TTS via OpenRouter** -- Recommended (perfect if you already have OpenRouter keys). Natural, expressive delivery. About $0.01-0.02 per minute of audio, pay as you go. One key covers everything.
+-> 2. **ElevenLabs v3** -- Recommended (if you have an ElevenLabs subscription). Very expressive, large voice library. API needs a paid plan; the web portal works with any plan.
+-
+-If `.env` has only one of the two keys, say so and suggest that provider. If the user has no preference, use Gemini.
+-
+-### Gemini voices
+-
+-When the user picks **Gemini**, present this catalog (default is **Charon** if no preference):
+-
+-| # | Voice | Description |
++| Model | Voice | Use for |
+ |---|---|---|
+-| 1 | **Charon** | Male. Google's "informative" voice: clear, confident, and steady, with a measured pace (~140 WPM in tests). A natural fit for tech explainers, product demos, and tutorials. The default. |
+-| 2 | **Sadaltager** | Male. Google's "knowledgeable" voice: warm and composed, a little quicker (~150 WPM). Sounds like an expert talking you through a topic -- good for walkthroughs and educational content. |
+-| 3 | **Sulafat** | Female. Google's "warm" voice: friendly and relaxed, with the most unhurried pace of the set (~140 WPM). Good for storytelling, onboarding, and brand videos that should feel approachable. |
+-| 4 | **Kore** | Female. Google's "firm" voice: crisp, assured, and direct, with a brisk pace (~150 WPM). Good for product launches, announcements, and punchy marketing. |
+-| 5 | **Other** | Any of Google's 30 prebuilt voices, e.g. Aoede (breezy), Leda (youthful), Puck (upbeat), Iapetus (clear). Preview them at [Google AI Studio](https://aistudio.google.com/generate-speech). |
++| `breeze` | `jeff` | The default: the user's own cloned voice. |
++| `higgs` | `jeff` | The user's voice for non-English text. |
++| `kokoro` | `af_heart` and other `af_`/`am_`/`bf_`/`bm_` ids | A voice that is not the user's, or a fast draft. |
+ 
+-Save the voice name to the `voice` field in `voiceover.ts`, and set it as `VOICE` in `generate.sh`.
++Do not ask which voice to use unless the request suggests something other than the user's own. Use the cloned voice only for text the user wants in their own voice. Save the choice to the `voice` and `model` fields in `voiceover.ts`.
+ 
+-### ElevenLabs voices
+-
+-When the user picks **ElevenLabs** with the **API key** approach, present this catalog (default is **Asher** if no preference):
+-
+-| # | Voice | Description | Preview |
+-|---|---|---|---|
+-| 1 | **Asher** | Warm, clear, and conversational male voice with confident, grounded delivery. Natural pacing and friendly authority give him an engaging presence that holds attention without feeling forced. Ideal for podcasts, narration, explainers, and authentic commercial reads. Works especially well as a default voice because of his versatility across different content types and tones. | [Listen](https://elevenlabs.io/app/voice-library?voiceId=tMvyQtpCVQ0DkixuYm6J) |
+-| 2 | **Cecily** | Warm, versatile female voice from the West Coast with an engaging, approachable delivery. Her natural warmth and conversational style make her equally effective for advertisements, social media content, and brand storytelling. She can shift between polished and casual registers without losing authenticity. A strong choice when you want a voice that feels relatable and trustworthy across a range of content. | [Listen](https://elevenlabs.io/app/voice-library?voiceId=Uc7anshoV8mdBhDnEZEX) |
+-| 3 | **Don** | Young American male voice with a casual, approachable tone that feels natural and engaging. Light, clear, and expressive -- perfect for conversations with listeners in a relaxed way. This style works especially well for social media content, storytelling, and audiobooks, where relatability and flow are key. The voice carries warmth and clarity, making it easy to listen to over long sessions from narration to digital campaigns. | [Listen](https://elevenlabs.io/app/voice-library?voiceId=8IbUB2LiiCZ85IJAHNnZ) |
+-| 4 | **Hanna** | Professional American female voice with a polished, authoritative delivery. Clear articulation and steady pacing make her an excellent choice for informative narration, e-learning modules, and corporate voiceover. She conveys competence and credibility without sounding stiff or robotic. Best when you need a voice that commands attention while remaining approachable in instructional or business contexts. | [Listen](https://elevenlabs.io/app/voice-library?voiceId=Hh0rE70WfnSFN80K8uJC) |
+-| 5 | **Other** | Provide any ElevenLabs voice ID. Browse voices at the [ElevenLabs Voice Library](https://elevenlabs.io/app/voice-library) to find one that fits your project. | -- |
+-
+-If the user does not pick, default to **Asher**. Save the selected voice ID to the `voice` field in the `voiceover.ts` file (not as an env var). If the user picks "Other", ask them to provide the voice ID.
+-
+-Portal users skip this catalog -- they pick a voice visually in the ElevenLabs UI during audio generation (step 5).
+-
+ ### Flow B: Manual (user-provided audio)
+ 
+ 1. **Get the audio.** Ask the user to provide or drop an audio file into `audio/originals/voiceovers/<slug>/`.
+-2. **Generate transcript and timing.** Get per-word timing data with Speech-to-Text (OpenRouter API, ElevenLabs API, or ElevenLabs portal). See [voiceover/providers/manual.md](voiceover/providers/manual.md).
++2. **Generate transcript and timing.** Get per-word timing data with local Speech-to-Text. See [voiceover/providers/manual.md](voiceover/providers/manual.md).
+ 3. **Sync timing.** Same as Flow A step 7.
+ 4. **Write `voiceover.ts`.** Same as Flow A step 8.
+ 5. **Audio plan and build.** Same as Flow A step 9.
+@@ -103,7 +74,7 @@
+           audio.mp3                # final audio (mp3 or wav; any name works, referenced from voiceover.ts)
+           timing.json              # per-word timings for audio.mp3
+           provider_script.md       # script with [[pause]] markers (AI flow only)
+-          generate.sh              # TTS + STT generation script (AI API flows only)
++          generate.sh              # TTS + STT generation script (AI flow only)
+           raw.mp3                  # TTS take before retime (AI flow only)
+           raw_stt.json             # STT word timings for raw.mp3 (AI flow only)
+     tracks/
+@@ -124,12 +95,12 @@
+ ```ts
+ type Voiceover = {
+   audio_file: string;             // path relative to the voiceover.ts file
+-  provider: "gemini" | "elevenlabs" | "manual";
++  provider: "local" | "gemini" | "elevenlabs" | "manual";
+   provider_timing_file?: string;  // path relative to the voiceover.ts file
+   timing: Timing;
+   notes?: string;
+-  voice?: string;                 // Gemini voice name or ElevenLabs voice ID
+-  model?: string;                 // e.g. "google/gemini-3.8-flash-tts" or "eleven_v3"
++  voice?: string;                 // local voice id, e.g. "jeff"
++  model?: string;                 // local model, e.g. "breeze"
+   eleven_labs_voice_id?: string;  // deprecated: use `voice` (older voiceovers only)
+ };
+ ```
+@@ -164,10 +135,10 @@
+ 
+ const voiceover: Voiceover = {
+   audio_file: './audio.mp3',
+-  provider: 'gemini',
++  provider: 'local',
+   provider_timing_file: './timing.json',
+-  voice: 'Charon',
+-  model: 'google/gemini-3.8-flash-tts',
++  voice: 'jeff',
++  model: 'breeze',
+   timing: {
+     perSegment: {
+       'intro':          [4.2],
+diff -ruN a/references/audio.md b/references/audio.md
+--- a/references/audio.md
++++ b/references/audio.md
+@@ -26,7 +26,7 @@
+ 
+ If the user wants a voice-over, load [audio/voiceover.md](audio/voiceover.md). This covers:
+ 
+-- AI-generated (Gemini via OpenRouter, or ElevenLabs) and manual (user-provided audio) flows
++- AI-generated (local speech models, including the user's cloned voice) and manual (user-provided audio) flows
+ - Script writing, provider script transformation, retiming pauses
+ - Voice selection and style intake
+ - Sync timing computation
+@@ -46,7 +46,7 @@
+ 
+ If the user wants background music, load [audio/music/music.md](audio/music/music.md). This covers:
+ 
+-- BYO (user-provided audio), ElevenLabs (AI-generated), and Openverse (free search) sourcing flows
++- BYO (user-provided audio), local AI generation, and Openverse (free search) sourcing flows
+ - `music.ts` metadata authoring (rich free-text notes for BPM, key, mood, structure)
+ - Per-asset approval UX (Approve / Discard and request changes)
+ - Integration into the audio plan as cues with volume curves and ducking
+diff -ruN a/references/types.md b/references/types.md
+--- a/references/types.md
++++ b/references/types.md
+@@ -159,7 +159,7 @@
+ ```ts
+ type Voiceover = {
+   audio_file: string;
+-  provider: "gemini" | "elevenlabs" | "manual";
++  provider: "local" | "gemini" | "elevenlabs" | "manual";
+   provider_timing_file?: string;
+   timing: Timing;
+   notes?: string;
+@@ -176,8 +176,8 @@
+ | `provider_timing_file` | No | Provider timing JSON path, relative to `voiceover.ts` directory. |
+ | `timing` | Yes | Per-segment advance timing synced to this audio. |
+ | `notes` | No | Freeform notes about this voiceover. |
+-| `voice` | No | Provider voice for TTS generation: a Gemini voice name (e.g. `"Charon"`) or an ElevenLabs voice ID. Ignored when provider is `"manual"`. |
+-| `model` | No | Provider model for TTS generation (e.g. `"google/gemini-3.8-flash-tts"`, `"eleven_v3"`). Ignored when provider is `"manual"`. |
++| `voice` | No | Voice id for TTS generation (e.g. `"jeff"`). Ignored when provider is `"manual"`. |
++| `model` | No | Model for TTS generation (e.g. `"breeze"`). Ignored when provider is `"manual"`. |
+ | `eleven_labs_voice_id` | No | Deprecated -- use `voice`. ElevenLabs voice ID written by older versions of the skill. |
+ 
+ See [audio/voiceover.md](audio/voiceover.md) for the full voiceover flow and file conventions.

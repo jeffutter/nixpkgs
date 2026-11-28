@@ -14,6 +14,8 @@ import urllib.request
 import uuid
 
 DEFAULT_API = os.environ.get("STT_API")
+# The one model here that returns word times, through audio.cpp's own route.
+WORDS_MODEL = "parakeet-tdt-0.6b-v3"
 ASR_MARKERS = ("parakeet", "whisper", "nemotron-asr", "crisperwhisper", "canary", "asr")
 
 
@@ -25,6 +27,16 @@ def base_url(api: str) -> str:
     if not api.endswith("/v1"):
         api += "/v1"
     return api
+
+
+def word_times(result: dict) -> dict:
+    """The /details response, with word times in seconds."""
+    rate = result["sample_rate"]
+    words = [
+        {"word": w["word"], "start": w["start_sample"] / rate, "end": w["end_sample"] / rate}
+        for w in result["words"]
+    ]
+    return {"text": result["text"], "words": words}
 
 
 def cmd_models(args):
@@ -54,23 +66,30 @@ def multipart(fields: dict, filename: str, content: bytes):
 
 def cmd_transcribe(args):
     multiple = len(args.files) > 1
+    url = base_url(args.api) + "/audio/transcriptions"
+    if args.words:
+        if args.model:
+            sys.exit(f"--words always uses {WORDS_MODEL}: drop --model")
+        # llama-swap's /upstream/<model>/ passthrough; the OpenAI route has no word times.
+        url = f"{base_url(args.api).removesuffix('/v1')}/upstream/{WORDS_MODEL}/v1/audio/transcriptions/details"
+    model = WORDS_MODEL if args.words else args.model or "parakeet"
     for path in args.files:
         with open(path, "rb") as f:
             content = f.read()
-        fields = {"model": args.model}
+        fields = {"model": model}
         if args.language:
             fields["language"] = args.language
         body, ctype = multipart(fields, path, content)
-        req = urllib.request.Request(
-            base_url(args.api) + "/audio/transcriptions", data=body, headers={"Content-Type": ctype}
-        )
+        req = urllib.request.Request(url, data=body, headers={"Content-Type": ctype})
         try:
             with urllib.request.urlopen(req, timeout=args.timeout) as r:
                 result = json.load(r)
         except urllib.error.HTTPError as e:
             sys.exit(f"{path}: HTTP {e.code}: {e.read().decode(errors='replace')[:500]}")
         # The server returns JSON whatever response_format asks for.
-        if args.json:
+        if args.words:
+            print(json.dumps(word_times(result), indent=2))
+        elif args.json:
             print(json.dumps(result, indent=2))
         else:
             if multiple:
@@ -79,7 +98,7 @@ def cmd_transcribe(args):
             t = result.get("timing", {})
             if t:
                 print(
-                    f"model={args.model} audio={t.get('audio_duration_ms', 0) / 1000:.1f}s "
+                    f"model={model} audio={t.get('audio_duration_ms', 0) / 1000:.1f}s "
                     f"wall={t.get('wall_ms', 0) / 1000:.1f}s",
                     file=sys.stderr,
                 )
@@ -92,10 +111,12 @@ def main():
     sub.add_parser("models", help="list speech-to-text models the endpoint serves").set_defaults(fn=cmd_models)
     s = sub.add_parser("transcribe", help="transcribe audio files to text on stdout")
     s.add_argument("files", nargs="+", help="audio files (mp3, m4a, wav, ...)")
-    s.add_argument("--model", default="parakeet")
+    s.add_argument("--model", help="default: parakeet")
     s.add_argument("--language", help="language hint, e.g. en")
     s.add_argument("--json", action="store_true", help="print the full JSON response")
     s.add_argument("--timeout", type=int, default=600)
+    s.add_argument("--words", action="store_true",
+                   help="print JSON with the start and end of every word, in seconds")
     s.set_defaults(fn=cmd_transcribe)
     args = p.parse_args()
     if not args.api:
