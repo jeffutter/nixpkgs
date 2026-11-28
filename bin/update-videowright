@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+FLAKE_DIR="${HOME}/.config/home-manager"
+PKG_DIR="${FLAKE_DIR}/pkgs/videowright"
+PKG="${PKG_DIR}/default.nix"
+
+# --force regenerates the lockfile and hash even when the pinned version is
+# already current.
+FORCE=0
+for ARG in "$@"; do
+  case "$ARG" in
+    --force) FORCE=1 ;;
+    *)
+      echo "usage: ${0##*/} [--force]" >&2
+      exit 1
+      ;;
+  esac
+done
+
+echo "Fetching latest videowright version..."
+LATEST=$(curl -sf "https://registry.npmjs.org/videowright/latest" | jq -r '.version')
+
+if [[ -z "$LATEST" || "$LATEST" == "null" ]]; then
+  echo "error: failed to fetch latest videowright version from npm" >&2
+  exit 1
+fi
+
+CURRENT=$(jq -r '.version' "${PKG_DIR}/package.json")
+
+echo "Current: $CURRENT  Latest: $LATEST"
+
+if [[ "$LATEST" == "$CURRENT" && "$FORCE" != "1" ]]; then
+  echo "Already at latest version, nothing to do."
+  exit 0
+fi
+
+WORK="$(mktemp -d "${TMPDIR:-/tmp}/videowright.XXXXXX")"
+trap 'rm -rf "$WORK"' EXIT
+
+jq --arg v "$LATEST" '.version = $v | .dependencies.videowright = $v' \
+  "${PKG_DIR}/package.json" >"${WORK}/package.json"
+(cd "$WORK" && npm install --package-lock-only --ignore-scripts --no-audit --no-fund >/dev/null)
+
+DEPS_HASH=$(nix run --inputs-from "$FLAKE_DIR" nixpkgs#prefetch-npm-deps -- "${WORK}/package-lock.json")
+if [[ ! "$DEPS_HASH" =~ ^sha256-[A-Za-z0-9+/=]+$ ]]; then
+  echo "error: could not compute the videowright dependency hash (got '${DEPS_HASH}')" >&2
+  exit 1
+fi
+
+cp "${WORK}/package.json" "${WORK}/package-lock.json" "$PKG_DIR/"
+perl -pi -e "s|npmDepsHash = [^;]+|npmDepsHash = \"${DEPS_HASH}\"|" "$PKG"
+
+# A perl s||| that matches nothing exits 0, so confirm the value landed.
+if ! grep -qF "npmDepsHash = \"${DEPS_HASH}\"" "$PKG"; then
+  echo "error: failed to write npmDepsHash into ${PKG}" >&2
+  exit 1
+fi
+
+echo "Updated videowright: $CURRENT -> $LATEST"
