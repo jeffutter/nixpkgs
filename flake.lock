@@ -212,16 +212,16 @@
         "rust-overlay": "rust-overlay"
       },
       "locked": {
-        "lastModified": 1795714268,
-        "narHash": "sha256-33yHrOZp+pDGUt+OePliRP3Unrmcv+KSue0YnoTHHz0=",
+        "lastModified": 1795825178,
+        "narHash": "sha256-t+7l6jRk1+XjCO2J1UG8AYmG2E0lxc1PET/KU12Nu80=",
         "owner": "jeffutter",
         "repo": "cairn",
-        "rev": "a9e30d7878a58378f1d49e32ce1fa78f6c50ba10",
+        "rev": "ad14e352e7af94c1fd5796411edf742437116088",
         "type": "github"
       },
       "original": {
         "owner": "jeffutter",
-        "ref": "v0.2.0",
+        "ref": "v0.2.1",
         "repo": "cairn",
         "type": "github"
       }
@@ -1515,16 +1515,16 @@
         "rust-overlay": "rust-overlay_8"
       },
       "locked": {
-        "lastModified": 1795813552,
-        "narHash": "sha256-kukXjUTc/5xcUvyCMGrm9fk6/WQ0EXz1oPYWe95dVsI=",
+        "lastModified": 1795827525,
+        "narHash": "sha256-hcRntv3DPWvl7TcmVAmQxN/47TF9OIk1ebfKJdLpqaE=",
         "owner": "jeffutter",
         "repo": "scree",
-        "rev": "1646e1e0dfc1e77353bd98f7eb0151f178b776a5",
+        "rev": "a78ac3a4057c7e7055d823898b966ae5129ca384",
         "type": "github"
       },
       "original": {
         "owner": "jeffutter",
-        "ref": "v0.3.0",
+        "ref": "v0.4.0",
         "repo": "scree",
         "type": "github"
       }

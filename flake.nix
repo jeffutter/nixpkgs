@@ -43,11 +43,11 @@
     };
 
     cairn = {
-      url = "github:jeffutter/cairn/v0.2.0";
+      url = "github:jeffutter/cairn/v0.2.1";
     };
 
     scree = {
-      url = "github:jeffutter/scree/v0.3.0";
+      url = "github:jeffutter/scree/v0.4.0";
     };
 
     notectl = {
